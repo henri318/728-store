@@ -1,0 +1,21 @@
+{
+  "common": {
+    "login": "Iniciar sesión",
+    "logout": "Cerrar sesión",
+    "register": "Registrarse",
+    "home": "Inicio",
+    "hi": "Hola",
+    "products": "Nuestros Productos",
+    "viewDetails": "Ver Detalles"
+  },
+  "auth": {
+    "signInTitle": "Iniciar sesión",
+    "signUpTitle": "Registro",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "name": "Nombre",
+    "alreadyHaveAccount": "¿Ya tenés una cuenta? Iniciá sesión",
+    "dontHaveAccount": "¿No tenés cuenta? Registrate",
+    "errorMailExists": "El mail ya existe. Por favor, usá otro."
+  }
+}
