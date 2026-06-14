@@ -2,6 +2,7 @@ import { OrderRepository } from '../domain/order-repository';
 import { ProductEntity } from '@/modules/products/domain/product-repository';
 import { OutboxRepository } from '@/shared/kernel/memory-outbox-repository';
 import { GlobalEvents } from '@/shared/events';
+import { NotFoundError } from '@/shared/kernel/app-error';
 
 // --- Data Transfer Objects ---
 
@@ -66,7 +67,7 @@ export class CreateOrderUseCase {
     for (const productId of uniqueProductIds) {
       const product = await this.productRepository.findById(productId, 'es'); // Using 'es' locale for fetching price
       if (!product) {
-        throw new Error(`Product with ID ${productId} not found.`);
+        throw new NotFoundError(`Product with ID ${productId} not found.`, `Product with ID ${productId} not found.`);
       }
       // Store in map for quick lookup
       productsMap.set(productId, product);
@@ -77,7 +78,7 @@ export class CreateOrderUseCase {
       const product = productsMap.get(item.productId);
       if (!product) {
         // This should ideally not happen if previous step was successful
-        throw new Error(`Product with ID ${item.productId} not found.`);
+        throw new NotFoundError(`Product with ID ${item.productId} not found.`);
       }
 
       // Base price for the item (considering quantity)
@@ -90,7 +91,7 @@ export class CreateOrderUseCase {
       totalOrderPrice += itemTotalPrice;
 
       orderLineItemsToSave.push({
-        id: Math.random().toString(36).substr(2, 9), // Generate temp ID for line item
+        id: crypto.randomUUID(), // Generate temp ID for line item
         orderId: '', // This will be set when the order is saved and line items are linked
         productId: item.productId,
         quantity: item.quantity,
@@ -103,7 +104,7 @@ export class CreateOrderUseCase {
 
       // 2. Create the Order
       const newOrder: OrderEntity = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: crypto.randomUUID(),
       userId: dto.userId,
       // --- Multi-Seller Order Assumption ---
       // The sellerId for the order is currently determined by the first product in the items list.

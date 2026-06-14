@@ -3,6 +3,7 @@ import { OutboxRepository } from '@/shared/kernel/memory-outbox-repository';
 import { GlobalEvents } from '@/shared/events';
 import { hashPassword } from '@/shared/kernel/password-hasher';
 import { randomUUID } from 'crypto';
+import { ConflictError } from '@/shared/kernel/app-error';
 
 export interface RegisterUserDTO {
   email: string;
@@ -20,7 +21,7 @@ export class RegisterUserUseCase {
     // 1. Check if user already exists
     const existingUser = await this.userRepository.findByEmail(dto.email);
     if (existingUser) {
-      throw new Error('User already exists');
+      throw new ConflictError('User already exists');
     }
 
     // 2. Hash the password

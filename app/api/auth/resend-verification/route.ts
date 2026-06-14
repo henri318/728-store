@@ -1,23 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/shared/infrastructure/prisma';
 import { SignJWT } from 'jose';
+import { resendVerificationSchema } from '@/shared/validation/auth-schemas';
+import { handleApiError } from '@/shared/kernel/error-handler';
+import { escapeHtml } from '@/shared/kernel/email';
+import { getBaseUrl } from '@/shared/kernel/url';
 
 function getSecret(): Uint8Array {
   return new TextEncoder().encode(process.env.NEXTAUTH_SECRET!);
 }
 
-function getBaseUrl(request: NextRequest): string {
-  const host = request.headers.get('host') || 'localhost:3000';
-  const proto = request.headers.get('x-forwarded-proto') || 'http';
-  return `${proto}://${host}`;
-}
-
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
-    if (!email) {
-      return NextResponse.json({ error: 'Missing email' }, { status: 400 });
-    }
+    const { email } = resendVerificationSchema.parse(await request.json());
 
     // Find user
     const user = await prisma.user.findUnique({ where: { email } });
@@ -55,8 +50,8 @@ export async function POST(request: NextRequest) {
       .setExpirationTime('24h')
       .sign(getSecret());
 
-    const baseUrl = getBaseUrl(request);
-    const verificationLink = `${baseUrl}/api/auth/verify-email?token=${token}`;
+    const baseUrl = getBaseUrl();
+    const verificationLink = `${baseUrl}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
 
     const htmlBody = `
       <!DOCTYPE html>
@@ -64,7 +59,7 @@ export async function POST(request: NextRequest) {
         <head><meta charset="utf-8"></head>
         <body style="font-family: Arial, sans-serif; padding: 20px;">
           <h2>Verify your email</h2>
-          <p>Hi ${user.name || 'there'},</p>
+          <p>Hi ${escapeHtml(user.name) || 'there'},</p>
           <p>Thank you for registering. Please click the link below to verify your email address:</p>
           <p>
             <a href="${verificationLink}"
@@ -73,7 +68,7 @@ export async function POST(request: NextRequest) {
             </a>
           </p>
           <p>Or copy and paste this link in your browser:</p>
-          <p style="word-break: break-all; color: #4F46E5;">${verificationLink}</p>
+          <p style="word-break: break-all; color: #4F46E5;">${escapeHtml(verificationLink)}</p>
           <p>This link expires in 24 hours.</p>
           <hr>
           <p style="color: #6B7280; font-size: 12px;">Modular Ecommerce</p>
@@ -92,8 +87,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true, message: 'Verification email sent' });
-  } catch (error: any) {
-    console.error('[ResendVerification] Error:', error);
-    return NextResponse.json({ error: 'Failed to resend verification email' }, { status: 500 });
+  } catch (error: unknown) {
+    return handleApiError(error);
   }
 }
