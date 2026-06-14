@@ -1,0 +1,21 @@
+{
+  "common": {
+    "login": "Iniciar sessió",
+    "logout": "Tancar sessió",
+    "register": "Registrar-se",
+    "home": "Inici",
+    "hi": "Hola",
+    "products": "Els Nostres Productes",
+    "viewDetails": "Veure Detalls"
+  },
+  "auth": {
+    "signInTitle": "Iniciar sessió",
+    "signUpTitle": "Registre",
+    "email": "Correu electrònic",
+    "password": "Contrasenya",
+    "name": "Nom",
+    "alreadyHaveAccount": "Ja tens un compte? Inicia sessió",
+    "dontHaveAccount": "No tens compte? Registra't",
+    "errorMailExists": "El correu ja existeix. Si us plau, utilitza'n un altre."
+  }
+}

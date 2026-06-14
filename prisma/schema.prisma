@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String    @id @default(cuid())
+  name              String?
+  email             String?   @unique
+  emailVerified     DateTime?
+  image             String?
+  passwordHash      String?
+  role              String    @default("client")
+  preferredLanguage String    @default("es") // es, cat
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  orders            Order[]
+}
+
+model Seller {
+  id        String    @id @default(cuid())
+  name      String
+  products  Product[]
+  orders            Order[]
+  createdAt DateTime  @default(now())
+}
+
+model Product {
+  id             String                 @id @default(cuid())
+  basePrice      Decimal
+  sellerId       String
+  seller         Seller                 @relation(fields: [sellerId], references: [id])
+  translations   ProductTranslation[]
+  customizations ProductCustomization[]
+  lineItems      OrderLineItem[]
+  createdAt      DateTime               @default(now())
+}
+
+model ProductTranslation {
+  id          String  @id @default(cuid())
+  locale      String // es, cat
+  name        String
+  description String?
+  productId   String
+  product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, locale])
+}
+
+model ProductCustomization {
+  id        String  @id @default(cuid())
+  text      String?
+  color     String?
+  size      String?
+  imageUrl  String?
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Order {
+  id        String          @id @default(cuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id])
+  sellerId  String
+  seller    Seller          @relation(fields: [sellerId], references: [id])
+  status    String          @default("PENDING")
+  total     Decimal
+  lineItems OrderLineItem[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+model OrderLineItem {
+  id                    String   @id @default(cuid())
+  orderId               String
+  order                 Order    @relation(fields: [orderId], references: [id])
+  productId             String
+  product               Product  @relation(fields: [productId], references: [id])
+  quantity              Int
+  customizationText     String?
+  customizationColor    String?
+  customizationSize     String?
+  customizationImageUrl String?
+  createdAt             DateTime @default(now())
+}
+
+model SignupAttempt {
+  id        String   @id @default(cuid())
+  ipAddress String
+  email     String
+  createdAt DateTime @default(now())
+
+  @@index([ipAddress, createdAt])
+}
+
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  email     String
+  ipAddress String?
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+  @@index([ipAddress, createdAt])
+}
+
+model EmailQueue {
+  id          String    @id @default(cuid())
+  to          String
+  subject     String
+  htmlBody    String
+  template    String?
+  metadata    Json?
+  status      String    @default("PENDING")
+  error       String?
+  retryCount  Int       @default(0)
+  maxRetries  Int       @default(3)
+  scheduledAt DateTime  @default(now())
+  sentAt      DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status, scheduledAt])
+  @@index([createdAt])
+}
+
+model OutboxEvent {
+  id          String    @id @default(cuid())
+  eventType   String
+  payload     Json
+  status      String    @default("PENDING")
+  // PENDING, PROCESSED, FAILED
+  createdAt   DateTime  @default(now())
+  processedAt DateTime?
+}

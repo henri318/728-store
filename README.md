@@ -1,2 +1,3 @@
 # 728-store
-e-commerce for custom articles 
+
+E-commerce de artículos personalizados. Monolito modular con Next.js 15, Prisma, PostgreSQL y autenticación con NextAuth.
