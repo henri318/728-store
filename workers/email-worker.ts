@@ -1,5 +1,9 @@
 import { prisma } from '@/shared/infrastructure/prisma';
-import { brevoClient, FROM_NAME, FROM_EMAIL } from '@/shared/kernel/email';
+import { initContainer, getEmailSender } from '@/shared/kernel/container';
+
+// Wire dependencies once at startup — NODE_ENV determines which adapters are loaded
+initContainer();
+const emailSender = getEmailSender();
 
 async function processEmailQueue() {
   // Atomically claim PENDING records
@@ -16,11 +20,10 @@ async function processEmailQueue() {
 
   for (const email of processing) {
     try {
-      await brevoClient.transactionalEmails.sendTransacEmail({
+      await emailSender.send({
+        to: email.to,
         subject: email.subject,
-        htmlContent: email.htmlBody,
-        sender: { name: FROM_NAME, email: FROM_EMAIL },
-        to: [{ email: email.to }],
+        htmlBody: email.htmlBody,
       });
 
       await prisma.emailQueue.update({
