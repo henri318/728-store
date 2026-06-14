@@ -1,4 +1,4 @@
-import type { EmailSender } from './email-sender';
+import type { EmailSender } from '@/shared/kernel/email-sender';
 
 /**
  * Production adapter — dispatches emails via the Brevo transactional API.

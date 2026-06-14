@@ -1,6 +1,7 @@
 import { OrderRepository } from '../domain/order-repository';
-import { ProductEntity } from '@/modules/products/domain/product-repository';
-import { OutboxRepository } from '@/shared/kernel/memory-outbox-repository';
+import { ProductRepository } from '../domain/product-repository';
+import { ProductSnapshot } from '../domain/product-snapshot';
+import { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import { GlobalEvents } from '@/shared/events';
 import { NotFoundError } from '@/shared/kernel/app-error';
 
@@ -58,7 +59,7 @@ export class CreateOrderUseCase {
   async execute(dto: CreateOrderDTO) {
     let totalOrderPrice = 0;
     const orderLineItemsToSave: OrderLineItemEntity[] = [];
-    const productsMap = new Map<string, ProductEntity>(); // To avoid multiple fetches for same product
+    const productsMap = new Map<string, ProductSnapshot>(); // To avoid multiple fetches for same product
 
     // Fetch all unique products and their customization options if available
     const productIds = dto.items.map(item => item.productId);

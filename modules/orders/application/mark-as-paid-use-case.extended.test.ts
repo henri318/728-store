@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MarkAsPaidUseCase } from './mark-as-paid-use-case';
 import { MemoryOrderRepository } from '../infrastructure/memory-order-repository';
-import { MemoryOutboxRepository } from '@/shared/kernel/memory-outbox-repository';
+import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
 import { GlobalEvents } from '@/shared/events';
 import { OrderEntity, OrderStatus } from '../domain/order-repository';
 import { OrderLineItemEntity } from '../domain/order-line-item-entity';

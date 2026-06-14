@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { RegisterUserUseCase } from '@/modules/users/application/register-user-use-case';
 import { MemoryUserRepository } from '@/modules/users/infrastructure/memory-user-repository';
-import { MemoryOutboxRepository } from '@/shared/kernel/memory-outbox-repository';
-import { verifyPassword } from '@/shared/kernel/password-hasher';
+import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
+import { verifyPassword } from '@/shared/infrastructure/password-hasher';
 
 describe('RegisterUserUseCase with bcrypt', () => {
   let userRepo: MemoryUserRepository;

@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import LogoutButton from '@/shared/presentation/components/logout-button';
 import LanguageSelector from '@/shared/presentation/components/language-selector';
-import { outboxWorker } from '@/shared/kernel/outbox-worker';
+import { outboxWorker } from '@/shared/infrastructure/outbox-worker';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 
 // Start the outbox worker when the server starts

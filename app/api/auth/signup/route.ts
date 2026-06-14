@@ -6,8 +6,8 @@ import { PrismaOutboxRepository } from '@/shared/infrastructure/prisma-outbox-re
 import { prisma } from '@/shared/infrastructure/prisma';
 import { signupSchema } from '@/shared/validation/auth-schemas';
 import { handleApiError } from '@/shared/kernel/error-handler';
-import { escapeHtml } from '@/shared/kernel/email';
-import { getBaseUrl } from '@/shared/kernel/url';
+import { escapeHtml } from '@/shared/infrastructure/email';
+import { getBaseUrl } from '@/shared/infrastructure/url';
 
 function getSecret(): Uint8Array {
   return new TextEncoder().encode(process.env.NEXTAUTH_SECRET!);

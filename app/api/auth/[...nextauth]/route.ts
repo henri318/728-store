@@ -2,11 +2,11 @@ import NextAuth, { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 import { prisma } from '@/shared/infrastructure/prisma';
-import { verifyPassword } from '@/shared/kernel/password-hasher';
+import { verifyPassword } from '@/shared/infrastructure/password-hasher';
 import {
   checkRateLimit,
   recordLoginAttempt,
-} from '@/shared/kernel/rate-limiter';
+} from '@/shared/infrastructure/rate-limiter';
 
 export const authOptions: NextAuthOptions = {
   providers: [

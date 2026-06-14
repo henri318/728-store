@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CreateOrderUseCase, CreateOrderDTO, OrderLineItemInput, CustomizationInput } from '@/modules/orders/application/create-order-use-case';
 import { PrismaOrderRepository } from '@/modules/orders/infrastructure/prisma-order-repository';
-import { PrismaProductRepository } from '@/modules/products/infrastructure/prisma-product-repository';
+import { OrderProductRepositoryAdapter } from '@/modules/orders/infrastructure/product-repository-adapter';
 import { PrismaOutboxRepository } from '@/shared/infrastructure/prisma-outbox-repository';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { requireRole } from '@/shared/kernel/authorization';
+import { requireRole } from '@/shared/infrastructure/authorization';
 import { createOrderFormSchema } from '@/shared/validation/order-schemas';
 import { handleApiError } from '@/shared/kernel/error-handler';
 
@@ -56,7 +56,7 @@ export const POST = requireRole('client')(async function POST(request: NextReque
     // Instantiate dependencies (use actual implementations for API routes)
     // Ensure these repositories are correctly configured and available.
     const orderRepository = new PrismaOrderRepository(); // Use Prisma for live API
-    const productRepository = new PrismaProductRepository();
+    const productRepository = new OrderProductRepositoryAdapter();
     const outboxRepository = new PrismaOutboxRepository();
 
     const createOrderUseCase = new CreateOrderUseCase(

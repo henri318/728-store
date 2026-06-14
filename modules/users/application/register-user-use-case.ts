@@ -1,7 +1,7 @@
 import { UserRepository } from '../domain/user-repository';
-import { OutboxRepository } from '@/shared/kernel/memory-outbox-repository';
+import { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import { GlobalEvents } from '@/shared/events';
-import { hashPassword } from '@/shared/kernel/password-hasher';
+import { hashPassword } from '@/shared/infrastructure/password-hasher';
 import { randomUUID } from 'crypto';
 import { ConflictError } from '@/shared/kernel/app-error';
 

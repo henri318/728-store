@@ -1,31 +1,29 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CreateOrderUseCase } from './create-order-use-case';
 import { MemoryOrderRepository } from '../infrastructure/memory-order-repository';
-import { MemoryProductRepository } from '@/modules/products/infrastructure/memory-product-repository';
-import { MemoryOutboxRepository } from '@/shared/kernel/memory-outbox-repository';
+import { MemoryOrderProductRepository } from '@/tests/doubles/memory-order-product-repository';
+import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
 import { GlobalEvents } from '@/shared/events';
 
 describe('CreateOrderUseCase', () => {
   let orderRepository: MemoryOrderRepository;
-  let productRepository: MemoryProductRepository;
+  let productRepository: MemoryOrderProductRepository;
   let outboxRepository: MemoryOutboxRepository;
   let useCase: CreateOrderUseCase;
 
   beforeEach(() => {
     orderRepository = new MemoryOrderRepository();
-    productRepository = new MemoryProductRepository();
+    productRepository = new MemoryOrderProductRepository();
     outboxRepository = new MemoryOutboxRepository();
-    
+
     // Manual dependency injection for test
     useCase = new CreateOrderUseCase(orderRepository, productRepository, outboxRepository);
 
-    // Seed product
+    // Seed product — orders' ProductRepository only needs id/basePrice/sellerId
     productRepository.seed([{
       id: 'p1',
       basePrice: 100,
       sellerId: 's1',
-      sellerName: 'Store 1',
-      translations: [{ locale: 'es', name: 'Product 1', description: 'Desc' }]
     }]);
   });
 

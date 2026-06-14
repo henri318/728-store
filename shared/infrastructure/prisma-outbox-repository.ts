@@ -1,5 +1,5 @@
 import { prisma } from '@/shared/infrastructure/prisma';
-import { OutboxRepository } from '@/shared/kernel/memory-outbox-repository';
+import { OutboxRepository } from '@/shared/kernel/outbox-repository';
 
 export class PrismaOutboxRepository implements OutboxRepository {
   async saveEvent(eventType: string, payload: any, tx: any = prisma): Promise<void> {

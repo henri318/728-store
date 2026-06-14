@@ -1,4 +1,4 @@
-import type { EmailSender } from './email-sender';
+import type { EmailSender } from '@/shared/kernel/email-sender';
 
 /**
  * Development adapter — logs the email payload to the console instead of

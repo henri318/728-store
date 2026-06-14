@@ -11,6 +11,9 @@
  *
  * This keeps environment-specific choices in ONE file. Business logic
  * never knows whether it's talking to Brevo, SendGrid, or a console logger.
+ *
+ * The kernel stays pure — concrete adapters live under shared/infrastructure,
+ * so this container is the only kernel file that knows about them.
  */
 
 import type { EmailSender } from './email-sender';
@@ -33,13 +36,14 @@ export function initContainer(): void {
   if (_emailSender) return; // idempotent — safe to call multiple times
 
   if (process.env.NODE_ENV === 'production') {
-    // Lazy require — only loads the Brevo SDK in production
+    // Lazy require — only loads the Brevo SDK in production.
+    // The adapter lives in shared/infrastructure (env-dependent code belongs there).
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { BrevoEmailSender } = require('./brevo-email-sender') as typeof import('./brevo-email-sender');
+    const { BrevoEmailSender } = require('../infrastructure/brevo-email-sender') as typeof import('../infrastructure/brevo-email-sender');
     _emailSender = new BrevoEmailSender();
   } else {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { ConsoleEmailSender } = require('./console-email-sender') as typeof import('./console-email-sender');
+    const { ConsoleEmailSender } = require('../infrastructure/console-email-sender') as typeof import('../infrastructure/console-email-sender');
     _emailSender = new ConsoleEmailSender();
   }
 }

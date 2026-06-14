@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { RegisterUserUseCase } from './register-user-use-case';
 import { MemoryUserRepository } from '../infrastructure/memory-user-repository';
-import { MemoryOutboxRepository } from '@/shared/kernel/memory-outbox-repository';
+import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
 import { GlobalEvents } from '@/shared/events';
 
 describe('RegisterUserUseCase', () => {

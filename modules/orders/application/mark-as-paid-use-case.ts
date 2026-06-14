@@ -1,5 +1,5 @@
 import { OrderRepository } from '../domain/order-repository';
-import { OutboxRepository } from '@/shared/kernel/memory-outbox-repository';
+import { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import { GlobalEvents } from '@/shared/events';
 import { TransactionalOrderService } from '../infrastructure/transactional-order-service';
 

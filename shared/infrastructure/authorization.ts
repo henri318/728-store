@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/shared/infrastructure/prisma';
 import { NextResponse } from 'next/server';
-import { Role } from '@/shared/kernel/roles';
+import { Role } from '@/shared/infrastructure/roles';
 
 /**
  * Wraps an API route handler with role-based authorization.

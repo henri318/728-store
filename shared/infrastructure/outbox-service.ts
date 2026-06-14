@@ -30,7 +30,7 @@ export class OutboxService {
     for (const event of pendingEvents) {
       try {
         await eventBus.emit(event.eventType, JSON.parse(event.payload as string));
-        
+
         await prisma.outboxEvent.update({
           where: { id: event.id },
           data: {
