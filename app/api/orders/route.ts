@@ -6,6 +6,8 @@ import { PrismaOutboxRepository } from '@/shared/infrastructure/prisma-outbox-re
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { requireRole } from '@/shared/kernel/authorization';
+import { createOrderFormSchema } from '@/shared/validation/order-schemas';
+import { handleApiError } from '@/shared/kernel/error-handler';
 
 // NOTE: This API route assumes that product data (basePrice) and sellerId are fetched correctly.
 // It also assumes that image uploads would be handled separately (e.g., via a dedicated upload service).
@@ -19,18 +21,18 @@ export const POST = requireRole('client')(async function POST(request: NextReque
   try {
     // Parse form data for POST requests
     const formData = await request.formData();
-    
-    const productId = formData.get('productId') as string;
-    const quantity = parseInt(formData.get('quantity') as string || '1', 10); // Default to 1 if not provided
-    const customizationText = formData.get('customizationText') as string | null;
-    const customizationColor = formData.get('customizationColor') as string | null;
-    const customizationSize = formData.get('customizationSize') as string | null;
-    const customizationImageFile = formData.get('customizationImage') as File | null;
 
-    // Basic validation
-    if (!productId || isNaN(quantity) || quantity <= 0) {
-      return NextResponse.json({ error: 'Invalid product or quantity' }, { status: 400 });
-    }
+    // Validate with zod before constructing DTO
+    const validated = createOrderFormSchema.parse({
+      productId: formData.get('productId') as string | null,
+      quantity: formData.get('quantity') as string | null,
+      customizationText: formData.get('customizationText') as string | null,
+      customizationColor: formData.get('customizationColor') as string | null,
+      customizationSize: formData.get('customizationSize') as string | null,
+    });
+
+    const { productId, quantity, customizationText, customizationColor, customizationSize } = validated;
+    const customizationImageFile = formData.get('customizationImage') as File | null;
 
     // Construct the DTO for CreateOrderUseCase
     // The form submits one product at a time. So, items array will have one element.
@@ -45,7 +47,7 @@ export const POST = requireRole('client')(async function POST(request: NextReque
             color: customizationColor,
             size: customizationSize,
             // Placeholder for imageUrl. Actual image upload logic needs to be implemented.
-            imageUrl: customizationImageFile ? '/path/to/uploaded/image.jpg' : null, 
+            imageUrl: customizationImageFile ? '/path/to/uploaded/image.jpg' : null,
           } as CustomizationInput, // Type assertion
         } as OrderLineItemInput, // Type assertion
       ],
@@ -69,15 +71,7 @@ export const POST = requireRole('client')(async function POST(request: NextReque
     // A more complete flow might redirect to a success page or order confirmation.
     return NextResponse.json(newOrder, { status: 201 });
 
-  } catch (error: any) {
-    console.error('Error creating order:', error);
-    
-    // Handle specific errors (generic messages only)
-    if (error.message === 'Product not found') {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
-    }
-    
-    // Generic error response
-    return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
+  } catch (error: unknown) {
+    return handleApiError(error);
   }
 });

@@ -1,31 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/shared/infrastructure/prisma';
 import { jwtVerify } from 'jose';
+import { handleApiError } from '@/shared/kernel/error-handler';
+import { verifyTokenSchema } from '@/shared/validation/auth-schemas';
 
 function getSecret(): Uint8Array {
   return new TextEncoder().encode(process.env.NEXTAUTH_SECRET!);
 }
 
 export async function GET(request: NextRequest) {
-  const token = request.nextUrl.searchParams.get('token');
-  if (!token) {
-    return NextResponse.json({ error: 'Missing token' }, { status: 400 });
-  }
-
-  return await verifyEmailToken(token);
-}
-
-export async function POST(request: NextRequest) {
   try {
-    const { token } = await request.json();
+    const token = request.nextUrl.searchParams.get('token');
     if (!token) {
       return NextResponse.json({ error: 'Missing token' }, { status: 400 });
     }
 
     return await verifyEmailToken(token);
-  } catch (error: any) {
-    console.error('[VerifyEmail] POST error:', error);
-    return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 });
+  } catch (error: unknown) {
+    return handleApiError(error);
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const { token } = verifyTokenSchema.parse(await request.json());
+    if (!token) {
+      return NextResponse.json({ error: 'Missing token' }, { status: 400 });
+    }
+
+    return await verifyEmailToken(token);
+  } catch (error: unknown) {
+    return handleApiError(error);
   }
 }
 
