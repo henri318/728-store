@@ -1,24 +1,18 @@
-import { prisma } from '@/shared/infrastructure/prisma';
-import { initContainer, getEmailSender } from '@/shared/kernel/container';
+import { initContainer, getEmailSender, getEmailQueueRepository } from '@/composition-root/container';
 
 // Wire dependencies once at startup — NODE_ENV determines which adapters are loaded
 initContainer();
 const emailSender = getEmailSender();
+const queue = getEmailQueueRepository();
 
-async function processEmailQueue() {
-  // Atomically claim PENDING records
-  await prisma.emailQueue.updateMany({
-    where: { status: 'PENDING', scheduledAt: { lte: new Date() } },
-    data: { status: 'PROCESSING' },
-  });
+const BATCH_SIZE = 10;
+const POLL_INTERVAL_MS = 10_000;
 
-  const processing = await prisma.emailQueue.findMany({
-    where: { status: 'PROCESSING' },
-    orderBy: { createdAt: 'asc' },
-    take: 10,
-  });
+async function processEmailQueue(): Promise<void> {
+  // Atomically claim up to BATCH_SIZE PENDING records whose scheduledAt has passed
+  const claimed = await queue.claimPending(new Date(), BATCH_SIZE);
 
-  for (const email of processing) {
+  for (const email of claimed) {
     try {
       await emailSender.send({
         to: email.to,
@@ -26,31 +20,19 @@ async function processEmailQueue() {
         htmlBody: email.htmlBody,
       });
 
-      await prisma.emailQueue.update({
-        where: { id: email.id },
-        data: { status: 'SENT', sentAt: new Date() },
-      });
+      await queue.markSent(email.id, new Date());
     } catch (error) {
       const newRetryCount = email.retryCount + 1;
       if (newRetryCount >= email.maxRetries) {
-        await prisma.emailQueue.update({
-          where: { id: email.id },
-          data: {
-            status: 'FAILED',
-            error: String(error),
-            retryCount: newRetryCount,
-          },
-        });
+        await queue.markFailed(email.id, String(error), newRetryCount);
       } else {
         const backoffSec = Math.pow(2, newRetryCount) * 60; // exponential backoff in seconds
-        await prisma.emailQueue.update({
-          where: { id: email.id },
-          data: {
-            retryCount: newRetryCount,
-            error: String(error),
-            scheduledAt: new Date(Date.now() + backoffSec * 1000),
-          },
-        });
+        await queue.reschedule(
+          email.id,
+          newRetryCount,
+          new Date(Date.now() + backoffSec * 1000),
+          String(error),
+        );
       }
     }
   }
@@ -58,7 +40,10 @@ async function processEmailQueue() {
 
 // Poll every 10 seconds
 console.log('[EmailWorker] Starting…');
-setInterval(() => processEmailQueue().catch(err => console.error('[EmailWorker] Error:', err)), 10_000);
+setInterval(
+  () => processEmailQueue().catch((err) => console.error('[EmailWorker] Error:', err)),
+  POLL_INTERVAL_MS,
+);
 
 // Run once immediately
-processEmailQueue().catch(err => console.error('[EmailWorker] Error:', err));
+processEmailQueue().catch((err) => console.error('[EmailWorker] Error:', err));

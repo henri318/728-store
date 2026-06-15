@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MarkAsPaidUseCase } from './mark-as-paid-use-case';
 import { AssignToProductionUseCase } from './assign-to-production-use-case';
-import { MemoryOrderRepository } from '../infrastructure/memory-order-repository';
-import { MemoryOutboxRepository } from '@/shared/kernel/memory-outbox-repository';
-import { GlobalEvents } from '@/shared/events';
+import { MemoryOrderRepository } from '@/tests/doubles/memory-order-repository';
+import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
+import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import { OrderEntity } from '../domain/order-repository';
 
 /**
