@@ -1,7 +1,7 @@
 import { UserRepository } from '../domain/user-repository';
-import { OutboxRepository } from '@/shared/kernel/memory-outbox-repository';
-import { GlobalEvents } from '@/shared/events';
-import { hashPassword } from '@/shared/kernel/password-hasher';
+import { OutboxRepository } from '@/shared/kernel/outbox-repository';
+import type { PasswordHasher } from '@/shared/kernel/password-hasher';
+import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import { randomUUID } from 'crypto';
 import { ConflictError } from '@/shared/kernel/app-error';
 
@@ -14,7 +14,8 @@ export interface RegisterUserDTO {
 export class RegisterUserUseCase {
   constructor(
     private userRepository: UserRepository,
-    private outboxRepository: OutboxRepository
+    private outboxRepository: OutboxRepository,
+    private passwordHasher: PasswordHasher
   ) {}
 
   async execute(dto: RegisterUserDTO) {
@@ -25,7 +26,7 @@ export class RegisterUserUseCase {
     }
 
     // 2. Hash the password
-    const passwordHash = await hashPassword(dto.password);
+    const passwordHash = await this.passwordHasher.hash(dto.password);
 
     // 3. Save user
     const user = await this.userRepository.save({
@@ -34,6 +35,7 @@ export class RegisterUserUseCase {
       name: dto.name,
       passwordHash,
       role: 'client',
+      emailVerified: null,
     });
 
     // 4. Record event in Outbox

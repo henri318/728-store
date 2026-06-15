@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { hashPassword, verifyPassword } from '@/shared/kernel/password-hasher';
+import { hashPassword, verifyPassword } from '@/modules/users/infrastructure/bcrypt-password-hasher';
 
 describe('PasswordHasher', () => {
   const plainPassword = 'MiPasswordSegura123!';

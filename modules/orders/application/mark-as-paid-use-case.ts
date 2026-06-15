@@ -1,7 +1,7 @@
 import { OrderRepository } from '../domain/order-repository';
-import { OutboxRepository } from '@/shared/kernel/memory-outbox-repository';
-import { GlobalEvents } from '@/shared/events';
-import { TransactionalOrderService } from '../infrastructure/transactional-order-service';
+import { TransactionalOrderPort } from '../domain/transactional-order-port';
+import { OutboxRepository } from '@/shared/kernel/outbox-repository';
+import { GlobalEvents } from '@/modules/events/domain/event-registry';
 
 /**
  * Data Transfer Object for marking an order as paid.
@@ -43,7 +43,7 @@ export class MarkAsPaidUseCase {
   constructor(
     private orderRepository: OrderRepository,
     private outboxRepository: OutboxRepository,
-    private transactionalService?: TransactionalOrderService,
+    private transactionalService?: TransactionalOrderPort,
   ) {}
 
   /**

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { GetProductsUseCase } from './get-products-use-case';
-import { MemoryProductRepository } from '../infrastructure/memory-product-repository';
+import { MemoryProductRepository } from '@/tests/doubles/memory-product-repository';
 
 describe('GetProductsUseCase with i18n', () => {
   let productRepository: MemoryProductRepository;

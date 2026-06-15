@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/shared/infrastructure/prisma';
-import { jwtVerify } from 'jose';
-import { handleApiError } from '@/shared/kernel/error-handler';
-import { verifyTokenSchema } from '@/shared/validation/auth-schemas';
-
-function getSecret(): Uint8Array {
-  return new TextEncoder().encode(process.env.NEXTAUTH_SECRET!);
-}
+import { VerifyEmailUseCase } from '@/modules/auth/application/verify-email';
+import { container } from '@/composition-root/container';
+import { handleApiError } from '@/shared/presentation/error-handler';
+import { verifyTokenSchema } from '@/modules/auth/presentation/schemas/auth-schemas';
 
 export async function GET(request: NextRequest) {
   try {
@@ -35,31 +31,19 @@ export async function POST(request: NextRequest) {
 }
 
 async function verifyEmailToken(token: string) {
-  const secret = getSecret();
-  const { payload } = await jwtVerify(token, secret);
+  const useCase = new VerifyEmailUseCase(
+    container.getSecrets(),
+    container.getUserRepository(),
+  );
 
-  if ((payload as any).purpose !== 'email-verification') {
-    return NextResponse.json({ error: 'Invalid token purpose' }, { status: 400 });
+  const result = await useCase.execute({ token });
+
+  if (!result.success) {
+    return NextResponse.json(
+      { error: result.message },
+      { status: result.statusCode ?? 400 },
+    );
   }
 
-  const userId = payload.sub;
-  if (!userId) {
-    return NextResponse.json({ error: 'Invalid token payload' }, { status: 400 });
-  }
-
-  const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user) {
-    return NextResponse.json({ error: 'User not found' }, { status: 404 });
-  }
-
-  if (user.emailVerified) {
-    return NextResponse.json({ success: true, message: 'Email already verified' });
-  }
-
-  await prisma.user.update({
-    where: { id: userId },
-    data: { emailVerified: new Date() },
-  });
-
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true, message: result.message });
 }

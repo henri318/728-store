@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { prisma } from '@/shared/infrastructure/prisma';
+import { container } from '@/composition-root/container';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 
 export default async function HomePage({
@@ -10,14 +10,8 @@ export default async function HomePage({
   const { locale } = await params;
   const dict = await getDictionary(locale as 'es' | 'cat');
 
-  const products = await prisma.product.findMany({
-    include: { 
-      seller: true,
-      translations: {
-        where: { locale: locale }
-      }
-    }
-  });
+  // Use the ProductRepository port — no direct prisma in app/
+  const products = await container.getProductRepository().findAll(locale);
 
   return (
     <div>
@@ -33,7 +27,7 @@ export default async function HomePage({
                 <h3>{translation.name}</h3>
                 <p>{translation.description}</p>
                 <p style={{ fontWeight: 'bold' }}>${Number(product.basePrice)}</p>
-                <p style={{ fontSize: '0.8rem', color: '#666' }}>Seller: {product.seller.name}</p>
+                <p style={{ fontSize: '0.8rem', color: '#666' }}>Seller: {product.sellerName}</p>
                 <Link href={`/${locale}/products/${product.id}`}>
                   <button style={{ width: '100%', padding: '0.5rem', background: '#000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                     {dict.common.viewDetails}
