@@ -1,18 +1,21 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { RegisterUserUseCase } from './register-user-use-case';
-import { MemoryUserRepository } from '../infrastructure/memory-user-repository';
-import { MemoryOutboxRepository } from '@/shared/kernel/memory-outbox-repository';
-import { GlobalEvents } from '@/shared/events';
+import { MemoryUserRepository } from '@/tests/doubles/memory-user-repository';
+import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
+import { MemoryPasswordHasher } from '@/tests/doubles/memory-password-hasher';
+import { GlobalEvents } from '@/modules/events/domain/event-registry';
 
 describe('RegisterUserUseCase', () => {
   let userRepository: MemoryUserRepository;
   let outboxRepository: MemoryOutboxRepository;
+  let passwordHasher: MemoryPasswordHasher;
   let useCase: RegisterUserUseCase;
 
   beforeEach(() => {
     userRepository = new MemoryUserRepository();
     outboxRepository = new MemoryOutboxRepository();
-    useCase = new RegisterUserUseCase(userRepository, outboxRepository);
+    passwordHasher = new MemoryPasswordHasher();
+    useCase = new RegisterUserUseCase(userRepository, outboxRepository, passwordHasher);
   });
 
   it('should register a new user successfully', async () => {
@@ -29,7 +32,7 @@ describe('RegisterUserUseCase', () => {
     
     // Check if user is in repository
     const savedUser = await userRepository.findByEmail(dto.email);
-    expect(savedUser.role).toBe('client');
+    expect(savedUser?.role).toBe('client');
     expect(savedUser?.name).toBe(dto.name);
   });
 

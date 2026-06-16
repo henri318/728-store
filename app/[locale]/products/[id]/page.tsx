@@ -1,4 +1,4 @@
-import { PrismaProductRepository } from '@/modules/products/infrastructure/prisma-product-repository';
+import { container } from '@/composition-root/container';
 import { GetProductByIdUseCase } from '@/modules/products/application/get-product-by-id-use-case';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import Link from 'next/link';
@@ -11,7 +11,7 @@ export default async function ProductDetailPage({
   const { locale, id } = await params;
   const dict = await getDictionary(locale as 'es' | 'cat');
   
-  const repository = new PrismaProductRepository();
+  const repository = container.getProductRepository();
   const useCase = new GetProductByIdUseCase(repository);
   
   try {

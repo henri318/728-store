@@ -1,19 +1,20 @@
-import { OrderRepository } from '../domain/order-repository';
-import { ProductEntity } from '@/modules/products/domain/product-repository';
-import { OutboxRepository } from '@/shared/kernel/memory-outbox-repository';
-import { GlobalEvents } from '@/shared/events';
+import { OrderRepository, OrderEntity, OrderLineItemEntity } from '../domain/order-repository';
+import { ProductRepository } from '../domain/product-repository';
+import { ProductSnapshot } from '../domain/product-snapshot';
+import { OutboxRepository } from '@/shared/kernel/outbox-repository';
+import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import { NotFoundError } from '@/shared/kernel/app-error';
 
 // --- Data Transfer Objects ---
 
-interface CustomizationInput {
+export interface CustomizationInput {
   text?: string | null;
   color?: string | null;
   size?: string | null;
   imageUrl?: string | null;
 }
 
-interface OrderLineItemInput {
+export interface OrderLineItemInput {
   productId: string;
   quantity: number;
   customization: CustomizationInput;
@@ -24,27 +25,8 @@ export interface CreateOrderDTO {
   items: OrderLineItemInput[];
 }
 
-// --- Domain/Infrastructure Interfaces ---
-
-export interface OrderLineItemEntity {
-  id: string;
-  orderId: string;
-  productId: string;
-  quantity: number;
-  customizationText?: string | null;
-  customizationColor?: string | null;
-  customizationSize?: string | null;
-  customizationImageUrl?: string | null;
-}
-
-export interface OrderEntity {
-  id: string;
-  userId: string;
-  sellerId: string;
-  total: number;
-  status: string;
-  lineItems: OrderLineItemEntity[]; // Add relation to line items
-}
+// Re-export domain types for back-compat with existing consumers (tests).
+export type { OrderEntity, OrderLineItemEntity } from '../domain/order-repository';
 
 // --- Use Case ---
 
@@ -58,7 +40,7 @@ export class CreateOrderUseCase {
   async execute(dto: CreateOrderDTO) {
     let totalOrderPrice = 0;
     const orderLineItemsToSave: OrderLineItemEntity[] = [];
-    const productsMap = new Map<string, ProductEntity>(); // To avoid multiple fetches for same product
+    const productsMap = new Map<string, ProductSnapshot>(); // To avoid multiple fetches for same product
 
     // Fetch all unique products and their customization options if available
     const productIds = dto.items.map(item => item.productId);

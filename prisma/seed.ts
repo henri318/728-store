@@ -1,31 +1,33 @@
-import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcrypt';
+import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+import bcrypt from 'bcrypt'
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg(process.env.DATABASE_URL!)
+const prisma = new PrismaClient({ adapter })
 
-const BCRYPT_COST = 12;
+const BCRYPT_COST = 12
 
 async function main() {
-  console.log('🌱 Seeding dev data...');
+  console.log('🌱 Seeding dev data...')
 
   // 1. Clear existing data
-  await prisma.productTranslation.deleteMany();
-  await prisma.productCustomization.deleteMany();
-  await prisma.signupAttempt.deleteMany();
-  await prisma.loginAttempt.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.orderLineItem.deleteMany();
-  await prisma.outboxEvent.deleteMany();
-  await prisma.emailQueue.deleteMany();
-  await prisma.product.deleteMany();
-  await prisma.seller.deleteMany();
-  await prisma.user.deleteMany();
+  await prisma.productTranslation.deleteMany()
+  await prisma.productCustomization.deleteMany()
+  await prisma.signupAttempt.deleteMany()
+  await prisma.loginAttempt.deleteMany()
+  await prisma.order.deleteMany()
+  await prisma.orderLineItem.deleteMany()
+  await prisma.outboxEvent.deleteMany()
+  await prisma.emailQueue.deleteMany()
+  await prisma.product.deleteMany()
+  await prisma.seller.deleteMany()
+  await prisma.user.deleteMany()
 
   // 2. Create Seller (the company/store)
   const seller = await prisma.seller.create({
     data: { name: '728 Store' },
-  });
-  console.log(`  ✓ Seller created: ${seller.name} (${seller.id})`);
+  })
+  console.log(`  ✓ Seller created: ${seller.name} (${seller.id})`)
 
   // 3. Create Products with i18n translations
   const productsData = [
@@ -59,15 +61,15 @@ async function main() {
         ],
       },
     },
-  ];
+  ]
 
   for (const p of productsData) {
-    const product = await prisma.product.create({ data: p });
-    console.log(`  ✓ Product created: ${(product as any).id}`);
+    const product = await prisma.product.create({ data: p })
+    console.log(`  ✓ Product created: ${(product as any).id}`)
   }
 
   // 4. Create test user (client role, verified email)
-  const passwordHash = await bcrypt.hash('Test123!', BCRYPT_COST);
+  const passwordHash = await bcrypt.hash('Test123!', BCRYPT_COST)
   const user = await prisma.user.create({
     data: {
       name: 'Test User',
@@ -77,19 +79,19 @@ async function main() {
       emailVerified: new Date(),
       preferredLanguage: 'es',
     },
-  });
-  console.log(`  ✓ User created: ${user.email} (role: ${user.role})`);
-  console.log(`    → Email: test@test.com`);
-  console.log(`    → Password: Test123!`);
+  })
+  console.log(`  ✓ User created: ${user.email} (role: ${user.role})`)
+  console.log(`    → Email: test@test.com`)
+  console.log(`    → Password: Test123!`)
 
-  console.log('\n✅ Seed complete!');
+  console.log('\n✅ Seed complete!')
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Seed failed:', e);
-    process.exit(1);
+    console.error('❌ Seed failed:', e)
+    process.exit(1)
   })
   .finally(async () => {
-    await prisma.$disconnect();
-  });
+    await prisma.$disconnect()
+  })

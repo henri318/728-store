@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { PrismaProductRepository } from '@/modules/products/infrastructure/prisma-product-repository';
+import { container } from '@/composition-root/container';
 import { GetProductByIdUseCase } from '@/modules/products/application/get-product-by-id-use-case';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { redirect } from 'next/navigation';
@@ -21,7 +21,7 @@ export default async function CheckoutPage({
     redirect(`/${locale}/auth/signin?callbackUrl=/${locale}/checkout?productId=${productId}`);
   }
 
-  const repository = new PrismaProductRepository();
+  const repository = container.getProductRepository();
   const useCase = new GetProductByIdUseCase(repository);
   
   try {
