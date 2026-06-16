@@ -19,7 +19,8 @@ describe('GetProductsUseCase with i18n', () => {
         translations: [
           { locale: 'es', name: 'Taza', description: 'Una taza' },
           { locale: 'cat', name: 'Tassa', description: 'Una tassa' }
-        ]
+        ],
+        customizations: [],
       }
     ]);
   });

@@ -1,5 +1,7 @@
 import type { ProductSnapshot } from './product-snapshot';
 
+export type { ProductSnapshot };
+
 /**
  * ProductRepository — orders' view of the product catalog.
  *

@@ -2,7 +2,11 @@
 
 import { signOut } from 'next-auth/react';
 
-export default function LogoutButton() {
+interface LogoutButtonProps {
+  label: string;
+}
+
+export default function LogoutButton({ label }: LogoutButtonProps) {
   return (
     <button 
       onClick={() => signOut({ callbackUrl: '/' })}
@@ -16,7 +20,7 @@ export default function LogoutButton() {
         padding: 0
       }}
     >
-      Logout
+      {label}
     </button>
   );
 }

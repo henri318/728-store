@@ -1,3 +1,4 @@
+## Reglas del proyecto
 # Agent Rules
 
 # Overview
@@ -30,6 +31,7 @@ This document defines the mandatory rules and constraints for the AI agent worki
 - DO NOT couple payments, AI, or tickets directly to orders.
 - DO NOT execute business logic in the infrastructure layer.
 - AI MUST NOT take autonomous business decisions (suggestions only).
+- **No commits or PRs without explicit permission**: never run git commit, git push, or create PRs unless the user explicitly requests it. Changes must remain in the staging area/working tree until the user decides otherwise.
 
 ---
 
@@ -50,3 +52,5 @@ This document defines the mandatory rules and constraints for the AI agent worki
 - Event Bus: `docs/event-bus.md`
 - Entity Model: `docs/entities.md`
 - Modules: See `docs/module-*.md`
+
+

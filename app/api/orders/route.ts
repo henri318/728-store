@@ -15,7 +15,11 @@ import { handleApiError } from '@/shared/presentation/error-handler';
 // The session is re-fetched inside the handler for the userId needed by the use case.
 export const POST = requireRole('client')(async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
-  const userId = (session as NonNullable<typeof session>).user.id;
+  // Our auth configuration attaches `id` to the session user.
+  const userId = (session?.user as { id: string } | undefined)?.id;
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   try {
     // Parse form data for POST requests
@@ -35,21 +39,22 @@ export const POST = requireRole('client')(async function POST(request: NextReque
 
     // Construct the DTO for CreateOrderUseCase
     // The form submits one product at a time. So, items array will have one element.
+    const customizationInput: CustomizationInput = {
+      text: customizationText,
+      color: customizationColor,
+      size: customizationSize,
+      imageUrl: customizationImageFile ? '' : null,
+    };
+
+    const orderLineItemInput: OrderLineItemInput = {
+      productId: productId,
+      quantity: quantity,
+      customization: customizationInput,
+    };
+
     const createOrderDTO: CreateOrderDTO = {
       userId: userId,
-      items: [
-        {
-          productId: productId,
-          quantity: quantity,
-          customization: {
-            text: customizationText,
-            color: customizationColor,
-            size: customizationSize,
-            // Placeholder for imageUrl. Actual image upload logic needs to be implemented.
-            imageUrl: customizationImageFile ? '/path/to/uploaded/image.jpg' : null,
-          } as CustomizationInput, // Type assertion
-        } as OrderLineItemInput, // Type assertion
-      ],
+      items: [orderLineItemInput],
     };
 
     // Resolve dependencies from the container — no direct infrastructure imports

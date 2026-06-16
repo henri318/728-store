@@ -33,7 +33,7 @@ describe('Orders Module - Integration Tests', () => {
         total: 250,
         status: 'pending',
         lineItems: [
-          { id: 'item-1', productId: 'prod-1', quantity: 1, price: 250 },
+          { id: 'item-1', orderId: 'order-lifecycle-1', productId: 'prod-1', quantity: 1 },
         ],
       };
       await orderRepository.save(order);
