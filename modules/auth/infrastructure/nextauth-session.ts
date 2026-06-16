@@ -12,7 +12,10 @@ import type { SessionPort, SessionUser } from '@/modules/auth/domain/session';
 export class NextAuthSessionAdapter implements SessionPort {
   async getSession(): Promise<SessionUser | null> {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) return null;
-    return { id: session.user.id };
+    // next-auth default session.user type doesn't include `id`.
+    // Our auth configuration injects it, so we use a type assertion.
+    const userId = (session?.user as { id?: string } | undefined)?.id;
+    if (!userId) return null;
+    return { id: userId };
   }
 }

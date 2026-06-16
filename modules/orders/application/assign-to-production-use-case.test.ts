@@ -43,8 +43,8 @@ describe('AssignToProductionUseCase', () => {
     const orderWithItems: OrderEntity = {
       id: 'order-multi', userId: 'user-123', sellerId: 'seller-456', total: 500, status: 'paid',
       lineItems: [
-        { id: 'item-1', productId: 'prod-1', quantity: 2, price: 200 },
-        { id: 'item-2', productId: 'prod-2', quantity: 1, price: 100 },
+        { id: 'item-1', orderId: 'order-multi', productId: 'prod-1', quantity: 2 },
+        { id: 'item-2', orderId: 'order-multi', productId: 'prod-2', quantity: 1 },
       ],
     };
     await orderRepository.save(orderWithItems);
@@ -53,7 +53,7 @@ describe('AssignToProductionUseCase', () => {
 
     const updatedOrder = await orderRepository.findById('order-multi');
     expect(updatedOrder?.status).toBe('ready-for-production');
-    expect(updatedOrder?.lineItems.length).toBe(2);
+    expect(updatedOrder?.lineItems?.length).toBe(2);
 
     expect(outboxRepository.events[0].payload).toEqual({
       orderId: 'order-multi',

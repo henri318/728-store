@@ -3,7 +3,7 @@ import { UserEntity, UserRepository } from '@/modules/users/domain/user-reposito
 export class MemoryUserRepository implements UserRepository {
   private users: UserEntity[] = [];
 
-  async save(user: UserEntity): Promise<UserEntity> {
+  async save(user: UserEntity, _tx?: any): Promise<UserEntity> {
     const existingIndex = this.users.findIndex(u => u.id === user.id);
     if (existingIndex >= 0) {
       this.users[existingIndex] = user;

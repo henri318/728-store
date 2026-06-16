@@ -14,7 +14,7 @@ export class BrevoEmailSender implements EmailSender {
   private getClient() {
     // Lazy import — only crashes if this adapter is actually invoked without a key
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { brevoClient, FROM_EMAIL, FROM_NAME } = require('./email') as typeof import('./email');
+    const { brevoClient, FROM_EMAIL, FROM_NAME } = require('@/modules/email/infrastructure/brevo-client') as typeof import('@/modules/email/infrastructure/brevo-client');
     return { brevoClient, FROM_EMAIL, FROM_NAME };
   }
 

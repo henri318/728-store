@@ -1,3 +1,9 @@
+export interface ProductTranslationEntity {
+  locale: string;
+  name: string;
+  description: string | null;
+}
+
 export interface ProductCustomizationEntity {
   id: string;
   text: string | null;

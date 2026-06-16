@@ -15,14 +15,23 @@ export class PrismaProductRepository implements ProductRepository {
 
     return products.map(product => ({
       id: product.id,
-      basePrice: Number(product.basePrice),
+      basePrice: Math.round(Number(product.basePrice) * 100) / 100,
       sellerId: product.sellerId,
       sellerName: product.seller.name,
       translations: product.translations.map(t => ({
         locale: t.locale,
         name: t.name,
         description: t.description
-      }))
+      })),
+      customizations: product.customizations.map(c => ({
+        id: c.id,
+        text: c.text,
+        color: c.color,
+        size: c.size,
+        imageUrl: c.imageUrl,
+        productId: c.productId,
+        createdAt: c.createdAt,
+      })),
     }));
   }
 
@@ -42,14 +51,23 @@ export class PrismaProductRepository implements ProductRepository {
 
     return {
       id: product.id,
-      basePrice: Number(product.basePrice),
+      basePrice: Math.round(Number(product.basePrice) * 100) / 100,
       sellerId: product.sellerId,
       sellerName: product.seller.name,
       translations: product.translations.map(t => ({
         locale: t.locale,
         name: t.name,
         description: t.description
-      }))
+      })),
+      customizations: product.customizations.map(c => ({
+        id: c.id,
+        text: c.text,
+        color: c.color,
+        size: c.size,
+        imageUrl: c.imageUrl,
+        productId: c.productId,
+        createdAt: c.createdAt,
+      })),
     };
   }
 }

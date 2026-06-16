@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import type { OutboxEvent, OutboxRepository } from '@/shared/kernel/outbox-repository';
 
-type SeedableEvent = Omit<OutboxEvent, 'processedAt'> & { processedAt?: Date | null };
+type SeedableEvent = Omit<OutboxEvent, 'processedAt' | 'status'> & { processedAt?: Date | null; status?: string };
 
 /**
  * In-memory OutboxRepository test double.

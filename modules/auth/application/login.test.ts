@@ -27,7 +27,7 @@ describe('Authentication Flow (Login, Session, Logout)', () => {
 
     const session = await getServerSession();
     expect(session).toBeDefined();
-    expect(session!.user.name).toBe('Test User');
+    expect(session?.user?.name).toBe('Test User');
   });
 
   it('should return null after logout', async () => {
@@ -39,7 +39,7 @@ describe('Authentication Flow (Login, Session, Logout)', () => {
     vi.mocked(getServerSession).mockResolvedValue({ user: mockUser });
 
     const session = await getServerSession();
-    expect(session!.user.name).toBe('Test User');
+    expect(session?.user?.name).toBe('Test User');
 
     vi.mocked(getServerSession).mockResolvedValue(null);
 
