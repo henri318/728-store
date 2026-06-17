@@ -18,6 +18,8 @@ export const GlobalEvents = {
   PAYMENT_COMPLETED: 'payment.completed',
   /** Product customization created - triggers production readiness check */
   PRODUCT_CUSTOMIZATION_CREATED: 'product-customization.created',
+  /** New role created in the role catalog */
+  ROLE_CREATED: 'role.created',
 } as const;
 
 /**
