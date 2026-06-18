@@ -36,6 +36,7 @@ This document defines the mandatory rules and constraints for the AI agent worki
 ---
 
 # Mandatory Requirements
+- **One class per file**: Each file must contain exactly one primary export (class, interface, or function). No multiple classes in a single file. Barrel exports (`index.ts`) are the exception — they re-export only.
 - Every module must have a clear `domain`, `application`, `infrastructure`, and `presentation` structure.
 - Communication between modules ONLY via:
   - Domain Events.

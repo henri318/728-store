@@ -1,4 +1,6 @@
-import type { Role } from './roles';
+import type { UserLookupResult } from './entities/user-lookup-result';
+
+export type { UserLookupResult };
 
 /**
  * UserLookupPort — the port for fetching a minimal user record used by
@@ -13,11 +15,6 @@ import type { Role } from './roles';
  *  - The use case is "is the session user allowed to do X?" — not domain logic
  *  - It avoids coupling auth to the full UserEntity shape
  */
-export interface UserLookupResult {
-  id: string;
-  role: Role;
-}
-
 export interface UserLookupPort {
   findById(userId: string): Promise<UserLookupResult | null>;
 }

@@ -4,16 +4,16 @@ import { OrderProductRepositoryAdapter } from '@/modules/orders/infrastructure/p
 import { container } from '@/composition-root/container';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { requireRole } from '@/modules/auth/infrastructure/authorization';
+import { requireRole } from '@/shared/authorization/authorization';
 import { createOrderFormSchema } from '@/modules/orders/presentation/schemas/order-schemas';
 import { handleApiError } from '@/shared/presentation/error-handler';
 
 // NOTE: This API route assumes that product data (basePrice) and sellerId are fetched correctly.
 // It also assumes that image uploads would be handled separately (e.g., via a dedicated upload service).
 
-// requireRole('client') handles authentication AND DB-verified role check.
+// requireRole('CUSTOMER') handles authentication AND DB-verified role check.
 // The session is re-fetched inside the handler for the userId needed by the use case.
-export const POST = requireRole('client')(async function POST(request: NextRequest) {
+export const POST = requireRole('CUSTOMER')(async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
   // Our auth configuration attaches `id` to the session user.
   const userId = (session?.user as { id: string } | undefined)?.id;

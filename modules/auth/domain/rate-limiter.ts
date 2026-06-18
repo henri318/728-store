@@ -1,3 +1,7 @@
+import type { RateLimitResult } from './entities/rate-limit-result';
+
+export type { RateLimitResult };
+
 /**
  * RateLimiter — the port for login attempt rate limiting.
  *
@@ -16,12 +20,6 @@
  * These come from docs/security-gaps.md §1 and are intentionally
  * enforced inside the implementation, not by the caller.
  */
-export interface RateLimitResult {
-  blocked: boolean;
-  reason?: 'email' | 'ip';
-  retryAfterSeconds?: number;
-}
-
 export interface RateLimiter {
   /**
    * Check whether the given (email, ip) pair is currently rate-limited.

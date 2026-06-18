@@ -1,4 +1,5 @@
-import type { ProductRepository, ProductSnapshot } from '@/modules/orders/domain/product-repository';
+import type { ProductRepository } from '@/modules/orders/domain/product-repository';
+import type { ProductSnapshot } from '@/modules/orders/domain/product-snapshot';
 
 /**
  * In-memory ProductRepository test double for orders module.

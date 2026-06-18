@@ -1,3 +1,7 @@
+import type { SessionUser } from './entities/session-user';
+
+export type { SessionUser };
+
 /**
  * SessionPort — the port for retrieving the current user's session.
  *
@@ -12,10 +16,6 @@
  *  - Makes authorization testable with a memory double
  *  - Keeps NextAuth as a replaceable detail, not a structural dependency
  */
-export interface SessionUser {
-  id: string;
-}
-
 export interface SessionPort {
   /**
    * Return the current session user, or null if not authenticated.
