@@ -1,58 +1,71 @@
 import { prisma } from '@/shared/infrastructure/prisma';
 import { UserEntity, UserRepository } from '../domain/user-repository';
+import { UserId } from '@/shared/kernel/domain/value-objects/user-id';
+import { Email } from '@/shared/kernel/domain/value-objects/email';
+import { Address } from '@/shared/kernel/domain/value-objects/address';
+import { RoleId } from '@/modules/roles/domain/value-objects/role-id';
+import { PasswordHash } from '@/shared/kernel/domain/value-objects/password-hash';
+
+/** Maps a Prisma User row to the domain UserEntity (with VOs). */
+function toDomain(user: any): UserEntity {
+  if (!user.email) throw new Error('User email is required');
+  if (!user.passwordHash) throw new Error('User password hash is required');
+
+  let address: Address | null = null;
+  if (user.addressStreet || user.addressCity || user.addressPostalCode || user.addressCountry) {
+    address = Address.create(
+      user.addressStreet ?? '',
+      user.addressCity ?? '',
+      user.addressPostalCode ?? '',
+      user.addressCountry ?? ''
+    );
+  }
+
+  return {
+    userId: UserId.create(user.id),
+    email: Email.create(user.email),
+    firstName: user.firstName ?? '',
+    lastName: user.lastName ?? '',
+    address,
+    roleId: RoleId.create(user.role ?? 'CUSTOMER'),
+    passwordHash: PasswordHash.create(user.passwordHash),
+    emailVerified: user.emailVerified ?? null,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+}
 
 export class PrismaUserRepository implements UserRepository {
   async save(user: UserEntity, tx: any = prisma): Promise<UserEntity> {
     const savedUser = await tx.user.upsert({
-      where: { id: user.id },
+      where: { id: user.userId.value },
       update: {
-        email: user.email,
-        name: user.name,
-        passwordHash: user.passwordHash,
-        role: user.role,
+        email: user.email.value,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        passwordHash: user.passwordHash.value,
+        role: user.roleId.value,
       },
       create: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        passwordHash: user.passwordHash,
-        role: user.role,
+        id: user.userId.value,
+        email: user.email.value,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        passwordHash: user.passwordHash.value,
+        role: user.roleId.value,
       },
     });
 
-    if (!savedUser.email) throw new Error('User email is required');
-    if (!savedUser.name) throw new Error('User name is required');
-    if (!savedUser.passwordHash) throw new Error('User password hash is required');
-
-    return {
-      id: savedUser.id,
-      email: savedUser.email,
-      name: savedUser.name,
-      passwordHash: savedUser.passwordHash,
-      role: savedUser.role,
-      emailVerified: savedUser.emailVerified ?? null,
-    };
+    return toDomain(savedUser);
   }
 
   async findByEmail(email: string): Promise<UserEntity | null> {
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: email.trim().toLowerCase() },
     });
 
     if (!user) return null;
-
-    if (!user.email) throw new Error('User email is required');
-    if (!user.name) throw new Error('User name is required');
-    if (!user.passwordHash) throw new Error('User password hash is required');
-
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      passwordHash: user.passwordHash,
-      role: user.role,
-      emailVerified: user.emailVerified ?? null,
-    };
+    return toDomain(user);
   }
 
   async findById(id: string): Promise<UserEntity | null> {
@@ -61,19 +74,7 @@ export class PrismaUserRepository implements UserRepository {
     });
 
     if (!user) return null;
-
-    if (!user.email) throw new Error('User email is required');
-    if (!user.name) throw new Error('User name is required');
-    if (!user.passwordHash) throw new Error('User password hash is required');
-
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      passwordHash: user.passwordHash,
-      role: user.role,
-      emailVerified: user.emailVerified ?? null,
-    };
+    return toDomain(user);
   }
 
   async markEmailVerified(userId: string): Promise<void> {
@@ -81,5 +82,20 @@ export class PrismaUserRepository implements UserRepository {
       where: { id: userId },
       data: { emailVerified: new Date() },
     });
+  }
+
+  async update(user: UserEntity, tx: any = prisma): Promise<UserEntity> {
+    const updatedUser = await tx.user.update({
+      where: { id: user.userId.value },
+      data: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email.value,
+        passwordHash: user.passwordHash.value,
+        role: user.roleId.value,
+      },
+    });
+
+    return toDomain(updatedUser);
   }
 }

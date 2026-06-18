@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PasswordHash } from '@/modules/auth/domain/value-objects/password-hash';
+import { PasswordHash } from '@/shared/kernel/domain/value-objects/password-hash';
 
 describe('PasswordHash', () => {
   describe('create()', () => {

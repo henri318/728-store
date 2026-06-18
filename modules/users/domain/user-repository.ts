@@ -7,4 +7,5 @@ export interface UserRepository {
   findByEmail(email: string): Promise<UserEntity | null>;
   findById(id: string): Promise<UserEntity | null>;
   markEmailVerified(userId: string): Promise<void>;
+  update(user: UserEntity, tx?: any): Promise<UserEntity>;
 }

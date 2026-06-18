@@ -24,27 +24,29 @@ describe('RegisterUserUseCase with bcrypt', () => {
     const rawPassword = 'MiPassword123!';
     await useCase.execute({
       email: 'test@example.com',
-      name: 'Test User',
-      password: rawPassword, // raw password
+      firstName: 'Test',
+      lastName: 'User',
+      password: rawPassword,
     });
 
     const savedUser = await userRepo.findByEmail('test@example.com');
 
     expect(savedUser).toBeDefined();
-    expect(savedUser!.passwordHash).not.toBe(rawPassword);
-    expect(savedUser!.passwordHash).toMatch(/^\$2[ab]\$.{56}$/); // bcrypt format
+    expect(savedUser!.passwordHash.value).not.toBe(rawPassword);
+    expect(savedUser!.passwordHash.value).toMatch(/^\$2[ab]\$.{56}$/); // bcrypt format
   });
 
   it('should store a password that can be verified with bcrypt', async () => {
     const rawPassword = 'MiPassword123!';
     await useCase.execute({
       email: 'test@example.com',
-      name: 'Test User',
+      firstName: 'Test',
+      lastName: 'User',
       password: rawPassword,
     });
 
     const savedUser = await userRepo.findByEmail('test@example.com');
-    const isValid = await bcryptHasher.verify(rawPassword, savedUser!.passwordHash);
+    const isValid = await bcryptHasher.verify(rawPassword, savedUser!.passwordHash.value);
 
     expect(isValid).toBe(true);
   });
@@ -52,7 +54,8 @@ describe('RegisterUserUseCase with bcrypt', () => {
   it('should still record a USER_REGISTERED event', async () => {
     await useCase.execute({
       email: 'test@example.com',
-      name: 'Test User',
+      firstName: 'Test',
+      lastName: 'User',
       password: 'MiPassword123!',
     });
 

@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     // Generate verification token (24h expiry)
     const token = await new SignJWT({ purpose: 'email-verification' })
       .setProtectedHeader({ alg: 'HS256' })
-      .setSubject(user.id)
+      .setSubject(user.userId.value)
       .setIssuedAt()
       .setExpirationTime('24h')
       .sign(container.getSecrets().getAuthSecret());
@@ -51,13 +51,15 @@ export async function POST(request: NextRequest) {
     const baseUrl = getBaseUrl();
     const verificationLink = `${baseUrl}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
 
+    const greetingName = escapeHtml(user.firstName) || 'there';
+
     const htmlBody = `
       <!DOCTYPE html>
       <html>
         <head><meta charset="utf-8"></head>
         <body style="font-family: Arial, sans-serif; padding: 20px;">
           <h2>Verify your email</h2>
-          <p>Hi ${escapeHtml(user.name) || 'there'},</p>
+          <p>Hi ${greetingName},</p>
           <p>Thank you for registering. Please click the link below to verify your email address:</p>
           <p>
             <a href="${verificationLink}"
@@ -79,7 +81,7 @@ export async function POST(request: NextRequest) {
       subject: 'Verify your email — Modular Ecommerce',
       htmlBody,
       template: 'verification',
-      metadata: { userId: user.id },
+      metadata: { userId: user.userId.value },
     });
 
     return NextResponse.json({ success: true, message: 'Verification email sent' });
