@@ -1,15 +1,6 @@
-export interface UserEntity {
-  id: string;
-  email: string;
-  name: string;
-  passwordHash: string;
-  role: string;
-  /**
-   * Timestamp at which the user verified their email.
-   * `null` until the user clicks the verification link.
-   */
-  emailVerified: Date | null;
-}
+import type { UserEntity } from './entities/user';
+
+export type { UserEntity };
 
 export interface UserRepository {
   save(user: UserEntity, tx?: any): Promise<UserEntity>;

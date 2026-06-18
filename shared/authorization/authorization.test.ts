@@ -1,16 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createAuthorization } from '@/modules/auth/application/require-role';
+import { createAuthorization } from '@/shared/authorization/require-role';
 import { MemoryUserLookup } from '@/tests/doubles/memory-user-lookup';
 import { MemorySession } from '@/tests/doubles/memory-session';
-import { Role } from '@/modules/auth/domain/roles';
+import type { Role } from '@/modules/roles/domain/roles';
 
 /**
- * Tests for the authorization factory.
+ * Tests for the authorization factory in its canonical shared/ location.
  *
  * The factory takes a SessionPort + UserLookupPort and returns {requireRole, assertRole}.
  * Both are injected via test doubles — no NextAuth, no Prisma.
+ *
+ * Uses the NEW role values (ADMIN, SUPPORT, DESIGNER, CUSTOMER) from the roles module.
  */
-describe('createAuthorization', () => {
+describe('createAuthorization (shared)', () => {
   let lookup: MemoryUserLookup;
   let session: MemorySession;
   let auth: ReturnType<typeof createAuthorization>;
@@ -24,11 +26,11 @@ describe('createAuthorization', () => {
 
   describe('requireRole', () => {
     it('should allow a handler when the session user has the required role', async () => {
-      lookup.seed({ id: 'u1', role: 'admin' });
+      lookup.seed({ id: 'u1', role: 'ADMIN' });
       session.setSession('u1');
 
       const innerHandler = vi.fn().mockResolvedValue(new Response('ok'));
-      const wrapped = auth.requireRole('admin')(innerHandler);
+      const wrapped = auth.requireRole('ADMIN')(innerHandler);
 
       const response = await wrapped(new Request('http://test/'));
 
@@ -37,11 +39,11 @@ describe('createAuthorization', () => {
     });
 
     it('should reject with 403 when the role does not match', async () => {
-      lookup.seed({ id: 'u1', role: 'client' });
+      lookup.seed({ id: 'u1', role: 'CUSTOMER' });
       session.setSession('u1');
 
       const innerHandler = vi.fn();
-      const wrapped = auth.requireRole('admin')(innerHandler);
+      const wrapped = auth.requireRole('ADMIN')(innerHandler);
 
       const response = (await wrapped(new Request('http://test/'))) as Response;
       const body = await response.json();
@@ -55,7 +57,7 @@ describe('createAuthorization', () => {
       // session is null by default (no setSession call)
 
       const innerHandler = vi.fn();
-      const wrapped = auth.requireRole('admin')(innerHandler);
+      const wrapped = auth.requireRole('ADMIN')(innerHandler);
 
       const response = (await wrapped(new Request('http://test/'))) as Response;
       const body = await response.json();
@@ -70,18 +72,18 @@ describe('createAuthorization', () => {
       // lookup has no record for 'ghost'
 
       const innerHandler = vi.fn();
-      const wrapped = auth.requireRole('admin')(innerHandler);
+      const wrapped = auth.requireRole('ADMIN')(innerHandler);
 
       const response = (await wrapped(new Request('http://test/'))) as Response;
       expect(response.status).toBe(403);
     });
 
     it('should accept multiple allowed roles', async () => {
-      lookup.seed({ id: 'u1', role: 'shop' });
+      lookup.seed({ id: 'u1', role: 'DESIGNER' });
       session.setSession('u1');
 
       const innerHandler = vi.fn().mockResolvedValue(new Response('ok'));
-      const wrapped = auth.requireRole('admin', 'shop')(innerHandler);
+      const wrapped = auth.requireRole('ADMIN', 'DESIGNER')(innerHandler);
 
       await wrapped(new Request('http://test/'));
       expect(innerHandler).toHaveBeenCalledTimes(1);
@@ -90,29 +92,29 @@ describe('createAuthorization', () => {
 
   describe('assertRole', () => {
     it('should return the session when role matches', async () => {
-      lookup.seed({ id: 'u1', role: 'admin' });
+      lookup.seed({ id: 'u1', role: 'ADMIN' });
       session.setSession('u1');
 
-      const result = await auth.assertRole('admin');
+      const result = await auth.assertRole('ADMIN');
       expect(result).toBeDefined();
       expect(result.id).toBe('u1');
     });
 
     it('should throw AUTH_REQUIRED when no session', async () => {
-      await expect(auth.assertRole('admin')).rejects.toThrow('AUTH_REQUIRED');
+      await expect(auth.assertRole('ADMIN')).rejects.toThrow('AUTH_REQUIRED');
     });
 
     it('should throw FORBIDDEN when role does not match', async () => {
-      lookup.seed({ id: 'u1', role: 'client' });
+      lookup.seed({ id: 'u1', role: 'CUSTOMER' });
       session.setSession('u1');
 
-      await expect(auth.assertRole('admin')).rejects.toThrow('FORBIDDEN');
+      await expect(auth.assertRole('ADMIN')).rejects.toThrow('FORBIDDEN');
     });
   });
 
-  describe('integration with Role type', () => {
-    it('should accept all valid roles', async () => {
-      const roles: Role[] = ['admin', 'client', 'shop', 'guest'];
+  describe('integration with new Role type', () => {
+    it('should accept all valid new roles', async () => {
+      const roles: Role[] = ['ADMIN', 'SUPPORT', 'DESIGNER', 'CUSTOMER'];
       for (const role of roles) {
         lookup.seed({ id: `u-${role}`, role });
         session.setSession(`u-${role}`);
@@ -122,6 +124,29 @@ describe('createAuthorization', () => {
         await wrapped(new Request('http://test/'));
         expect(inner).toHaveBeenCalledTimes(1);
       }
+    });
+
+    it('should reject CUSTOMER when ADMIN is required (spec scenario A1+A2)', async () => {
+      lookup.seed({ id: 'u1', role: 'CUSTOMER' });
+      session.setSession('u1');
+
+      const innerHandler = vi.fn();
+      const wrapped = auth.requireRole('ADMIN')(innerHandler);
+
+      const response = (await wrapped(new Request('http://test/'))) as Response;
+      expect(response.status).toBe(403);
+      expect(innerHandler).not.toHaveBeenCalled();
+    });
+
+    it('should pass ADMIN when ADMIN is required (spec scenario A1+A2)', async () => {
+      lookup.seed({ id: 'u1', role: 'ADMIN' });
+      session.setSession('u1');
+
+      const innerHandler = vi.fn().mockResolvedValue(new Response('ok'));
+      const wrapped = auth.requireRole('ADMIN')(innerHandler);
+
+      await wrapped(new Request('http://test/'));
+      expect(innerHandler).toHaveBeenCalledTimes(1);
     });
   });
 });

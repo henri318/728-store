@@ -1,27 +1,8 @@
-export interface ProductTranslationEntity {
-  locale: string;
-  name: string;
-  description: string | null;
-}
+import type { ProductEntity } from './entities/product';
 
-export interface ProductCustomizationEntity {
-  id: string;
-  text: string | null;
-  color: string | null;
-  size: string | null;
-  imageUrl: string | null;
-  productId: string;
-  createdAt: Date;
-}
-
-export interface ProductEntity {
-  id: string;
-  basePrice: number;
-  sellerId: string;
-  sellerName: string;
-  translations: ProductTranslationEntity[];
-  customizations: ProductCustomizationEntity[];
-}
+export type { ProductEntity } from './entities/product';
+export type { ProductTranslationEntity } from './entities/product-translation';
+export type { ProductCustomizationEntity } from './entities/product-customization';
 
 export interface ProductRepository {
   findAll(locale: string): Promise<ProductEntity[]>;

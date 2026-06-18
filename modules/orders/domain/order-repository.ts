@@ -1,55 +1,8 @@
-/**
- * Represents an order aggregate root in the e-commerce system.
- * An order contains all information about a customer's purchase,
- * including user, seller, total amount, and current status.
- */
-export interface OrderEntity {
-  /** Unique identifier for the order */
-  id: string;
-  /** ID of the user who placed the order */
-  userId: string;
-  /** ID of the seller fulfilling the order */
-  sellerId: string;
-  /** Total monetary value of the order */
-  total: number;
-  /** Current status in the order lifecycle: pending → paid → ready-for-production → completed */
-  status: string;
-  /** Optional array of line items in the order */
-  lineItems?: OrderLineItemEntity[];
-}
+import type { OrderEntity } from './entities/order';
+import type { OrderLineItemEntity } from './entities/order-line-item';
+import type { OrderStatus } from './value-objects/order-status-type';
 
-/**
- * Represents a single line item within an order.
- * Contains product information and customization options.
- */
-export interface OrderLineItemEntity {
-  /** Unique identifier for the line item */
-  id: string;
-  /** Reference to the parent order */
-  orderId: string;
-  /** ID of the product being ordered */
-  productId: string;
-  /** Quantity of this product */
-  quantity: number;
-  /** Optional text customization for the product */
-  customizationText?: string | null;
-  /** Optional color customization for the product */
-  customizationColor?: string | null;
-  /** Optional size customization for the product */
-  customizationSize?: string | null;
-  /** Optional URL to customized product image */
-  customizationImageUrl?: string | null;
-}
-
-/**
- * Valid status values for an order in its lifecycle.
- * - pending: Order created, awaiting payment
- * - paid: Payment completed, awaiting production
- * - ready-for-production: All customizations confirmed, ready to manufacture
- * - completed: Order fulfilled and delivered
- * - cancelled: Order cancelled by user or system
- */
-export type OrderStatus = 'pending' | 'paid' | 'ready-for-production' | 'completed' | 'cancelled';
+export type { OrderEntity, OrderLineItemEntity, OrderStatus };
 
 /**
  * Repository interface for order persistence operations.

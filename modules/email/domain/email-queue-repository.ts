@@ -1,3 +1,10 @@
+import type { EmailQueueEntry } from './entities/email-queue-entry';
+import type { EmailQueueWorkerEntry } from './entities/email-queue-worker-entry';
+
+export type { EmailQueueEntry, EmailQueueWorkerEntry };
+
+export type CreateEmailQueueInput = Omit<EmailQueueEntry, 'id' | 'createdAt'>;
+
 /**
  * EmailQueueRepository — the port for persisting outbound emails durably.
  *
@@ -11,29 +18,6 @@
  * The worker methods (claimPending, markSent, markFailed, reschedule) are
  * part of the same port so the worker has zero direct prisma imports.
  */
-export interface EmailQueueEntry {
-  id: string;
-  to: string;
-  subject: string;
-  htmlBody: string;
-  template: string;
-  metadata?: Record<string, any>;
-  createdAt: Date;
-}
-
-/**
- * Extended entry shape consumed by the email worker.
- * Adds retry / scheduling fields to the base entry.
- */
-export interface EmailQueueWorkerEntry extends EmailQueueEntry {
-  status: string;
-  retryCount: number;
-  maxRetries: number;
-  scheduledAt: Date;
-}
-
-export type CreateEmailQueueInput = Omit<EmailQueueEntry, 'id' | 'createdAt'>;
-
 export interface EmailQueueRepository {
   /**
    * Persist a new email queue entry.

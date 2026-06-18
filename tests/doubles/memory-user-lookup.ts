@@ -2,7 +2,7 @@ import type {
   UserLookupPort,
   UserLookupResult,
 } from '@/modules/auth/domain/user-lookup';
-import type { Role } from '@/modules/auth/domain/roles';
+import type { Role } from '@/modules/roles/domain/roles';
 
 /**
  * In-memory UserLookupPort test double.

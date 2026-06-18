@@ -3,7 +3,21 @@ import type {
   UserLookupPort,
   UserLookupResult,
 } from '@/modules/auth/domain/user-lookup';
-import type { Role } from '@/modules/auth/domain/roles';
+import type { Role } from '@/modules/roles/domain/roles';
+
+/**
+ * Maps legacy DB role strings to the new canonical Role type.
+ * S4 migration will update DB values; this shim bridges the gap.
+ */
+function mapDbRole(dbRole: string): Role {
+  const mapping: Record<string, Role> = {
+    admin: 'ADMIN',
+    guest: 'CUSTOMER',
+    client: 'CUSTOMER',
+    shop: 'CUSTOMER',
+  };
+  return mapping[dbRole] ?? 'CUSTOMER';
+}
 
 /**
  * Prisma adapter for the UserLookupPort domain port.
@@ -19,6 +33,6 @@ export class PrismaUserLookup implements UserLookupPort {
     });
 
     if (!user) return null;
-    return { id: user.id, role: user.role as Role };
+    return { id: user.id, role: mapDbRole(user.role) };
   }
 }
