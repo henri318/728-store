@@ -47,7 +47,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const isValid = await passwordHasher.verify(credentials.password, user.passwordHash);
+        const isValid = await passwordHasher.verify(credentials.password, user.passwordHash.value);
 
         if (!isValid) {
           await rateLimiter.recordLoginAttempt(credentials.email, ip, false);
@@ -62,11 +62,13 @@ export const authOptions: NextAuthOptions = {
           throw new Error('EMAIL_NOT_VERIFIED');
         }
 
+        const displayName = `${user.firstName} ${user.lastName}`.trim();
+
         return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
+          id: user.userId.value,
+          name: displayName,
+          email: user.email.value,
+          role: user.roleId.value,
         };
       }
     }),

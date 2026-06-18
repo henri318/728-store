@@ -7,12 +7,7 @@ import { handleApiError } from '@/shared/presentation/error-handler';
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, password } = signupSchema.parse(await req.json());
-
-    // Rate limiting removed: the previous X-Forwarded-For / X-Real-IP based
-    // check is trivially spoofable by setting request headers, giving a false
-    // sense of security. Replace with a server-side rate limiter (e.g. Upstash
-    // Ratelimit) before re-enabling signup throttling.
+    const { firstName, lastName, email, password, address } = signupSchema.parse(await req.json());
 
     // Composition root — retrieve every dependency from the container.
     // No direct Prisma imports — the container is the only place that knows
@@ -24,9 +19,11 @@ export async function POST(req: NextRequest) {
     const registerUser = new RegisterUserUseCase(userRepository, outboxRepository, passwordHasher);
 
     const user = await registerUser.execute({
-      name,
+      firstName,
+      lastName,
       email,
       password,
+      address,
     });
 
     // Delegate email verification to the application use case
@@ -35,15 +32,17 @@ export async function POST(req: NextRequest) {
       container.getEmailQueueRepository(),
     );
 
+    const displayName = `${user.firstName} ${user.lastName}`.trim();
+
     await sendVerificationEmail.execute({
-      userId: user.id,
-      email: user.email,
-      name: user.name,
+      userId: user.userId.value,
+      email: user.email.value,
+      name: displayName,
     });
 
     return NextResponse.json({
-      id: user.id,
-      email: user.email,
+      id: user.userId.value,
+      email: user.email.value,
       message: 'Registration successful. Please check your email to verify your account.',
     });
   } catch (error: unknown) {

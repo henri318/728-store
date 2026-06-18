@@ -8,6 +8,10 @@
 export const GlobalEvents = {
   /** User registration completed */
   USER_REGISTERED: 'user.registered',
+  /** User profile fields updated (firstName, lastName, address) */
+  USER_UPDATED: 'user.updated',
+  /** Role assigned to a user */
+  ROLE_ASSIGNED: 'role.assigned',
   /** Order created and pending payment */
   ORDER_CREATED: 'order.created',
   /** Order payment completed - emitted by orders module */
