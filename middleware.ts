@@ -2,12 +2,13 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtDecrypt } from 'jose';
 import { hkdf } from '@panva/hkdf';
+import { container } from '@/composition-root/container';
 
 const locales = ['es', 'cat'];
 const defaultLocale = 'es';
 
 /** Path prefixes that require authentication (guest-level or above). */
-const protectedPaths = ['/dashboard', '/api/admin', '/api/orders'];
+const protectedPaths = ['/dashboard', '/api/admin', '/api/orders', '/profile', '/api/users'];
 
 /**
  * Strips a known locale prefix from a pathname if present.
@@ -80,6 +81,21 @@ export async function middleware(request: NextRequest) {
     if (!payload) {
       return unauthorizedResponse(request, pathname);
     }
+
+    // Check if user account has been soft-deleted
+    const userId = payload.sub ?? payload.id;
+    if (userId && typeof userId === 'string') {
+      try {
+        const userRepo = container.getUserRepository();
+        const user = await userRepo.findById(userId);
+        if (!user || user.deletedAt) {
+          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+      } catch {
+        // If user lookup fails for any reason, deny access
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+    }
   }
 
   // ---- Locale redirect (only for pages, not API routes) ----
@@ -111,8 +127,9 @@ function unauthorizedResponse(request: NextRequest, pathname: string) {
   }
 
   const locale = pathname.split('/')[1] || defaultLocale;
-  const signInUrl = new URL(`/${locale}/auth/signin`, request.url);
-  return NextResponse.redirect(signInUrl);
+  const homeUrl = new URL(`/${locale}`, request.url);
+  homeUrl.searchParams.set('login', 'required');
+  return NextResponse.redirect(homeUrl);
 }
 
 export const config = {
@@ -122,5 +139,6 @@ export const config = {
     // Protected API routes (explicitly added since the regex above excludes /api)
     '/api/admin/:path*',
     '/api/orders/:path*',
+    '/api/users/:path*',
   ],
 };

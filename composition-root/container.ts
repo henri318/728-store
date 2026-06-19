@@ -27,9 +27,11 @@
 
 import type { EmailSender } from '@/modules/email/domain/email-sender';
 import type { EventBusPort } from '@/modules/events/domain/event-bus-port';
+import type { ForgotPasswordEmailPort } from '@/modules/auth/domain/forgot-password-email-port';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import type { PasswordHasher } from '@/modules/users/domain/password-hasher';
 import type { RateLimiter } from '@/modules/auth/domain/rate-limiter';
+import type { ResetTokenCodec } from '@/modules/auth/domain/reset-token-codec-port';
 import type { SecretsPort } from '@/modules/auth/domain/secrets';
 import type { SessionPort } from '@/modules/auth/domain/session';
 import type { UserRepository } from '@/modules/users/domain/user-repository';
@@ -38,6 +40,7 @@ import type { OrderRepository } from '@/modules/orders/domain/order-repository';
 import type { ProductRepository } from '@/modules/products/domain/product-repository';
 import type { EmailQueueRepository } from '@/modules/email/domain/email-queue-repository';
 import type { UserLookupPort } from '@/modules/auth/domain/user-lookup';
+import type { UsedResetTokenStorePort } from '@/modules/auth/domain/used-reset-token-store-port';
 
 import { BrevoEmailSender } from '@/modules/email/infrastructure/brevo-email-sender';
 import { ConsoleEmailSender } from '@/modules/email/infrastructure/console-email-sender';
@@ -46,12 +49,15 @@ import { PrismaOutboxRepository } from '@/shared/infrastructure/prisma-outbox-re
 import { PrismaRateLimiter } from '@/modules/auth/infrastructure/prisma-rate-limiter';
 import { ProcessEnvSecrets } from '@/modules/auth/infrastructure/process-env-secrets';
 import { NextAuthSessionAdapter } from '@/modules/auth/infrastructure/nextauth-session';
+import { JwtResetTokenCodec } from '@/modules/auth/infrastructure/jwt-reset-token-codec';
 import { PrismaUserRepository } from '@/modules/users/infrastructure/prisma-user-repository';
 import { PrismaRoleRepository } from '@/modules/roles/infrastructure/prisma-role-repository';
 import { PrismaOrderRepository } from '@/modules/orders/infrastructure/prisma-order-repository';
 import { PrismaProductRepository } from '@/modules/products/infrastructure/prisma-product-repository';
 import { PrismaEmailQueueRepository } from '@/modules/email/infrastructure/prisma-email-queue-repository';
 import { PrismaUserLookup } from '@/modules/auth/infrastructure/prisma-user-lookup';
+import { ConsoleForgotPasswordEmail } from '@/modules/auth/infrastructure/console-forgot-password-email';
+import { MemoryUsedResetTokenStore } from '@/modules/auth/infrastructure/memory-used-reset-token-store';
 import { SeedRolesUseCase } from '@/modules/roles/application/use-cases/seed-roles-use-case';
 import { hashPassword, verifyPassword } from '@/modules/users/infrastructure/bcrypt-password-hasher';
 
@@ -63,6 +69,7 @@ let _emailSender: EmailSender | null = null;
 let _outboxRepository: OutboxRepository | null = null;
 let _passwordHasher: PasswordHasher | null = null;
 let _rateLimiter: RateLimiter | null = null;
+let _resetTokenCodec: ResetTokenCodec | null = null;
 let _eventBus: EventBusPort | null = null;
 let _secrets: SecretsPort | null = null;
 let _session: SessionPort | null = null;
@@ -72,6 +79,8 @@ let _orderRepository: OrderRepository | null = null;
 let _productRepository: ProductRepository | null = null;
 let _emailQueueRepository: EmailQueueRepository | null = null;
 let _userLookup: UserLookupPort | null = null;
+let _forgotPasswordEmailPort: ForgotPasswordEmailPort | null = null;
+let _usedResetTokenStore: UsedResetTokenStorePort | null = null;
 
 // ---------------------------------------------------------------------------
 // Initialization
@@ -159,6 +168,16 @@ export function initContainer(): void {
   if (!_userLookup) {
     _userLookup = new PrismaUserLookup();
   }
+
+  // --- ForgotPasswordEmailPort: console mock in dev (real email sender in prod via EmailSender) ---
+  if (!_forgotPasswordEmailPort) {
+    _forgotPasswordEmailPort = new ConsoleForgotPasswordEmail();
+  }
+
+  // --- UsedResetTokenStore: in-memory adapter (single process) ---
+  if (!_usedResetTokenStore) {
+    _usedResetTokenStore = new MemoryUsedResetTokenStore();
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -199,6 +218,21 @@ export function getPasswordHasher(): PasswordHasher {
 export function getRateLimiter(): RateLimiter {
   if (!_rateLimiter) initContainer();
   return _rateLimiter!;
+}
+
+/**
+ * Returns the ResetTokenCodec bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ * Lazy-creates a JwtResetTokenCodec using the secret from SecretsPort.
+ * In tests, call `container.setResetTokenCodec()` BEFORE any getter to
+ * inject a Base64ResetTokenCodec that doesn't need NEXTAUTH_SECRET.
+ */
+export function getResetTokenCodec(): ResetTokenCodec {
+  if (!_resetTokenCodec) {
+    initContainer();
+    _resetTokenCodec = new JwtResetTokenCodec(_secrets!.getAuthSecret());
+  }
+  return _resetTokenCodec;
 }
 
 /**
@@ -283,6 +317,24 @@ export function getUserLookup(): UserLookupPort {
   return _userLookup!;
 }
 
+/**
+ * Returns the ForgotPasswordEmailPort bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ */
+export function getForgotPasswordEmailPort(): ForgotPasswordEmailPort {
+  if (!_forgotPasswordEmailPort) initContainer();
+  return _forgotPasswordEmailPort!;
+}
+
+/**
+ * Returns the UsedResetTokenStore bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ */
+export function getUsedResetTokenStore(): UsedResetTokenStorePort {
+  if (!_usedResetTokenStore) initContainer();
+  return _usedResetTokenStore!;
+}
+
 // ---------------------------------------------------------------------------
 // Testing helpers
 // ---------------------------------------------------------------------------
@@ -299,6 +351,7 @@ export const container = {
   getOutboxRepository,
   getPasswordHasher,
   getRateLimiter,
+  getResetTokenCodec,
   getEventBus,
   getSecrets,
   getSession,
@@ -308,6 +361,8 @@ export const container = {
   getProductRepository,
   getEmailQueueRepository,
   getUserLookup,
+  getForgotPasswordEmailPort,
+  getUsedResetTokenStore,
   /** Override — useful in tests to inject a mock without touching env vars. */
   setEmailSender(sender: EmailSender): void {
     _emailSender = sender;
@@ -323,6 +378,10 @@ export const container = {
   /** Override — useful in tests to inject an in-memory rate limiter. */
   setRateLimiter(limiter: RateLimiter): void {
     _rateLimiter = limiter;
+  },
+  /** Override — useful in tests to inject a Base64ResetTokenCodec. */
+  setResetTokenCodec(codec: ResetTokenCodec): void {
+    _resetTokenCodec = codec;
   },
   /** Override — useful in tests to inject a fresh event bus (avoids handler leakage). */
   setEventBus(bus: EventBusPort): void {
@@ -359,5 +418,13 @@ export const container = {
   /** Override — useful in tests to inject an in-memory user lookup. */
   setUserLookup(port: UserLookupPort): void {
     _userLookup = port;
+  },
+  /** Override — useful in tests to inject a mock ForgotPasswordEmailPort. */
+  setForgotPasswordEmailPort(port: ForgotPasswordEmailPort): void {
+    _forgotPasswordEmailPort = port;
+  },
+  /** Override — useful in tests to inject a fresh UsedResetTokenStore. */
+  setUsedResetTokenStore(store: UsedResetTokenStorePort): void {
+    _usedResetTokenStore = store;
   },
 };

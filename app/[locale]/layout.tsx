@@ -1,9 +1,13 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/shared/infrastructure/auth-options';
-import LogoutButton from '@/shared/presentation/components/logout-button';
-import LanguageSelector from '@/shared/presentation/components/language-selector';
+import LogoutButton from '@/modules/presentation/components/logout-button';
+import LanguageSelector from '@/modules/presentation/components/language-selector';
+import { SessionProviderWrapper } from '@/modules/presentation/components/session-provider';
+import { LoginButton } from '@/modules/presentation/components/login-button';
+import { VerificationBannerWrapper } from '@/modules/presentation/components/verification-banner-wrapper';
 import { outboxWorker } from '@/workers/outbox-worker';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
+import { DictionaryProvider } from '@/shared/i18n/dictionary-context';
 
 // Start the outbox worker when the server starts
 if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_OUTBOX_WORKER === 'true') {
@@ -35,12 +39,17 @@ export default async function RootLayout({
                 <LogoutButton label={dict.common.logout} />
               </>
             ) : (
-              <a href={`/${locale}/auth/signin`} style={{ textDecoration: 'none', color: '#0070f3' }}>{dict.common.login}</a>
+              <LoginButton label={dict.common.login} />
             )}
           </nav>
         </header>
         <main style={{ padding: '2rem' }}>
-          {children}
+          <DictionaryProvider dict={dict}>
+            <SessionProviderWrapper>
+              <VerificationBannerWrapper />
+              {children}
+            </SessionProviderWrapper>
+          </DictionaryProvider>
         </main>
       </body>
     </html>

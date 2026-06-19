@@ -81,6 +81,31 @@ describe('AssignRoleUseCase', () => {
     ).rejects.toThrow('User not found');
   });
 
+  it('should throw when user is deactivated', async () => {
+    // Seed a deactivated user
+    const userId = UserId.create('user-deactivated');
+    await userRepository.save({
+      userId,
+      email: Email.create('deactivated@example.com'),
+      firstName: 'Dead',
+      lastName: 'Account',
+      address: null,
+      roleId: RoleId.create('CUSTOMER'),
+      passwordHash: PasswordHash.create('hashedpassword123'),
+      emailVerified: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deletedAt: new Date(),
+    });
+
+    const { AssignRoleUseCase } = await import('@/modules/users/application/use-cases/assign-role-use-case');
+    const useCase = new AssignRoleUseCase(userRepository, roleRepository, outboxRepository);
+
+    await expect(
+      useCase.execute({ userId: 'user-deactivated', roleName: 'ADMIN', assignedBy: 'admin-1' }),
+    ).rejects.toThrow('Account is deactivated');
+  });
+
   it('should throw NotFoundError when role does not exist', async () => {
     // Seed a user
     const userId = UserId.create('user-1');

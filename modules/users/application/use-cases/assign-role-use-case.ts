@@ -2,7 +2,7 @@ import type { UserRepository } from '@/modules/users/domain/user-repository';
 import type { RoleRepository } from '@/modules/roles/domain/role-repository';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
-import { NotFoundError } from '@/shared/kernel/app-error';
+import { NotFoundError, UnauthorizedError } from '@/shared/kernel/app-error';
 
 export interface AssignRoleDTO {
   userId: string;
@@ -22,6 +22,11 @@ export class AssignRoleUseCase {
     const user = await this.userRepository.findById(dto.userId);
     if (!user) {
       throw new NotFoundError('User not found');
+    }
+
+    // Reject if account is deactivated (soft-deleted)
+    if (user.deletedAt) {
+      throw new UnauthorizedError('Account is deactivated');
     }
 
     // 2. Validate role exists
