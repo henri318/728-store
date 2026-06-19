@@ -7,17 +7,17 @@ import { RoleId } from '@/modules/roles/domain/value-objects/role-id';
 import { PasswordHash } from '@/shared/kernel/domain/value-objects/password-hash';
 
 /** Maps a Prisma User row to the domain UserEntity (with VOs). */
-function toDomain(user: any): UserEntity {
+export function toDomain(user: any): UserEntity {
   if (!user.email) throw new Error('User email is required');
   if (!user.passwordHash) throw new Error('User password hash is required');
 
   let address: Address | null = null;
-  if (user.addressStreet || user.addressCity || user.addressPostalCode || user.addressCountry) {
+  if (user.addressStreet && user.addressCity && user.addressPostalCode && user.addressCountry) {
     address = Address.create(
-      user.addressStreet ?? '',
-      user.addressCity ?? '',
-      user.addressPostalCode ?? '',
-      user.addressCountry ?? ''
+      user.addressStreet,
+      user.addressCity,
+      user.addressPostalCode,
+      user.addressCountry
     );
   }
 
@@ -45,6 +45,10 @@ export class PrismaUserRepository implements UserRepository {
         lastName: user.lastName,
         passwordHash: user.passwordHash.value,
         role: user.roleId.value,
+        addressStreet: user.address?.street ?? null,
+        addressCity: user.address?.city ?? null,
+        addressPostalCode: user.address?.postalCode ?? null,
+        addressCountry: user.address?.country ?? null,
       },
       create: {
         id: user.userId.value,
@@ -53,6 +57,10 @@ export class PrismaUserRepository implements UserRepository {
         lastName: user.lastName,
         passwordHash: user.passwordHash.value,
         role: user.roleId.value,
+        addressStreet: user.address?.street ?? null,
+        addressCity: user.address?.city ?? null,
+        addressPostalCode: user.address?.postalCode ?? null,
+        addressCountry: user.address?.country ?? null,
       },
     });
 
@@ -93,6 +101,10 @@ export class PrismaUserRepository implements UserRepository {
         email: user.email.value,
         passwordHash: user.passwordHash.value,
         role: user.roleId.value,
+        addressStreet: user.address?.street ?? null,
+        addressCity: user.address?.city ?? null,
+        addressPostalCode: user.address?.postalCode ?? null,
+        addressCountry: user.address?.country ?? null,
       },
     });
 

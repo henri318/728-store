@@ -33,6 +33,7 @@ import type { RateLimiter } from '@/modules/auth/domain/rate-limiter';
 import type { SecretsPort } from '@/modules/auth/domain/secrets';
 import type { SessionPort } from '@/modules/auth/domain/session';
 import type { UserRepository } from '@/modules/users/domain/user-repository';
+import type { RoleRepository } from '@/modules/roles/domain/role-repository';
 import type { OrderRepository } from '@/modules/orders/domain/order-repository';
 import type { ProductRepository } from '@/modules/products/domain/product-repository';
 import type { EmailQueueRepository } from '@/modules/email/domain/email-queue-repository';
@@ -46,10 +47,12 @@ import { PrismaRateLimiter } from '@/modules/auth/infrastructure/prisma-rate-lim
 import { ProcessEnvSecrets } from '@/modules/auth/infrastructure/process-env-secrets';
 import { NextAuthSessionAdapter } from '@/modules/auth/infrastructure/nextauth-session';
 import { PrismaUserRepository } from '@/modules/users/infrastructure/prisma-user-repository';
+import { PrismaRoleRepository } from '@/modules/roles/infrastructure/prisma-role-repository';
 import { PrismaOrderRepository } from '@/modules/orders/infrastructure/prisma-order-repository';
 import { PrismaProductRepository } from '@/modules/products/infrastructure/prisma-product-repository';
 import { PrismaEmailQueueRepository } from '@/modules/email/infrastructure/prisma-email-queue-repository';
 import { PrismaUserLookup } from '@/modules/auth/infrastructure/prisma-user-lookup';
+import { SeedRolesUseCase } from '@/modules/roles/application/use-cases/seed-roles-use-case';
 import { hashPassword, verifyPassword } from '@/modules/users/infrastructure/bcrypt-password-hasher';
 
 // ---------------------------------------------------------------------------
@@ -64,6 +67,7 @@ let _eventBus: EventBusPort | null = null;
 let _secrets: SecretsPort | null = null;
 let _session: SessionPort | null = null;
 let _userRepository: UserRepository | null = null;
+let _roleRepository: RoleRepository | null = null;
 let _orderRepository: OrderRepository | null = null;
 let _productRepository: ProductRepository | null = null;
 let _emailQueueRepository: EmailQueueRepository | null = null;
@@ -124,6 +128,16 @@ export function initContainer(): void {
   // --- UserRepository: Prisma adapter ---
   if (!_userRepository) {
     _userRepository = new PrismaUserRepository();
+  }
+
+  // --- RoleRepository: Prisma adapter + seed ---
+  if (!_roleRepository) {
+    _roleRepository = new PrismaRoleRepository();
+    // Seed default roles on first boot (idempotent, no-op if roles exist).
+    const seedRoles = new SeedRolesUseCase(_roleRepository);
+    seedRoles.execute().catch((err) => {
+      console.error('[container] Role seed failed:', err);
+    });
   }
 
   // --- OrderRepository: Prisma adapter ---
@@ -225,6 +239,15 @@ export function getUserRepository(): UserRepository {
 }
 
 /**
+ * Returns the RoleRepository bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ */
+export function getRoleRepository(): RoleRepository {
+  if (!_roleRepository) initContainer();
+  return _roleRepository!;
+}
+
+/**
  * Returns the OrderRepository bound for the current environment.
  * Auto-initializes the container on first call if not already initialized.
  */
@@ -280,6 +303,7 @@ export const container = {
   getSecrets,
   getSession,
   getUserRepository,
+  getRoleRepository,
   getOrderRepository,
   getProductRepository,
   getEmailQueueRepository,
@@ -315,6 +339,10 @@ export const container = {
   /** Override — useful in tests to inject an in-memory user repository. */
   setUserRepository(repo: UserRepository): void {
     _userRepository = repo;
+  },
+  /** Override — useful in tests to inject an in-memory role repository. */
+  setRoleRepository(repo: RoleRepository): void {
+    _roleRepository = repo;
   },
   /** Override — useful in tests to inject an in-memory order repository. */
   setOrderRepository(repo: OrderRepository): void {
