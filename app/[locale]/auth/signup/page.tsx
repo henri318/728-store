@@ -2,29 +2,142 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Input } from '@/modules/presentation/components/input';
+import { Button } from '@/modules/presentation/components/button';
+import { ErrorMessage } from '@/modules/presentation/components/error-message';
+import { signupSchema } from '@/modules/auth/presentation/schemas/auth-schemas';
+
+interface AddressFields {
+  street: string;
+  city: string;
+  postalCode: string;
+  country: string;
+}
+
+interface FormState {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  address: AddressFields;
+}
+
+interface FormErrors {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  password?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    postalCode?: string;
+    country?: string;
+  };
+}
+
+function validateForm(form: FormState): FormErrors | null {
+  // Only validate address if user has expanded the section and filled at least one field
+  const formToValidate = {
+    ...form,
+    address: form.address && Object.values(form.address).some((v) => v?.trim()) ? form.address : undefined,
+  };
+
+  const result = signupSchema.safeParse(formToValidate);
+  if (result.success) return null;
+
+  const errors: FormErrors = {};
+  const issues = (result.error as any).issues ?? [];
+
+  for (const issue of issues) {
+    const path = issue.path?.join('.') || '';
+    if (path === 'firstName') errors.firstName = issue.message;
+    else if (path === 'lastName') errors.lastName = issue.message;
+    else if (path === 'email') errors.email = issue.message;
+    else if (path === 'password') errors.password = issue.message;
+    else if (path.startsWith('address.')) {
+      const addrField = path.split('.')[1] as keyof AddressFields;
+      if (!errors.address) errors.address = {};
+      errors.address[addrField] = issue.message;
+    }
+  }
+
+  return Object.keys(errors).length > 0 ? errors : null;
+}
 
 export default function SignUpPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
-  const [error, setError] = useState<string | null>(null);
+  const [form, setForm] = useState<FormState>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    address: { street: '', city: '', postalCode: '', country: '' },
+  });
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [serverError, setServerError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showAddress, setShowAddress] = useState(false);
+
+  const updateField = (field: keyof FormState, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    if ((errors as any)[field]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete (next as any)[field];
+        return next;
+      });
+    }
+  };
+
+  const updateAddressField = (field: keyof AddressFields, value: string) => {
+    setForm((prev) => ({
+      ...prev,
+      address: { ...prev.address, [field]: value },
+    }));
+    if (errors.address?.[field]) {
+      setErrors((prev) => {
+        const next = { ...prev, address: { ...prev.address } };
+        if (next.address) {
+          delete next.address[field];
+          if (Object.keys(next.address).length === 0) {
+            delete next.address;
+          }
+        }
+        return next;
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setServerError(null);
+
+    const validationErrors = validateForm(form);
+    if (validationErrors) {
+      setErrors(validationErrors);
+      return;
+    }
+
     setLoading(true);
 
     try {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
-        body: JSON.stringify(form),
-        headers: { 'Content-Type': 'application/json' }
+        body: JSON.stringify({
+          firstName: form.firstName,
+          lastName: form.lastName,
+          email: form.email,
+          password: form.password,
+          address: Object.values(form.address).some((v) => v)
+            ? form.address
+            : undefined,
+        }),
+        headers: { 'Content-Type': 'application/json' },
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        // Map the backend error to a friendly message
         if (data.error === 'User already exists') {
           throw new Error('El mail ya existe. Por favor, usá otro.');
         }
@@ -33,64 +146,102 @@ export default function SignUpPage() {
 
       router.push('/auth/signin?registered=true');
     } catch (err: any) {
-      setError(err.message);
+      setServerError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '4rem auto', padding: '2rem', border: '1px solid #ddd', borderRadius: '8px' }}>
-      <h2>Register</h2>
+    <div style={{ maxWidth: '480px', margin: '4rem auto', padding: '2rem', border: '1px solid #ddd', borderRadius: '8px' }}>
+      <h2 style={{ marginTop: 0 }}>Register</h2>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {error && (
-          <div style={{ padding: '0.7rem', background: '#fff1f0', border: '1px solid #ffa39e', color: '#cf1322', borderRadius: '4px', fontSize: '0.9rem' }}>
-            {error}
+        {serverError && <ErrorMessage message={serverError} />}
+
+        <Input
+          label="First name"
+          value={form.firstName}
+          onChange={(v) => updateField('firstName', v)}
+          error={errors.firstName}
+          required
+        />
+        <Input
+          label="Last name"
+          value={form.lastName}
+          onChange={(v) => updateField('lastName', v)}
+          error={errors.lastName}
+          required
+        />
+        <Input
+          label="Email"
+          type="email"
+          value={form.email}
+          onChange={(v) => updateField('email', v)}
+          error={errors.email}
+          required
+        />
+        <Input
+          label="Password"
+          type="password"
+          value={form.password}
+          onChange={(v) => updateField('password', v)}
+          error={errors.password}
+          required
+        />
+
+        <div style={{ borderTop: '1px solid #eee', paddingTop: '0.5rem' }}>
+          <button
+            type="button"
+            onClick={() => setShowAddress((prev) => !prev)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#0070f3',
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+              padding: 0,
+            }}
+          >
+            {showAddress ? '▾ Hide address (optional)' : '▸ Add address (optional)'}
+          </button>
+        </div>
+
+        {showAddress && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingLeft: '0.5rem', borderLeft: '3px solid #0070f3' }}>
+            <Input
+              label="Street"
+              value={form.address.street}
+              onChange={(v) => updateAddressField('street', v)}
+              error={errors.address?.street}
+            />
+            <Input
+              label="City"
+              value={form.address.city}
+              onChange={(v) => updateAddressField('city', v)}
+              error={errors.address?.city}
+            />
+            <Input
+              label="Postal code"
+              value={form.address.postalCode}
+              onChange={(v) => updateAddressField('postalCode', v)}
+              error={errors.address?.postalCode}
+            />
+            <Input
+              label="Country"
+              value={form.address.country}
+              onChange={(v) => updateAddressField('country', v)}
+              error={errors.address?.country}
+            />
           </div>
         )}
-        <input 
-          type="text" 
-          placeholder="Name" 
-          required
-          value={form.name} 
-          onChange={(e) => setForm({ ...form, name: e.target.value })} 
-          style={{ padding: '0.5rem' }}
-        />
-        <input 
-          type="email" 
-          placeholder="Email" 
-          required
-          value={form.email} 
-          onChange={(e) => setForm({ ...form, email: e.target.value })} 
-          style={{ padding: '0.5rem' }}
-        />
-        <input 
-          type="password" 
-          placeholder="Password" 
-          required
-          value={form.password} 
-          onChange={(e) => setForm({ ...form, password: e.target.value })} 
-          style={{ padding: '0.5rem' }}
-        />
-        <button 
-          type="submit" 
-          disabled={loading}
-          style={{ 
-            padding: '0.7rem', 
-            background: loading ? '#ccc' : '#28a745', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '4px', 
-            cursor: loading ? 'not-allowed' : 'pointer' 
-          }}
-        >
-          {loading ? 'Registering...' : 'Sign Up'}
-        </button>
+
+        <Button type="submit" loading={loading}>
+          Sign Up
+        </Button>
       </form>
-      <p style={{ marginTop: '1rem' }}>
+      <p style={{ marginTop: '1rem', fontSize: '0.9rem' }}>
         Already have an account? <a href="/auth/signin">Sign In</a>
       </p>
     </div>
   );
 }
-
