@@ -6,6 +6,7 @@ import {
   getProductRepository,
   getEmailQueueRepository,
   getUserLookup,
+  getRoleRepository,
   getEmailSender,
   getOutboxRepository,
   getPasswordHasher,
@@ -13,6 +14,7 @@ import {
   getEventBus,
 } from '@/composition-root/container';
 import { MemoryUserRepository } from '@/tests/doubles/memory-user-repository';
+import { MemoryRoleRepository } from '@/tests/doubles/memory-role-repository';
 import { MemoryEmailQueueRepository } from '../doubles/memory-email-queue-repository';
 import { MemoryUserLookup } from '../doubles/memory-user-lookup';
 import { MemoryOutboxRepository } from '../doubles/memory-outbox-repository';
@@ -43,6 +45,7 @@ describe('Container — expanded wiring', () => {
     container.setProductRepository(undefined as any);
     container.setEmailQueueRepository(undefined as any);
     container.setUserLookup(undefined as any);
+    container.setRoleRepository(undefined as any);
   });
 
   describe('auto-initialization on first getter call', () => {
@@ -83,6 +86,15 @@ describe('Container — expanded wiring', () => {
       expect(bus).toBeDefined();
       expect(typeof bus.on).toBe('function');
       expect(typeof bus.emit).toBe('function');
+    });
+
+    it('should auto-init when getRoleRepository is called', () => {
+      const repo = getRoleRepository();
+      expect(repo).toBeDefined();
+      expect(typeof repo.save).toBe('function');
+      expect(typeof repo.findAll).toBe('function');
+      expect(typeof repo.findByName).toBe('function');
+      expect(typeof repo.existsByName).toBe('function');
     });
   });
 
@@ -136,6 +148,12 @@ describe('Container — expanded wiring', () => {
       const bus = new EventBus();
       container.setEventBus(bus);
       expect(getEventBus()).toBe(bus);
+    });
+
+    it('should let setRoleRepository override the bound Prisma adapter', () => {
+      const memory = new MemoryRoleRepository();
+      container.setRoleRepository(memory);
+      expect(getRoleRepository()).toBe(memory);
     });
 
     it('should let overrides survive a subsequent initContainer call (state check short-circuits)', () => {

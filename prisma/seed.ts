@@ -22,6 +22,32 @@ async function main() {
   await prisma.product.deleteMany()
   await prisma.seller.deleteMany()
   await prisma.user.deleteMany()
+  await prisma.role.deleteMany()
+
+  // 2. Seed roles (ADMIN, SUPPORT, DESIGNER, CUSTOMER)
+  const roles = await Promise.all([
+    prisma.role.upsert({
+      where: { name: 'ADMIN' },
+      update: {},
+      create: { name: 'ADMIN', description: 'System administrator with full access' },
+    }),
+    prisma.role.upsert({
+      where: { name: 'SUPPORT' },
+      update: {},
+      create: { name: 'SUPPORT', description: 'Customer support agent' },
+    }),
+    prisma.role.upsert({
+      where: { name: 'DESIGNER' },
+      update: {},
+      create: { name: 'DESIGNER', description: 'Product designer with customization access' },
+    }),
+    prisma.role.upsert({
+      where: { name: 'CUSTOMER' },
+      update: {},
+      create: { name: 'CUSTOMER', description: 'Registered customer' },
+    }),
+  ]);
+  console.log(`  ✓ Roles seeded: ${roles.map(r => r.name).join(', ')}`);
 
   // 2. Create Seller (the company/store)
   const seller = await prisma.seller.create({
@@ -68,14 +94,16 @@ async function main() {
     console.log(`  ✓ Product created: ${(product as any).id}`)
   }
 
-  // 4. Create test user (client role, verified email)
+  // 4. Create test user (customer role, verified email)
   const passwordHash = await bcrypt.hash('Test123!', BCRYPT_COST)
   const user = await prisma.user.create({
     data: {
       name: 'Test User',
       email: 'test@test.com',
       passwordHash,
-      role: 'client',
+      role: 'CUSTOMER',
+      firstName: 'Test',
+      lastName: 'User',
       emailVerified: new Date(),
       preferredLanguage: 'es',
     },

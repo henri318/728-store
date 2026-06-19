@@ -13,11 +13,23 @@ model User {
   emailVerified     DateTime?
   image             String?
   passwordHash      String?
-  role              String    @default("client")
+  role              String    @default("CUSTOMER") // ADMIN | SUPPORT | DESIGNER | CUSTOMER
+  firstName         String
+  lastName          String
+  addressStreet     String?
+  addressCity       String?
+  addressPostalCode String?
+  addressCountry    String?
   preferredLanguage String    @default("es") // es, cat
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   orders            Order[]
+}
+
+model Role {
+  id          String @id @default(uuid())
+  name        String @unique
+  description String @default("")
 }
 
 model Seller {
