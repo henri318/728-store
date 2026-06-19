@@ -54,18 +54,15 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // Record successful attempt before email verification gate
-        await rateLimiter.recordLoginAttempt(credentials.email, ip, true);
-
-        // Email verification gate — only credential users need to be verified
-        if (!user.emailVerified) {
-          throw new Error('EMAIL_NOT_VERIFIED');
-        }
-
         // Soft-delete gate — reject login if account is deactivated
+        // Do NOT leak whether account exists — return null same as wrong password
         if (user.deletedAt) {
-          throw new Error('ACCOUNT_DEACTIVATED');
+          await rateLimiter.recordLoginAttempt(credentials.email, ip, false);
+          return null;
         }
+
+        // Record successful attempt only after ALL checks pass
+        await rateLimiter.recordLoginAttempt(credentials.email, ip, true);
 
         const displayName = `${user.firstName} ${user.lastName}`.trim();
 
@@ -74,6 +71,7 @@ export const authOptions: NextAuthOptions = {
           name: displayName,
           email: user.email.value,
           role: user.roleId.value,
+          emailVerified: user.emailVerified,
         };
       }
     }),
@@ -100,10 +98,13 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
         token.role = (user as any).role;
+        // emailVerified: credentials provider sets it from authorize() return;
+        // OAuth users are pre-verified by the provider, so set a synthetic date
+        token.emailVerified = (user as any).emailVerified ?? (account ? new Date().toISOString() : null);
       }
       return token;
     },
@@ -111,14 +112,12 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as any).id = token.id;
         (session.user as any).role = token.role;
+        (session.user as any).emailVerified = token.emailVerified;
       }
       return session;
     }
   },
   session: {
     strategy: 'jwt',
-  },
-  pages: {
-    signIn: '/auth/signin',
   },
 };

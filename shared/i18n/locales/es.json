@@ -15,7 +15,11 @@
     "invalidEmail": "Correo electrónico inválido",
     "passwordMinLength": "La contraseña debe tener al menos 8 caracteres",
     "unverifiedBanner": "Por favor, verificá tu correo electrónico.",
-    "resendVerification": "Reenviar verificación"
+    "resendVerification": "Reenviar verificación",
+    "backToHome": "Volver al inicio",
+    "languageEs": "Español",
+    "languageCat": "Català",
+    "redirecting": "Redirigiendo..."
   },
   "auth": {
     "signInTitle": "Iniciar sesión",
@@ -35,6 +39,8 @@
     "city": "Ciudad",
     "postalCode": "Código postal",
     "country": "País",
+    "addAddress": "Agregar dirección (opcional)",
+    "hideAddress": "Ocultar dirección (opcional)",
     "currentPassword": "Contraseña actual",
     "newPassword": "Nueva contraseña",
     "confirmPassword": "Confirmar contraseña",
@@ -46,11 +52,17 @@
     "checkEmailMessage": "Si el correo existe, recibirás un enlace de recuperación.",
     "verifyEmailTitle": "Verificar correo electrónico",
     "emailVerified": "Correo electrónico verificado correctamente",
+    "canLoginAfterVerification": "Ya podés iniciar sesión.",
     "tokenExpired": "El enlace ha expirado. Solicitá uno nuevo.",
     "invalidToken": "El enlace de verificación no es válido.",
     "invalidCredentials": "Credenciales inválidas",
     "passwordsDoNotMatch": "Las contraseñas no coinciden",
-    "wrongCurrentPassword": "La contraseña actual es incorrecta"
+    "wrongCurrentPassword": "La contraseña actual es incorrecta",
+    "requestNewLink": "Solicitar nuevo enlace",
+    "invalidResetToken": "El token no es válido o ha expirado.",
+    "failedToResetPassword": "Error al restablecer la contraseña.",
+    "failedToChangePassword": "Error al cambiar la contraseña.",
+    "genericSignupError": "Algo salió mal. Reintentá."
   },
   "profile": {
     "title": "Mi perfil",

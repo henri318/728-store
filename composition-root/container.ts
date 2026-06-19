@@ -27,6 +27,7 @@
 
 import type { EmailSender } from '@/modules/email/domain/email-sender';
 import type { EventBusPort } from '@/modules/events/domain/event-bus-port';
+import type { ForgotPasswordEmailPort } from '@/modules/auth/domain/forgot-password-email-port';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import type { PasswordHasher } from '@/modules/users/domain/password-hasher';
 import type { RateLimiter } from '@/modules/auth/domain/rate-limiter';
@@ -39,6 +40,7 @@ import type { OrderRepository } from '@/modules/orders/domain/order-repository';
 import type { ProductRepository } from '@/modules/products/domain/product-repository';
 import type { EmailQueueRepository } from '@/modules/email/domain/email-queue-repository';
 import type { UserLookupPort } from '@/modules/auth/domain/user-lookup';
+import type { UsedResetTokenStorePort } from '@/modules/auth/domain/used-reset-token-store-port';
 
 import { BrevoEmailSender } from '@/modules/email/infrastructure/brevo-email-sender';
 import { ConsoleEmailSender } from '@/modules/email/infrastructure/console-email-sender';
@@ -54,6 +56,8 @@ import { PrismaOrderRepository } from '@/modules/orders/infrastructure/prisma-or
 import { PrismaProductRepository } from '@/modules/products/infrastructure/prisma-product-repository';
 import { PrismaEmailQueueRepository } from '@/modules/email/infrastructure/prisma-email-queue-repository';
 import { PrismaUserLookup } from '@/modules/auth/infrastructure/prisma-user-lookup';
+import { ConsoleForgotPasswordEmail } from '@/modules/auth/infrastructure/console-forgot-password-email';
+import { MemoryUsedResetTokenStore } from '@/modules/auth/infrastructure/memory-used-reset-token-store';
 import { SeedRolesUseCase } from '@/modules/roles/application/use-cases/seed-roles-use-case';
 import { hashPassword, verifyPassword } from '@/modules/users/infrastructure/bcrypt-password-hasher';
 
@@ -75,6 +79,8 @@ let _orderRepository: OrderRepository | null = null;
 let _productRepository: ProductRepository | null = null;
 let _emailQueueRepository: EmailQueueRepository | null = null;
 let _userLookup: UserLookupPort | null = null;
+let _forgotPasswordEmailPort: ForgotPasswordEmailPort | null = null;
+let _usedResetTokenStore: UsedResetTokenStorePort | null = null;
 
 // ---------------------------------------------------------------------------
 // Initialization
@@ -161,6 +167,16 @@ export function initContainer(): void {
   // --- UserLookupPort: Prisma adapter ---
   if (!_userLookup) {
     _userLookup = new PrismaUserLookup();
+  }
+
+  // --- ForgotPasswordEmailPort: console mock in dev (real email sender in prod via EmailSender) ---
+  if (!_forgotPasswordEmailPort) {
+    _forgotPasswordEmailPort = new ConsoleForgotPasswordEmail();
+  }
+
+  // --- UsedResetTokenStore: in-memory adapter (single process) ---
+  if (!_usedResetTokenStore) {
+    _usedResetTokenStore = new MemoryUsedResetTokenStore();
   }
 }
 
@@ -301,6 +317,24 @@ export function getUserLookup(): UserLookupPort {
   return _userLookup!;
 }
 
+/**
+ * Returns the ForgotPasswordEmailPort bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ */
+export function getForgotPasswordEmailPort(): ForgotPasswordEmailPort {
+  if (!_forgotPasswordEmailPort) initContainer();
+  return _forgotPasswordEmailPort!;
+}
+
+/**
+ * Returns the UsedResetTokenStore bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ */
+export function getUsedResetTokenStore(): UsedResetTokenStorePort {
+  if (!_usedResetTokenStore) initContainer();
+  return _usedResetTokenStore!;
+}
+
 // ---------------------------------------------------------------------------
 // Testing helpers
 // ---------------------------------------------------------------------------
@@ -327,6 +361,8 @@ export const container = {
   getProductRepository,
   getEmailQueueRepository,
   getUserLookup,
+  getForgotPasswordEmailPort,
+  getUsedResetTokenStore,
   /** Override — useful in tests to inject a mock without touching env vars. */
   setEmailSender(sender: EmailSender): void {
     _emailSender = sender;
@@ -382,5 +418,13 @@ export const container = {
   /** Override — useful in tests to inject an in-memory user lookup. */
   setUserLookup(port: UserLookupPort): void {
     _userLookup = port;
+  },
+  /** Override — useful in tests to inject a mock ForgotPasswordEmailPort. */
+  setForgotPasswordEmailPort(port: ForgotPasswordEmailPort): void {
+    _forgotPasswordEmailPort = port;
+  },
+  /** Override — useful in tests to inject a fresh UsedResetTokenStore. */
+  setUsedResetTokenStore(store: UsedResetTokenStorePort): void {
+    _usedResetTokenStore = store;
   },
 };

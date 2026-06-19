@@ -30,6 +30,7 @@ export function toDomain(user: any): UserEntity {
     roleId: RoleId.create(user.role ?? 'CUSTOMER'),
     passwordHash: PasswordHash.create(user.passwordHash),
     emailVerified: user.emailVerified ?? null,
+    deletedAt: user.deletedAt ?? null,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
@@ -49,6 +50,7 @@ export class PrismaUserRepository implements UserRepository {
         addressCity: user.address?.city ?? null,
         addressPostalCode: user.address?.postalCode ?? null,
         addressCountry: user.address?.country ?? null,
+        deletedAt: user.deletedAt ?? null,
       },
       create: {
         id: user.userId.value,
@@ -61,6 +63,7 @@ export class PrismaUserRepository implements UserRepository {
         addressCity: user.address?.city ?? null,
         addressPostalCode: user.address?.postalCode ?? null,
         addressCountry: user.address?.country ?? null,
+        deletedAt: user.deletedAt ?? null,
       },
     });
 
@@ -68,7 +71,7 @@ export class PrismaUserRepository implements UserRepository {
   }
 
   async findByEmail(email: string): Promise<UserEntity | null> {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.findFirst({
       where: { email: email.trim().toLowerCase() },
     });
 
@@ -105,12 +108,17 @@ export class PrismaUserRepository implements UserRepository {
         addressCity: user.address?.city ?? null,
         addressPostalCode: user.address?.postalCode ?? null,
         addressCountry: user.address?.country ?? null,
+        deletedAt: user.deletedAt ?? null,
       },
     });
 
     return toDomain(updatedUser);
   }
 
+  /**
+   * @deprecated Use soft-delete via `update()` with `deletedAt` set instead.
+   * This hard-deletes the user row from the database.
+   */
   async delete(id: string): Promise<void> {
     await prisma.user.delete({
       where: { id },

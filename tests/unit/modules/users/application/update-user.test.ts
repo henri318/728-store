@@ -151,6 +151,30 @@ describe('UpdateUserUseCase', () => {
     ).rejects.toThrow('First name is required');
   });
 
+  it('should throw when user is deactivated', async () => {
+    const userId = UserId.create('user-deactivated');
+    await userRepository.save({
+      userId,
+      email: Email.create('deactivated@example.com'),
+      firstName: 'Dead',
+      lastName: 'Account',
+      address: null,
+      roleId: RoleId.create('CUSTOMER'),
+      passwordHash: PasswordHash.create('hashedpassword123'),
+      emailVerified: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deletedAt: new Date(),
+    });
+
+    const { UpdateUserUseCase } = await import('@/modules/users/application/use-cases/update-user-use-case');
+    const useCase = new UpdateUserUseCase(userRepository, outboxRepository);
+
+    await expect(
+      useCase.execute({ userId: 'user-deactivated', firstName: 'Jane' }),
+    ).rejects.toThrow('Account is deactivated');
+  });
+
   it('should reject firstName exceeding max length', async () => {
     const userId = UserId.create('user-long');
     await userRepository.save({

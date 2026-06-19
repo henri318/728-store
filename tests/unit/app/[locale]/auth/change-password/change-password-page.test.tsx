@@ -1,0 +1,88 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import ChangePasswordPage from '@/app/[locale]/auth/change-password/page';
+
+// Mock next-auth
+vi.mock('next-auth/react', () => ({
+  useSession: vi.fn(),
+}));
+
+const mockFetch = vi.fn();
+vi.stubGlobal('fetch', mockFetch);
+
+import { useSession } from 'next-auth/react';
+
+describe('ChangePasswordPage', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(useSession).mockReturnValue({
+      data: { user: { email: 'test@example.com' } },
+      status: 'authenticated',
+      update: vi.fn(),
+    } as any);
+  });
+
+  it('renders password change form', () => {
+    render(<ChangePasswordPage />);
+
+    expect(screen.getByLabelText('Contraseña actual')).toBeInTheDocument();
+    expect(screen.getByLabelText('Nueva contraseña')).toBeInTheDocument();
+    expect(screen.getByLabelText('Confirmar contraseña')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Enviar' })).toBeInTheDocument();
+  });
+
+  it('shows error when passwords do not match', async () => {
+    render(<ChangePasswordPage />);
+
+    fireEvent.change(screen.getByLabelText('Nueva contraseña'), { target: { value: 'newpass123' } });
+    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), { target: { value: 'different' } });
+
+    const form = screen.getByRole('button', { name: 'Enviar' }).closest('form')!;
+    fireEvent.submit(form);
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Las contraseñas no coinciden');
+  });
+
+  it('calls change-password API when form is valid', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ success: true }),
+    });
+
+    render(<ChangePasswordPage />);
+
+    fireEvent.change(screen.getByLabelText('Contraseña actual'), { target: { value: 'oldpass' } });
+    fireEvent.change(screen.getByLabelText('Nueva contraseña'), { target: { value: 'newpass123' } });
+    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), { target: { value: 'newpass123' } });
+
+    const form = screen.getByRole('button', { name: 'Enviar' }).closest('form')!;
+    fireEvent.submit(form);
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/users/me/change-password', expect.objectContaining({
+        method: 'POST',
+      }));
+    });
+  });
+
+  it('shows success message after successful change', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ success: true }),
+    });
+
+    render(<ChangePasswordPage />);
+
+    fireEvent.change(screen.getByLabelText('Contraseña actual'), { target: { value: 'oldpass' } });
+    fireEvent.change(screen.getByLabelText('Nueva contraseña'), { target: { value: 'newpass123' } });
+    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), { target: { value: 'newpass123' } });
+
+    const form = screen.getByRole('button', { name: 'Enviar' }).closest('form')!;
+    fireEvent.submit(form);
+
+    await waitFor(() => {
+      expect(screen.getByText('Contraseña actualizada correctamente')).toBeInTheDocument();
+    });
+  });
+});

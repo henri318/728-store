@@ -8,5 +8,6 @@ export interface UserRepository {
   findById(id: string): Promise<UserEntity | null>;
   markEmailVerified(userId: string): Promise<void>;
   update(user: UserEntity, tx?: any): Promise<UserEntity>;
+  /** @deprecated Use soft-delete via `update()` with `deletedAt` set instead. */
   delete(id: string): Promise<void>;
 }

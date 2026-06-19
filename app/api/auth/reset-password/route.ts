@@ -1,63 +1,66 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/composition-root/container';
-import { PasswordHash } from '@/shared/kernel/domain/value-objects/password-hash';
-import { GlobalEvents } from '@/modules/events/domain/event-registry';
+import { ResetPasswordUseCase } from '@/modules/users/application/use-cases/reset-password-use-case';
 import { resetPasswordSchema } from '@/modules/auth/presentation/schemas/auth-schemas';
 import { handleApiError } from '@/shared/presentation/error-handler';
 
 /**
  * POST /api/auth/reset-password
  * Public endpoint — validates a password-reset token and updates the user's password.
+ * Uses ResetPasswordUseCase for business logic (hexagonal: thin route, fat use case).
  */
 export async function POST(req: NextRequest) {
   try {
     const { token, newPassword } = resetPasswordSchema.parse(await req.json());
 
-    // Decode and validate token — throws on invalid/expired
-    const tokenCodec = container.getResetTokenCodec();
-    let payload: { email: string };
-    try {
-      payload = await tokenCodec.decode(token);
-    } catch {
+    // Rate limit by IP — prevent abuse of this public endpoint
+    const ip =
+      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+      req.headers.get('x-real-ip') ??
+      'unknown';
+    const rateLimiter = container.getRateLimiter();
+    // Use IP-based key to avoid global blocking across all users.
+    // A static string would share rate-limit state for everyone.
+    const rateCheck = await rateLimiter.checkRateLimit(ip, ip);
+    if (rateCheck.blocked) {
       return NextResponse.json(
-        { error: 'Invalid or expired token' },
-        { status: 400 },
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 },
       );
     }
 
-    // Find user by email from token
     const userRepository = container.getUserRepository();
-    const user = await userRepository.findByEmail(payload.email);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 },
-      );
-    }
-
-    // Hash new password
     const passwordHasher = container.getPasswordHasher();
-    const hashedPassword = await passwordHasher.hash(newPassword);
-    const newPasswordHash = PasswordHash.create(hashedPassword);
-
-    // Update user
-    await userRepository.update({
-      ...user,
-      passwordHash: newPasswordHash,
-      updatedAt: new Date(),
-    });
-
-    // Emit event
+    const tokenCodec = container.getResetTokenCodec();
     const outboxRepository = container.getOutboxRepository();
-    await outboxRepository.saveEvent(GlobalEvents.PASSWORD_RESET, {
-      userId: user.userId.value,
-    });
+    const usedTokenStore = container.getUsedResetTokenStore();
 
-    return NextResponse.json({
-      success: true,
-      message: 'Password has been reset successfully',
-    });
+    const useCase = new ResetPasswordUseCase(
+      userRepository,
+      passwordHasher,
+      tokenCodec,
+      outboxRepository,
+      usedTokenStore,
+    );
+
+    const result = await useCase.execute({ token, newPassword });
+
+    // Record successful attempt — legitimate requests should not count
+    // against rate limits. Only errors (catch block) are recorded as failures.
+    await rateLimiter.recordLoginAttempt(ip, ip, true);
+
+    return NextResponse.json(result);
   } catch (error: unknown) {
+    // Record rate-limiting on errors too
+    try {
+      const ip =
+        req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+        req.headers.get('x-real-ip') ??
+        'unknown';
+      await container.getRateLimiter().recordLoginAttempt(ip, ip, false);
+    } catch {
+      // Silently ignore rate-limiter failures during error handling
+    }
     return handleApiError(error);
   }
 }

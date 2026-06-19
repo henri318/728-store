@@ -126,4 +126,39 @@ describe('ChangePasswordUseCase', () => {
       }),
     ).rejects.toThrow('User not found');
   });
+
+  it('should reject password change for a deleted (deactivated) user', async () => {
+    // Soft-delete the user
+    const user = await userRepository.findById('user-cp-1');
+    await userRepository.update({
+      ...user!,
+      deletedAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const { ChangePasswordUseCase } = await import(
+      '@/modules/users/application/use-cases/change-password-use-case'
+    );
+
+    const useCase = new ChangePasswordUseCase(
+      userRepository,
+      passwordHasher,
+      outboxRepository,
+    );
+
+    await expect(
+      useCase.execute({
+        userId: 'user-cp-1',
+        currentPassword: originalPassword,
+        newPassword,
+      }),
+    ).rejects.toThrow('Account is deactivated');
+
+    // Verify password was NOT changed
+    const updatedUser = await userRepository.findById('user-cp-1');
+    expect(updatedUser!.passwordHash.value).toBe(`mem:${originalPassword}`);
+
+    // No event emitted
+    expect(outboxRepository.events.length).toBe(0);
+  });
 });

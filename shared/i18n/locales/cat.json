@@ -15,7 +15,11 @@
     "invalidEmail": "Correu electrònic invàlid",
     "passwordMinLength": "La contrasenya ha de tenir almenys 8 caràcters",
     "unverifiedBanner": "Si us plau, verifica el teu correu electrònic.",
-    "resendVerification": "Reenviar verificació"
+    "resendVerification": "Reenviar verificació",
+    "backToHome": "Tornar a l'inici",
+    "languageEs": "Espanyol",
+    "languageCat": "Català",
+    "redirecting": "Redirigint..."
   },
   "auth": {
     "signInTitle": "Iniciar sessió",
@@ -35,6 +39,8 @@
     "city": "Ciutat",
     "postalCode": "Codi postal",
     "country": "País",
+    "addAddress": "Afegir adreça (opcional)",
+    "hideAddress": "Amagar adreça (opcional)",
     "currentPassword": "Contrasenya actual",
     "newPassword": "Nova contrasenya",
     "confirmPassword": "Confirmar contrasenya",
@@ -46,11 +52,17 @@
     "checkEmailMessage": "Si el correu existeix, rebràs un enllaç de recuperació.",
     "verifyEmailTitle": "Verificar correu electrònic",
     "emailVerified": "Correu electrònic verificat correctament",
+    "canLoginAfterVerification": "Ja pots iniciar sessió.",
     "tokenExpired": "L'enllaç ha caducat. Sol·licita'n un de nou.",
     "invalidToken": "L'enllaç de verificació no és vàlid.",
     "invalidCredentials": "Credencials invàlides",
     "passwordsDoNotMatch": "Les contrasenyes no coincideixen",
-    "wrongCurrentPassword": "La contrasenya actual és incorrecta"
+    "wrongCurrentPassword": "La contrasenya actual és incorrecta",
+    "requestNewLink": "Sol·licitar nou enllaç",
+    "invalidResetToken": "El token no és vàlid o ha caducat.",
+    "failedToResetPassword": "Error en restablir la contrasenya.",
+    "failedToChangePassword": "Error en canviar la contrasenya.",
+    "genericSignupError": "Alguna cosa ha anat malament. Torna-ho a intentar."
   },
   "profile": {
     "title": "El meu perfil",

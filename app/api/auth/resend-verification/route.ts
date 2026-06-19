@@ -21,6 +21,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, message: 'If the email exists, a verification link has been sent.' });
     }
 
+    if (user.deletedAt) {
+      // Don't reveal whether the email exists or is deleted — return generic success
+      return NextResponse.json({ success: true, message: 'If the email exists, a verification link has been sent.' });
+    }
+
     if (user.emailVerified) {
       return NextResponse.json({ success: true, message: 'Email already verified' });
     }

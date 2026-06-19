@@ -1,7 +1,7 @@
 import { UserRepository } from '../../domain/user-repository';
 import { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
-import { NotFoundError, ValidationError } from '@/shared/kernel/app-error';
+import { NotFoundError, ValidationError, UnauthorizedError } from '@/shared/kernel/app-error';
 import { Address } from '@/shared/kernel/domain/value-objects/address';
 import type { UpdateUserDTO } from '../dto/update-user.dto';
 
@@ -38,6 +38,11 @@ export class UpdateUserUseCase {
     const existing = await this.userRepository.findById(dto.userId);
     if (!existing) {
       throw new NotFoundError('User not found');
+    }
+
+    // Reject if account is deactivated (soft-deleted)
+    if (existing.deletedAt) {
+      throw new UnauthorizedError('Account is deactivated');
     }
 
     const changedFields: string[] = [];
