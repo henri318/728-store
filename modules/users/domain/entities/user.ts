@@ -25,4 +25,7 @@ export interface UserEntity {
   readonly emailVerified: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
+  /** Soft-delete timestamp. `null` or `undefined` means the account is active.
+   *  Once set, login MUST be blocked and the account treated as deactivated. */
+  readonly deletedAt?: Date | null;
 }

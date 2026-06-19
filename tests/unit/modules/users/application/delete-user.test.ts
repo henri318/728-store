@@ -7,7 +7,7 @@ import { Email } from '@/shared/kernel/domain/value-objects/email';
 import { RoleId } from '@/modules/roles/domain/value-objects/role-id';
 import { PasswordHash } from '@/shared/kernel/domain/value-objects/password-hash';
 
-describe('DeleteUserUseCase', () => {
+describe('DeleteUserUseCase — soft-delete', () => {
   let userRepository: MemoryUserRepository;
   let outboxRepository: MemoryOutboxRepository;
 
@@ -18,7 +18,7 @@ describe('DeleteUserUseCase', () => {
 
   // ── Happy Path ──────────────────────────────────────────────
 
-  it('should delete a user and emit USER_DELETED event', async () => {
+  it('should soft-delete a user (set deletedAt) and emit USER_DELETED event', async () => {
     // Seed user
     const userId = UserId.create('user-1');
     await userRepository.save({
@@ -39,9 +39,10 @@ describe('DeleteUserUseCase', () => {
 
     await useCase.execute({ userId: 'user-1' });
 
-    // User no longer exists
+    // User STILL exists (soft-delete)
     const found = await userRepository.findById('user-1');
-    expect(found).toBeNull();
+    expect(found).not.toBeNull();
+    expect(found!.deletedAt).toBeInstanceOf(Date);
 
     // Event emitted
     expect(outboxRepository.events.length).toBe(1);
@@ -62,7 +63,7 @@ describe('DeleteUserUseCase', () => {
 
   // ── Idempotency ─────────────────────────────────────────────
 
-  it('should throw NotFoundError when deleting an already-deleted user', async () => {
+  it('should throw error when deleting an already-deleted user', async () => {
     const userId = UserId.create('user-2');
     await userRepository.save({
       userId,
@@ -80,12 +81,12 @@ describe('DeleteUserUseCase', () => {
     const { DeleteUserUseCase } = await import('@/modules/users/application/use-cases/delete-user-use-case');
     const useCase = new DeleteUserUseCase(userRepository, outboxRepository);
 
-    // Delete once
+    // Soft-delete once
     await useCase.execute({ userId: 'user-2' });
 
-    // Delete again — should throw
+    // Soft-delete again — should throw (already deleted)
     await expect(
       useCase.execute({ userId: 'user-2' }),
-    ).rejects.toThrow('User not found');
+    ).rejects.toThrow('User already deactivated');
   });
 });

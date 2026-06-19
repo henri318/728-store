@@ -7,7 +7,7 @@ const locales = ['es', 'cat'];
 const defaultLocale = 'es';
 
 /** Path prefixes that require authentication (guest-level or above). */
-const protectedPaths = ['/dashboard', '/api/admin', '/api/orders'];
+const protectedPaths = ['/dashboard', '/api/admin', '/api/orders', '/profile', '/api/users'];
 
 /**
  * Strips a known locale prefix from a pathname if present.
@@ -122,5 +122,6 @@ export const config = {
     // Protected API routes (explicitly added since the regex above excludes /api)
     '/api/admin/:path*',
     '/api/orders/:path*',
+    '/api/users/:path*',
   ],
 };
