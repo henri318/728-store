@@ -98,17 +98,16 @@ async function main() {
   const passwordHash = await bcrypt.hash('Test123!', BCRYPT_COST)
   const user = await prisma.user.create({
     data: {
-      name: 'Test User',
+      firstName: 'Test',
+      lastName: 'User',
       email: 'test@test.com',
       passwordHash,
       role: 'CUSTOMER',
-      firstName: 'Test',
-      lastName: 'User',
       emailVerified: new Date(),
       preferredLanguage: 'es',
     },
   })
-  console.log(`  ✓ User created: ${user.email} (role: ${user.role})`)
+  console.log(`  ✓ User created: ${user.firstName} ${user.lastName} (${user.email}, role: ${user.role})`)
   console.log(`    → Email: test@test.com`)
   console.log(`    → Password: Test123!`)
 
