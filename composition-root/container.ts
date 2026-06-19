@@ -30,6 +30,7 @@ import type { EventBusPort } from '@/modules/events/domain/event-bus-port';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import type { PasswordHasher } from '@/modules/users/domain/password-hasher';
 import type { RateLimiter } from '@/modules/auth/domain/rate-limiter';
+import type { ResetTokenCodec } from '@/modules/auth/domain/reset-token-codec-port';
 import type { SecretsPort } from '@/modules/auth/domain/secrets';
 import type { SessionPort } from '@/modules/auth/domain/session';
 import type { UserRepository } from '@/modules/users/domain/user-repository';
@@ -46,6 +47,7 @@ import { PrismaOutboxRepository } from '@/shared/infrastructure/prisma-outbox-re
 import { PrismaRateLimiter } from '@/modules/auth/infrastructure/prisma-rate-limiter';
 import { ProcessEnvSecrets } from '@/modules/auth/infrastructure/process-env-secrets';
 import { NextAuthSessionAdapter } from '@/modules/auth/infrastructure/nextauth-session';
+import { JwtResetTokenCodec } from '@/modules/auth/infrastructure/jwt-reset-token-codec';
 import { PrismaUserRepository } from '@/modules/users/infrastructure/prisma-user-repository';
 import { PrismaRoleRepository } from '@/modules/roles/infrastructure/prisma-role-repository';
 import { PrismaOrderRepository } from '@/modules/orders/infrastructure/prisma-order-repository';
@@ -63,6 +65,7 @@ let _emailSender: EmailSender | null = null;
 let _outboxRepository: OutboxRepository | null = null;
 let _passwordHasher: PasswordHasher | null = null;
 let _rateLimiter: RateLimiter | null = null;
+let _resetTokenCodec: ResetTokenCodec | null = null;
 let _eventBus: EventBusPort | null = null;
 let _secrets: SecretsPort | null = null;
 let _session: SessionPort | null = null;
@@ -202,6 +205,21 @@ export function getRateLimiter(): RateLimiter {
 }
 
 /**
+ * Returns the ResetTokenCodec bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ * Lazy-creates a JwtResetTokenCodec using the secret from SecretsPort.
+ * In tests, call `container.setResetTokenCodec()` BEFORE any getter to
+ * inject a Base64ResetTokenCodec that doesn't need NEXTAUTH_SECRET.
+ */
+export function getResetTokenCodec(): ResetTokenCodec {
+  if (!_resetTokenCodec) {
+    initContainer();
+    _resetTokenCodec = new JwtResetTokenCodec(_secrets!.getAuthSecret());
+  }
+  return _resetTokenCodec;
+}
+
+/**
  * Returns the EventBus bound for the current environment.
  * Auto-initializes the container on first call if not already initialized.
  * Default binding is the in-memory `eventBus` singleton.
@@ -299,6 +317,7 @@ export const container = {
   getOutboxRepository,
   getPasswordHasher,
   getRateLimiter,
+  getResetTokenCodec,
   getEventBus,
   getSecrets,
   getSession,
@@ -323,6 +342,10 @@ export const container = {
   /** Override — useful in tests to inject an in-memory rate limiter. */
   setRateLimiter(limiter: RateLimiter): void {
     _rateLimiter = limiter;
+  },
+  /** Override — useful in tests to inject a Base64ResetTokenCodec. */
+  setResetTokenCodec(codec: ResetTokenCodec): void {
+    _resetTokenCodec = codec;
   },
   /** Override — useful in tests to inject a fresh event bus (avoids handler leakage). */
   setEventBus(bus: EventBusPort): void {

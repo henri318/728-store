@@ -26,6 +26,10 @@ export const GlobalEvents = {
   ROLE_CREATED: 'role.created',
   /** User account deleted */
   USER_DELETED: 'user.deleted',
+  /** Password changed by authenticated user */
+  PASSWORD_CHANGED: 'password.changed',
+  /** Password reset via forgot-password flow */
+  PASSWORD_RESET: 'password.reset',
 } as const;
 
 /**

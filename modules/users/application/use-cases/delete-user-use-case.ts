@@ -20,10 +20,20 @@ export class DeleteUserUseCase {
       throw new NotFoundError('User not found');
     }
 
-    // 2. Delete user
-    await this.userRepository.delete(dto.userId);
+    // 2. Check if already soft-deleted
+    if (user.deletedAt) {
+      throw new NotFoundError('User already deactivated');
+    }
 
-    // 3. Emit USER_DELETED event
+    // 3. Soft-delete: set deletedAt timestamp instead of removing the row
+    const now = new Date();
+    await this.userRepository.update({
+      ...user,
+      deletedAt: now,
+      updatedAt: now,
+    });
+
+    // 4. Emit USER_DELETED event
     await this.outboxRepository.saveEvent(GlobalEvents.USER_DELETED, {
       userId: user.userId.value,
     });

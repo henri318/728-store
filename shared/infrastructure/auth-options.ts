@@ -62,6 +62,11 @@ export const authOptions: NextAuthOptions = {
           throw new Error('EMAIL_NOT_VERIFIED');
         }
 
+        // Soft-delete gate — reject login if account is deactivated
+        if (user.deletedAt) {
+          throw new Error('ACCOUNT_DEACTIVATED');
+        }
+
         const displayName = `${user.firstName} ${user.lastName}`.trim();
 
         return {
@@ -82,6 +87,19 @@ export const authOptions: NextAuthOptions = {
       : []),
   ],
   callbacks: {
+    async signIn({ user }) {
+      // Reject login if account has been soft-deleted
+      // For credentials provider, this is also checked in authorize(),
+      // but this signIn callback covers OAuth providers (Google) as well.
+      if (user.email) {
+        const userRepo = container.getUserRepository();
+        const existing = await userRepo.findByEmail(user.email);
+        if (existing?.deletedAt) {
+          return false; // Reject sign-in
+        }
+      }
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
