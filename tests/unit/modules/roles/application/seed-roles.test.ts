@@ -9,7 +9,7 @@ describe('SeedRolesUseCase', () => {
   });
 
   it('should seed four default roles when the repository is empty', async () => {
-    const { SeedRolesUseCase } = await import('./use-cases/seed-roles-use-case');
+    const { SeedRolesUseCase } = await import('@/modules/roles/application/use-cases/seed-roles-use-case');
 
     const useCase = new SeedRolesUseCase(roleRepository);
 
@@ -28,7 +28,7 @@ describe('SeedRolesUseCase', () => {
   });
 
   it('should be idempotent — second execution is a no-op', async () => {
-    const { SeedRolesUseCase } = await import('./use-cases/seed-roles-use-case');
+    const { SeedRolesUseCase } = await import('@/modules/roles/application/use-cases/seed-roles-use-case');
 
     const useCase = new SeedRolesUseCase(roleRepository);
 
@@ -46,7 +46,7 @@ describe('SeedRolesUseCase', () => {
   });
 
   it('should not insert when all four roles already exist', async () => {
-    const { SeedRolesUseCase } = await import('./use-cases/seed-roles-use-case');
+    const { SeedRolesUseCase } = await import('@/modules/roles/application/use-cases/seed-roles-use-case');
 
     // Pre-seed all four roles manually
     const { RoleId } = await import('@/modules/roles/domain/value-objects/role-id');

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { RoleId } from './role-id';
+import { RoleId } from '@/modules/roles/domain/value-objects/role-id';
 import { UserId } from '@/shared/kernel/domain/value-objects/user-id';
 
 describe('RoleId', () => {

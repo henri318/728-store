@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { RegisterUserUseCase } from './register-user-use-case';
+import { RegisterUserUseCase } from '@/modules/users/application/register-user-use-case';
 import { MemoryUserRepository } from '@/tests/doubles/memory-user-repository';
 import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
 import { MemoryPasswordHasher } from '@/tests/doubles/memory-password-hasher';

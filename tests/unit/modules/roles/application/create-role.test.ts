@@ -20,7 +20,7 @@ describe('CreateRoleUseCase', () => {
 
   it('should create a new role successfully and persist it', async () => {
     // Dynamic import — will fail in RED phase because the module doesn't exist yet
-    const { CreateRoleUseCase } = await import('./use-cases/create-role-use-case');
+    const { CreateRoleUseCase } = await import('@/modules/roles/application/use-cases/create-role-use-case');
 
     const useCase = new CreateRoleUseCase(roleRepository, outboxRepository);
 
@@ -40,7 +40,7 @@ describe('CreateRoleUseCase', () => {
   });
 
   it('should emit a ROLE_CREATED event via the outbox', async () => {
-    const { CreateRoleUseCase } = await import('./use-cases/create-role-use-case');
+    const { CreateRoleUseCase } = await import('@/modules/roles/application/use-cases/create-role-use-case');
 
     const useCase = new CreateRoleUseCase(roleRepository, outboxRepository);
 
@@ -56,7 +56,7 @@ describe('CreateRoleUseCase', () => {
   });
 
   it('should throw ConflictError when creating a duplicate role name', async () => {
-    const { CreateRoleUseCase } = await import('./use-cases/create-role-use-case');
+    const { CreateRoleUseCase } = await import('@/modules/roles/application/use-cases/create-role-use-case');
 
     const useCase = new CreateRoleUseCase(roleRepository, outboxRepository);
 
@@ -73,7 +73,7 @@ describe('CreateRoleUseCase', () => {
   });
 
   it('should throw ValidationError when name is empty', async () => {
-    const { CreateRoleUseCase } = await import('./use-cases/create-role-use-case');
+    const { CreateRoleUseCase } = await import('@/modules/roles/application/use-cases/create-role-use-case');
 
     const useCase = new CreateRoleUseCase(roleRepository, outboxRepository);
 
@@ -83,7 +83,7 @@ describe('CreateRoleUseCase', () => {
   });
 
   it('should throw ValidationError when name is whitespace only', async () => {
-    const { CreateRoleUseCase } = await import('./use-cases/create-role-use-case');
+    const { CreateRoleUseCase } = await import('@/modules/roles/application/use-cases/create-role-use-case');
 
     const useCase = new CreateRoleUseCase(roleRepository, outboxRepository);
 

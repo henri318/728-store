@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { toDomain } from './prisma-user-repository';
+import { toDomain } from '@/modules/users/infrastructure/prisma-user-repository';
 
 describe('PrismaUserRepository — toDomain mapper', () => {
   const baseRow = {

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { GetProductsUseCase } from './get-products-use-case';
+import { GetProductsUseCase } from '@/modules/products/application/get-products-use-case';
 import { MemoryProductRepository } from '@/tests/doubles/memory-product-repository';
 
 describe('GetProductsUseCase with i18n', () => {

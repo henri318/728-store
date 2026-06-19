@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { CreateOrderUseCase } from './create-order-use-case';
+import { CreateOrderUseCase } from '@/modules/orders/application/create-order-use-case';
 import { MemoryOrderRepository } from '@/tests/doubles/memory-order-repository';
 import { MemoryOrderProductRepository } from '@/tests/doubles/memory-order-product-repository';
 import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';

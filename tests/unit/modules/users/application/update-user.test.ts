@@ -34,7 +34,7 @@ describe('UpdateUserUseCase', () => {
       updatedAt: new Date(),
     });
 
-    const { UpdateUserUseCase } = await import('./use-cases/update-user-use-case');
+    const { UpdateUserUseCase } = await import('@/modules/users/application/use-cases/update-user-use-case');
     const useCase = new UpdateUserUseCase(userRepository, outboxRepository);
 
     const result = await useCase.execute({
@@ -75,7 +75,7 @@ describe('UpdateUserUseCase', () => {
       updatedAt: new Date(),
     });
 
-    const { UpdateUserUseCase } = await import('./use-cases/update-user-use-case');
+    const { UpdateUserUseCase } = await import('@/modules/users/application/use-cases/update-user-use-case');
     const useCase = new UpdateUserUseCase(userRepository, outboxRepository);
 
     const result = await useCase.execute({
@@ -103,7 +103,7 @@ describe('UpdateUserUseCase', () => {
       updatedAt: new Date(),
     });
 
-    const { UpdateUserUseCase } = await import('./use-cases/update-user-use-case');
+    const { UpdateUserUseCase } = await import('@/modules/users/application/use-cases/update-user-use-case');
     const useCase = new UpdateUserUseCase(userRepository, outboxRepository);
 
     const result = await useCase.execute({
@@ -120,7 +120,7 @@ describe('UpdateUserUseCase', () => {
   // ── Error Cases ─────────────────────────────────────────────
 
   it('should throw NotFoundError when user does not exist', async () => {
-    const { UpdateUserUseCase } = await import('./use-cases/update-user-use-case');
+    const { UpdateUserUseCase } = await import('@/modules/users/application/use-cases/update-user-use-case');
     const useCase = new UpdateUserUseCase(userRepository, outboxRepository);
 
     await expect(
@@ -143,7 +143,7 @@ describe('UpdateUserUseCase', () => {
       updatedAt: new Date(),
     });
 
-    const { UpdateUserUseCase } = await import('./use-cases/update-user-use-case');
+    const { UpdateUserUseCase } = await import('@/modules/users/application/use-cases/update-user-use-case');
     const useCase = new UpdateUserUseCase(userRepository, outboxRepository);
 
     await expect(
@@ -166,7 +166,7 @@ describe('UpdateUserUseCase', () => {
       updatedAt: new Date(),
     });
 
-    const { UpdateUserUseCase } = await import('./use-cases/update-user-use-case');
+    const { UpdateUserUseCase } = await import('@/modules/users/application/use-cases/update-user-use-case');
     const useCase = new UpdateUserUseCase(userRepository, outboxRepository);
 
     await expect(

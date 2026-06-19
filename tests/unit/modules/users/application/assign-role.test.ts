@@ -44,7 +44,7 @@ describe('AssignRoleUseCase', () => {
       description: 'Administrator role',
     });
 
-    const { AssignRoleUseCase } = await import('./use-cases/assign-role-use-case');
+    const { AssignRoleUseCase } = await import('@/modules/users/application/use-cases/assign-role-use-case');
     const useCase = new AssignRoleUseCase(userRepository, roleRepository, outboxRepository);
 
     const result = await useCase.execute({
@@ -73,7 +73,7 @@ describe('AssignRoleUseCase', () => {
   // ── Error Cases ─────────────────────────────────────────────
 
   it('should throw NotFoundError when user does not exist', async () => {
-    const { AssignRoleUseCase } = await import('./use-cases/assign-role-use-case');
+    const { AssignRoleUseCase } = await import('@/modules/users/application/use-cases/assign-role-use-case');
     const useCase = new AssignRoleUseCase(userRepository, roleRepository, outboxRepository);
 
     await expect(
@@ -97,7 +97,7 @@ describe('AssignRoleUseCase', () => {
       updatedAt: new Date(),
     });
 
-    const { AssignRoleUseCase } = await import('./use-cases/assign-role-use-case');
+    const { AssignRoleUseCase } = await import('@/modules/users/application/use-cases/assign-role-use-case');
     const useCase = new AssignRoleUseCase(userRepository, roleRepository, outboxRepository);
 
     await expect(

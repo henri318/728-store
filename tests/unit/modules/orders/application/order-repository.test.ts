@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MemoryOrderRepository } from '@/tests/doubles/memory-order-repository';
-import { OrderEntity } from '../domain/order-repository';
+import { OrderEntity } from '@/modules/orders/domain/order-repository';
 
 describe('OrderRepository', () => {
   let repository: MemoryOrderRepository;
