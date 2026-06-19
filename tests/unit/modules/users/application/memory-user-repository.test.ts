@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MemoryUserRepository } from '@/tests/doubles/memory-user-repository';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
-import { RegisterUserUseCase } from './register-user-use-case';
+import { RegisterUserUseCase } from '@/modules/users/application/register-user-use-case';
 import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
 import { MemoryPasswordHasher } from '@/tests/doubles/memory-password-hasher';
 import { UserId } from '@/shared/kernel/domain/value-objects/user-id';

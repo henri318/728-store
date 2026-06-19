@@ -34,7 +34,7 @@ describe('DeleteUserUseCase', () => {
       updatedAt: new Date(),
     });
 
-    const { DeleteUserUseCase } = await import('./use-cases/delete-user-use-case');
+    const { DeleteUserUseCase } = await import('@/modules/users/application/use-cases/delete-user-use-case');
     const useCase = new DeleteUserUseCase(userRepository, outboxRepository);
 
     await useCase.execute({ userId: 'user-1' });
@@ -52,7 +52,7 @@ describe('DeleteUserUseCase', () => {
   // ── Error Cases ─────────────────────────────────────────────
 
   it('should throw NotFoundError when user does not exist', async () => {
-    const { DeleteUserUseCase } = await import('./use-cases/delete-user-use-case');
+    const { DeleteUserUseCase } = await import('@/modules/users/application/use-cases/delete-user-use-case');
     const useCase = new DeleteUserUseCase(userRepository, outboxRepository);
 
     await expect(
@@ -77,7 +77,7 @@ describe('DeleteUserUseCase', () => {
       updatedAt: new Date(),
     });
 
-    const { DeleteUserUseCase } = await import('./use-cases/delete-user-use-case');
+    const { DeleteUserUseCase } = await import('@/modules/users/application/use-cases/delete-user-use-case');
     const useCase = new DeleteUserUseCase(userRepository, outboxRepository);
 
     // Delete once
