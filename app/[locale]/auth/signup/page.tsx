@@ -6,6 +6,7 @@ import { Input } from '@/modules/presentation/components/input';
 import { Button } from '@/modules/presentation/components/button';
 import { ErrorMessage } from '@/modules/presentation/components/error-message';
 import { signupSchema } from '@/modules/auth/presentation/schemas/auth-schemas';
+import { useDictionary } from '@/shared/i18n/dictionary-context';
 
 interface AddressFields {
   street: string;
@@ -66,6 +67,7 @@ function validateForm(form: FormState): FormErrors | null {
 
 export default function SignUpPage() {
   const router = useRouter();
+  const dict = useDictionary();
   const [form, setForm] = useState<FormState>({
     firstName: '',
     lastName: '',
@@ -100,7 +102,8 @@ export default function SignUpPage() {
         if (next.address) {
           delete next.address[field];
           if (Object.keys(next.address).length === 0) {
-            delete next.address;
+            const { address: _addr, ...rest } = next;
+            return rest;
           }
         }
         return next;
@@ -139,12 +142,12 @@ export default function SignUpPage() {
 
       if (!res.ok) {
         if (data.error === 'User already exists') {
-          throw new Error('El mail ya existe. Por favor, usá otro.');
+          throw new Error(dict.auth.errorMailExists);
         }
-        throw new Error(data.error || 'Algo salió mal. Reintentá.');
+        throw new Error(data.error || dict.auth.genericSignupError);
       }
 
-      router.push('/auth/signin?registered=true');
+      router.push('/');
     } catch (err: any) {
       setServerError(err.message);
     } finally {
@@ -154,26 +157,26 @@ export default function SignUpPage() {
 
   return (
     <div style={{ maxWidth: '480px', margin: '4rem auto', padding: '2rem', border: '1px solid #ddd', borderRadius: '8px' }}>
-      <h2 style={{ marginTop: 0 }}>Register</h2>
+      <h2 style={{ marginTop: 0 }}>{dict.auth.signUpTitle}</h2>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {serverError && <ErrorMessage message={serverError} />}
 
         <Input
-          label="First name"
+          label={dict.auth.firstName}
           value={form.firstName}
           onChange={(v) => updateField('firstName', v)}
           error={errors.firstName}
           required
         />
         <Input
-          label="Last name"
+          label={dict.auth.lastName}
           value={form.lastName}
           onChange={(v) => updateField('lastName', v)}
           error={errors.lastName}
           required
         />
         <Input
-          label="Email"
+          label={dict.auth.email}
           type="email"
           value={form.email}
           onChange={(v) => updateField('email', v)}
@@ -181,7 +184,7 @@ export default function SignUpPage() {
           required
         />
         <Input
-          label="Password"
+          label={dict.auth.password}
           type="password"
           value={form.password}
           onChange={(v) => updateField('password', v)}
@@ -202,32 +205,32 @@ export default function SignUpPage() {
               padding: 0,
             }}
           >
-            {showAddress ? '▾ Hide address (optional)' : '▸ Add address (optional)'}
+            {showAddress ? `▾ ${dict.auth.hideAddress}` : `▸ ${dict.auth.addAddress}`}
           </button>
         </div>
 
         {showAddress && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingLeft: '0.5rem', borderLeft: '3px solid #0070f3' }}>
             <Input
-              label="Street"
+              label={dict.auth.street}
               value={form.address.street}
               onChange={(v) => updateAddressField('street', v)}
               error={errors.address?.street}
             />
             <Input
-              label="City"
+              label={dict.auth.city}
               value={form.address.city}
               onChange={(v) => updateAddressField('city', v)}
               error={errors.address?.city}
             />
             <Input
-              label="Postal code"
+              label={dict.auth.postalCode}
               value={form.address.postalCode}
               onChange={(v) => updateAddressField('postalCode', v)}
               error={errors.address?.postalCode}
             />
             <Input
-              label="Country"
+              label={dict.auth.country}
               value={form.address.country}
               onChange={(v) => updateAddressField('country', v)}
               error={errors.address?.country}
@@ -236,11 +239,11 @@ export default function SignUpPage() {
         )}
 
         <Button type="submit" loading={loading}>
-          Sign Up
+          {dict.auth.signUpButton}
         </Button>
       </form>
       <p style={{ marginTop: '1rem', fontSize: '0.9rem' }}>
-        Already have an account? <a href="/auth/signin">Sign In</a>
+        {dict.auth.alreadyHaveAccount}
       </p>
     </div>
   );

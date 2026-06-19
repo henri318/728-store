@@ -16,6 +16,8 @@ export interface ResetTokenPayload {
   email: string;
   /** Expiration timestamp in milliseconds (Date.now() + TTL) */
   exp: number;
+  /** JWT ID / unique token identifier for replay detection */
+  jti?: string;
 }
 
 export interface ResetTokenCodec {

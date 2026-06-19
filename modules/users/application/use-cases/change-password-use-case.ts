@@ -25,7 +25,12 @@ export class ChangePasswordUseCase {
       throw new NotFoundError('User not found');
     }
 
-    // 2. Verify current password
+    // 2. Reject if account is deactivated (soft-deleted)
+    if (user.deletedAt) {
+      throw new UnauthorizedError('Account is deactivated');
+    }
+
+    // 3. Verify current password
     const isValid = await this.passwordHasher.verify(
       dto.currentPassword,
       user.passwordHash.value,

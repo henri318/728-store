@@ -20,8 +20,8 @@ export class ForgotPasswordUseCase {
     // 1. Look up user by email (case-insensitive via repository)
     const user = await this.userRepository.findByEmail(dto.email);
 
-    // 2. If user exists, generate token via codec and send via EmailPort
-    if (user) {
+    // 2. If user exists and is NOT deleted, generate token via codec and send via EmailPort
+    if (user && !user.deletedAt) {
       const payload = {
         email: user.email.value,
         exp: Date.now() + TOKEN_TTL_MS,

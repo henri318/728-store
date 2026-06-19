@@ -46,6 +46,11 @@ export class VerifyEmailUseCase {
       return { success: false, message: 'User not found', statusCode: 404 };
     }
 
+    // Reject if account is deactivated (soft-deleted)
+    if (user.deletedAt) {
+      return { success: false, message: 'Account is deactivated', statusCode: 403 };
+    }
+
     if (user.emailVerified) {
       return { success: true, message: 'Email already verified' };
     }

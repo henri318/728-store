@@ -20,10 +20,10 @@ describe('SignUpPage', () => {
   it('renders firstName, lastName, email, password fields — NOT a single "name" field', () => {
     render(<SignUpPage />);
 
-    expect(screen.getByLabelText('First name')).toBeInTheDocument();
-    expect(screen.getByLabelText('Last name')).toBeInTheDocument();
-    expect(screen.getByLabelText('Email')).toBeInTheDocument();
-    expect(screen.getByLabelText('Password')).toBeInTheDocument();
+    expect(screen.getByLabelText('Nombre')).toBeInTheDocument();
+    expect(screen.getByLabelText('Apellido')).toBeInTheDocument();
+    expect(screen.getByLabelText('Correo electrónico')).toBeInTheDocument();
+    expect(screen.getByLabelText('Contraseña')).toBeInTheDocument();
 
     // The old "Name" field must NOT exist
     expect(screen.queryByLabelText('Name')).toBeNull();
@@ -33,12 +33,12 @@ describe('SignUpPage', () => {
     const user = userEvent.setup();
     render(<SignUpPage />);
 
-    await user.click(screen.getByText(/add address/i));
+    await user.click(screen.getByText(/agregar dirección/i));
 
-    expect(screen.getByLabelText('Street')).toBeInTheDocument();
-    expect(screen.getByLabelText('City')).toBeInTheDocument();
-    expect(screen.getByLabelText('Postal code')).toBeInTheDocument();
-    expect(screen.getByLabelText('Country')).toBeInTheDocument();
+    expect(screen.getByLabelText('Calle')).toBeInTheDocument();
+    expect(screen.getByLabelText('Ciudad')).toBeInTheDocument();
+    expect(screen.getByLabelText('Código postal')).toBeInTheDocument();
+    expect(screen.getByLabelText('País')).toBeInTheDocument();
   });
 
   it('sends { firstName, lastName, email, password, address } to /api/auth/signup', async () => {
@@ -50,20 +50,20 @@ describe('SignUpPage', () => {
 
     render(<SignUpPage />);
 
-    fireEvent.change(screen.getByLabelText('First name'), { target: { value: 'John' } });
-    fireEvent.change(screen.getByLabelText('Last name'), { target: { value: 'Doe' } });
-    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'john@example.com' } });
-    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'Password123' } });
+    fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'John' } });
+    fireEvent.change(screen.getByLabelText('Apellido'), { target: { value: 'Doe' } });
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), { target: { value: 'john@example.com' } });
+    fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'Password123' } });
 
     // Expand address section
-    fireEvent.click(screen.getByText(/add address/i));
+    fireEvent.click(screen.getByText(/agregar dirección/i));
 
-    fireEvent.change(screen.getByLabelText('Street'), { target: { value: '123 Main St' } });
-    fireEvent.change(screen.getByLabelText('City'), { target: { value: 'Madrid' } });
-    fireEvent.change(screen.getByLabelText('Postal code'), { target: { value: '28001' } });
-    fireEvent.change(screen.getByLabelText('Country'), { target: { value: 'Spain' } });
+    fireEvent.change(screen.getByLabelText('Calle'), { target: { value: '123 Main St' } });
+    fireEvent.change(screen.getByLabelText('Ciudad'), { target: { value: 'Madrid' } });
+    fireEvent.change(screen.getByLabelText('Código postal'), { target: { value: '28001' } });
+    fireEvent.change(screen.getByLabelText('País'), { target: { value: 'Spain' } });
 
-    const form = screen.getByRole('button', { name: 'Sign Up' }).closest('form')!;
+    const form = screen.getByRole('button', { name: 'Crear cuenta' }).closest('form')!;
     fireEvent.submit(form);
 
     await vi.waitFor(() => {
@@ -94,15 +94,15 @@ describe('SignUpPage', () => {
 
     render(<SignUpPage />);
 
-    fireEvent.change(screen.getByLabelText('Last name'), { target: { value: 'Doe' } });
-    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'john@example.com' } });
-    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'Password123' } });
+    fireEvent.change(screen.getByLabelText('Apellido'), { target: { value: 'Doe' } });
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), { target: { value: 'john@example.com' } });
+    fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'Password123' } });
 
-    const form = screen.getByRole('button', { name: 'Sign Up' }).closest('form')!;
+    const form = screen.getByRole('button', { name: 'Crear cuenta' }).closest('form')!;
     fireEvent.submit(form);
 
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(screen.getByLabelText('First name')).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByLabelText('Nombre')).toHaveAttribute('aria-invalid', 'true');
   });
 
   it('shows server error when email already exists (409)', async () => {
@@ -115,12 +115,12 @@ describe('SignUpPage', () => {
 
     render(<SignUpPage />);
 
-    fireEvent.change(screen.getByLabelText('First name'), { target: { value: 'John' } });
-    fireEvent.change(screen.getByLabelText('Last name'), { target: { value: 'Doe' } });
-    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'existing@example.com' } });
-    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'Password123' } });
+    fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'John' } });
+    fireEvent.change(screen.getByLabelText('Apellido'), { target: { value: 'Doe' } });
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), { target: { value: 'existing@example.com' } });
+    fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'Password123' } });
 
-    const form = screen.getByRole('button', { name: 'Sign Up' }).closest('form')!;
+    const form = screen.getByRole('button', { name: 'Crear cuenta' }).closest('form')!;
     fireEvent.submit(form);
 
     await vi.waitFor(() => {

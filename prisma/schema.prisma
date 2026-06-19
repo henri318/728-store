@@ -21,6 +21,7 @@ model User {
   addressPostalCode String?
   addressCountry    String?
   preferredLanguage String    @default("es") // es, cat
+  deletedAt         DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   orders            Order[]

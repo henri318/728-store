@@ -36,6 +36,7 @@ export class Base64ResetTokenCodec implements ResetTokenCodec {
     return {
       email: payload.email,
       exp: payload.exp,
+      jti: payload.jti,
     };
   }
 }

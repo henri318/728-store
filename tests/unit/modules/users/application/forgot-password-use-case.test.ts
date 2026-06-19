@@ -103,4 +103,32 @@ describe('ForgotPasswordUseCase', () => {
     // EmailPort.send NOT called
     expect(emailPort.send).not.toHaveBeenCalled();
   });
+
+  it('should NOT send email when user is deactivated (deletedAt)', async () => {
+    const { ForgotPasswordUseCase } = await import(
+      '@/modules/users/application/use-cases/forgot-password-use-case'
+    );
+
+    // Soft-delete the seeded user
+    const user = await userRepository.findByEmail('forgot@example.com');
+    expect(user).not.toBeNull();
+    await userRepository.save({
+      ...user!,
+      deletedAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const useCase = new ForgotPasswordUseCase(
+      userRepository,
+      emailPort,
+      tokenCodec,
+    );
+
+    const result = await useCase.execute({ email: 'forgot@example.com' });
+
+    // Still returns success (anti-enumeration), but email NOT sent
+    expect(result.success).toBe(true);
+    expect(result.message).toBe('If the email exists, a reset link has been sent');
+    expect(emailPort.send).not.toHaveBeenCalled();
+  });
 });
