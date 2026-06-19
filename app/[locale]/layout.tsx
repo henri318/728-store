@@ -1,7 +1,8 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/shared/infrastructure/auth-options';
-import LogoutButton from '@/shared/presentation/components/logout-button';
-import LanguageSelector from '@/shared/presentation/components/language-selector';
+import LogoutButton from '@/modules/presentation/components/logout-button';
+import LanguageSelector from '@/modules/presentation/components/language-selector';
+import { SessionProviderWrapper } from '@/modules/presentation/components/session-provider';
 import { outboxWorker } from '@/workers/outbox-worker';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 
@@ -40,7 +41,9 @@ export default async function RootLayout({
           </nav>
         </header>
         <main style={{ padding: '2rem' }}>
-          {children}
+          <SessionProviderWrapper>
+            {children}
+          </SessionProviderWrapper>
         </main>
       </body>
     </html>
