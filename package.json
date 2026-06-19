@@ -7,18 +7,18 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
     "postinstall": "prisma generate",
+    "setup": "npm install && npm run db:up && npm run db:push && npm run db:seed",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset --force",
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
-    "db:studio": "prisma studio",
-    "email-worker": "tsx workers/email-worker.ts",
-    "email-worker:dev": "tsx --watch workers/email-worker.ts"
+    "db:studio": "prisma studio"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
