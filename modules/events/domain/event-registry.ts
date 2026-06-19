@@ -24,6 +24,8 @@ export const GlobalEvents = {
   PRODUCT_CUSTOMIZATION_CREATED: 'product-customization.created',
   /** New role created in the role catalog */
   ROLE_CREATED: 'role.created',
+  /** User account deleted */
+  USER_DELETED: 'user.deleted',
 } as const;
 
 /**

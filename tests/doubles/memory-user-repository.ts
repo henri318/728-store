@@ -37,4 +37,11 @@ export class MemoryUserRepository implements UserRepository {
     this.users[index] = user;
     return user;
   }
+
+  async delete(id: string): Promise<void> {
+    const index = this.users.findIndex(u => u.userId.value === id);
+    if (index >= 0) {
+      this.users.splice(index, 1);
+    }
+  }
 }
