@@ -71,5 +71,17 @@
     "deleteConfirmTitle": "Eliminar cuenta",
     "deleteConfirmMessage": "¿Estás seguro de eliminar tu cuenta? Esta acción no se puede deshacer.",
     "accountDeactivated": "Cuenta desactivada. No podés iniciar sesión."
+  },
+  "userMenu": {
+    "profile": "Mi perfil",
+    "changePassword": "Editar contraseña",
+    "deleteAccount": "Eliminar cuenta",
+    "closeSession": "Cerrar sesión"
+  },
+  "passwordStrength": {
+    "hasNumbers": "Tiene números",
+    "hasLetters": "Tiene letras",
+    "hasSpecialChars": "Tiene caracteres especiales",
+    "strengthLabel": "Fortaleza de la contraseña"
   }
 }

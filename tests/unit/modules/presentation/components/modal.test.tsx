@@ -21,7 +21,7 @@ describe('Modal component', () => {
     expect(screen.queryByText('Hidden content')).toBeNull();
   });
 
-  it('calls onClose when the overlay is clicked', () => {
+  it('does NOT close when clicking the backdrop overlay', () => {
     const onClose = vi.fn();
     render(
       <Modal isOpen={true} onClose={onClose}>
@@ -30,7 +30,7 @@ describe('Modal component', () => {
     );
     const overlay = screen.getByTestId('modal-overlay');
     fireEvent.click(overlay);
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it('does not call onClose when clicking inside the modal content', () => {

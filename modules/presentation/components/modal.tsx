@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback, type MouseEvent, type ReactNode } from 'react';
+import { useEffect, useCallback, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
 interface ModalProps {
@@ -28,20 +28,9 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
 
   if (!isOpen) return null;
 
-  const handleOverlayClick = (e: MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
-  const handleContentClick = (e: MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-  };
-
   const modal = (
     <div
       data-testid="modal-overlay"
-      onClick={handleOverlayClick}
       style={{
         position: 'fixed',
         top: 0,
@@ -56,7 +45,6 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
       }}
     >
       <div
-        onClick={handleContentClick}
         style={{
           background: 'white',
           padding: '2rem',
