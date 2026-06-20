@@ -6,7 +6,7 @@ import type { SessionPort, SessionUser } from '@/modules/auth/domain/session';
  * NextAuth adapter for the SessionPort domain port.
  *
  * This is the ONLY file in the auth module that knows about NextAuth
- * internals. Authorization middleware consumes the port, not this
+ * internals. Authorization proxy consumes the port, not this
  * adapter directly.
  */
 export class NextAuthSessionAdapter implements SessionPort {

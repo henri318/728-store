@@ -6,7 +6,7 @@ export type { SessionUser };
  * SessionPort — the port for retrieving the current user's session.
  *
  * Architecture:
- *   Authorization middleware  →  sessionPort.getSession()  (this port)
+ *   Authorization proxy  →  sessionPort.getSession()  (this port)
  *   Concrete adapter          →  NextAuth / JWT / custom auth
  *
  * Lives in the auth module's domain layer.
