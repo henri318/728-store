@@ -15,11 +15,11 @@ import {
 } from '@/composition-root/container';
 import { MemoryUserRepository } from '@/tests/doubles/memory-user-repository';
 import { MemoryRoleRepository } from '@/tests/doubles/memory-role-repository';
-import { MemoryEmailQueueRepository } from '../doubles/memory-email-queue-repository';
-import { MemoryUserLookup } from '../doubles/memory-user-lookup';
-import { MemoryOutboxRepository } from '../doubles/memory-outbox-repository';
-import { MemoryPasswordHasher } from '../doubles/memory-password-hasher';
-import { MemoryRateLimiter } from '../doubles/memory-rate-limiter';
+import { MemoryEmailQueueRepository } from '../../doubles/memory-email-queue-repository';
+import { MemoryUserLookup } from '../../doubles/memory-user-lookup';
+import { MemoryOutboxRepository } from '../../doubles/memory-outbox-repository';
+import { MemoryPasswordHasher } from '../../doubles/memory-password-hasher';
+import { MemoryRateLimiter } from '../../doubles/memory-rate-limiter';
 import { EventBus } from '@/modules/events/infrastructure/in-memory-event-bus';
 import type { ConsoleEmailSender } from '@/modules/email/infrastructure/console-email-sender';
 
