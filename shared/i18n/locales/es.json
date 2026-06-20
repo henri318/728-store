@@ -82,6 +82,6 @@
     "hasNumbers": "Tiene números",
     "hasLetters": "Tiene letras",
     "hasSpecialChars": "Tiene caracteres especiales",
-    "strengthLabel": "Fortaleza del password"
+    "strengthLabel": "Fortaleza de la contraseña"
   }
 }
