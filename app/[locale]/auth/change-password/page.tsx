@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Input } from '@/modules/presentation/components/input';
 import { Button } from '@/modules/presentation/components/button';
+import { EyeToggleWrapper } from '@/modules/presentation/components/eye-toggle-wrapper';
+import { PasswordStrengthIndicator } from '@/modules/presentation/components/password-strength-indicator';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 
 
@@ -63,23 +65,21 @@ export default function ChangePasswordPage() {
         </div>
       )}
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <Input
+        <EyeToggleWrapper
           label={dict.auth.currentPassword}
-          type="password"
           value={currentPassword}
           onChange={setCurrentPassword}
           required
         />
-        <Input
+        <EyeToggleWrapper
           label={dict.auth.newPassword}
-          type="password"
           value={newPassword}
           onChange={setNewPassword}
           required
         />
-        <Input
+        <PasswordStrengthIndicator password={newPassword} />
+        <EyeToggleWrapper
           label={dict.auth.confirmPassword}
-          type="password"
           value={confirmPassword}
           onChange={setConfirmPassword}
           required

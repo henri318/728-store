@@ -1,10 +1,10 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/shared/infrastructure/auth-options';
-import LogoutButton from '@/modules/presentation/components/logout-button';
 import LanguageSelector from '@/modules/presentation/components/language-selector';
 import { SessionProviderWrapper } from '@/modules/presentation/components/session-provider';
 import { LoginButton } from '@/modules/presentation/components/login-button';
 import { VerificationBannerWrapper } from '@/modules/presentation/components/verification-banner-wrapper';
+import { UserMenuDropdown } from '@/modules/presentation/components/user-menu-dropdown';
 import { outboxWorker } from '@/workers/outbox-worker';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { DictionaryProvider } from '@/shared/i18n/dictionary-context';
@@ -35,10 +35,7 @@ export default async function RootLayout({
               <a href={`/${locale}`} style={{ textDecoration: 'none', color: '#0070f3' }}>{dict.common.home}</a>
               <LanguageSelector currentLocale={locale} />
               {session ? (
-                <>
-                  <span style={{ fontSize: '0.9rem', color: '#666' }}>{dict.common.hi}, {session.user?.name}</span>
-                  <LogoutButton label={dict.common.logout} />
-                </>
+                <UserMenuDropdown user={session.user} />
               ) : (
                 <LoginButton label={dict.common.login} />
               )}

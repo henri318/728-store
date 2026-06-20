@@ -85,4 +85,35 @@ describe('ChangePasswordPage', () => {
       expect(screen.getByText('Contraseña actualizada correctamente')).toBeInTheDocument();
     });
   });
+
+  it('eye toggles on all 3 password fields', () => {
+    render(<ChangePasswordPage />);
+
+    const currentInput = screen.getByLabelText('Contraseña actual');
+    const newInput = screen.getByLabelText('Nueva contraseña');
+    const confirmInput = screen.getByLabelText('Confirmar contraseña');
+
+    expect(currentInput).toHaveAttribute('type', 'password');
+    expect(newInput).toHaveAttribute('type', 'password');
+    expect(confirmInput).toHaveAttribute('type', 'password');
+
+    const toggleButtons = screen.getAllByRole('button', { name: /show password/i });
+    expect(toggleButtons).toHaveLength(3);
+
+    fireEvent.click(toggleButtons[0]);
+    expect(currentInput).toHaveAttribute('type', 'text');
+
+    fireEvent.click(toggleButtons[1]);
+    expect(newInput).toHaveAttribute('type', 'text');
+
+    fireEvent.click(toggleButtons[2]);
+    expect(confirmInput).toHaveAttribute('type', 'text');
+  });
+
+  it('shows password strength indicator on newPassword field', () => {
+    render(<ChangePasswordPage />);
+
+    expect(screen.getByText('Fortaleza de la contraseña')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+  });
 });

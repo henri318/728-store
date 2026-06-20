@@ -114,4 +114,39 @@ describe('LoginModal component', () => {
       expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
   });
+
+  it('password field has eye toggle that shows/hides password', () => {
+    render(<LoginModal isOpen={true} onClose={mockOnClose} />);
+
+    const passwordInput = screen.getByLabelText('Contraseña');
+    expect(passwordInput).toHaveAttribute('type', 'password');
+
+    const toggleButton = screen.getByRole('button', { name: /show password/i });
+    fireEvent.click(toggleButton);
+
+    expect(passwordInput).toHaveAttribute('type', 'text');
+  });
+
+  it('does not close modal when clicking backdrop', () => {
+    render(<LoginModal isOpen={true} onClose={mockOnClose} />);
+
+    const backdrop = screen.getByTestId('modal-overlay');
+    fireEvent.click(backdrop);
+
+    expect(mockOnClose).not.toHaveBeenCalled();
+  });
+
+  it('uses i18n key for error message (invalidCredentials)', async () => {
+    const mockSignIn = vi.mocked(signIn).mockResolvedValue({ ok: false, error: 'CredentialsSignin' } as any);
+
+    render(<LoginModal isOpen={true} onClose={mockOnClose} />);
+
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), { target: { value: 'wrong@example.com' } });
+    fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'wrongpass' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Iniciar sesión' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Credenciales inválidas')).toBeInTheDocument();
+    });
+  });
 });
