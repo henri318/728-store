@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
+  useParams: () => ({ locale: 'es' }),
 }));
 
 import SignUpPage from '@/app/[locale]/auth/signup/page';
