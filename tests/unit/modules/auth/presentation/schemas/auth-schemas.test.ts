@@ -32,17 +32,16 @@ describe('signupSchema - confirmPassword field', () => {
     }
   });
 
-  it('fails when confirmPassword is empty', () => {
+  it('passes when confirmPassword is not provided (optional for API)', () => {
+    const result = signupSchema.safeParse(baseData);
+    expect(result.success).toBe(true);
+  });
+
+  it('passes when confirmPassword is empty string (optional for API)', () => {
     const result = signupSchema.safeParse({
       ...baseData,
       confirmPassword: '',
     });
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      const confirmPasswordError = result.error.issues.find(
-        (issue) => issue.path.includes('confirmPassword')
-      );
-      expect(confirmPasswordError).toBeDefined();
-    }
+    expect(result.success).toBe(true);
   });
 });

@@ -6,14 +6,14 @@ export const signupSchema = z.object({
   email: z.string().email('Correo electrónico inválido'),
   password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres')
     .max(128, 'La contraseña es demasiado larga'),
-  confirmPassword: z.string(),
+  confirmPassword: z.string().optional(),
   address: z.object({
     street: z.string().min(1),
     city: z.string().min(1),
     postalCode: z.string().min(1),
     country: z.string().min(1),
   }).optional(),
-}).refine((data) => data.password === data.confirmPassword, {
+}).refine((data) => !data.confirmPassword || data.password === data.confirmPassword, {
   message: 'Las contraseñas no coinciden',
   path: ['confirmPassword'],
 });
