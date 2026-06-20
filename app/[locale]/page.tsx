@@ -5,7 +5,7 @@ import { getDictionary } from '@/shared/i18n/get-dictionary';
 export default async function HomePage({
   params,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
   const dict = await getDictionary(locale as 'es' | 'cat');

@@ -5,7 +5,6 @@ import { RoleId } from '@/modules/roles/domain/value-objects/role-id';
 import type { RoleEntity } from '@/modules/roles/domain/entities/role';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import { ConflictError, ValidationError } from '@/shared/kernel/app-error';
-import { randomUUID } from 'crypto';
 
 export class CreateRoleUseCase {
   constructor(
@@ -28,7 +27,7 @@ export class CreateRoleUseCase {
 
     // 3. Build and persist the role entity
     const role: RoleEntity = {
-      id: RoleId.create(randomUUID()),
+      id: RoleId.create(crypto.randomUUID()),
       name: trimmedName,
       description: dto.description.trim(),
     };

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Input } from '@/modules/presentation/components/input';
 import { Button } from '@/modules/presentation/components/button';
 import { ErrorMessage } from '@/modules/presentation/components/error-message';
@@ -67,6 +67,8 @@ function validateForm(form: FormState): FormErrors | null {
 
 export default function SignUpPage() {
   const router = useRouter();
+  const params = useParams();
+  const locale = (params.locale as string) || 'es';
   const dict = useDictionary();
   const [form, setForm] = useState<FormState>({
     firstName: '',
@@ -141,13 +143,13 @@ export default function SignUpPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        if (data.error === 'User already exists') {
+        if (data.error === 'Resource already exists') {
           throw new Error(dict.auth.errorMailExists);
         }
         throw new Error(data.error || dict.auth.genericSignupError);
       }
 
-      router.push('/');
+      router.push(`/${locale}/auth/signin?registered=true`);
     } catch (err: any) {
       setServerError(err.message);
     } finally {
@@ -243,7 +245,10 @@ export default function SignUpPage() {
         </Button>
       </form>
       <p style={{ marginTop: '1rem', fontSize: '0.9rem' }}>
-        {dict.auth.alreadyHaveAccount}
+        ¿Ya tenés una cuenta?{' '}
+        <a href={`/${locale}/auth/signin`} style={{ color: '#0070f3' }}>
+          Iniciá sesión
+        </a>
       </p>
     </div>
   );

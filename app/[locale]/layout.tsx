@@ -19,7 +19,7 @@ export default async function RootLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
   const session = await getServerSession(authOptions);
@@ -28,29 +28,29 @@ export default async function RootLayout({
   return (
     <html lang={locale}>
       <body style={{ margin: 0, fontFamily: 'system-ui, sans-serif' }}>
-        <header style={{ padding: '1rem', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 style={{ fontSize: '1.2rem', margin: 0 }}>Modular E-commerce</h1>
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <a href={`/${locale}`} style={{ textDecoration: 'none', color: '#0070f3' }}>{dict.common.home}</a>
-            <LanguageSelector currentLocale={locale} />
-            {session ? (
-              <>
-                <span style={{ fontSize: '0.9rem', color: '#666' }}>{dict.common.hi}, {session.user?.name}</span>
-                <LogoutButton label={dict.common.logout} />
-              </>
-            ) : (
-              <LoginButton label={dict.common.login} />
-            )}
-          </nav>
-        </header>
-        <main style={{ padding: '2rem' }}>
-          <DictionaryProvider dict={dict}>
-            <SessionProviderWrapper>
+        <SessionProviderWrapper>
+          <header style={{ padding: '1rem', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h1 style={{ fontSize: '1.2rem', margin: 0 }}>Modular E-commerce</h1>
+            <nav style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <a href={`/${locale}`} style={{ textDecoration: 'none', color: '#0070f3' }}>{dict.common.home}</a>
+              <LanguageSelector currentLocale={locale} />
+              {session ? (
+                <>
+                  <span style={{ fontSize: '0.9rem', color: '#666' }}>{dict.common.hi}, {session.user?.name}</span>
+                  <LogoutButton label={dict.common.logout} />
+                </>
+              ) : (
+                <LoginButton label={dict.common.login} />
+              )}
+            </nav>
+          </header>
+          <main style={{ padding: '2rem' }}>
+            <DictionaryProvider dict={dict}>
               <VerificationBannerWrapper />
               {children}
-            </SessionProviderWrapper>
-          </DictionaryProvider>
-        </main>
+            </DictionaryProvider>
+          </main>
+        </SessionProviderWrapper>
       </body>
     </html>
   );

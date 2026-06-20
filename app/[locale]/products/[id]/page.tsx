@@ -6,7 +6,7 @@ import Link from 'next/link';
 export default async function ProductDetailPage({
   params,
 }: {
-  params: { locale: string; id: string };
+  params: Promise<{ locale: string; id: string }>;
 }) {
   const { locale, id } = await params;
   const dict = await getDictionary(locale as 'es' | 'cat');

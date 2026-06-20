@@ -2,7 +2,6 @@ import { UserRepository } from '../../domain/user-repository';
 import { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import type { PasswordHasher } from '@/modules/users/domain/password-hasher';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
-import { randomUUID } from 'crypto';
 import { ConflictError, ValidationError } from '@/shared/kernel/app-error';
 import { UserId } from '@/shared/kernel/domain/value-objects/user-id';
 import { Email } from '@/shared/kernel/domain/value-objects/email';
@@ -52,7 +51,7 @@ export class RegisterUserUseCase {
     // 4. Construct Value Objects
     const email = Email.create(dto.email);
     const passwordHash = PasswordHash.create(await this.passwordHasher.hash(dto.password));
-    const userId = UserId.create(randomUUID());
+    const userId = UserId.create(crypto.randomUUID());
     const roleId = RoleId.create('CUSTOMER');
 
     let address: Address | null = null;
