@@ -1,7 +1,6 @@
 import type { RoleRepository } from '@/modules/roles/domain/role-repository';
 import type { RoleEntity } from '@/modules/roles/domain/entities/role';
 import { RoleId } from '@/modules/roles/domain/value-objects/role-id';
-import { randomUUID } from 'crypto';
 
 /** Default role definitions seeded on first boot. */
 const DEFAULT_ROLES: Array<{ name: string; description: string }> = [
@@ -30,7 +29,7 @@ export class SeedRolesUseCase {
         results.push(existing);
       } else {
         const role: RoleEntity = {
-          id: RoleId.create(randomUUID()),
+          id: RoleId.create(crypto.randomUUID()),
           name: def.name,
           description: def.description,
         };

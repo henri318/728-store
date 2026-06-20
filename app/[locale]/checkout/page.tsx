@@ -9,7 +9,7 @@ export default async function CheckoutPage({
   params,
   searchParams,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
   searchParams: { productId: string };
 }) {
   const { locale } = await params;

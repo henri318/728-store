@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import { prisma } from '@/shared/infrastructure/prisma';
 import type {
   CreateEmailQueueInput,

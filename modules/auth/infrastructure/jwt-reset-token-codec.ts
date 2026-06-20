@@ -1,5 +1,4 @@
 import { SignJWT, jwtVerify } from 'jose';
-import { randomUUID } from 'crypto';
 import type { ResetTokenCodec, ResetTokenPayload } from '@/modules/auth/domain/reset-token-codec-port';
 
 /**
@@ -17,7 +16,7 @@ export class JwtResetTokenCodec implements ResetTokenCodec {
   async encode(payload: ResetTokenPayload): Promise<string> {
     return new SignJWT({ email: payload.email })
       .setProtectedHeader({ alg: 'HS256' })
-      .setJti(randomUUID())
+      .setJti(crypto.randomUUID())
       .setExpirationTime(Math.floor(payload.exp / 1000))
       .sign(this.secret);
   }

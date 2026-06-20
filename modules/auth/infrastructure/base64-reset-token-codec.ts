@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import type { ResetTokenCodec, ResetTokenPayload } from '@/modules/auth/domain/reset-token-codec-port';
 
 /**
@@ -14,7 +13,7 @@ export class Base64ResetTokenCodec implements ResetTokenCodec {
     const json = JSON.stringify({
       email: payload.email,
       exp: payload.exp,
-      jti: randomUUID(),
+      jti: crypto.randomUUID(),
     });
     return Buffer.from(json, 'utf-8').toString('base64url');
   }

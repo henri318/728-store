@@ -19,7 +19,7 @@ Arquitectura de módulo monolítico: cada dominio (usuarios, pedidos, productos.
 | Validación | Zod 4 |
 | Email transaccional | Brevo (ex-Sendinblue) |
 | Hashing de passwords | bcrypt (cost 12) |
-| Testing | Vitest 4 + Testing Library + jest-axe |
+| Testing | Vitest 4 + Testing Library + jest-axe + Playwright |
 | Linting | ESLint 10 + typescript-eslint |
 | Infra local | Docker (solo PostgreSQL) |
 
@@ -69,7 +69,60 @@ npm run test:run         # Tests una vez (para CI)
 npm run lint             # Linting
 npm run typecheck        # Verificar tipos sin emitir archivos
 npm run build            # Build de producción (verifica que todo compila)
+
+# E2E Tests
+npm run test:e2e         # Tests E2E contra app local (requiere db:up + dev corriendo)
+npm run test:e2e:ui      # Abrir interfaz gráfica de Playwright
+npm run test:e2e:debug   # Ejecutar en modo debug (paso a paso)
+npm run test:e2e:docker  # Tests E2E en Docker (app + DB, todo autocontenido)
 ```
+
+---
+
+## Tests E2E
+
+### Requisitos
+
+- Docker corriendo
+- Node.js >= 18
+
+### Opción 1: Docker completo (recomendado para CI)
+
+```bash
+# Ejecuta PostgreSQL + App + Tests en un solo comando
+npm run test:e2e:docker
+```
+
+### Opción 2: Local (desarrollo)
+
+```bash
+# Terminal 1: Levantar base de datos
+npm run db:up
+
+# Terminal 2: Preparar DB y arrancar app
+npm run db:push && npm run db:seed && npm run dev
+
+# Terminal 3: Ejecutar tests
+npm run test:e2e
+```
+
+### Debugging
+
+```bash
+# Abrir interfaz gráfica de Playwright
+npm run test:e2e:ui
+
+# Ejecutar paso a paso con inspector
+npm run test:e2e:debug
+```
+
+### Tests disponibles
+
+| Archivo | Qué prueba |
+|---------|-----------|
+| `home.spec.ts` | Página principal, grid de productos, navegación |
+| `auth.spec.ts` | Registro, login, credenciales inválidas, links |
+| `products.spec.ts` | Listado de productos, precios, cambio de idioma |
 
 ---
 
@@ -109,10 +162,14 @@ npm run build            # Build de producción (verifica que todo compila)
 ├── workers/                    # Workers background (email, outbox)
 ├── tests/                      # Suite de tests
 │   ├── doubles/                # Implementaciones in-memory para testing
-│   └── unit/                   # Tests unitarios (~34 archivos)
+│   ├── unit/                   # Tests unitarios (~34 archivos)
+│   └── e2e/                    # Tests E2E con Playwright
 ├── prisma/                     # Schema + seed
 ├── docs/                       # Documentación de arquitectura (21 archivos)
-└── docker-compose.yml          # PostgreSQL
+├── docker-compose.yml          # PostgreSQL (desarrollo)
+├── docker-compose.e2e.yml      # PostgreSQL + App (tests E2E)
+├── playwright.config.ts        # Configuración de Playwright
+└── .github/workflows/e2e.yml   # CI: tests E2E en PRs
 ```
 
 ### Capas por módulo

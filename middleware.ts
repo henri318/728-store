@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtDecrypt } from 'jose';
 import { hkdf } from '@panva/hkdf';
-import { container } from '@/composition-root/container';
 
 const locales = ['es', 'cat'];
 const defaultLocale = 'es';
@@ -86,6 +85,7 @@ export async function middleware(request: NextRequest) {
     const userId = payload.sub ?? payload.id;
     if (userId && typeof userId === 'string') {
       try {
+        const { container } = await import('@/composition-root/container');
         const userRepo = container.getUserRepository();
         const user = await userRepo.findById(userId);
         if (!user || user.deletedAt) {
