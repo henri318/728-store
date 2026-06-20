@@ -6,7 +6,7 @@ describe('PasswordStrengthIndicator component', () => {
   it('shows 0/3 criteria with all crosses for empty password', () => {
     render(<PasswordStrengthIndicator password="" />);
     expect(screen.getByText('0/3')).toBeInTheDocument();
-    expect(screen.getByText(/Fortaleza del password/i)).toBeInTheDocument();
+    expect(screen.getByText(/Fortaleza de la contraseña/i)).toBeInTheDocument();
     const crosses = screen.getAllByText(/✗/);
     expect(crosses).toHaveLength(3);
   });
