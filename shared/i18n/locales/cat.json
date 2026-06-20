@@ -71,5 +71,17 @@
     "deleteConfirmTitle": "Eliminar compte",
     "deleteConfirmMessage": "Estàs segur d'eliminar el teu compte? Aquesta acció no es pot desfer.",
     "accountDeactivated": "Compte desactivat. No pots iniciar sessió."
+  },
+  "userMenu": {
+    "profile": "El meu perfil",
+    "changePassword": "Editar contrasenya",
+    "deleteAccount": "Eliminar compte",
+    "closeSession": "Tancar sessió"
+  },
+  "passwordStrength": {
+    "hasNumbers": "Té números",
+    "hasLetters": "Té lletres",
+    "hasSpecialChars": "Té caràcters especials",
+    "strengthLabel": "Força de la contrasenya"
   }
 }
