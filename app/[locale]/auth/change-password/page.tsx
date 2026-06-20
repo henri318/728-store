@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter, useParams } from 'next/navigation';
 import { Input } from '@/modules/presentation/components/input';
 import { Button } from '@/modules/presentation/components/button';
 import { EyeToggleWrapper } from '@/modules/presentation/components/eye-toggle-wrapper';
@@ -10,7 +11,9 @@ import { useDictionary } from '@/shared/i18n/dictionary-context';
 
 
 export default function ChangePasswordPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const { locale } = useParams<{ locale: string }>();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -18,6 +21,16 @@ export default function ChangePasswordPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const dict = useDictionary();
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push(`/${locale}/auth/signin`);
+    }
+  }, [status]);
+
+  if (status === 'loading') {
+    return <div style={{ textAlign: 'center', padding: '2rem' }}>{dict.common.loading}</div>;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -2,6 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ChangePasswordPage from '@/app/[locale]/auth/change-password/page';
 
+// Mock next/navigation
+const mockPush = vi.fn();
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockPush }),
+  useParams: () => ({ locale: 'es' }),
+}));
+
 // Mock next-auth
 vi.mock('next-auth/react', () => ({
   useSession: vi.fn(),
@@ -115,5 +122,48 @@ describe('ChangePasswordPage', () => {
 
     expect(screen.getByText('Fortaleza de la contraseña')).toBeInTheDocument();
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
+  });
+
+  // ── Auth guard tests ──
+
+  it('redirects to signin when unauthenticated', async () => {
+    vi.mocked(useSession).mockReturnValue({
+      data: null,
+      status: 'unauthenticated',
+      update: vi.fn(),
+    } as any);
+
+    render(<ChangePasswordPage />);
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/es/auth/signin');
+    });
+  });
+
+  it('shows loading state when session status is loading', () => {
+    vi.mocked(useSession).mockReturnValue({
+      data: null,
+      status: 'loading',
+      update: vi.fn(),
+    } as any);
+
+    render(<ChangePasswordPage />);
+
+    expect(screen.getByText('Cargando...')).toBeInTheDocument();
+    // Form should not be rendered
+    expect(screen.queryByLabelText('Contraseña actual')).toBeNull();
+  });
+
+  it('shows form when authenticated', () => {
+    vi.mocked(useSession).mockReturnValue({
+      data: { user: { email: 'test@example.com' } },
+      status: 'authenticated',
+      update: vi.fn(),
+    } as any);
+
+    render(<ChangePasswordPage />);
+
+    expect(screen.getByLabelText('Contraseña actual')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Enviar' })).toBeInTheDocument();
   });
 });

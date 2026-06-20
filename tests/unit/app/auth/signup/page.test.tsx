@@ -8,6 +8,16 @@ vi.mock('next/navigation', () => ({
   useParams: () => ({ locale: 'es' }),
 }));
 
+// Mock next-auth/react
+vi.mock('next-auth/react', () => ({
+  signIn: vi.fn().mockResolvedValue({ ok: true, error: null }),
+  useSession: vi.fn(() => ({
+    data: null,
+    status: 'unauthenticated',
+    update: vi.fn().mockResolvedValue(null),
+  })),
+}));
+
 import SignUpPage from '@/app/[locale]/auth/signup/page';
 
 describe('SignUpPage', () => {

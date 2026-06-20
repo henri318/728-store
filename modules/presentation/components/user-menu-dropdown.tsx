@@ -2,8 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { Menu, X } from 'lucide-react';
+import { Modal } from '@/modules/presentation/components/modal';
+import { Button } from '@/modules/presentation/components/button';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 
 interface UserMenuDropdownProps {
@@ -15,7 +18,11 @@ interface UserMenuDropdownProps {
 }
 
 export function UserMenuDropdown({ user }: UserMenuDropdownProps) {
+  const { locale } = useParams<{ locale: string }>();
   const [isOpen, setIsOpen] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const dict = useDictionary();
 
@@ -45,6 +52,24 @@ export function UserMenuDropdown({ user }: UserMenuDropdownProps) {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen]);
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch('/api/users/me', { method: 'DELETE' });
+      if (res.ok) {
+        await signOut({ callbackUrl: `/${locale}` });
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      setDeleteError(data.error || dict.profile.deleteError || 'Failed to delete account');
+    } catch {
+      setDeleteError(dict.profile.deleteError || 'Failed to delete account');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <div ref={menuRef} style={{ position: 'relative' }}>
@@ -86,7 +111,7 @@ export function UserMenuDropdown({ user }: UserMenuDropdownProps) {
           }}
         >
           <Link
-            href="/profile"
+            href={`/${locale}/profile`}
             role="menuitem"
             onClick={closeMenu}
             style={{
@@ -100,7 +125,7 @@ export function UserMenuDropdown({ user }: UserMenuDropdownProps) {
             {dict.userMenu.profile}
           </Link>
           <Link
-            href="/auth/change-password"
+            href={`/${locale}/auth/change-password`}
             role="menuitem"
             onClick={closeMenu}
             style={{
@@ -118,7 +143,7 @@ export function UserMenuDropdown({ user }: UserMenuDropdownProps) {
             role="menuitem"
             onClick={() => {
               closeMenu();
-              // TODO: open delete confirmation modal
+              setShowDeleteModal(true);
             }}
             style={{
               display: 'block',
@@ -138,7 +163,7 @@ export function UserMenuDropdown({ user }: UserMenuDropdownProps) {
           <button
             type="button"
             role="menuitem"
-            onClick={() => signOut({ callbackUrl: '/' })}
+            onClick={() => signOut({ callbackUrl: `/${locale}` })}
             style={{
               display: 'block',
               width: '100%',
@@ -155,6 +180,26 @@ export function UserMenuDropdown({ user }: UserMenuDropdownProps) {
           </button>
         </div>
       )}
+
+      <Modal isOpen={showDeleteModal} onClose={() => { setShowDeleteModal(false); setDeleteError(null); }}>
+        <h3 style={{ marginTop: 0 }}>{dict.profile.deleteConfirmTitle}</h3>
+        <p style={{ marginBottom: '1.5rem' }}>
+          {dict.profile.deleteConfirmMessage}
+        </p>
+        {deleteError && (
+          <span role="alert" style={{ color: '#ff4d4f', fontSize: '0.85rem', display: 'block', marginBottom: '0.75rem' }}>
+            {deleteError}
+          </span>
+        )}
+        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+          <Button type="button" variant="secondary" onClick={() => { setShowDeleteModal(false); setDeleteError(null); }}>
+            {dict.common.cancel}
+          </Button>
+          <Button type="button" variant="danger" loading={deleting} onClick={handleDelete}>
+            {dict.profile.deleteAccount}
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

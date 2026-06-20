@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Input } from '@/modules/presentation/components/input';
 import { Button } from '@/modules/presentation/components/button';
@@ -8,6 +9,7 @@ import { EyeToggleWrapper } from '@/modules/presentation/components/eye-toggle-w
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 
 export default function SignInPage() {
+  const { locale } = useParams<{ locale: string }>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -16,7 +18,7 @@ export default function SignInPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await signIn('credentials', { email, password, callbackUrl: '/' });
+    await signIn('credentials', { email, password, callbackUrl: `/${locale}` });
     setLoading(false);
   };
 
@@ -43,7 +45,7 @@ export default function SignInPage() {
       </form>
       <p style={{ marginTop: '1rem' }}>
         {dict.auth.dontHaveAccount}{' '}
-        <a href="/auth/signup" style={{ color: '#0070f3' }}>
+        <a href={`/${locale}/auth/signup`} style={{ color: '#0070f3' }}>
           {dict.auth.signUpButton}
         </a>
       </p>

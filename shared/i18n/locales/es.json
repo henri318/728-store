@@ -55,7 +55,7 @@
     "canLoginAfterVerification": "Ya podés iniciar sesión.",
     "tokenExpired": "El enlace ha expirado. Solicitá uno nuevo.",
     "invalidToken": "El enlace de verificación no es válido.",
-    "invalidCredentials": "Credenciales inválidas",
+    "invalidCredentials": "Credenciales incorrectas",
     "passwordsDoNotMatch": "Las contraseñas no coinciden",
     "wrongCurrentPassword": "La contraseña actual es incorrecta",
     "requestNewLink": "Solicitar nuevo enlace",

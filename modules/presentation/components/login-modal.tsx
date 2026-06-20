@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { X } from 'lucide-react';
 import { Modal } from '@/modules/presentation/components/modal';
 import { Input } from '@/modules/presentation/components/input';
 import { Button } from '@/modules/presentation/components/button';
@@ -18,6 +20,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { update } = useSession();
   const dict = useDictionary();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,13 +32,13 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       const result = await signIn('credentials', {
         email,
         password,
-        callbackUrl: '/',
         redirect: false,
       });
 
       if (result?.error) {
         setError(dict.auth.invalidCredentials);
       } else if (result?.ok) {
+        await update(); // Refresh session without page reload
         onClose();
       }
     } catch (err: unknown) {
@@ -55,9 +58,24 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ margin: 0, fontSize: '1.3rem' }}>{dict.auth.signInTitle}</h2>
-          <Button type="button" variant="secondary" onClick={onClose}>
-            {dict.common.close}
-          </Button>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={dict.common.close}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#666',
+              borderRadius: '4px',
+            }}
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -83,6 +101,16 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
             {dict.auth.loginButton}
           </Button>
         </form>
+
+        <div style={{ textAlign: 'center', fontSize: '0.9rem' }}>
+          <Link
+            href="/auth/signup"
+            onClick={onClose}
+            style={{ color: '#1677ff', textDecoration: 'none' }}
+          >
+            {dict.auth.dontHaveAccount}
+          </Link>
+        </div>
       </div>
     </Modal>
   );

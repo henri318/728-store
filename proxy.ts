@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { jwtDecrypt } from 'jose';
-import { hkdf } from '@panva/hkdf';
+import { getToken } from 'next-auth/jwt';
 
 const locales = ['es', 'cat'];
 const defaultLocale = 'es';
 
 /** Path prefixes that require authentication (guest-level or above). */
-const protectedPaths = ['/dashboard', '/api/admin', '/api/orders', '/profile', '/api/users'];
+const protectedPaths = ['/dashboard', '/api/admin', '/api/orders', '/profile', '/api/users', '/auth/change-password'];
 
 /**
  * Strips a known locale prefix from a pathname if present.
@@ -24,38 +23,6 @@ function stripLocale(pathname: string): string {
   return pathname;
 }
 
-/**
- * Derives the JWE decryption key from NEXTAUTH_SECRET using HKDF.
- * This replicates NextAuth's own key derivation so we can verify
- * the session token in Edge Runtime.
- */
-async function deriveKey(secret: string): Promise<Uint8Array> {
-  return hkdf(
-    'sha256',
-    new TextEncoder().encode(secret),
-    'NextAuth.js Generated Encryption Key',
-    '',
-    32,
-  );
-}
-
-/**
- * Attempts to verify a NextAuth session token (JWE-encrypted JWT).
- * Returns the decoded payload on success, or `null` if invalid/expired.
- */
-async function verifySessionToken(
-  token: string,
-  secret: string,
-): Promise<Record<string, unknown> | null> {
-  try {
-    const encryptionSecret = await deriveKey(secret);
-    const { payload } = await jwtDecrypt(token, encryptionSecret);
-    return payload as Record<string, unknown>;
-  } catch {
-    return null;
-  }
-}
-
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -66,24 +33,16 @@ export async function proxy(request: NextRequest) {
   );
 
   if (isProtected) {
-    // Try both possible cookie names (secure/unsecure)
-    const sessionCookie =
-      request.cookies.get('__Secure-next-auth.session-token')?.value ??
-      request.cookies.get('next-auth.session-token')?.value;
-
     const secret = process.env.NEXTAUTH_SECRET;
-    if (!sessionCookie || !secret) {
-      return unauthorizedResponse(request, pathname);
-    }
+    const token = await getToken({ req: request, secret });
 
-    const payload = await verifySessionToken(sessionCookie, secret);
-    if (!payload) {
+    if (!token) {
       return unauthorizedResponse(request, pathname);
     }
 
     // Check if user account has been soft-deleted
-    const userId = payload.sub ?? payload.id;
-    if (userId && typeof userId === 'string') {
+    const userId = token.sub;
+    if (userId) {
       try {
         const { container } = await import('@/composition-root/container');
         const userRepo = container.getUserRepository();
@@ -92,7 +51,6 @@ export async function proxy(request: NextRequest) {
           return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
       } catch {
-        // If user lookup fails for any reason, deny access
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
     }
@@ -128,7 +86,6 @@ function unauthorizedResponse(request: NextRequest, pathname: string) {
 
   const locale = pathname.split('/')[1] || defaultLocale;
   const homeUrl = new URL(`/${locale}`, request.url);
-  homeUrl.searchParams.set('login', 'required');
   return NextResponse.redirect(homeUrl);
 }
 

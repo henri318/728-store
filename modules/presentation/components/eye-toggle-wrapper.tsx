@@ -53,8 +53,7 @@ export function EyeToggleWrapper({
         style={{
           position: 'absolute',
           right: '8px',
-          top: '50%',
-          transform: 'translateY(-50%)',
+          top: '38px',
           background: 'none',
           border: 'none',
           cursor: 'pointer',
@@ -62,10 +61,11 @@ export function EyeToggleWrapper({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#666',
+          color: '#999',
+          borderRadius: '4px',
         }}
       >
-        {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+        {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
       </button>
     </div>
   );

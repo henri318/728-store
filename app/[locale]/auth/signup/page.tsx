@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { signIn, useSession } from 'next-auth/react';
 import { Input } from '@/modules/presentation/components/input';
 import { Button } from '@/modules/presentation/components/button';
 import { ErrorMessage } from '@/modules/presentation/components/error-message';
@@ -79,6 +80,7 @@ export default function SignUpPage() {
   const params = useParams();
   const locale = (params.locale as string) || 'es';
   const dict = useDictionary();
+  const { update } = useSession();
   const [form, setForm] = useState<FormState>({
     firstName: '',
     lastName: '',
@@ -156,10 +158,27 @@ export default function SignUpPage() {
         if (data.error === 'Resource already exists') {
           throw new Error(dict.auth.errorMailExists);
         }
+        if (data.details && Array.isArray(data.details)) {
+          const firstError = data.details[0];
+          throw new Error(firstError.message || dict.auth.genericSignupError);
+        }
         throw new Error(data.error || dict.auth.genericSignupError);
       }
 
-      router.push(`/${locale}/auth/signin?registered=true`);
+      // Auto-login after successful registration
+      const signInResult = await signIn('credentials', {
+        email: form.email,
+        password: form.password,
+        redirect: false,
+      });
+
+      if (signInResult?.ok) {
+        await update(); // Refresh session without page reload
+        router.push(`/${locale}`);
+      } else {
+        // Fallback: redirect to sign-in if auto-login fails
+        router.push(`/${locale}/auth/signin?registered=true`);
+      }
     } catch (err: any) {
       setServerError(err.message);
     } finally {
@@ -261,12 +280,6 @@ export default function SignUpPage() {
           {dict.auth.signUpButton}
         </Button>
       </form>
-      <p style={{ marginTop: '1rem', fontSize: '0.9rem' }}>
-        {dict.auth.alreadyHaveAccount}{' '}
-        <a href={`/${locale}/auth/signin`} style={{ color: '#0070f3' }}>
-          {dict.auth.loginButton}
-        </a>
-      </p>
     </div>
   );
 }

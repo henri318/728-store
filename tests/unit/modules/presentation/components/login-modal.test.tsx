@@ -2,9 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { LoginModal } from '@/modules/presentation/components/login-modal';
 
-// Mock next-auth/react signIn
+// Mock next-auth/react
 vi.mock('next-auth/react', () => ({
   signIn: vi.fn(),
+  useSession: vi.fn(() => ({
+    data: null,
+    status: 'unauthenticated',
+    update: vi.fn().mockResolvedValue(null),
+  })),
 }));
 
 import { signIn } from 'next-auth/react';
@@ -42,7 +47,6 @@ describe('LoginModal component', () => {
       expect(mockSignIn).toHaveBeenCalledWith('credentials', {
         email: 'test@example.com',
         password: 'password123',
-        callbackUrl: '/',
         redirect: false,
       });
     });
@@ -88,10 +92,18 @@ describe('LoginModal component', () => {
   it('calls onClose when close button is clicked', () => {
     render(<LoginModal isOpen={true} onClose={mockOnClose} />);
 
-    const closeButton = screen.getByRole('button', { name: 'Cerrar' });
+    const closeButton = screen.getByRole('button', { name: /cerrar/i });
     fireEvent.click(closeButton);
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders registration link', () => {
+    render(<LoginModal isOpen={true} onClose={mockOnClose} />);
+
+    const registerLink = screen.getByText(/no tenés cuenta/i);
+    expect(registerLink).toBeInTheDocument();
+    expect(registerLink).toHaveAttribute('href', '/auth/signup');
   });
 
   it('does not render modal content when isOpen is false', () => {

@@ -6,6 +6,11 @@ vi.mock('next-auth/react', () => ({
   signIn: vi.fn(),
 }));
 
+// Mock next/navigation
+vi.mock('next/navigation', () => ({
+  useParams: () => ({ locale: 'es' }),
+}));
+
 import { signIn } from 'next-auth/react';
 
 import SignInPage from '@/app/[locale]/auth/signin/page';
@@ -56,7 +61,7 @@ describe('SignInPage', () => {
       expect(mockSignIn).toHaveBeenCalledWith('credentials', {
         email: 'user@test.com',
         password: 'pass123',
-        callbackUrl: '/',
+        callbackUrl: '/es',
       });
     });
   });
@@ -65,6 +70,6 @@ describe('SignInPage', () => {
     render(<SignInPage />);
 
     const signupLink = screen.getByRole('link', { name: /crear cuenta/i });
-    expect(signupLink).toHaveAttribute('href', '/auth/signup');
+    expect(signupLink).toHaveAttribute('href', '/es/auth/signup');
   });
 });

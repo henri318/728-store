@@ -13,7 +13,7 @@ import { SessionProviderWrapper } from '@/modules/presentation/components/sessio
 describe('SessionProviderWrapper', () => {
   it('renders children inside NextAuth SessionProvider', () => {
     render(
-      <SessionProviderWrapper>
+      <SessionProviderWrapper session={null}>
         <span>Child content</span>
       </SessionProviderWrapper>
     );
@@ -23,7 +23,7 @@ describe('SessionProviderWrapper', () => {
 
   it('renders multiple children', () => {
     render(
-      <SessionProviderWrapper>
+      <SessionProviderWrapper session={null}>
         <span>First</span>
         <span>Second</span>
       </SessionProviderWrapper>
@@ -34,7 +34,7 @@ describe('SessionProviderWrapper', () => {
 
   it('renders nothing when no children provided', () => {
     const { container } = render(
-      <SessionProviderWrapper>{null}</SessionProviderWrapper>
+      <SessionProviderWrapper session={null}>{null}</SessionProviderWrapper>
     );
     expect(screen.getByTestId('next-auth-session-provider')).toBeInTheDocument();
   });
