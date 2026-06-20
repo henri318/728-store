@@ -4,7 +4,7 @@ export type { UserLookupResult };
 
 /**
  * UserLookupPort — the port for fetching a minimal user record used by
- * authorization middleware.
+ * authorization proxy.
  *
  * Lives in the auth module's domain layer. Does NOT depend on Prisma or
  * any concrete adapter — the Prisma adapter lives in auth/infrastructure,
