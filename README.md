@@ -120,9 +120,12 @@ npm run test:e2e:debug
 
 | Archivo | Qué prueba |
 |---------|-----------|
-| `home.spec.ts` | Página principal, grid de productos, navegación |
-| `auth.spec.ts` | Registro, login, credenciales inválidas, links |
-| `products.spec.ts` | Listado de productos, precios, cambio de idioma |
+| `000-health-check.spec.ts` | Health check del servidor |
+| `home/home.spec.ts` | Página principal, grid de productos, navegación |
+| `auth/sign-up.spec.ts` | Registro de usuario |
+| `auth/sign-in.spec.ts` | Login y credenciales |
+| `auth/navigation.spec.ts` | Links entre páginas de auth |
+| `products/products.spec.ts` | Listado de productos, precios, cambio de idioma |
 
 ---
 
@@ -163,7 +166,11 @@ npm run test:e2e:debug
 ├── tests/                      # Suite de tests
 │   ├── doubles/                # Implementaciones in-memory para testing
 │   ├── unit/                   # Tests unitarios (~34 archivos)
-│   └── e2e/                    # Tests E2E con Playwright
+│   ├── e2e/                    # Tests E2E con Playwright
+│   │   ├── health/             # Smoke tests
+│   │   ├── auth/               # Registro, login, navegación
+│   │   ├── home/               # Página principal
+│   │   └── products/           # Productos
 ├── prisma/                     # Schema + seed
 ├── docs/                       # Documentación de arquitectura (21 archivos)
 ├── docker-compose.yml          # PostgreSQL (desarrollo)
