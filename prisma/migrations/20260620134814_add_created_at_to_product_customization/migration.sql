@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "ProductCustomization" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "firstName" DROP DEFAULT,
+ALTER COLUMN "lastName" DROP DEFAULT;
