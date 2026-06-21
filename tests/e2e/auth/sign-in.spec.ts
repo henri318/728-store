@@ -29,4 +29,24 @@ test.describe('Sign In', () => {
 
     await expect(page).toHaveURL(/\/auth\/signin/);
   });
+
+  test('shows user menu after successful login', async ({ page }) => {
+    await page.goto('/es/auth/signin');
+
+    await page.getByPlaceholder('Email').fill('test@test.com');
+    await page.getByPlaceholder('Password').fill('Test123!');
+    await page.getByRole('button', { name: 'Sign In' }).click();
+
+    await expect(page).toHaveURL(/\/es\/?$/);
+
+    // Menu button should be visible (hamburger icon)
+    const menuButton = page.getByRole('button', { name: /menu/i });
+    await expect(menuButton).toBeVisible();
+
+    // Click menu — should show profile, change password, close session
+    await menuButton.click();
+    await expect(page.getByRole('menuitem', { name: /mi perfil/i })).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: /editar contraseña/i })).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: /cerrar sesión/i })).toBeVisible();
+  });
 });
