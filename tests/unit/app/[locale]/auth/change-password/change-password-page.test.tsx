@@ -23,7 +23,16 @@ describe('ChangePasswordPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useSession).mockReturnValue({
-      data: { user: { email: 'test@example.com' } },
+      data: {
+        user: {
+          id: '1',
+          email: 'test@example.com',
+          name: 'Test User',
+          role: 'user',
+          emailVerified: null,
+        },
+        expires: '2099-01-01T00:00:00.000Z',
+      },
       status: 'authenticated',
       update: vi.fn(),
     });
@@ -185,7 +194,16 @@ describe('ChangePasswordPage', () => {
 
   it('shows form when authenticated', () => {
     vi.mocked(useSession).mockReturnValue({
-      data: { user: { email: 'test@example.com' } },
+      data: {
+        user: {
+          id: '1',
+          email: 'test@example.com',
+          name: 'Test User',
+          role: 'user',
+          emailVerified: null,
+        },
+        expires: '2099-01-01T00:00:00.000Z',
+      },
       status: 'authenticated',
       update: vi.fn(),
     });

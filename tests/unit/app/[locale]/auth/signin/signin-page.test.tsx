@@ -55,7 +55,7 @@ describe('SignInPage', () => {
   it('submits form with email and password via signIn', async () => {
     const mockSignIn = vi
       .mocked(signIn)
-      .mockResolvedValue({ ok: true, error: null });
+      .mockResolvedValue({ ok: true, error: null, status: 200, url: '' });
 
     render(<SignInPage />);
 

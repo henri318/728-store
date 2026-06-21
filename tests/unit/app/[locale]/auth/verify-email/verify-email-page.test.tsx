@@ -20,7 +20,9 @@ describe('VerifyEmailPage', () => {
 
   it('shows success when token is valid', async () => {
     vi.mocked(useSearchParams).mockReturnValue(
-      new URLSearchParams('token=valid-token'),
+      new URLSearchParams('token=valid-token') as unknown as ReturnType<
+        typeof useSearchParams
+      >,
     );
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -38,7 +40,9 @@ describe('VerifyEmailPage', () => {
 
   it('shows error when token is invalid', async () => {
     vi.mocked(useSearchParams).mockReturnValue(
-      new URLSearchParams('token=bad-token'),
+      new URLSearchParams('token=bad-token') as unknown as ReturnType<
+        typeof useSearchParams
+      >,
     );
     mockFetch.mockResolvedValueOnce({
       ok: false,
@@ -55,7 +59,9 @@ describe('VerifyEmailPage', () => {
   });
 
   it('shows error when no token in URL', async () => {
-    vi.mocked(useSearchParams).mockReturnValue(new URLSearchParams(''));
+    vi.mocked(useSearchParams).mockReturnValue(
+      new URLSearchParams('') as unknown as ReturnType<typeof useSearchParams>,
+    );
 
     render(<VerifyEmailPage />);
 

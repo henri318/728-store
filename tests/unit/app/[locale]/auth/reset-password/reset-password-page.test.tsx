@@ -17,7 +17,9 @@ describe('ResetPasswordPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useSearchParams).mockReturnValue(
-      new URLSearchParams('token=valid-token'),
+      new URLSearchParams('token=valid-token') as unknown as ReturnType<
+        typeof useSearchParams
+      >,
     );
   });
 
@@ -30,7 +32,9 @@ describe('ResetPasswordPage', () => {
   });
 
   it('shows error when no token present', async () => {
-    vi.mocked(useSearchParams).mockReturnValue(new URLSearchParams(''));
+    vi.mocked(useSearchParams).mockReturnValue(
+      new URLSearchParams('') as unknown as ReturnType<typeof useSearchParams>,
+    );
 
     render(<ResetPasswordPage />);
 
@@ -87,7 +91,14 @@ describe('ResetPasswordPage', () => {
 
   it('redirects after successful reset', async () => {
     const mockPush = vi.fn();
-    vi.mocked(useRouter).mockReturnValue({ push: mockPush });
+    vi.mocked(useRouter).mockReturnValue({
+      push: mockPush,
+      back: vi.fn(),
+      forward: vi.fn(),
+      refresh: vi.fn(),
+      replace: vi.fn(),
+      prefetch: vi.fn(),
+    });
 
     mockFetch.mockResolvedValueOnce({
       ok: true,

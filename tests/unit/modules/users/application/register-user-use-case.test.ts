@@ -94,9 +94,14 @@ describe('RegisterUserUseCase', () => {
     expect(outboxRepository.events[0].eventType).toBe(
       GlobalEvents.USER_REGISTERED,
     );
-    expect(outboxRepository.events[0].payload.userId).toBe(result.userId.value);
-    expect(outboxRepository.events[0].payload.email).toBe(result.email.value);
-    expect(outboxRepository.events[0].payload.roleId).toBe(result.roleId.value);
+    const payload = outboxRepository.events[0].payload as {
+      userId: string;
+      email: string;
+      roleId: string;
+    };
+    expect(payload.userId).toBe(result.userId.value);
+    expect(payload.email).toBe(result.email.value);
+    expect(payload.roleId).toBe(result.roleId.value);
   });
 
   it('should throw an error if user already exists (duplicate email)', async () => {

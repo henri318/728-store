@@ -45,9 +45,14 @@ describe('MarkAsPaidUseCase', () => {
 
     expect(outboxRepository.events.length).toBe(1);
     expect(outboxRepository.events[0].eventType).toBe(GlobalEvents.ORDER_PAID);
-    expect(outboxRepository.events[0].payload.orderId).toBe('order-1');
-    expect(outboxRepository.events[0].payload.userId).toBe('user-1');
-    expect(outboxRepository.events[0].payload.paymentId).toBe('payment-1');
+    const payload = outboxRepository.events[0].payload as {
+      orderId: string;
+      userId: string;
+      paymentId: string;
+    };
+    expect(payload.orderId).toBe('order-1');
+    expect(payload.userId).toBe('user-1');
+    expect(payload.paymentId).toBe('payment-1');
   });
 
   it('should handle complete order lifecycle with multiple line items', async () => {
@@ -302,7 +307,8 @@ describe('MarkAsPaidUseCase', () => {
     }
 
     expect(outboxRepository.events.length).toBe(1);
-    expect(outboxRepository.events[0].payload.paymentId).toBe('pay-0');
+    const payload = outboxRepository.events[0].payload as { paymentId: string };
+    expect(payload.paymentId).toBe('pay-0');
   });
 
   // ---------------------------------------------------------------------------
@@ -377,7 +383,9 @@ describe('MarkAsPaidUseCase', () => {
     await useCase.execute({ orderId: 'o1', paymentId: 'pay-1', amount: 100 });
     const after = new Date();
 
-    const eventDate = new Date(outboxRepository.events[0].payload.paidAt);
+    const eventDate = new Date(
+      (outboxRepository.events[0].payload as { paidAt: string }).paidAt,
+    );
     expect(eventDate).toBeInstanceOf(Date);
     expect(eventDate.getTime()).toBeGreaterThanOrEqual(before.getTime());
     expect(eventDate.getTime()).toBeLessThanOrEqual(after.getTime());
@@ -399,7 +407,12 @@ describe('MarkAsPaidUseCase', () => {
       amount: 999.99,
     });
 
-    const event = outboxRepository.events[0].payload;
+    const event = outboxRepository.events[0].payload as {
+      orderId: string;
+      userId: string;
+      paymentId: string;
+      totalAmount: number;
+    };
     expect(event.orderId).toBe('o1');
     expect(event.userId).toBe('u-unique');
     expect(event.paymentId).toBe('pay-1');

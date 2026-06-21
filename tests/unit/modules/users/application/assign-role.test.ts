@@ -71,10 +71,16 @@ describe('AssignRoleUseCase', () => {
     expect(outboxRepository.events[0].eventType).toBe(
       GlobalEvents.ROLE_ASSIGNED,
     );
-    expect(outboxRepository.events[0].payload.userId).toBe('user-1');
-    expect(outboxRepository.events[0].payload.roleId).toBe('role-admin-uuid');
-    expect(outboxRepository.events[0].payload.roleName).toBe('ADMIN');
-    expect(outboxRepository.events[0].payload.assignedBy).toBe('admin-user-1');
+    const payload = outboxRepository.events[0].payload as {
+      userId: string;
+      roleId: string;
+      roleName: string;
+      assignedBy: string;
+    };
+    expect(payload.userId).toBe('user-1');
+    expect(payload.roleId).toBe('role-admin-uuid');
+    expect(payload.roleName).toBe('ADMIN');
+    expect(payload.assignedBy).toBe('admin-user-1');
   });
 
   // ── Error Cases ─────────────────────────────────────────────

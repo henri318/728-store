@@ -54,8 +54,12 @@ describe('CreateOrderUseCase', () => {
     expect(outboxRepository.events[0].eventType).toBe(
       GlobalEvents.ORDER_CREATED,
     );
-    expect(outboxRepository.events[0].payload.orderId).toBe(result.id);
-    expect(outboxRepository.events[0].payload.totalAmount).toBe(100);
+    const payload = outboxRepository.events[0].payload as {
+      orderId: string;
+      totalAmount: number;
+    };
+    expect(payload.orderId).toBe(result.id);
+    expect(payload.totalAmount).toBe(100);
   });
 
   it('should throw an error if the product does not exist', async () => {

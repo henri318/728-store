@@ -52,8 +52,12 @@ describe('CreateRoleUseCase', () => {
 
     expect(outboxRepository.events.length).toBe(1);
     expect(outboxRepository.events[0].eventType).toBe('role.created');
-    expect(outboxRepository.events[0].payload.roleId).toBe(result.id.value);
-    expect(outboxRepository.events[0].payload.name).toBe('MANAGER');
+    const payload = outboxRepository.events[0].payload as {
+      roleId: string;
+      name: string;
+    };
+    expect(payload.roleId).toBe(result.id.value);
+    expect(payload.name).toBe('MANAGER');
   });
 
   it('should throw ConflictError when creating a duplicate role name', async () => {

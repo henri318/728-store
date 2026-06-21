@@ -44,9 +44,14 @@ describe('AssignToProductionUseCase', () => {
     expect(outboxRepository.events[0].eventType).toBe(
       GlobalEvents.ORDER_READY_FOR_PRODUCTION,
     );
-    expect(outboxRepository.events[0].payload.orderId).toBe('order-1');
-    expect(outboxRepository.events[0].payload.userId).toBe('user-1');
-    expect(outboxRepository.events[0].payload.customizationId).toBe('custom-1');
+    const payload = outboxRepository.events[0].payload as {
+      orderId: string;
+      userId: string;
+      customizationId: string;
+    };
+    expect(payload.orderId).toBe('order-1');
+    expect(payload.userId).toBe('user-1');
+    expect(payload.customizationId).toBe('custom-1');
   });
 
   it('should handle production assignment with multiple line items', async () => {
@@ -295,7 +300,10 @@ describe('AssignToProductionUseCase', () => {
     }
 
     expect(outboxRepository.events.length).toBe(1);
-    expect(outboxRepository.events[0].payload.customizationId).toBe('c-0');
+    const payload = outboxRepository.events[0].payload as {
+      customizationId: string;
+    };
+    expect(payload.customizationId).toBe('c-0');
   });
 
   // ---------------------------------------------------------------------------
@@ -373,7 +381,9 @@ describe('AssignToProductionUseCase', () => {
     await useCase.execute({ orderId: 'o1', customizationId: 'c-1' });
     const after = new Date();
 
-    const eventDate = new Date(outboxRepository.events[0].payload.readyAt);
+    const eventDate = new Date(
+      (outboxRepository.events[0].payload as { readyAt: string }).readyAt,
+    );
     expect(eventDate).toBeInstanceOf(Date);
     expect(eventDate.getTime()).toBeGreaterThanOrEqual(before.getTime());
     expect(eventDate.getTime()).toBeLessThanOrEqual(after.getTime());
@@ -391,7 +401,12 @@ describe('AssignToProductionUseCase', () => {
 
     await useCase.execute({ orderId: 'o1', customizationId: 'c-meta' });
 
-    const event = outboxRepository.events[0].payload;
+    const event = outboxRepository.events[0].payload as {
+      orderId: string;
+      userId: string;
+      sellerId: string;
+      customizationId: string;
+    };
     expect(event.orderId).toBe('o1');
     expect(event.userId).toBe('u-unique');
     expect(event.sellerId).toBe('s-unique');

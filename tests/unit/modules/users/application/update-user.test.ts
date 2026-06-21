@@ -53,13 +53,13 @@ describe('UpdateUserUseCase', () => {
     expect(outboxRepository.events[0].eventType).toBe(
       GlobalEvents.USER_UPDATED,
     );
-    expect(outboxRepository.events[0].payload.userId).toBe('user-1');
-    expect(outboxRepository.events[0].payload.changedFields).toContain(
-      'firstName',
-    );
-    expect(outboxRepository.events[0].payload.changedFields).toContain(
-      'lastName',
-    );
+    const payload = outboxRepository.events[0].payload as {
+      userId: string;
+      changedFields: string[];
+    };
+    expect(payload.userId).toBe('user-1');
+    expect(payload.changedFields).toContain('firstName');
+    expect(payload.changedFields).toContain('lastName');
 
     // Persistence verified
     const updated = await userRepository.findById('user-1');
@@ -93,9 +93,10 @@ describe('UpdateUserUseCase', () => {
 
     expect(result.firstName).toBe('NewFirst');
     expect(result.lastName).toBe('OldLast'); // unchanged
-    expect(outboxRepository.events[0].payload.changedFields).toEqual([
-      'firstName',
-    ]);
+    const payload2 = outboxRepository.events[0].payload as {
+      changedFields: string[];
+    };
+    expect(payload2.changedFields).toEqual(['firstName']);
   });
 
   it('should update address when provided', async () => {
@@ -130,9 +131,10 @@ describe('UpdateUserUseCase', () => {
     expect(result.address).not.toBeNull();
     expect(result.address!.street).toBe('Calle 1');
     expect(result.address!.city).toBe('BOG');
-    expect(outboxRepository.events[0].payload.changedFields).toContain(
-      'address',
-    );
+    const payload3 = outboxRepository.events[0].payload as {
+      changedFields: string[];
+    };
+    expect(payload3.changedFields).toContain('address');
   });
 
   // ── Error Cases ─────────────────────────────────────────────

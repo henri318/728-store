@@ -50,7 +50,8 @@ describe('DeleteUserUseCase — soft-delete', () => {
     expect(outboxRepository.events[0].eventType).toBe(
       GlobalEvents.USER_DELETED,
     );
-    expect(outboxRepository.events[0].payload.userId).toBe('user-1');
+    const payload = outboxRepository.events[0].payload as { userId: string };
+    expect(payload.userId).toBe('user-1');
   });
 
   // ── Error Cases ─────────────────────────────────────────────

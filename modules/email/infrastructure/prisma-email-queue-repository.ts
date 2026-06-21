@@ -1,4 +1,5 @@
 import { prisma } from '@/shared/infrastructure/prisma';
+import type { Prisma } from '@prisma/client';
 import type {
   CreateEmailQueueInput,
   EmailQueueEntry,
@@ -24,7 +25,7 @@ export class PrismaEmailQueueRepository implements EmailQueueRepository {
         subject: entry.subject,
         htmlBody: entry.htmlBody,
         template: entry.template,
-        metadata: entry.metadata as Record<string, unknown>,
+        metadata: entry.metadata as Prisma.InputJsonValue,
       },
     });
 

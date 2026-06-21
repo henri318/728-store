@@ -161,7 +161,9 @@ describe('Orders Module - Integration Tests', () => {
       expect(outboxRepository.events[0].eventType).toBe(
         GlobalEvents.ORDER_PAID,
       );
-      expect(outboxRepository.events[0].payload.orderId).toBe('order-outbox');
+      expect(
+        (outboxRepository.events[0].payload as Record<string, unknown>).orderId,
+      ).toBe('order-outbox');
 
       // Act - Production assignment
       await assignToProductionUseCase.execute({
@@ -215,7 +217,7 @@ describe('Orders Module - Integration Tests', () => {
 
       // Simulate outbox worker processing
       const processedEvents = outboxRepository.events.map(
-        (e) => e.payload.orderId,
+        (e) => (e.payload as Record<string, unknown>).orderId,
       );
       expect(processedEvents.sort()).toEqual(orderIds.sort());
     });
@@ -382,7 +384,7 @@ describe('Orders Module - Integration Tests', () => {
         totalAmount: 199.99,
         paidAt: expect.any(String),
       });
-      expect(event.payload.paidAt).toMatch(
+      expect((event.payload as Record<string, unknown>).paidAt).toMatch(
         /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/,
       ); // ISO 8601
     });
@@ -415,7 +417,7 @@ describe('Orders Module - Integration Tests', () => {
         customizationId: 'custom-test',
         readyAt: expect.any(String),
       });
-      expect(event.payload.readyAt).toMatch(
+      expect((event.payload as Record<string, unknown>).readyAt).toMatch(
         /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/,
       ); // ISO 8601
     });
@@ -444,7 +446,10 @@ describe('Orders Module - Integration Tests', () => {
       // Assert
       const updatedOrder = await orderRepository.findById('order-large');
       expect(updatedOrder?.status).toBe('paid');
-      expect(outboxRepository.events[0].payload.totalAmount).toBe(9999999.99);
+      expect(
+        (outboxRepository.events[0].payload as Record<string, unknown>)
+          .totalAmount,
+      ).toBe(9999999.99);
     });
 
     it('should handle special characters in order metadata', async () => {
@@ -468,9 +473,10 @@ describe('Orders Module - Integration Tests', () => {
       // Assert - Should handle special chars
       const updatedOrder = await orderRepository.findById('order-special');
       expect(updatedOrder?.status).toBe('ready-for-production');
-      expect(outboxRepository.events[0].payload.customizationId).toBe(
-        'custom-émoji-🎉',
-      );
+      expect(
+        (outboxRepository.events[0].payload as Record<string, unknown>)
+          .customizationId,
+      ).toBe('custom-émoji-🎉');
     });
   });
 });

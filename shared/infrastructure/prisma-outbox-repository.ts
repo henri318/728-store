@@ -1,5 +1,5 @@
 import { prisma } from '@/shared/infrastructure/prisma';
-import type { PrismaClient } from '@prisma/client';
+import type { Prisma, PrismaClient } from '@prisma/client';
 import {
   OutboxEvent,
   OutboxRepository,
@@ -14,7 +14,7 @@ export class PrismaOutboxRepository implements OutboxRepository {
     await tx.outboxEvent.create({
       data: {
         eventType,
-        payload,
+        payload: payload as Prisma.InputJsonValue,
         status: 'PENDING',
       },
     });

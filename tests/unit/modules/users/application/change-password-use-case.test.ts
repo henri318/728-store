@@ -77,7 +77,8 @@ describe('ChangePasswordUseCase', () => {
     expect(outboxRepository.events[0].eventType).toBe(
       GlobalEvents.PASSWORD_CHANGED,
     );
-    expect(outboxRepository.events[0].payload.userId).toBe('user-cp-1');
+    const payload = outboxRepository.events[0].payload as { userId: string };
+    expect(payload.userId).toBe('user-cp-1');
   });
 
   it('should throw UnauthorizedError when current password is wrong', async () => {

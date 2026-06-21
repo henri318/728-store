@@ -26,7 +26,16 @@ describe('ProfilePage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseSession.mockReturnValue({
-      data: { user: { email: 'test@example.com', name: 'John Doe' } },
+      data: {
+        user: {
+          id: '1',
+          email: 'test@example.com',
+          name: 'John Doe',
+          role: 'user',
+          emailVerified: null,
+        },
+        expires: '2099-01-01T00:00:00.000Z',
+      },
       status: 'authenticated',
       update: vi.fn(),
     });
@@ -151,7 +160,16 @@ describe('ProfilePage', () => {
     });
 
     mockUseSession.mockReturnValue({
-      data: { user: { email: 'test@example.com', name: 'John Doe' } },
+      data: {
+        user: {
+          id: '1',
+          email: 'test@example.com',
+          name: 'John Doe',
+          role: 'user',
+          emailVerified: null,
+        },
+        expires: '2099-01-01T00:00:00.000Z',
+      },
       status: 'authenticated',
       update: vi.fn(),
     });

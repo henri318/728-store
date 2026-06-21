@@ -34,12 +34,7 @@ interface FormErrors {
   email?: string;
   password?: string;
   confirmPassword?: string;
-  address?: {
-    street?: string;
-    city?: string;
-    postalCode?: string;
-    country?: string;
-  };
+  address?: Partial<AddressFields>;
 }
 
 function validateForm(
@@ -119,11 +114,14 @@ export default function SignUpPage() {
     }));
     if (errors.address?.[field]) {
       setErrors((prev) => {
-        const next = { ...prev, address: { ...prev.address } };
+        const next = {
+          ...prev,
+          address: prev.address ? { ...prev.address } : undefined,
+        };
         if (next.address) {
           delete next.address[field];
           if (Object.keys(next.address).length === 0) {
-            delete next.address;
+            next.address = undefined;
           }
         }
         return next;

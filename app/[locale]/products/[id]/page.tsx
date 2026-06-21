@@ -23,7 +23,7 @@ export default async function ProductDetailPage({
     error = true;
   }
 
-  if (error) {
+  if (error || !product) {
     return (
       <div>Error loading product details. Please check the server logs.</div>
     );

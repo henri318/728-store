@@ -37,7 +37,7 @@ describe('LoginModal component', () => {
   it('calls signIn with credentials when form is submitted', async () => {
     const mockSignIn = vi
       .mocked(signIn)
-      .mockResolvedValue({ ok: true, error: null });
+      .mockResolvedValue({ ok: true, error: null, status: 200, url: '' });
 
     render(<LoginModal isOpen={true} onClose={mockOnClose} />);
 
@@ -107,7 +107,12 @@ describe('LoginModal component', () => {
   });
 
   it('closes modal after successful login', async () => {
-    vi.mocked(signIn).mockResolvedValue({ ok: true, error: null });
+    vi.mocked(signIn).mockResolvedValue({
+      ok: true,
+      error: null,
+      status: 200,
+      url: '',
+    });
 
     render(<LoginModal isOpen={true} onClose={mockOnClose} />);
 
