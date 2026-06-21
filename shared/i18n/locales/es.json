@@ -31,7 +31,7 @@
     "firstName": "Nombre",
     "lastName": "Apellido",
     "name": "Nombre",
-      "alreadyHaveAccount": "¿Ya tienes una cuenta? Inicia sesión",
+      "alreadyHaveAccount": "¿Ya tienes una cuenta?",
       "dontHaveAccount": "¿No tienes cuenta? Regístrate",
       "errorMailExists": "El mail ya existe. Por favor, usa otro.",
     "address": "Dirección (opcional)",
