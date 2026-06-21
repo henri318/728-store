@@ -42,7 +42,7 @@ describe('VerifyEmailPage', () => {
     render(<VerifyEmailPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('El enlace ha expirado. Solicitá uno nuevo.')).toBeInTheDocument();
+      expect(screen.getByText('El enlace ha expirado. Solicita uno nuevo.')).toBeInTheDocument();
     });
   });
 

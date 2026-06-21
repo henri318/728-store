@@ -13,7 +13,7 @@ describe('VerifyBanner', () => {
   it('renders yellow banner with verify message', () => {
     render(<VerifyBanner email="test@example.com" />);
 
-    expect(screen.getByText('Por favor, verificá tu correo electrónico.')).toBeInTheDocument();
+    expect(screen.getByText('Por favor, verifica tu correo electrónico.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Reenviar verificación' })).toBeInTheDocument();
   });
 
