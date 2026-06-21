@@ -14,7 +14,7 @@
     "required": "Este campo es obligatorio",
     "invalidEmail": "Correo electrónico inválido",
     "passwordMinLength": "La contraseña debe tener al menos 8 caracteres",
-    "unverifiedBanner": "Por favor, verificá tu correo electrónico.",
+      "unverifiedBanner": "Por favor, verifica tu correo electrónico.",
     "resendVerification": "Reenviar verificación",
     "backToHome": "Volver al inicio",
     "languageEs": "Español",
@@ -31,9 +31,9 @@
     "firstName": "Nombre",
     "lastName": "Apellido",
     "name": "Nombre",
-    "alreadyHaveAccount": "¿Ya tenés una cuenta? Iniciá sesión",
-    "dontHaveAccount": "¿No tenés cuenta? Registrate",
-    "errorMailExists": "El mail ya existe. Por favor, usá otro.",
+      "alreadyHaveAccount": "¿Ya tienes una cuenta? Inicia sesión",
+      "dontHaveAccount": "¿No tienes cuenta? Regístrate",
+      "errorMailExists": "El mail ya existe. Por favor, usa otro.",
     "address": "Dirección (opcional)",
     "street": "Calle",
     "city": "Ciudad",
@@ -52,8 +52,8 @@
     "checkEmailMessage": "Si el correo existe, recibirás un enlace de recuperación.",
     "verifyEmailTitle": "Verificar correo electrónico",
     "emailVerified": "Correo electrónico verificado correctamente",
-    "canLoginAfterVerification": "Ya podés iniciar sesión.",
-    "tokenExpired": "El enlace ha expirado. Solicitá uno nuevo.",
+      "canLoginAfterVerification": "Ya puedes iniciar sesión.",
+      "tokenExpired": "El enlace ha expirado. Solicita uno nuevo.",
     "invalidToken": "El enlace de verificación no es válido.",
     "invalidCredentials": "Credenciales incorrectas",
     "passwordsDoNotMatch": "Las contraseñas no coinciden",
@@ -62,7 +62,7 @@
     "invalidResetToken": "El token no es válido o ha expirado.",
     "failedToResetPassword": "Error al restablecer la contraseña.",
     "failedToChangePassword": "Error al cambiar la contraseña.",
-    "genericSignupError": "Algo salió mal. Reintentá."
+    "genericSignupError": "Algo salió mal. Reinténtalo."
   },
   "profile": {
     "title": "Mi perfil",
@@ -70,7 +70,7 @@
     "deleteAccount": "Eliminar cuenta",
     "deleteConfirmTitle": "Eliminar cuenta",
     "deleteConfirmMessage": "¿Estás seguro de eliminar tu cuenta? Esta acción no se puede deshacer.",
-    "accountDeactivated": "Cuenta desactivada. No podés iniciar sesión."
+    "accountDeactivated": "Cuenta desactivada. No puedes iniciar sesión."
   },
   "userMenu": {
     "profile": "Mi perfil",
