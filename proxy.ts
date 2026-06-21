@@ -60,7 +60,7 @@ export async function proxy(request: NextRequest) {
   // API routes matched by the matcher (e.g. /api/admin/*, /api/orders/*)
   // should only go through the auth gate above, not the locale redirect.
   if (pathname.startsWith('/api/')) {
-    return;
+    return NextResponse.next();
   }
 
   // Check if pathname already has a locale
@@ -68,7 +68,7 @@ export async function proxy(request: NextRequest) {
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
   );
 
-  if (pathnameHasLocale) return;
+  if (pathnameHasLocale) return NextResponse.next();
 
   // Redirect if there is no locale
   const locale = defaultLocale;

@@ -7,7 +7,7 @@ test.describe('Sign Up', () => {
     await expect(page.getByRole('heading', { name: 'Registro' })).toBeVisible();
     await expect(page.getByLabel('Nombre')).toBeVisible();
     await expect(page.getByLabel('Correo electrónico')).toBeVisible();
-    await expect(page.getByLabel('Contraseña')).toBeVisible();
+    await expect(page.getByLabel('Contraseña', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Crear cuenta' })).toBeVisible();
   });
 
@@ -19,10 +19,11 @@ test.describe('Sign Up', () => {
     await page.getByLabel('Nombre').fill('New');
     await page.getByLabel('Apellido').fill('User');
     await page.getByLabel('Correo electrónico').fill(uniqueEmail);
-    await page.getByLabel('Contraseña').fill('StrongPass123!');
+    await page.getByLabel('Contraseña', { exact: true }).fill('StrongPass123!');
+    await page.getByLabel('Confirmar contraseña').fill('StrongPass123!');
     await page.getByRole('button', { name: 'Crear cuenta' }).click();
 
-    await expect(page).toHaveURL(/\/auth\/signin\?registered=true/);
+    await expect(page).toHaveURL(/\/es\/?$/);
   });
 
   test('shows error for duplicate email', async ({ page }) => {
@@ -31,7 +32,8 @@ test.describe('Sign Up', () => {
     await page.getByLabel('Nombre').fill('Duplicate');
     await page.getByLabel('Apellido').fill('User');
     await page.getByLabel('Correo electrónico').fill('test@test.com');
-    await page.getByLabel('Contraseña').fill('StrongPass123!');
+    await page.getByLabel('Contraseña', { exact: true }).fill('StrongPass123!');
+    await page.getByLabel('Confirmar contraseña').fill('StrongPass123!');
     await page.getByRole('button', { name: 'Crear cuenta' }).click();
 
     await expect(page.getByText(/el mail ya existe/i)).toBeVisible();

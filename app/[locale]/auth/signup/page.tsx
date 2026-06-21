@@ -280,6 +280,12 @@ export default function SignUpPage() {
           {dict.auth.signUpButton}
         </Button>
       </form>
+      <p style={{ marginTop: '1rem' }}>
+        {dict.auth.alreadyHaveAccount}{' '}
+        <a href={`/${locale}/auth/signin`} style={{ color: '#0070f3' }}>
+          {dict.auth.loginButton}
+        </a>
+      </p>
     </div>
   );
 }

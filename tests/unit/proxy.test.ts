@@ -72,8 +72,9 @@ describe('proxy — auth gate', () => {
     const req = buildRequest('/es/profile');
     const res = await proxy(req);
 
-    // proxy returns undefined (NextResponse.next() equivalent) for allowed requests
-    expect(res).toBeUndefined();
+    // proxy returns NextResponse.next() for allowed requests
+    expect(res).toBeInstanceOf(NextResponse);
+    expect(res!.status).toBe(200);
   });
 
   // ── Test 3: API unauthenticated request returns 401 JSON ──
@@ -113,6 +114,7 @@ describe('proxy — auth gate', () => {
     const req = buildRequest('/api/users/me');
     const res = await proxy(req);
 
-    expect(res).toBeUndefined();
+    expect(res).toBeInstanceOf(NextResponse);
+    expect(res!.status).toBe(200);
   });
 });

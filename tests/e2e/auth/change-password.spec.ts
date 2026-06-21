@@ -4,9 +4,9 @@ test.describe('Change Password', () => {
   test('shows change password form after login', async ({ page }) => {
     // Login
     await page.goto('/es/auth/signin');
-    await page.getByPlaceholder('Email').fill('test@test.com');
-    await page.getByPlaceholder('Password').fill('Test123!');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.getByLabel('Correo electrónico').fill('test@test.com');
+    await page.getByLabel('Contraseña').fill('Test123!');
+    await page.getByRole('button', { name: 'Iniciar sesión' }).click();
     await expect(page).toHaveURL(/\/es\/?$/);
 
     // Navigate via menu

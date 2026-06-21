@@ -4,9 +4,9 @@ test.describe('Profile', () => {
   test('shows profile form after login', async ({ page }) => {
     // Login first
     await page.goto('/es/auth/signin');
-    await page.getByPlaceholder('Email').fill('test@test.com');
-    await page.getByPlaceholder('Password').fill('Test123!');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.getByLabel('Correo electrónico').fill('test@test.com');
+    await page.getByLabel('Contraseña').fill('Test123!');
+    await page.getByRole('button', { name: 'Iniciar sesión' }).click();
     await expect(page).toHaveURL(/\/es\/?$/);
 
     // Navigate to profile via menu
@@ -24,9 +24,9 @@ test.describe('Profile', () => {
   test('updates profile successfully', async ({ page }) => {
     // Login
     await page.goto('/es/auth/signin');
-    await page.getByPlaceholder('Email').fill('test@test.com');
-    await page.getByPlaceholder('Password').fill('Test123!');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.getByLabel('Correo electrónico').fill('test@test.com');
+    await page.getByLabel('Contraseña').fill('Test123!');
+    await page.getByRole('button', { name: 'Iniciar sesión' }).click();
     await expect(page).toHaveURL(/\/es\/?$/);
 
     // Go to profile
@@ -35,7 +35,7 @@ test.describe('Profile', () => {
 
     // Update name
     await page.getByLabel('Nombre').fill('Updated');
-    await page.getByRole('button', { name: /guardar/i }).click();
+    await page.getByRole('button', { name: /enviar/i }).click();
 
     // Should show success message
     await expect(page.getByRole('alert')).toBeVisible();
