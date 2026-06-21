@@ -24,6 +24,6 @@ export interface TransactionalOrderPort {
     orderId: string,
     newStatus: string,
     eventType: string,
-    eventPayload: Record<string, any>,
+    eventPayload: Record<string, unknown>,
   ): Promise<void>;
 }

@@ -44,8 +44,13 @@ describe('AssignRoleUseCase', () => {
       description: 'Administrator role',
     });
 
-    const { AssignRoleUseCase } = await import('@/modules/users/application/use-cases/assign-role-use-case');
-    const useCase = new AssignRoleUseCase(userRepository, roleRepository, outboxRepository);
+    const { AssignRoleUseCase } =
+      await import('@/modules/users/application/use-cases/assign-role-use-case');
+    const useCase = new AssignRoleUseCase(
+      userRepository,
+      roleRepository,
+      outboxRepository,
+    );
 
     const result = await useCase.execute({
       userId: 'user-1',
@@ -63,21 +68,38 @@ describe('AssignRoleUseCase', () => {
 
     // Event emitted with roleId
     expect(outboxRepository.events.length).toBe(1);
-    expect(outboxRepository.events[0].eventType).toBe(GlobalEvents.ROLE_ASSIGNED);
-    expect(outboxRepository.events[0].payload.userId).toBe('user-1');
-    expect(outboxRepository.events[0].payload.roleId).toBe('role-admin-uuid');
-    expect(outboxRepository.events[0].payload.roleName).toBe('ADMIN');
-    expect(outboxRepository.events[0].payload.assignedBy).toBe('admin-user-1');
+    expect(outboxRepository.events[0].eventType).toBe(
+      GlobalEvents.ROLE_ASSIGNED,
+    );
+    const payload = outboxRepository.events[0].payload as {
+      userId: string;
+      roleId: string;
+      roleName: string;
+      assignedBy: string;
+    };
+    expect(payload.userId).toBe('user-1');
+    expect(payload.roleId).toBe('role-admin-uuid');
+    expect(payload.roleName).toBe('ADMIN');
+    expect(payload.assignedBy).toBe('admin-user-1');
   });
 
   // ── Error Cases ─────────────────────────────────────────────
 
   it('should throw NotFoundError when user does not exist', async () => {
-    const { AssignRoleUseCase } = await import('@/modules/users/application/use-cases/assign-role-use-case');
-    const useCase = new AssignRoleUseCase(userRepository, roleRepository, outboxRepository);
+    const { AssignRoleUseCase } =
+      await import('@/modules/users/application/use-cases/assign-role-use-case');
+    const useCase = new AssignRoleUseCase(
+      userRepository,
+      roleRepository,
+      outboxRepository,
+    );
 
     await expect(
-      useCase.execute({ userId: 'nonexistent', roleName: 'ADMIN', assignedBy: 'admin-1' }),
+      useCase.execute({
+        userId: 'nonexistent',
+        roleName: 'ADMIN',
+        assignedBy: 'admin-1',
+      }),
     ).rejects.toThrow('User not found');
   });
 
@@ -98,11 +120,20 @@ describe('AssignRoleUseCase', () => {
       deletedAt: new Date(),
     });
 
-    const { AssignRoleUseCase } = await import('@/modules/users/application/use-cases/assign-role-use-case');
-    const useCase = new AssignRoleUseCase(userRepository, roleRepository, outboxRepository);
+    const { AssignRoleUseCase } =
+      await import('@/modules/users/application/use-cases/assign-role-use-case');
+    const useCase = new AssignRoleUseCase(
+      userRepository,
+      roleRepository,
+      outboxRepository,
+    );
 
     await expect(
-      useCase.execute({ userId: 'user-deactivated', roleName: 'ADMIN', assignedBy: 'admin-1' }),
+      useCase.execute({
+        userId: 'user-deactivated',
+        roleName: 'ADMIN',
+        assignedBy: 'admin-1',
+      }),
     ).rejects.toThrow('Account is deactivated');
   });
 
@@ -122,11 +153,20 @@ describe('AssignRoleUseCase', () => {
       updatedAt: new Date(),
     });
 
-    const { AssignRoleUseCase } = await import('@/modules/users/application/use-cases/assign-role-use-case');
-    const useCase = new AssignRoleUseCase(userRepository, roleRepository, outboxRepository);
+    const { AssignRoleUseCase } =
+      await import('@/modules/users/application/use-cases/assign-role-use-case');
+    const useCase = new AssignRoleUseCase(
+      userRepository,
+      roleRepository,
+      outboxRepository,
+    );
 
     await expect(
-      useCase.execute({ userId: 'user-1', roleName: 'NONEXISTENT', assignedBy: 'admin-1' }),
+      useCase.execute({
+        userId: 'user-1',
+        roleName: 'NONEXISTENT',
+        assignedBy: 'admin-1',
+      }),
     ).rejects.toThrow('not found');
   });
 });

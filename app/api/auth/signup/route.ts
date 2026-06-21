@@ -7,7 +7,8 @@ import { handleApiError } from '@/shared/presentation/error-handler';
 
 export async function POST(req: NextRequest) {
   try {
-    const { firstName, lastName, email, password, address } = signupSchema.parse(await req.json());
+    const { firstName, lastName, email, password, address } =
+      signupSchema.parse(await req.json());
 
     // Composition root — retrieve every dependency from the container.
     // No direct Prisma imports — the container is the only place that knows
@@ -16,7 +17,11 @@ export async function POST(req: NextRequest) {
     const outboxRepository = container.getOutboxRepository();
     const passwordHasher = container.getPasswordHasher();
 
-    const registerUser = new RegisterUserUseCase(userRepository, outboxRepository, passwordHasher);
+    const registerUser = new RegisterUserUseCase(
+      userRepository,
+      outboxRepository,
+      passwordHasher,
+    );
 
     const user = await registerUser.execute({
       firstName,
@@ -43,7 +48,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       id: user.userId.value,
       email: user.email.value,
-      message: 'Registration successful. Please check your email to verify your account.',
+      message:
+        'Registration successful. Please check your email to verify your account.',
     });
   } catch (error: unknown) {
     return handleApiError(error);

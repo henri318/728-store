@@ -14,7 +14,9 @@ describe('ForgotPasswordPage', () => {
     render(<ForgotPasswordPage />);
 
     expect(screen.getByLabelText('Correo electrónico')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Enviar enlace de recuperación' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Enviar enlace de recuperación' }),
+    ).toBeInTheDocument();
   });
 
   it('shows anti-enumeration message after submit', async () => {
@@ -25,11 +27,19 @@ describe('ForgotPasswordPage', () => {
 
     render(<ForgotPasswordPage />);
 
-    fireEvent.change(screen.getByLabelText('Correo electrónico'), { target: { value: 'test@example.com' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Enviar enlace de recuperación' }));
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), {
+      target: { value: 'test@example.com' },
+    });
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Enviar enlace de recuperación' }),
+    );
 
     await waitFor(() => {
-      expect(screen.getByText('Si el correo existe, recibirás un enlace de recuperación.')).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'Si el correo existe, recibirás un enlace de recuperación.',
+        ),
+      ).toBeInTheDocument();
     });
   });
 });

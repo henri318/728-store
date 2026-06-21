@@ -15,7 +15,9 @@ test.describe('Change Password', () => {
 
     // Form should be visible
     await expect(page).toHaveURL(/\/es\/auth\/change-password/);
-    await expect(page.getByRole('heading', { name: /cambiar contraseña/i })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /cambiar contraseña/i }),
+    ).toBeVisible();
   });
 
   test('redirects to home when not authenticated', async ({ page }) => {

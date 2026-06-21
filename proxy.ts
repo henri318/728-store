@@ -6,7 +6,14 @@ const locales = ['es', 'cat'];
 const defaultLocale = 'es';
 
 /** Path prefixes that require authentication (guest-level or above). */
-const protectedPaths = ['/dashboard', '/api/admin', '/api/orders', '/profile', '/api/users', '/auth/change-password'];
+const protectedPaths = [
+  '/dashboard',
+  '/api/admin',
+  '/api/orders',
+  '/profile',
+  '/api/users',
+  '/auth/change-password',
+];
 
 /**
  * Strips a known locale prefix from a pathname if present.

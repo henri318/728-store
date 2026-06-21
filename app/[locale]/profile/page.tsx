@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
 import { Input } from '@/modules/presentation/components/input';
@@ -44,35 +44,52 @@ export default function ProfilePage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const fetchProfile = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/users/me');
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to load profile');
-      }
-      setForm({
-        firstName: data.firstName || '',
-        lastName: data.lastName || '',
-        email: data.email || '',
-        address: data.address || { street: '', city: '', postalCode: '', country: '' },
-      });
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to load profile');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    if (status === 'authenticated') {
-      fetchProfile();
-    } else if (status === 'unauthenticated') {
+    if (status === 'unauthenticated') {
       router.push(`/${locale}/auth/signin`);
+      return;
     }
-  }, [status, fetchProfile]);
+    if (status !== 'authenticated') return;
+
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch('/api/users/me');
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Failed to load profile');
+        }
+        if (!cancelled) {
+          setForm({
+            firstName: data.firstName || '',
+            lastName: data.lastName || '',
+            email: data.email || '',
+            address: data.address || {
+              street: '',
+              city: '',
+              postalCode: '',
+              country: '',
+            },
+          });
+        }
+      } catch (err: unknown) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : 'Failed to load profile',
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [status, locale, router]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,21 +141,39 @@ export default function ProfilePage() {
   };
 
   if (status === 'loading' || loading) {
-    return <div style={{ textAlign: 'center', padding: '2rem' }}>{dict.common.loading}</div>;
+    return (
+      <div style={{ textAlign: 'center', padding: '2rem' }}>
+        {dict.common.loading}
+      </div>
+    );
   }
 
   return (
-    <div style={{ maxWidth: '520px', margin: '2rem auto', padding: '2rem', border: '1px solid #ddd', borderRadius: '8px' }}>
+    <div
+      style={{
+        maxWidth: '520px',
+        margin: '2rem auto',
+        padding: '2rem',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+      }}
+    >
       <h2 style={{ marginTop: 0 }}>{dict.profile.title}</h2>
 
       {error && <ErrorMessage message={error} />}
       {success && (
-        <div role="alert" style={{ color: '#52c41a', fontSize: '0.9rem', marginBottom: '1rem' }}>
+        <div
+          role="alert"
+          style={{ color: '#52c41a', fontSize: '0.9rem', marginBottom: '1rem' }}
+        >
           {success}
         </div>
       )}
 
-      <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <form
+        onSubmit={handleSave}
+        style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+      >
         <Input
           label={dict.auth.firstName}
           value={form.firstName}
@@ -160,39 +195,51 @@ export default function ProfilePage() {
         />
 
         <div style={{ borderTop: '1px solid #eee', paddingTop: '0.5rem' }}>
-          <h3 style={{ fontSize: '1rem', margin: '0 0 0.5rem 0' }}>{dict.auth.address}</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+          <h3 style={{ fontSize: '1rem', margin: '0 0 0.5rem 0' }}>
+            {dict.auth.address}
+          </h3>
+          <div
+            style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}
+          >
             <Input
               label={dict.auth.street}
               value={form.address.street}
-              onChange={(v) => setForm((prev) => ({
-                ...prev,
-                address: { ...prev.address, street: v },
-              }))}
+              onChange={(v) =>
+                setForm((prev) => ({
+                  ...prev,
+                  address: { ...prev.address, street: v },
+                }))
+              }
             />
             <Input
               label={dict.auth.city}
               value={form.address.city}
-              onChange={(v) => setForm((prev) => ({
-                ...prev,
-                address: { ...prev.address, city: v },
-              }))}
+              onChange={(v) =>
+                setForm((prev) => ({
+                  ...prev,
+                  address: { ...prev.address, city: v },
+                }))
+              }
             />
             <Input
               label={dict.auth.postalCode}
               value={form.address.postalCode}
-              onChange={(v) => setForm((prev) => ({
-                ...prev,
-                address: { ...prev.address, postalCode: v },
-              }))}
+              onChange={(v) =>
+                setForm((prev) => ({
+                  ...prev,
+                  address: { ...prev.address, postalCode: v },
+                }))
+              }
             />
             <Input
               label={dict.auth.country}
               value={form.address.country}
-              onChange={(v) => setForm((prev) => ({
-                ...prev,
-                address: { ...prev.address, country: v },
-              }))}
+              onChange={(v) =>
+                setForm((prev) => ({
+                  ...prev,
+                  address: { ...prev.address, country: v },
+                }))
+              }
             />
           </div>
         </div>
@@ -202,7 +249,13 @@ export default function ProfilePage() {
         </Button>
       </form>
 
-      <div style={{ borderTop: '1px solid #eee', marginTop: '1.5rem', paddingTop: '1rem' }}>
+      <div
+        style={{
+          borderTop: '1px solid #eee',
+          marginTop: '1.5rem',
+          paddingTop: '1rem',
+        }}
+      >
         <Button
           type="button"
           variant="danger"
@@ -217,11 +270,22 @@ export default function ProfilePage() {
         <p style={{ marginBottom: '1.5rem' }}>
           {dict.profile.deleteConfirmMessage}
         </p>
-        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-          <Button type="button" variant="secondary" onClick={() => setShowDeleteModal(false)}>
+        <div
+          style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}
+        >
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setShowDeleteModal(false)}
+          >
             {dict.common.cancel}
           </Button>
-          <Button type="button" variant="danger" loading={saving} onClick={handleDelete}>
+          <Button
+            type="button"
+            variant="danger"
+            loading={saving}
+            onClick={handleDelete}
+          >
             {dict.profile.deleteAccount}
           </Button>
         </div>

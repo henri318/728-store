@@ -7,18 +7,18 @@
 
 ## Estado actual vs. OWASP Top 10 (2021)
 
-| OWASP | Categoría | Estado | Gravedad |
-|-------|-----------|--------|----------|
-| A01 | Broken Access Control | ❌ CRÍTICO | Crítica |
-| A02 | Cryptographic Failures | ❌ CRÍTICO | Crítica |
-| A03 | Injection | 🟡 Bajo riesgo | Media |
-| A04 | Insecure Design | ❌ Varias carencias | Alta |
-| A05 | Security Misconfiguration | ❌ Múltiples | Alta |
-| A06 | Vulnerable & Outdated Components | 🟡 Sin auditoría | Media |
-| A07 | Identification & Auth Failures | ❌ CRÍTICO | Crítica |
-| A08 | Software & Data Integrity | 🟡 No verificado | Media |
-| A09 | Security Logging & Monitoring | ❌ Prácticamente nulo | Alta |
-| A10 | Server-Side Request Forgery | 🟡 No hay protecciones | Baja |
+| OWASP | Categoría                        | Estado                 | Gravedad |
+| ----- | -------------------------------- | ---------------------- | -------- |
+| A01   | Broken Access Control            | ❌ CRÍTICO             | Crítica  |
+| A02   | Cryptographic Failures           | ❌ CRÍTICO             | Crítica  |
+| A03   | Injection                        | 🟡 Bajo riesgo         | Media    |
+| A04   | Insecure Design                  | ❌ Varias carencias    | Alta     |
+| A05   | Security Misconfiguration        | ❌ Múltiples           | Alta     |
+| A06   | Vulnerable & Outdated Components | 🟡 Sin auditoría       | Media    |
+| A07   | Identification & Auth Failures   | ❌ CRÍTICO             | Crítica  |
+| A08   | Software & Data Integrity        | 🟡 No verificado       | Media    |
+| A09   | Security Logging & Monitoring    | ❌ Prácticamente nulo  | Alta     |
+| A10   | Server-Side Request Forgery      | 🟡 No hay protecciones | Baja     |
 
 ---
 
@@ -32,13 +32,13 @@
 
 ### Qué hay que implementar
 
-| Acción | Prioridad |
-|--------|-----------|
-| Rate limiter por IP en login (máx 5 intentos/minuto) | Crítica |
-| Rate limiter por email en login (máx 10 intentos/15 min) | Crítica |
-| Rate limiter en signup (máx 3 cuentas/hora por IP) | Alta |
-| Account lockout tras N intentos fallidos (temporario) | Alta |
-| Usar `upstash-rate-limiter` o implementar con Redis/DB | Media |
+| Acción                                                   | Prioridad |
+| -------------------------------------------------------- | --------- |
+| Rate limiter por IP en login (máx 5 intentos/minuto)     | Crítica   |
+| Rate limiter por email en login (máx 10 intentos/15 min) | Crítica   |
+| Rate limiter en signup (máx 3 cuentas/hora por IP)       | Alta      |
+| Account lockout tras N intentos fallidos (temporario)    | Alta      |
+| Usar `upstash-rate-limiter` o implementar con Redis/DB   | Media     |
 
 ### Archivos afectados
 
@@ -65,10 +65,10 @@ model LoginAttempt {
 
 **Reglas de rate limiting**:
 
-| Límite | Ventana | Acción |
-|--------|---------|--------|
-| 5 fallos por email | 15 min | Bloquear email por 15 min |
-| 20 fallos por IP | 15 min | Bloquear IP por 1 hora |
+| Límite             | Ventana | Acción                    |
+| ------------------ | ------- | ------------------------- |
+| 5 fallos por email | 15 min  | Bloquear email por 15 min |
+| 20 fallos por IP   | 15 min  | Bloquear IP por 1 hora    |
 
 **Implementación**:
 
@@ -92,7 +92,11 @@ export async function checkRateLimit(email: string, ip: string) {
   return { blocked: false };
 }
 
-export async function recordAttempt(email: string, ip: string, success: boolean) {
+export async function recordAttempt(
+  email: string,
+  ip: string,
+  success: boolean,
+) {
   await prisma.loginAttempt.create({ data: { email, ipAddress: ip, success } });
 }
 ```
@@ -112,7 +116,7 @@ if (user.passwordHash === credentials.password) {
 }
 
 // app/api/auth/signup/route.ts — línea 19
-passwordHash: password // TODO: Use bcrypt in production
+passwordHash: password; // TODO: Use bcrypt in production
 // ⚠️ TODO NUNCA RESUELTO — se almacena la contraseña sin hashear
 ```
 
@@ -120,13 +124,13 @@ passwordHash: password // TODO: Use bcrypt in production
 
 ### Qué hay que implementar
 
-| Acción | Prioridad |
-|--------|-----------|
-| Hashear passwords con `bcrypt` (cost factor 12) en signup | **Crítica inmediata** |
-| Comparar con `bcrypt.compare()` en authorize de NextAuth | **Crítica inmediata** |
-| Migrar passwords existentes (forzar reset a todos los users) | Alta |
-| Cambiar placeholder `NEXTAUTH_SECRET="your-secret-here"` por secreto real | Alta |
-| Usar `crypto.randomUUID()` en vez de `Math.random()` para IDs | Media |
+| Acción                                                                    | Prioridad             |
+| ------------------------------------------------------------------------- | --------------------- |
+| Hashear passwords con `bcrypt` (cost factor 12) en signup                 | **Crítica inmediata** |
+| Comparar con `bcrypt.compare()` en authorize de NextAuth                  | **Crítica inmediata** |
+| Migrar passwords existentes (forzar reset a todos los users)              | Alta                  |
+| Cambiar placeholder `NEXTAUTH_SECRET="your-secret-here"` por secreto real | Alta                  |
+| Usar `crypto.randomUUID()` en vez de `Math.random()` para IDs             | Media                 |
 
 ### Archivos afectados
 
@@ -173,6 +177,7 @@ modules/roles/
 **El módulo de roles está completamente vacío.** No existe un sistema de RBAC (Role-Based Access Control).
 
 Actualmente:
+
 - `User.role` es un `String` en Prisma con default `"user"`
 - El role viaja al frontend en el token JWT de NextAuth
 - **No hay guards en backend** que verifiquen roles en ninguna API
@@ -180,13 +185,13 @@ Actualmente:
 
 ### Qué hay que implementar
 
-| Acción | Prioridad |
-|--------|-----------|
-| Definir roles: `user`, `seller`, `admin` (al menos) | Alta |
-| Middleware de autorización por rol (`requireRole('admin')`) | Crítica |
-| Verificación de ownership (ej: un seller solo ve sus productos) | Alta |
-| Proteger rutas API admin (roles, gestión de usuarios) | Crítica |
-| Mover lógica de role del frontend al backend | Alta |
+| Acción                                                          | Prioridad |
+| --------------------------------------------------------------- | --------- |
+| Definir roles: `user`, `seller`, `admin` (al menos)             | Alta      |
+| Middleware de autorización por rol (`requireRole('admin')`)     | Crítica   |
+| Verificación de ownership (ej: un seller solo ve sus productos) | Alta      |
+| Proteger rutas API admin (roles, gestión de usuarios)           | Crítica   |
+| Mover lógica de role del frontend al backend                    | Alta      |
 
 ### Arquitectura propuesta
 
@@ -216,13 +221,13 @@ function requireRole(...roles: Role[]) {
 
 ### Rutas que requieren protección inmediata
 
-| Ruta | Roles permitidos | Estado |
-|------|-----------------|--------|
-| `POST /api/orders` | `user`, `seller` | Solo auth check ✓ |
-| `POST /api/auth/signup` | público (anon) | Sin protección |
-| `GET /api/admin/*` | `admin` | No existe |
-| Gestión de productos | `seller`, `admin` | No verificado |
-| Gestión de usuarios | `admin` | No existe |
+| Ruta                    | Roles permitidos  | Estado            |
+| ----------------------- | ----------------- | ----------------- |
+| `POST /api/orders`      | `user`, `seller`  | Solo auth check ✓ |
+| `POST /api/auth/signup` | público (anon)    | Sin protección    |
+| `GET /api/admin/*`      | `admin`           | No existe         |
+| Gestión de productos    | `seller`, `admin` | No verificado     |
+| Gestión de usuarios     | `admin`           | No existe         |
 
 ---
 
@@ -249,30 +254,30 @@ Un JWT **no se puede invalidar del lado del servidor** por diseño. Una vez emit
 
 ### Estado actual
 
-| Aspecto | Estado |
-|---------|--------|
-| Estrategia de sesión | JWT (stateless) |
-| Logout del lado del servidor | ❌ No implementado |
-| Blacklist de tokens | ❌ No existe |
-| Rotación de JWT | ❌ No (misma sesión indefinidamente) |
-| Sesiones concurrentes | ❌ Sin límite |
-| Cierre de sesión remoto | ❌ No posible |
-| Refresh token rotation | ❌ No implementado |
-| Tiempo de expiración | Por defecto de NextAuth (30 días) |
-| Secure / HttpOnly cookies | Por defecto en NextAuth ✅ |
+| Aspecto                      | Estado                               |
+| ---------------------------- | ------------------------------------ |
+| Estrategia de sesión         | JWT (stateless)                      |
+| Logout del lado del servidor | ❌ No implementado                   |
+| Blacklist de tokens          | ❌ No existe                         |
+| Rotación de JWT              | ❌ No (misma sesión indefinidamente) |
+| Sesiones concurrentes        | ❌ Sin límite                        |
+| Cierre de sesión remoto      | ❌ No posible                        |
+| Refresh token rotation       | ❌ No implementado                   |
+| Tiempo de expiración         | Por defecto de NextAuth (30 días)    |
+| Secure / HttpOnly cookies    | Por defecto en NextAuth ✅           |
 
 ### Qué hay que implementar
 
-| Acción | Prioridad |
-|--------|-----------|
+| Acción                                                                                                  | Prioridad   |
+| ------------------------------------------------------------------------------------------------------- | ----------- |
 | **Blacklist de JWT**: Tabla `invalidated_tokens` o Redis con TTL hasta la expiración original del token | **Crítica** |
-| **Middleware de verificación**: Consultar blacklist en cada request autenticado | **Alta** |
-| **Logout server-side**: Endpoint que agregue el JWT a la blacklist | **Alta** |
-| **Reducir expiración de JWT**: De 30 días a 15-60 minutos + refresh token | **Alta** |
-| **Refresh token rotation**: Implementar refresh tokens en HTTP-only cookies | **Alta** |
-| **Cerrar sesión en todos los dispositivos**: Incrementar `tokenVersion` en el usuario | **Alta** |
-| **Límite de sesiones concurrentes**: Máximo N sesiones activas por usuario (ej: 5) | **Media** |
-| **Forzar re-login periódico**: Cada 7 días para admin, 30 para users | **Media** |
+| **Middleware de verificación**: Consultar blacklist en cada request autenticado                         | **Alta**    |
+| **Logout server-side**: Endpoint que agregue el JWT a la blacklist                                      | **Alta**    |
+| **Reducir expiración de JWT**: De 30 días a 15-60 minutos + refresh token                               | **Alta**    |
+| **Refresh token rotation**: Implementar refresh tokens en HTTP-only cookies                             | **Alta**    |
+| **Cerrar sesión en todos los dispositivos**: Incrementar `tokenVersion` en el usuario                   | **Alta**    |
+| **Límite de sesiones concurrentes**: Máximo N sesiones activas por usuario (ej: 5)                      | **Media**   |
+| **Forzar re-login periódico**: Cada 7 días para admin, 30 para users                                    | **Media**   |
 
 ### Arquitectura propuesta
 
@@ -285,7 +290,7 @@ model InvalidatedToken {
   jti       String   @id
   expiresAt DateTime
   createdAt DateTime @default(now())
-  
+
   @@index([expiresAt])
 }
 ```
@@ -319,7 +324,8 @@ export class TokenBlacklist {
 // app/api/auth/logout/route.ts
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
 
   const jti = session.jti; // JWT ID — añadir al token en callbacks
   const expiresAt = session.exp * 1000; // Expiración del token
@@ -344,13 +350,13 @@ async jwt({ token, user, trigger }) {
   if (user) {
     token.tokenVersion = user.tokenVersion;
   }
-  
+
   // Si se incrementó tokenVersion, invalidar todos los tokens anteriores
   const dbUser = await prisma.user.findUnique({ where: { id: token.sub } });
   if (dbUser && token.tokenVersion !== dbUser.tokenVersion) {
     return null; // Forzar re-login
   }
-  
+
   return token;
 }
 
@@ -376,7 +382,7 @@ model InvalidatedToken {
   jti       String   @id
   expiresAt DateTime
   createdAt DateTime @default(now())
-  
+
   @@index([expiresAt])
 }
 
@@ -410,27 +416,27 @@ model InvalidatedToken {
 
 ### Estado actual
 
-| Aspecto | Estado |
-|---------|--------|
-| MFA en login | ❌ No existe |
-| TOTP (Google Auth / Authy) | ❌ No implementado |
-| MFA obligatorio para admin | ❌ No forzado |
-| Recovery codes | ❌ No existen |
-| Setup de MFA en perfil | ❌ No hay |
+| Aspecto                        | Estado             |
+| ------------------------------ | ------------------ |
+| MFA en login                   | ❌ No existe       |
+| TOTP (Google Auth / Authy)     | ❌ No implementado |
+| MFA obligatorio para admin     | ❌ No forzado      |
+| Recovery codes                 | ❌ No existen      |
+| Setup de MFA en perfil         | ❌ No hay          |
 | Recordar dispositivo confiable | ❌ No implementado |
 | SMS/Email OTP como alternativa | ❌ No implementado |
 
 ### Qué hay que implementar
 
-| Acción | Prioridad |
-|--------|-----------|
-| **MFA obligatorio para admins** al login | **Crítica** |
-| **MFA opcional para sellers y users** desde configuración de perfil | **Alta** |
-| **TOTP** con app authenticator (Google Authenticator, Authy, 1Password) | **Alta** |
-| **Setup flow**: QR code + verificar código + recovery codes | **Alta** |
-| **Recovery codes** (8-10 códigos de un solo uso) | **Alta** |
-| **Recordar dispositivo** (cookie firmada por 30 días para no pedir MFA) | **Media** |
-| **Forzar MFA setup** en el registro o primer login | **Media** |
+| Acción                                                                  | Prioridad   |
+| ----------------------------------------------------------------------- | ----------- |
+| **MFA obligatorio para admins** al login                                | **Crítica** |
+| **MFA opcional para sellers y users** desde configuración de perfil     | **Alta**    |
+| **TOTP** con app authenticator (Google Authenticator, Authy, 1Password) | **Alta**    |
+| **Setup flow**: QR code + verificar código + recovery codes             | **Alta**    |
+| **Recovery codes** (8-10 códigos de un solo uso)                        | **Alta**    |
+| **Recordar dispositivo** (cookie firmada por 30 días para no pedir MFA) | **Media**   |
+| **Forzar MFA setup** en el registro o primer login                      | **Media**   |
 
 ### Arquitectura propuesta
 
@@ -508,7 +514,7 @@ const user = await prisma.user.findUnique({ where: { email } });
 // ... validar password ...
 
 const mfaSecret = await prisma.mFASecret.findUnique({
-  where: { userId: user.id }
+  where: { userId: user.id },
 });
 
 if (mfaSecret?.enabled) {
@@ -534,8 +540,12 @@ return { id: user.id, email: user.email, role: user.role };
 // Verificar en el middleware de MFA
 
 const trustToken = await sign(
-  { userId: user.id, deviceId, exp: Math.floor(Date.now() / 1000) + 30 * 24 * 3600 },
-  process.env.NEXTAUTH_SECRET!
+  {
+    userId: user.id,
+    deviceId,
+    exp: Math.floor(Date.now() / 1000) + 30 * 24 * 3600,
+  },
+  process.env.NEXTAUTH_SECRET!,
 );
 ```
 
@@ -571,16 +581,17 @@ const trustToken = await sign(
 ### Dónde está el problema
 
 Cualquier usuario puede hacer login con email+password aunque no haya verificado su email. Esto permite:
+
 - Crear cuentas con emails falsos o temporales
 - Usar recursos del sistema (ej: crear órdenes) sin una identidad verificada
 - Spam / abuso del sistema
 
 ### Decisión: gate en login para email/password, no para Google OAuth
 
-| Método | ¿Requiere verificación? | Razón |
-|--------|------------------------|-------|
-| Email + password | ✅ Sí | El email debe estar verificado antes de usar la cuenta |
-| Google OAuth | ❌ No | Google ya verifica el email del usuario |
+| Método           | ¿Requiere verificación? | Razón                                                  |
+| ---------------- | ----------------------- | ------------------------------------------------------ |
+| Email + password | ✅ Sí                   | El email debe estar verificado antes de usar la cuenta |
+| Google OAuth     | ❌ No                   | Google ya verifica el email del usuario                |
 
 ### Modelo
 
@@ -617,15 +628,16 @@ if (!user.emailVerified && account?.provider !== 'google') {
 ### Frontend
 
 La página de login debe capturar `EMAIL_NOT_VERIFIED` y mostrar:
+
 - Mensaje: "Tu email no está verificado. Revisa tu bandeja de entrada."
 - Link: "Reenviar email de verificación" (con rate limit de 1 cada 5 min)
 
 ### Endpoints
 
-| Método | Ruta | Propósito |
-|--------|------|-----------|
-| POST | `/api/auth/verify-email` | Verificar email con token JWT |
-| POST | `/api/auth/resend-verification` | Reenviar verificación (rate limited) |
+| Método | Ruta                            | Propósito                            |
+| ------ | ------------------------------- | ------------------------------------ |
+| POST   | `/api/auth/verify-email`        | Verificar email con token JWT        |
+| POST   | `/api/auth/resend-verification` | Reenviar verificación (rate limited) |
 
 Ver detalle completo en [`docs/emails.md`](./emails.md).
 
@@ -639,21 +651,21 @@ Actualmente **bajo riesgo** porque usamos **Prisma**, que parametriza queries au
 
 ### Riesgos identificados
 
-| Riesgo | Detalle | Prioridad |
-|--------|---------|-----------|
-| Prisma ORM | Las queries generadas son parametrizadas por defecto | 🟡 |
-| Raw queries | Si en el futuro se usan `$queryRawUnsafe`, hay riesgo | Informar |
-| Input validation | No hay sanitización de entrada en `formData`, `searchParams` | Media |
-| Campos de texto | `customizationText` se pasa directo a la DB sin validación | Media |
+| Riesgo           | Detalle                                                      | Prioridad |
+| ---------------- | ------------------------------------------------------------ | --------- |
+| Prisma ORM       | Las queries generadas son parametrizadas por defecto         | 🟡        |
+| Raw queries      | Si en el futuro se usan `$queryRawUnsafe`, hay riesgo        | Informar  |
+| Input validation | No hay sanitización de entrada en `formData`, `searchParams` | Media     |
+| Campos de texto  | `customizationText` se pasa directo a la DB sin validación   | Media     |
 
 ### Qué hay que implementar
 
-| Acción | Prioridad |
-|--------|-----------|
-| Validar y sanitizar input en todas las API routes | Alta |
-| Nunca usar `$queryRawUnsafe` si se puede evitar | Preventivo |
-| Usar `zod` para validación de schemas en endpoints | Media |
-| Escapar output en server components (auto con Next.js) | Baja |
+| Acción                                                 | Prioridad  |
+| ------------------------------------------------------ | ---------- |
+| Validar y sanitizar input en todas las API routes      | Alta       |
+| Nunca usar `$queryRawUnsafe` si se puede evitar        | Preventivo |
+| Usar `zod` para validación de schemas en endpoints     | Media      |
+| Escapar output en server components (auto con Next.js) | Baja       |
 
 ### Validación con Zod (ejemplo)
 
@@ -691,14 +703,14 @@ console.error('[EventBus] Error in handler:', error);
 
 ### Qué hay que implementar
 
-| Acción | Prioridad |
-|--------|-----------|
-| Logger estructurado (pino, winston, o `pino` por ser el más rápido) | Alta |
-| Request ID en cada petición (correlation ID) | Alta |
-| Auditoría de eventos de seguridad (login, signup, role changes) | Alta |
-| Middleware de logging para API routes | Alta |
-| Outbox de eventos de auditoría (usar el event bus existente) | Media |
-| Log rotation y retención | Media |
+| Acción                                                              | Prioridad |
+| ------------------------------------------------------------------- | --------- |
+| Logger estructurado (pino, winston, o `pino` por ser el más rápido) | Alta      |
+| Request ID en cada petición (correlation ID)                        | Alta      |
+| Auditoría de eventos de seguridad (login, signup, role changes)     | Alta      |
+| Middleware de logging para API routes                               | Alta      |
+| Outbox de eventos de auditoría (usar el event bus existente)        | Media     |
+| Log rotation y retención                                            | Media     |
 
 ### Logger recomendado
 
@@ -708,23 +720,24 @@ import pino from 'pino';
 
 export const logger = pino({
   level: process.env.LOG_LEVEL || 'info',
-  transport: process.env.NODE_ENV !== 'production'
-    ? { target: 'pino-pretty' }
-    : undefined,
+  transport:
+    process.env.NODE_ENV !== 'production'
+      ? { target: 'pino-pretty' }
+      : undefined,
 });
 ```
 
 ### Eventos de seguridad a auditar
 
-| Evento | Datos a registrar |
-|--------|------------------|
-| Login exitoso | userId, email, IP, timestamp |
-| Login fallido | email, IP, timestamp, intento # |
-| Signup | email, IP, timestamp |
-| Cambio de role | adminId, targetUserId, oldRole, newRole |
-| Creación de producto | sellerId, productId |
-| Orden creada | userId, orderId, monto |
-| Error de autorización | userId, ruta, role requerido |
+| Evento                | Datos a registrar                       |
+| --------------------- | --------------------------------------- |
+| Login exitoso         | userId, email, IP, timestamp            |
+| Login fallido         | email, IP, timestamp, intento #         |
+| Signup                | email, IP, timestamp                    |
+| Cambio de role        | adminId, targetUserId, oldRole, newRole |
+| Creación de producto  | sellerId, productId                     |
+| Orden creada          | userId, orderId, monto                  |
+| Error de autorización | userId, ruta, role requerido            |
 
 ---
 
@@ -732,20 +745,20 @@ export const logger = pino({
 
 ### A05 — Security Misconfiguration
 
-| Problema | Acción requerida | Prioridad |
-|----------|-----------------|-----------|
-| Sin CSP (Content Security Policy) | Agregar headers CSP en `next.config` o middleware | Alta |
-| Sin HSTS | Agregar `Strict-Transport-Security` | Alta |
-| Sin X-Frame-Options | Prevenir clickjacking | Media |
-| Sin X-Content-Type-Options | Agregar `nosniff` | Media |
-| Sin helmet-like headers | Usar `next-safe` o headers manuales | Media |
-| Error messages expuestos | No devolver stack traces ni detalles internos | Alta |
+| Problema                          | Acción requerida                                  | Prioridad |
+| --------------------------------- | ------------------------------------------------- | --------- |
+| Sin CSP (Content Security Policy) | Agregar headers CSP en `next.config` o middleware | Alta      |
+| Sin HSTS                          | Agregar `Strict-Transport-Security`               | Alta      |
+| Sin X-Frame-Options               | Prevenir clickjacking                             | Media     |
+| Sin X-Content-Type-Options        | Agregar `nosniff`                                 | Media     |
+| Sin helmet-like headers           | Usar `next-safe` o headers manuales               | Media     |
+| Error messages expuestos          | No devolver stack traces ni detalles internos     | Alta      |
 
 Ejemplo de headers en middleware:
 
 ```typescript
 const securityHeaders = {
-  'Content-Security-Policy': 
+  'Content-Security-Policy':
     "default-src 'self'; " +
     "script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com; " +
     "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com; ",
@@ -762,12 +775,12 @@ const securityHeaders = {
 
 ### A06 — Vulnerable & Outdated Components
 
-| Acción | Prioridad |
-|--------|-----------|
-| `npm audit` periódico | Media |
-| `npm outdated` review | Media |
-| Dependabot / Renovate en el repo | Media |
-| Revisar `next-auth` v4 — migrar a v5 (Auth.js) si aplica | Baja |
+| Acción                                                   | Prioridad |
+| -------------------------------------------------------- | --------- |
+| `npm audit` periódico                                    | Media     |
+| `npm outdated` review                                    | Media     |
+| Dependabot / Renovate en el repo                         | Media     |
+| Revisar `next-auth` v4 — migrar a v5 (Auth.js) si aplica | Baja      |
 
 ### A07 — Identification & Auth Failures
 
@@ -775,44 +788,44 @@ Ver secciones dedicadas: **Rate Limiting** (#1), **Criptografía** (#2), **Gesti
 
 Resumen de lo que falta:
 
-| Problema | Dónde se cubre | Prioridad |
-|----------|----------------|-----------|
-| Sin rate limiting → brute force | Sección 1 — Rate Limiting | Crítica |
-| Passwords en texto plano | Sección 2 — Criptografía | Crítica |
-| Sin verificación de email | Sección 6 — Email verification | Alta |
-| Sin MFA/2FA | Sección 5 — MFA | Alta |
-| Sin blacklist de tokens | Sección 4 — Sesiones | Alta |
-| JWT sin rotación / expiración larga | Sección 4 — Sesiones | Alta |
-| Sin bloqueo de IP | Sección 1 — Rate Limiting | Alta |
+| Problema                            | Dónde se cubre                 | Prioridad |
+| ----------------------------------- | ------------------------------ | --------- |
+| Sin rate limiting → brute force     | Sección 1 — Rate Limiting      | Crítica   |
+| Passwords en texto plano            | Sección 2 — Criptografía       | Crítica   |
+| Sin verificación de email           | Sección 6 — Email verification | Alta      |
+| Sin MFA/2FA                         | Sección 5 — MFA                | Alta      |
+| Sin blacklist de tokens             | Sección 4 — Sesiones           | Alta      |
+| JWT sin rotación / expiración larga | Sección 4 — Sesiones           | Alta      |
+| Sin bloqueo de IP                   | Sección 1 — Rate Limiting      | Alta      |
 
 ### A09 — Security Logging & Monitoring Failures
 
-| Acción | Prioridad |
-|--------|-----------|
-| Dashboard de monitoreo (logs en Grafana, Datadog, o similar) | Baja |
-| Alertas en tiempo real para eventos críticos | Media |
-| Almacenamiento persistente de auditoría (tabla `audit_log`) | Alta |
+| Acción                                                       | Prioridad |
+| ------------------------------------------------------------ | --------- |
+| Dashboard de monitoreo (logs en Grafana, Datadog, o similar) | Baja      |
+| Alertas en tiempo real para eventos críticos                 | Media     |
+| Almacenamiento persistente de auditoría (tabla `audit_log`)  | Alta      |
 
 ---
 
 ## 10. Resumen de acciones inmediatas (Quick Wins)
 
-| # | Acción | Archivos | Esfuerzo | Estado |
-|---|--------|----------|----------|--------|
-| 1 | **Hashear passwords con bcrypt** | signup + nextauth route | ⏱️ 30 min | ✅ Hecho |
-| 2 | **Generar NEXTAUTH_SECRET real** | `.env` | ⏱️ 1 min | ✅ Hecho |
-| 3 | **Email verification gate en login** | nextauth authorize + verify endpoint | ⏱️ 2-3 hs | ⬜ |
-| 4 | **Cola de emails transaccionales** | EmailQueue + worker + Brevo | ⏱️ 3-4 hs | ⬜ |
-| 5 | **Rate limiting en login** | login_attempt table + middleware | ⏱️ 2-3 hs | ⬜ |
-| 6 | **Authorization guard** | middleware + shared/kernel | ⏱️ 3-5 hs | ⬜ |
-| 7 | **Logout server-side + blacklist JWT** | sesiones + middleware | ⏱️ 4-6 hs | ⬜ |
-| 8 | **Google Analytics + cookie consent** | GA4 script + cookie banner | ⏱️ 1-2 hs | ⬜ |
-| 9 | **SEO metadata + sitemap + JSON-LD** | generateMetadata + sitemap.ts | ⏱️ 1-2 hs | ⬜ |
-| 10 | **Logger estructurado** | shared/kernel/logger + wrapper | ⏱️ 1-2 hs | ⬜ |
-| 11 | **Security headers (CSP, HSTS)** | middleware.ts | ⏱️ 1 hs | ⬜ |
-| 12 | **Input validation con Zod** | API routes | ⏱️ 3-4 hs | ⬜ |
-| 13 | **Módulo de roles funcional** | modules/roles/* | ⏱️ 6-8 hs | ⬜ |
-| 14 | **MFA obligatorio para admins** | auth + MFA module | ⏱️ 6-8 hs | ⬜ |
+| #   | Acción                                 | Archivos                             | Esfuerzo  | Estado   |
+| --- | -------------------------------------- | ------------------------------------ | --------- | -------- |
+| 1   | **Hashear passwords con bcrypt**       | signup + nextauth route              | ⏱️ 30 min | ✅ Hecho |
+| 2   | **Generar NEXTAUTH_SECRET real**       | `.env`                               | ⏱️ 1 min  | ✅ Hecho |
+| 3   | **Email verification gate en login**   | nextauth authorize + verify endpoint | ⏱️ 2-3 hs | ⬜       |
+| 4   | **Cola de emails transaccionales**     | EmailQueue + worker + Brevo          | ⏱️ 3-4 hs | ⬜       |
+| 5   | **Rate limiting en login**             | login_attempt table + middleware     | ⏱️ 2-3 hs | ⬜       |
+| 6   | **Authorization guard**                | middleware + shared/kernel           | ⏱️ 3-5 hs | ⬜       |
+| 7   | **Logout server-side + blacklist JWT** | sesiones + middleware                | ⏱️ 4-6 hs | ⬜       |
+| 8   | **Google Analytics + cookie consent**  | GA4 script + cookie banner           | ⏱️ 1-2 hs | ⬜       |
+| 9   | **SEO metadata + sitemap + JSON-LD**   | generateMetadata + sitemap.ts        | ⏱️ 1-2 hs | ⬜       |
+| 10  | **Logger estructurado**                | shared/kernel/logger + wrapper       | ⏱️ 1-2 hs | ⬜       |
+| 11  | **Security headers (CSP, HSTS)**       | middleware.ts                        | ⏱️ 1 hs   | ⬜       |
+| 12  | **Input validation con Zod**           | API routes                           | ⏱️ 3-4 hs | ⬜       |
+| 13  | **Módulo de roles funcional**          | modules/roles/\*                     | ⏱️ 6-8 hs | ⬜       |
+| 14  | **MFA obligatorio para admins**        | auth + MFA module                    | ⏱️ 6-8 hs | ⬜       |
 
 ---
 
@@ -856,14 +869,17 @@ Para **MFA** (futuro):
 ## Notas adicionales
 
 ### IDs inseguras
+
 En `register-user-use-case.ts` se usa `Math.random().toString(36).substr(2, 9)` para generar IDs. Esto **no es criptográficamente seguro**. Reemplazar con `crypto.randomUUID()` o dejar que Prisma genere el CUID.
 
 ### Error handling
+
 Las APIs devuelven `error.message` directamente. Esto puede exponer información interna. Crear un error handler centralizado que mapee errores conocidos a mensajes seguros.
 
 ### Locale en links
+
 En `signin/page.tsx` el link "Sign Up" apunta a `/auth/signin` sin locale — debería ser `/${locale}/auth/signin`.
 
 ---
 
-*Documento generado a partir de auditoría de código. Cada sección está priorizada por criticidad e impacto real en producción.*
+_Documento generado a partir de auditoría de código. Cada sección está priorizada por criticidad e impacto real en producción._

@@ -1,4 +1,8 @@
-import { initContainer, getEmailSender, getEmailQueueRepository } from '@/composition-root/container';
+import {
+  initContainer,
+  getEmailSender,
+  getEmailQueueRepository,
+} from '@/composition-root/container';
 
 // Wire dependencies once at startup — NODE_ENV determines which adapters are loaded
 initContainer();
@@ -41,7 +45,10 @@ async function processEmailQueue(): Promise<void> {
 // Poll every 10 seconds
 console.log('[EmailWorker] Starting…');
 setInterval(
-  () => processEmailQueue().catch((err) => console.error('[EmailWorker] Error:', err)),
+  () =>
+    processEmailQueue().catch((err) =>
+      console.error('[EmailWorker] Error:', err),
+    ),
   POLL_INTERVAL_MS,
 );
 

@@ -3,7 +3,7 @@ export class AppError extends Error {
   constructor(
     message: string,
     public readonly statusCode: number = 500,
-    public readonly safeMessage: string = 'Internal server error'
+    public readonly safeMessage: string = 'Internal server error',
   ) {
     super(message);
     this.name = 'AppError';
@@ -40,7 +40,11 @@ export class ConflictError extends AppError {
 }
 
 export class RateLimitError extends AppError {
-  constructor(message: string, safeMessage?: string, public retryAfterSeconds?: number) {
+  constructor(
+    message: string,
+    safeMessage?: string,
+    public retryAfterSeconds?: number,
+  ) {
     super(message, 429, safeMessage || 'Too many requests');
     this.name = 'RateLimitError';
   }

@@ -59,7 +59,10 @@ import { PrismaUserLookup } from '@/modules/auth/infrastructure/prisma-user-look
 import { ConsoleForgotPasswordEmail } from '@/modules/auth/infrastructure/console-forgot-password-email';
 import { MemoryUsedResetTokenStore } from '@/modules/auth/infrastructure/memory-used-reset-token-store';
 import { SeedRolesUseCase } from '@/modules/roles/application/use-cases/seed-roles-use-case';
-import { hashPassword, verifyPassword } from '@/modules/users/infrastructure/bcrypt-password-hasher';
+import {
+  hashPassword,
+  verifyPassword,
+} from '@/modules/users/infrastructure/bcrypt-password-hasher';
 
 // ---------------------------------------------------------------------------
 // State

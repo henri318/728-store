@@ -9,7 +9,8 @@ describe('SeedRolesUseCase', () => {
   });
 
   it('should seed four default roles when the repository is empty', async () => {
-    const { SeedRolesUseCase } = await import('@/modules/roles/application/use-cases/seed-roles-use-case');
+    const { SeedRolesUseCase } =
+      await import('@/modules/roles/application/use-cases/seed-roles-use-case');
 
     const useCase = new SeedRolesUseCase(roleRepository);
 
@@ -17,7 +18,7 @@ describe('SeedRolesUseCase', () => {
 
     expect(result).toHaveLength(4);
 
-    const names = result.map(r => r.name).sort();
+    const names = result.map((r) => r.name).sort();
     expect(names).toEqual(['ADMIN', 'CUSTOMER', 'DESIGNER', 'SUPPORT']);
 
     // Verify each role has a non-empty description
@@ -28,7 +29,8 @@ describe('SeedRolesUseCase', () => {
   });
 
   it('should be idempotent — second execution is a no-op', async () => {
-    const { SeedRolesUseCase } = await import('@/modules/roles/application/use-cases/seed-roles-use-case');
+    const { SeedRolesUseCase } =
+      await import('@/modules/roles/application/use-cases/seed-roles-use-case');
 
     const useCase = new SeedRolesUseCase(roleRepository);
 
@@ -46,10 +48,12 @@ describe('SeedRolesUseCase', () => {
   });
 
   it('should not insert when all four roles already exist', async () => {
-    const { SeedRolesUseCase } = await import('@/modules/roles/application/use-cases/seed-roles-use-case');
+    const { SeedRolesUseCase } =
+      await import('@/modules/roles/application/use-cases/seed-roles-use-case');
 
     // Pre-seed all four roles manually
-    const { RoleId } = await import('@/modules/roles/domain/value-objects/role-id');
+    const { RoleId } =
+      await import('@/modules/roles/domain/value-objects/role-id');
     const seedData = [
       { name: 'ADMIN', description: 'System administrator' },
       { name: 'SUPPORT', description: 'Customer support agent' },

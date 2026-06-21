@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext } from 'react';
+import { createContext, use } from 'react';
 import type { ReactNode } from 'react';
 import es from '@/shared/i18n/locales/es.json';
 
@@ -19,11 +19,7 @@ export function DictionaryProvider({
   dict: Dictionary;
   children: ReactNode;
 }) {
-  return (
-    <DictionaryContext.Provider value={dict}>
-      {children}
-    </DictionaryContext.Provider>
-  );
+  return <DictionaryContext value={dict}>{children}</DictionaryContext>;
 }
 
 /**
@@ -33,6 +29,6 @@ export function DictionaryProvider({
  * tests working without requiring every test to wrap in a provider.
  */
 export function useDictionary(): Dictionary {
-  const dict = useContext(DictionaryContext);
+  const dict = use(DictionaryContext);
   return dict ?? (es as Dictionary);
 }

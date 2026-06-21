@@ -17,7 +17,7 @@ const RAW_BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? process.env.APP_URL;
 
 if (!RAW_BASE_URL) {
   throw new Error(
-    '[URL] NEXT_PUBLIC_APP_URL (or APP_URL) environment variable is required'
+    '[URL] NEXT_PUBLIC_APP_URL (or APP_URL) environment variable is required',
   );
 }
 

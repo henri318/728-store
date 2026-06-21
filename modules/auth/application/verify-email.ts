@@ -31,13 +31,21 @@ export class VerifyEmailUseCase {
     const secret = this.secrets.getAuthSecret();
     const { payload } = await jwtVerify(token, secret);
 
-    if ((payload as any).purpose !== 'email-verification') {
-      return { success: false, message: 'Invalid token purpose', statusCode: 400 };
+    if ((payload as Record<string, unknown>).purpose !== 'email-verification') {
+      return {
+        success: false,
+        message: 'Invalid token purpose',
+        statusCode: 400,
+      };
     }
 
     const userId = payload.sub;
     if (!userId) {
-      return { success: false, message: 'Invalid token payload', statusCode: 400 };
+      return {
+        success: false,
+        message: 'Invalid token payload',
+        statusCode: 400,
+      };
     }
 
     // Use the UserRepository port — no direct Prisma access
@@ -48,7 +56,11 @@ export class VerifyEmailUseCase {
 
     // Reject if account is deactivated (soft-deleted)
     if (user.deletedAt) {
-      return { success: false, message: 'Account is deactivated', statusCode: 403 };
+      return {
+        success: false,
+        message: 'Account is deactivated',
+        statusCode: 403,
+      };
     }
 
     if (user.emailVerified) {

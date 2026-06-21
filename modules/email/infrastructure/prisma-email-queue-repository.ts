@@ -1,4 +1,5 @@
 import { prisma } from '@/shared/infrastructure/prisma';
+import type { Prisma } from '@prisma/client';
 import type {
   CreateEmailQueueInput,
   EmailQueueEntry,
@@ -24,7 +25,7 @@ export class PrismaEmailQueueRepository implements EmailQueueRepository {
         subject: entry.subject,
         htmlBody: entry.htmlBody,
         template: entry.template,
-        metadata: entry.metadata as any,
+        metadata: entry.metadata as Prisma.InputJsonValue,
       },
     });
 
@@ -34,7 +35,7 @@ export class PrismaEmailQueueRepository implements EmailQueueRepository {
       subject: row.subject,
       htmlBody: row.htmlBody,
       template: row.template ?? '',
-      metadata: (row.metadata as Record<string, any> | null) ?? undefined,
+      metadata: (row.metadata as Record<string, unknown> | null) ?? undefined,
       createdAt: row.createdAt,
     };
   }
@@ -61,7 +62,7 @@ export class PrismaEmailQueueRepository implements EmailQueueRepository {
       subject: row.subject,
       htmlBody: row.htmlBody,
       template: row.template ?? '',
-      metadata: (row.metadata as Record<string, any> | null) ?? undefined,
+      metadata: (row.metadata as Record<string, unknown> | null) ?? undefined,
       createdAt: row.createdAt,
     };
   }
@@ -77,7 +78,10 @@ export class PrismaEmailQueueRepository implements EmailQueueRepository {
    * race window is small; for stricter guarantees a transaction can be
    * added later.
    */
-  async claimPending(now: Date, batchSize: number): Promise<EmailQueueWorkerEntry[]> {
+  async claimPending(
+    now: Date,
+    batchSize: number,
+  ): Promise<EmailQueueWorkerEntry[]> {
     const due = await prisma.emailQueue.findMany({
       where: {
         status: 'PENDING',
@@ -108,7 +112,11 @@ export class PrismaEmailQueueRepository implements EmailQueueRepository {
     });
   }
 
-  async markFailed(id: string, error: string, retryCount: number): Promise<void> {
+  async markFailed(
+    id: string,
+    error: string,
+    retryCount: number,
+  ): Promise<void> {
     await prisma.emailQueue.update({
       where: { id },
       data: { status: 'FAILED', error, retryCount },
@@ -151,7 +159,7 @@ export class PrismaEmailQueueRepository implements EmailQueueRepository {
       subject: row.subject,
       htmlBody: row.htmlBody,
       template: row.template ?? '',
-      metadata: (row.metadata as Record<string, any> | null) ?? undefined,
+      metadata: (row.metadata as Record<string, unknown> | null) ?? undefined,
       createdAt: row.createdAt,
       status: row.status,
       retryCount: row.retryCount,

@@ -9,7 +9,10 @@
 import { createAuthorization } from './require-role';
 import { container } from '@/composition-root/container';
 
-const _auth = createAuthorization(container.getSession(), container.getUserLookup());
+const _auth = createAuthorization(
+  container.getSession(),
+  container.getUserLookup(),
+);
 
 export const requireRole = _auth.requireRole;
 export const assertRole = _auth.assertRole;

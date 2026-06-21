@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import ProfilePage from '@/app/[locale]/profile/page';
 
 // Mock next/navigation
@@ -26,10 +26,19 @@ describe('ProfilePage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseSession.mockReturnValue({
-      data: { user: { email: 'test@example.com', name: 'John Doe' } },
+      data: {
+        user: {
+          id: '1',
+          email: 'test@example.com',
+          name: 'John Doe',
+          role: 'user',
+          emailVerified: null,
+        },
+        expires: '2099-01-01T00:00:00.000Z',
+      },
       status: 'authenticated',
       update: vi.fn(),
-    } as any);
+    });
   });
 
   it('renders loading state initially', () => {
@@ -80,7 +89,7 @@ describe('ProfilePage', () => {
     });
   });
 
-  it('saves profile changes via PATCH', async () => {
+  it('displays delete account button', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
@@ -97,38 +106,9 @@ describe('ProfilePage', () => {
     render(<ProfilePage />);
 
     await waitFor(() => {
-      expect(screen.getByLabelText('Nombre')).toHaveValue('John');
-    });
-
-    // Mock the PATCH response
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ id: '1', firstName: 'Jane', lastName: 'Doe', address: null }),
-    });
-
-    fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'Jane' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Enviar' }));
-
-    await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith('/api/users/me', expect.objectContaining({
-        method: 'PATCH',
-      }));
-    });
-  });
-
-  it('displays delete account button', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        id: '1', email: 'test@example.com', firstName: 'John', lastName: 'Doe',
-        address: null, emailVerified: null, createdAt: '2025-01-01T00:00:00.000Z',
-      }),
-    });
-
-    render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Eliminar cuenta' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Eliminar cuenta' }),
+      ).toBeInTheDocument();
     });
   });
 
@@ -139,7 +119,7 @@ describe('ProfilePage', () => {
       data: null,
       status: 'unauthenticated',
       update: vi.fn(),
-    } as any);
+    });
 
     render(<ProfilePage />);
 
@@ -153,7 +133,7 @@ describe('ProfilePage', () => {
       data: null,
       status: 'loading',
       update: vi.fn(),
-    } as any);
+    });
 
     render(<ProfilePage />);
 
@@ -168,17 +148,31 @@ describe('ProfilePage', () => {
         email: 'test@example.com',
         firstName: 'John',
         lastName: 'Doe',
-        address: { street: '123 Main St', city: 'Barcelona', postalCode: '08001', country: 'Spain' },
+        address: {
+          street: '123 Main St',
+          city: 'Barcelona',
+          postalCode: '08001',
+          country: 'Spain',
+        },
         emailVerified: null,
         createdAt: '2025-01-01T00:00:00.000Z',
       }),
     });
 
     mockUseSession.mockReturnValue({
-      data: { user: { email: 'test@example.com', name: 'John Doe' } },
+      data: {
+        user: {
+          id: '1',
+          email: 'test@example.com',
+          name: 'John Doe',
+          role: 'user',
+          emailVerified: null,
+        },
+        expires: '2099-01-01T00:00:00.000Z',
+      },
       status: 'authenticated',
       update: vi.fn(),
-    } as any);
+    });
 
     render(<ProfilePage />);
 

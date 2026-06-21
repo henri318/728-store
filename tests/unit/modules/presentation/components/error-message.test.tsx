@@ -5,7 +5,9 @@ import { ErrorMessage } from '@/modules/presentation/components/error-message';
 describe('ErrorMessage component', () => {
   it('renders the error message text when message prop is provided', () => {
     render(<ErrorMessage message="This field is required" />);
-    expect(screen.getByRole('alert')).toHaveTextContent('This field is required');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'This field is required',
+    );
   });
 
   it('renders nothing when message is undefined', () => {

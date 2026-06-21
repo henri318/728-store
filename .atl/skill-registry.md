@@ -4,58 +4,58 @@
 
 ## Framework Skills
 
-| Skill | Trigger | Path |
-|-------|---------|------|
-| next-best-practices | Next.js conventions, RSC, file conventions, metadata, error handling | `~/.config/opencode/skills/next-best-practices/SKILL.md` |
-| next-cache-components | Next.js 16 cache, PPR, use cache directive, cacheLife, cacheTag | `~/.config/opencode/skills/next-cache-components/SKILL.md` |
-| next-upgrade | Next.js migration guides and codemods | `~/.config/opencode/skills/next-upgrade/SKILL.md` |
-| vercel-react-best-practices | React/Next.js performance optimization guidelines | `~/.config/opencode/skills/react-best-practices/SKILL.md` |
-| vercel-composition-patterns | React composition patterns, compound components, render props | `~/.config/opencode/skills/composition-patterns/SKILL.md` |
+| Skill                       | Trigger                                                              | Path                                                       |
+| --------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------- |
+| next-best-practices         | Next.js conventions, RSC, file conventions, metadata, error handling | `~/.config/opencode/skills/next-best-practices/SKILL.md`   |
+| next-cache-components       | Next.js 16 cache, PPR, use cache directive, cacheLife, cacheTag      | `~/.config/opencode/skills/next-cache-components/SKILL.md` |
+| next-upgrade                | Next.js migration guides and codemods                                | `~/.config/opencode/skills/next-upgrade/SKILL.md`          |
+| vercel-react-best-practices | React/Next.js performance optimization guidelines                    | `~/.config/opencode/skills/react-best-practices/SKILL.md`  |
+| vercel-composition-patterns | React composition patterns, compound components, render props        | `~/.config/opencode/skills/composition-patterns/SKILL.md`  |
 
 ## Testing Skills
 
-| Skill | Trigger | Path |
-|-------|---------|------|
+| Skill  | Trigger                                     | Path                                        |
+| ------ | ------------------------------------------- | ------------------------------------------- |
 | vitest | Vitest testing, mocking, coverage, fixtures | `~/.config/opencode/skills/vitest/SKILL.md` |
 
 ## Database Skills
 
-| Skill | Trigger | Path |
-|-------|---------|------|
-| prisma-cli | Prisma CLI commands, migration, generate, db push | `~/.config/opencode/skills/prisma-cli/SKILL.md` |
-| prisma-client-api | Prisma Client API, queries, filters, transactions | `~/.config/opencode/skills/prisma-client-api/SKILL.md` |
-| prisma-database-setup | Prisma DB provider configuration | `~/.config/opencode/skills/prisma-database-setup/SKILL.md` |
+| Skill                 | Trigger                                           | Path                                                       |
+| --------------------- | ------------------------------------------------- | ---------------------------------------------------------- |
+| prisma-cli            | Prisma CLI commands, migration, generate, db push | `~/.config/opencode/skills/prisma-cli/SKILL.md`            |
+| prisma-client-api     | Prisma Client API, queries, filters, transactions | `~/.config/opencode/skills/prisma-client-api/SKILL.md`     |
+| prisma-database-setup | Prisma DB provider configuration                  | `~/.config/opencode/skills/prisma-database-setup/SKILL.md` |
 
 ## Language & Validation
 
-| Skill | Trigger | Path |
-|-------|---------|------|
+| Skill                     | Trigger                                                | Path                                                           |
+| ------------------------- | ------------------------------------------------------ | -------------------------------------------------------------- |
 | typescript-advanced-types | TypeScript advanced types, generics, conditional types | `~/.config/opencode/skills/typescript-advanced-types/SKILL.md` |
-| zod | Zod schema validation, safeParse, type inference | `~/.config/opencode/skills/zod/SKILL.md` |
+| zod                       | Zod schema validation, safeParse, type inference       | `~/.config/opencode/skills/zod/SKILL.md`                       |
 
 ## UI & Quality
 
-| Skill | Trigger | Path |
-|-------|---------|------|
-| frontend-design | Production-grade frontend UI design | `~/.config/opencode/skills/frontend-design/SKILL.md` |
-| seo | Search engine optimization, meta tags, structured data | `~/.config/opencode/skills/seo/SKILL.md` |
-| accessibility | WCAG 2.2 compliance, a11y audit | `~/.config/opencode/skills/accessibility/SKILL.md` |
+| Skill           | Trigger                                                | Path                                                 |
+| --------------- | ------------------------------------------------------ | ---------------------------------------------------- |
+| frontend-design | Production-grade frontend UI design                    | `~/.config/opencode/skills/frontend-design/SKILL.md` |
+| seo             | Search engine optimization, meta tags, structured data | `~/.config/opencode/skills/seo/SKILL.md`             |
+| accessibility   | WCAG 2.2 compliance, a11y audit                        | `~/.config/opencode/skills/accessibility/SKILL.md`   |
 
 ## Convention Files
 
-| File | Path |
-|------|------|
+| File      | Path                                |
+| --------- | ----------------------------------- |
 | AGENTS.md | `E:/master/728-store/src/AGENTS.md` |
 
 ## SDD Phase Skills
 
-| Skill | Trigger | Path |
-|-------|---------|------|
-| sdd-explore | Explore SDD ideas before committing to a change | `~/.config/opencode/skills/sdd-explore/SKILL.md` |
+| Skill       | Trigger                                               | Path                                             |
+| ----------- | ----------------------------------------------------- | ------------------------------------------------ |
+| sdd-explore | Explore SDD ideas before committing to a change       | `~/.config/opencode/skills/sdd-explore/SKILL.md` |
 | sdd-propose | Create SDD change proposal with intent/scope/approach | `~/.config/opencode/skills/sdd-propose/SKILL.md` |
-| sdd-spec | Write SDD delta specs with requirements/scenarios | `~/.config/opencode/skills/sdd-spec/SKILL.md` |
-| sdd-design | Create SDD technical design and architecture | `~/.config/opencode/skills/sdd-design/SKILL.md` |
-| sdd-tasks | Break SDD change into implementation tasks | `~/.config/opencode/skills/sdd-tasks/SKILL.md` |
-| sdd-apply | Implement SDD tasks from specs/design | `~/.config/opencode/skills/sdd-apply/SKILL.md` |
-| sdd-verify | Verify implementation matches specs/design/tasks | `~/.config/opencode/skills/sdd-verify/SKILL.md` |
-| sdd-archive | Archive completed SDD change | `~/.config/opencode/skills/sdd-archive/SKILL.md` |
+| sdd-spec    | Write SDD delta specs with requirements/scenarios     | `~/.config/opencode/skills/sdd-spec/SKILL.md`    |
+| sdd-design  | Create SDD technical design and architecture          | `~/.config/opencode/skills/sdd-design/SKILL.md`  |
+| sdd-tasks   | Break SDD change into implementation tasks            | `~/.config/opencode/skills/sdd-tasks/SKILL.md`   |
+| sdd-apply   | Implement SDD tasks from specs/design                 | `~/.config/opencode/skills/sdd-apply/SKILL.md`   |
+| sdd-verify  | Verify implementation matches specs/design/tasks      | `~/.config/opencode/skills/sdd-verify/SKILL.md`  |
+| sdd-archive | Archive completed SDD change                          | `~/.config/opencode/skills/sdd-archive/SKILL.md` |

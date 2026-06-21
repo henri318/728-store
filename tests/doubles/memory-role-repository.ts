@@ -12,7 +12,7 @@ export class MemoryRoleRepository implements RoleRepository {
   private roles: RoleEntity[] = [];
 
   async save(role: RoleEntity): Promise<RoleEntity> {
-    const existingIndex = this.roles.findIndex(r => r.name === role.name);
+    const existingIndex = this.roles.findIndex((r) => r.name === role.name);
     if (existingIndex >= 0) {
       this.roles[existingIndex] = role;
     } else {
@@ -26,10 +26,10 @@ export class MemoryRoleRepository implements RoleRepository {
   }
 
   async findByName(name: string): Promise<RoleEntity | null> {
-    return this.roles.find(r => r.name === name) ?? null;
+    return this.roles.find((r) => r.name === name) ?? null;
   }
 
   async existsByName(name: string): Promise<boolean> {
-    return this.roles.some(r => r.name === name);
+    return this.roles.some((r) => r.name === name);
   }
 }

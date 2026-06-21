@@ -2,14 +2,14 @@
 
 ## Review Workload Forecast
 
-| Field | Value |
-|-------|-------|
-| Estimated changed lines | 350–450 |
-| 400-line budget risk | Medium |
-| Chained PRs recommended | No (single PR with auto-forecast) |
-| Suggested split | Single PR — all phases are mechanical import moves |
-| Delivery strategy | single-pr |
-| Chain strategy | size-exception |
+| Field                   | Value                                              |
+| ----------------------- | -------------------------------------------------- |
+| Estimated changed lines | 350–450                                            |
+| 400-line budget risk    | Medium                                             |
+| Chained PRs recommended | No (single PR with auto-forecast)                  |
+| Suggested split         | Single PR — all phases are mechanical import moves |
+| Delivery strategy       | single-pr                                          |
+| Chain strategy          | size-exception                                     |
 
 Decision needed before apply: No
 Chained PRs recommended: No
@@ -18,9 +18,9 @@ Chain strategy: size-exception
 
 ### Suggested Work Units
 
-| Unit | Goal | Likely PR | Notes |
-|------|------|-----------|-------|
-| 1 | All 7 phases in one PR | PR 1 | Mechanical moves, no logic changes, 155 tests pass throughout |
+| Unit | Goal                   | Likely PR | Notes                                                         |
+| ---- | ---------------------- | --------- | ------------------------------------------------------------- |
+| 1    | All 7 phases in one PR | PR 1      | Mechanical moves, no logic changes, 155 tests pass throughout |
 
 ---
 
@@ -198,13 +198,13 @@ Chain strategy: size-exception
 
 ## Cross-Front Constraints Checklist
 
-| # | Constraint | Verified By |
-|---|------------|-------------|
-| C1 | All 155 tests pass unchanged | Task 7.12 |
-| C2 | Zero `prisma.*` in `app/` | Task 7.14 |
-| C3 | `shared/kernel/` = app-error + outbox-repository (+ escape-html, config) | Task 7.13 |
-| C4 | Zero `../infrastructure/` in `modules/*/application/` | Task 1.1, 4.3, 4.4 |
-| C5 | `workers/email-worker.ts` zero `prisma.*` | Task 4.8 |
-| C6 | No DB migrations, no API changes, no env changes | All phases |
-| C7 | Container auto-initializing preserved | Task 1.5 |
-| C8 | authOptions re-export from route.ts | Task 1.14 |
+| #   | Constraint                                                               | Verified By        |
+| --- | ------------------------------------------------------------------------ | ------------------ |
+| C1  | All 155 tests pass unchanged                                             | Task 7.12          |
+| C2  | Zero `prisma.*` in `app/`                                                | Task 7.14          |
+| C3  | `shared/kernel/` = app-error + outbox-repository (+ escape-html, config) | Task 7.13          |
+| C4  | Zero `../infrastructure/` in `modules/*/application/`                    | Task 1.1, 4.3, 4.4 |
+| C5  | `workers/email-worker.ts` zero `prisma.*`                                | Task 4.8           |
+| C6  | No DB migrations, no API changes, no env changes                         | All phases         |
+| C7  | Container auto-initializing preserved                                    | Task 1.5           |
+| C8  | authOptions re-export from route.ts                                      | Task 1.14          |

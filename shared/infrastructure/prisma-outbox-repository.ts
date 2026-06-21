@@ -1,12 +1,20 @@
 import { prisma } from '@/shared/infrastructure/prisma';
-import { OutboxEvent, OutboxRepository } from '@/shared/kernel/outbox-repository';
+import type { Prisma, PrismaClient } from '@prisma/client';
+import {
+  OutboxEvent,
+  OutboxRepository,
+} from '@/shared/kernel/outbox-repository';
 
 export class PrismaOutboxRepository implements OutboxRepository {
-  async saveEvent(eventType: string, payload: any, tx: any = prisma): Promise<void> {
+  async saveEvent(
+    eventType: string,
+    payload: unknown,
+    tx: PrismaClient = prisma,
+  ): Promise<void> {
     await tx.outboxEvent.create({
       data: {
         eventType,
-        payload,
+        payload: payload as Prisma.InputJsonValue,
         status: 'PENDING',
       },
     });

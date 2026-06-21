@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MemoryRoleRepository } from '@/tests/doubles/memory-role-repository';
 import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
-import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import { RoleId } from '@/modules/roles/domain/value-objects/role-id';
 
 describe('CreateRoleUseCase', () => {
@@ -20,7 +19,8 @@ describe('CreateRoleUseCase', () => {
 
   it('should create a new role successfully and persist it', async () => {
     // Dynamic import — will fail in RED phase because the module doesn't exist yet
-    const { CreateRoleUseCase } = await import('@/modules/roles/application/use-cases/create-role-use-case');
+    const { CreateRoleUseCase } =
+      await import('@/modules/roles/application/use-cases/create-role-use-case');
 
     const useCase = new CreateRoleUseCase(roleRepository, outboxRepository);
 
@@ -40,7 +40,8 @@ describe('CreateRoleUseCase', () => {
   });
 
   it('should emit a ROLE_CREATED event via the outbox', async () => {
-    const { CreateRoleUseCase } = await import('@/modules/roles/application/use-cases/create-role-use-case');
+    const { CreateRoleUseCase } =
+      await import('@/modules/roles/application/use-cases/create-role-use-case');
 
     const useCase = new CreateRoleUseCase(roleRepository, outboxRepository);
 
@@ -51,12 +52,17 @@ describe('CreateRoleUseCase', () => {
 
     expect(outboxRepository.events.length).toBe(1);
     expect(outboxRepository.events[0].eventType).toBe('role.created');
-    expect(outboxRepository.events[0].payload.roleId).toBe(result.id.value);
-    expect(outboxRepository.events[0].payload.name).toBe('MANAGER');
+    const payload = outboxRepository.events[0].payload as {
+      roleId: string;
+      name: string;
+    };
+    expect(payload.roleId).toBe(result.id.value);
+    expect(payload.name).toBe('MANAGER');
   });
 
   it('should throw ConflictError when creating a duplicate role name', async () => {
-    const { CreateRoleUseCase } = await import('@/modules/roles/application/use-cases/create-role-use-case');
+    const { CreateRoleUseCase } =
+      await import('@/modules/roles/application/use-cases/create-role-use-case');
 
     const useCase = new CreateRoleUseCase(roleRepository, outboxRepository);
 
@@ -68,27 +74,29 @@ describe('CreateRoleUseCase', () => {
     });
 
     await expect(
-      useCase.execute({ name: 'ADMIN', description: 'Duplicate admin' })
+      useCase.execute({ name: 'ADMIN', description: 'Duplicate admin' }),
     ).rejects.toThrow('Role "ADMIN" already exists');
   });
 
   it('should throw ValidationError when name is empty', async () => {
-    const { CreateRoleUseCase } = await import('@/modules/roles/application/use-cases/create-role-use-case');
+    const { CreateRoleUseCase } =
+      await import('@/modules/roles/application/use-cases/create-role-use-case');
 
     const useCase = new CreateRoleUseCase(roleRepository, outboxRepository);
 
     await expect(
-      useCase.execute({ name: '', description: 'No name' })
+      useCase.execute({ name: '', description: 'No name' }),
     ).rejects.toThrow('Role name cannot be empty');
   });
 
   it('should throw ValidationError when name is whitespace only', async () => {
-    const { CreateRoleUseCase } = await import('@/modules/roles/application/use-cases/create-role-use-case');
+    const { CreateRoleUseCase } =
+      await import('@/modules/roles/application/use-cases/create-role-use-case');
 
     const useCase = new CreateRoleUseCase(roleRepository, outboxRepository);
 
     await expect(
-      useCase.execute({ name: '   ', description: 'Whitespace name' })
+      useCase.execute({ name: '   ', description: 'Whitespace name' }),
     ).rejects.toThrow('Role name cannot be empty');
   });
 });

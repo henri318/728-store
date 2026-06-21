@@ -18,7 +18,9 @@ export class ConsoleForgotPasswordEmail implements ForgotPasswordEmailPort {
     console.log('[DEV] Password Reset Email (mock)');
     console.log(`  To:    ${email}`);
     console.log(`  Token: ${token}`);
-    console.log(`  Link:  http://localhost:3000/es/auth/reset-password?token=${encodeURIComponent(token)}`);
+    console.log(
+      `  Link:  http://localhost:3000/es/auth/reset-password?token=${encodeURIComponent(token)}`,
+    );
     console.log('──────────────────────────────────────────────');
   }
 }

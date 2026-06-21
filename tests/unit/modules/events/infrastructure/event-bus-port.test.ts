@@ -50,7 +50,9 @@ describe('EventBusPort — port contract (via EventBus)', () => {
     });
 
     it('should be a no-op when emitting an event with no registered handlers', async () => {
-      await expect(bus.emit('unknown.event', { x: 1 })).resolves.toBeUndefined();
+      await expect(
+        bus.emit('unknown.event', { x: 1 }),
+      ).resolves.toBeUndefined();
     });
 
     it('should allow the same handler to be registered multiple times', async () => {

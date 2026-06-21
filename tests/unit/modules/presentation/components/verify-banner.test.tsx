@@ -13,8 +13,12 @@ describe('VerifyBanner', () => {
   it('renders yellow banner with verify message', () => {
     render(<VerifyBanner email="test@example.com" />);
 
-    expect(screen.getByText('Por favor, verifica tu correo electrónico.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Reenviar verificación' })).toBeInTheDocument();
+    expect(
+      screen.getByText('Por favor, verifica tu correo electrónico.'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Reenviar verificación' }),
+    ).toBeInTheDocument();
   });
 
   it('calls resend API when button clicked', async () => {
@@ -25,12 +29,17 @@ describe('VerifyBanner', () => {
 
     render(<VerifyBanner email="test@example.com" />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Reenviar verificación' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Reenviar verificación' }),
+    );
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith('/api/auth/verify-email', expect.objectContaining({
-        method: 'POST',
-      }));
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/auth/verify-email',
+        expect.objectContaining({
+          method: 'POST',
+        }),
+      );
     });
   });
 
@@ -42,10 +51,14 @@ describe('VerifyBanner', () => {
 
     render(<VerifyBanner email="test@example.com" />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Reenviar verificación' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Reenviar verificación' }),
+    );
 
     await waitFor(() => {
-      expect(screen.getByText('Correo electrónico verificado correctamente')).toBeInTheDocument();
+      expect(
+        screen.getByText('Correo electrónico verificado correctamente'),
+      ).toBeInTheDocument();
     });
   });
 });

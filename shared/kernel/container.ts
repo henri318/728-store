@@ -29,17 +29,14 @@ let _emailSender: EmailSender | null = null;
  * Initialize all dependency bindings for the current environment.
  * Must be called exactly once per process before any getter is used.
  */
-export function initContainer(): void {
+export async function initContainer(): Promise<void> {
   if (_emailSender) return; // idempotent — safe to call multiple times
 
   if (process.env.NODE_ENV === 'production') {
-    // Lazy require — only loads the Brevo SDK in production
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { BrevoEmailSender } = require('./brevo-email-sender') as typeof import('./brevo-email-sender');
+    const { BrevoEmailSender } = await import('./brevo-email-sender');
     _emailSender = new BrevoEmailSender();
   } else {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { ConsoleEmailSender } = require('./console-email-sender') as typeof import('./console-email-sender');
+    const { ConsoleEmailSender } = await import('./console-email-sender');
     _emailSender = new ConsoleEmailSender();
   }
 }

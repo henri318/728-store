@@ -49,9 +49,8 @@ describe('ChangePasswordUseCase', () => {
   });
 
   it('should change password when current password is correct', async () => {
-    const { ChangePasswordUseCase } = await import(
-      '@/modules/users/application/use-cases/change-password-use-case'
-    );
+    const { ChangePasswordUseCase } =
+      await import('@/modules/users/application/use-cases/change-password-use-case');
 
     const useCase = new ChangePasswordUseCase(
       userRepository,
@@ -75,14 +74,16 @@ describe('ChangePasswordUseCase', () => {
 
     // Verify event was emitted
     expect(outboxRepository.events.length).toBe(1);
-    expect(outboxRepository.events[0].eventType).toBe(GlobalEvents.PASSWORD_CHANGED);
-    expect(outboxRepository.events[0].payload.userId).toBe('user-cp-1');
+    expect(outboxRepository.events[0].eventType).toBe(
+      GlobalEvents.PASSWORD_CHANGED,
+    );
+    const payload = outboxRepository.events[0].payload as { userId: string };
+    expect(payload.userId).toBe('user-cp-1');
   });
 
   it('should throw UnauthorizedError when current password is wrong', async () => {
-    const { ChangePasswordUseCase } = await import(
-      '@/modules/users/application/use-cases/change-password-use-case'
-    );
+    const { ChangePasswordUseCase } =
+      await import('@/modules/users/application/use-cases/change-password-use-case');
 
     const useCase = new ChangePasswordUseCase(
       userRepository,
@@ -108,9 +109,8 @@ describe('ChangePasswordUseCase', () => {
   });
 
   it('should throw NotFoundError when user does not exist', async () => {
-    const { ChangePasswordUseCase } = await import(
-      '@/modules/users/application/use-cases/change-password-use-case'
-    );
+    const { ChangePasswordUseCase } =
+      await import('@/modules/users/application/use-cases/change-password-use-case');
 
     const useCase = new ChangePasswordUseCase(
       userRepository,
@@ -136,9 +136,8 @@ describe('ChangePasswordUseCase', () => {
       updatedAt: new Date(),
     });
 
-    const { ChangePasswordUseCase } = await import(
-      '@/modules/users/application/use-cases/change-password-use-case'
-    );
+    const { ChangePasswordUseCase } =
+      await import('@/modules/users/application/use-cases/change-password-use-case');
 
     const useCase = new ChangePasswordUseCase(
       userRepository,

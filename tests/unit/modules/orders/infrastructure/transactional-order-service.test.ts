@@ -14,7 +14,10 @@ const txMock = {
 
 vi.mock('@/shared/infrastructure/prisma', () => ({
   prisma: {
-    $transaction: vi.fn(async (callback: any) => callback(txMock)),
+    $transaction: vi.fn(
+      async (callback: (tx: typeof txMock) => Promise<void>) =>
+        callback(txMock),
+    ),
   },
 }));
 
@@ -92,12 +95,9 @@ describe('TransactionalOrderService', () => {
   describe('updateStatusAndEmit — missing order', () => {
     it('should throw when the order does not exist', async () => {
       await expect(
-        service.updateStatusAndEmit(
-          'ghost',
-          'paid',
-          GlobalEvents.ORDER_PAID,
-          { orderId: 'ghost' },
-        ),
+        service.updateStatusAndEmit('ghost', 'paid', GlobalEvents.ORDER_PAID, {
+          orderId: 'ghost',
+        }),
       ).rejects.toThrow('Order not found');
 
       // No side effects

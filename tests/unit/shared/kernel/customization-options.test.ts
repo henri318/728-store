@@ -38,9 +38,9 @@ describe('CustomizationOptions', () => {
 
     it('should reject text longer than 500 chars', () => {
       const longText = 'a'.repeat(501);
-      expect(() =>
-        CustomizationOptions.create({ text: longText }),
-      ).toThrow('Customization text must be at most 500 characters');
+      expect(() => CustomizationOptions.create({ text: longText })).toThrow(
+        'Customization text must be at most 500 characters',
+      );
     });
 
     it('should accept text with exactly 500 chars', () => {
@@ -56,9 +56,9 @@ describe('CustomizationOptions', () => {
     });
 
     it('should reject invalid imageUrl format: empty string', () => {
-      expect(() =>
-        CustomizationOptions.create({ imageUrl: '' }),
-      ).toThrow('Customization image URL must be a valid URL');
+      expect(() => CustomizationOptions.create({ imageUrl: '' })).toThrow(
+        'Customization image URL must be a valid URL',
+      );
     });
 
     it('should accept valid http imageUrl', () => {

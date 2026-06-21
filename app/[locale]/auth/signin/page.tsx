@@ -23,9 +23,20 @@ export default function SignInPage() {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '4rem auto', padding: '2rem', border: '1px solid #ddd', borderRadius: '8px' }}>
+    <div
+      style={{
+        maxWidth: '400px',
+        margin: '4rem auto',
+        padding: '2rem',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+      }}
+    >
       <h2>{dict.auth.signInTitle}</h2>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+      >
         <Input
           label={dict.auth.email}
           type="email"

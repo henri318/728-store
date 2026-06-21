@@ -18,7 +18,10 @@ test.describe('Products', () => {
   test('product detail page shows product info', async ({ page }) => {
     await page.goto('/es');
 
-    await page.getByRole('button', { name: /ver detalles/i }).first().click();
+    await page
+      .getByRole('button', { name: /ver detalles/i })
+      .first()
+      .click();
 
     await expect(page).toHaveURL(/\/es\/products\//);
 

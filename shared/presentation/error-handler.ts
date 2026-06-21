@@ -14,7 +14,7 @@ export function handleApiError(error: unknown): NextResponse {
   if (error instanceof AppError) {
     return NextResponse.json(
       { error: error.safeMessage },
-      { status: error.statusCode }
+      { status: error.statusCode },
     );
   }
 
@@ -25,14 +25,11 @@ export function handleApiError(error: unknown): NextResponse {
     }));
     return NextResponse.json(
       { error: 'Validation failed', details: formatted },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   // Unknown error — log the real one, return safe message
   console.error('[UnhandledError]', error);
-  return NextResponse.json(
-    { error: 'Internal server error' },
-    { status: 500 }
-  );
+  return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
 }

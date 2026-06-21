@@ -11,5 +11,9 @@
  * so emails are never accidentally sent to real recipients in `next dev`.
  */
 export interface EmailSender {
-  send(params: { to: string; subject: string; htmlBody: string }): Promise<void>;
+  send(params: {
+    to: string;
+    subject: string;
+    htmlBody: string;
+  }): Promise<void>;
 }

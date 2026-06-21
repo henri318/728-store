@@ -53,10 +53,12 @@ export class CustomizationOptions {
   }
 
   equals(other: CustomizationOptions): boolean {
-    return other instanceof CustomizationOptions
-      && this.text === other.text
-      && this.color === other.color
-      && this.size === other.size
-      && this.imageUrl === other.imageUrl;
+    return (
+      other instanceof CustomizationOptions &&
+      this.text === other.text &&
+      this.color === other.color &&
+      this.size === other.size &&
+      this.imageUrl === other.imageUrl
+    );
   }
 }

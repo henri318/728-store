@@ -23,10 +23,19 @@ describe('ChangePasswordPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useSession).mockReturnValue({
-      data: { user: { email: 'test@example.com' } },
+      data: {
+        user: {
+          id: '1',
+          email: 'test@example.com',
+          name: 'Test User',
+          role: 'user',
+          emailVerified: null,
+        },
+        expires: '2099-01-01T00:00:00.000Z',
+      },
       status: 'authenticated',
       update: vi.fn(),
-    } as any);
+    });
   });
 
   it('renders password change form', () => {
@@ -41,10 +50,16 @@ describe('ChangePasswordPage', () => {
   it('shows error when passwords do not match', async () => {
     render(<ChangePasswordPage />);
 
-    fireEvent.change(screen.getByLabelText('Nueva contraseña'), { target: { value: 'newpass123' } });
-    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), { target: { value: 'different' } });
+    fireEvent.change(screen.getByLabelText('Nueva contraseña'), {
+      target: { value: 'newpass123' },
+    });
+    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), {
+      target: { value: 'different' },
+    });
 
-    const form = screen.getByRole('button', { name: 'Enviar' }).closest('form')!;
+    const form = screen
+      .getByRole('button', { name: 'Enviar' })
+      .closest('form')!;
     fireEvent.submit(form);
 
     const alert = await screen.findByRole('alert');
@@ -59,17 +74,28 @@ describe('ChangePasswordPage', () => {
 
     render(<ChangePasswordPage />);
 
-    fireEvent.change(screen.getByLabelText('Contraseña actual'), { target: { value: 'oldpass' } });
-    fireEvent.change(screen.getByLabelText('Nueva contraseña'), { target: { value: 'newpass123' } });
-    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), { target: { value: 'newpass123' } });
+    fireEvent.change(screen.getByLabelText('Contraseña actual'), {
+      target: { value: 'oldpass' },
+    });
+    fireEvent.change(screen.getByLabelText('Nueva contraseña'), {
+      target: { value: 'newpass123' },
+    });
+    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), {
+      target: { value: 'newpass123' },
+    });
 
-    const form = screen.getByRole('button', { name: 'Enviar' }).closest('form')!;
+    const form = screen
+      .getByRole('button', { name: 'Enviar' })
+      .closest('form')!;
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith('/api/users/me/change-password', expect.objectContaining({
-        method: 'POST',
-      }));
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/users/me/change-password',
+        expect.objectContaining({
+          method: 'POST',
+        }),
+      );
     });
   });
 
@@ -81,15 +107,25 @@ describe('ChangePasswordPage', () => {
 
     render(<ChangePasswordPage />);
 
-    fireEvent.change(screen.getByLabelText('Contraseña actual'), { target: { value: 'oldpass' } });
-    fireEvent.change(screen.getByLabelText('Nueva contraseña'), { target: { value: 'newpass123' } });
-    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), { target: { value: 'newpass123' } });
+    fireEvent.change(screen.getByLabelText('Contraseña actual'), {
+      target: { value: 'oldpass' },
+    });
+    fireEvent.change(screen.getByLabelText('Nueva contraseña'), {
+      target: { value: 'newpass123' },
+    });
+    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), {
+      target: { value: 'newpass123' },
+    });
 
-    const form = screen.getByRole('button', { name: 'Enviar' }).closest('form')!;
+    const form = screen
+      .getByRole('button', { name: 'Enviar' })
+      .closest('form')!;
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(screen.getByText('Contraseña actualizada correctamente')).toBeInTheDocument();
+      expect(
+        screen.getByText('Contraseña actualizada correctamente'),
+      ).toBeInTheDocument();
     });
   });
 
@@ -104,7 +140,9 @@ describe('ChangePasswordPage', () => {
     expect(newInput).toHaveAttribute('type', 'password');
     expect(confirmInput).toHaveAttribute('type', 'password');
 
-    const toggleButtons = screen.getAllByRole('button', { name: /show password/i });
+    const toggleButtons = screen.getAllByRole('button', {
+      name: /show password/i,
+    });
     expect(toggleButtons).toHaveLength(3);
 
     fireEvent.click(toggleButtons[0]);
@@ -131,7 +169,7 @@ describe('ChangePasswordPage', () => {
       data: null,
       status: 'unauthenticated',
       update: vi.fn(),
-    } as any);
+    });
 
     render(<ChangePasswordPage />);
 
@@ -145,7 +183,7 @@ describe('ChangePasswordPage', () => {
       data: null,
       status: 'loading',
       update: vi.fn(),
-    } as any);
+    });
 
     render(<ChangePasswordPage />);
 
@@ -156,10 +194,19 @@ describe('ChangePasswordPage', () => {
 
   it('shows form when authenticated', () => {
     vi.mocked(useSession).mockReturnValue({
-      data: { user: { email: 'test@example.com' } },
+      data: {
+        user: {
+          id: '1',
+          email: 'test@example.com',
+          name: 'Test User',
+          role: 'user',
+          emailVerified: null,
+        },
+        expires: '2099-01-01T00:00:00.000Z',
+      },
       status: 'authenticated',
       update: vi.fn(),
-    } as any);
+    });
 
     render(<ChangePasswordPage />);
 

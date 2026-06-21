@@ -5,12 +5,12 @@ export class GetProductsUseCase {
 
   async execute(locale: string) {
     const products = await this.productRepository.findAll(locale);
-    
+
     // Ensure we always have at least a fallback if translation is missing
-    return products.map(product => ({
+    return products.map((product) => ({
       ...product,
       displayName: product.translations[0]?.name || 'Untranslated',
-      displayDescription: product.translations[0]?.description || ''
+      displayDescription: product.translations[0]?.description || '',
     }));
   }
 }

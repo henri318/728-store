@@ -13,6 +13,7 @@ The architecture is ~80% correct — the kernel has pure ports, modules define t
 **Files:** `shared/kernel/container.ts` (lines 39–51)
 
 **What it does:** The container imports 9 concrete adapter classes directly:
+
 - `BrevoEmailSender` from `shared/infrastructure/`
 - `ConsoleEmailSender` from `shared/infrastructure/`
 - `PrismaOutboxRepository` from `shared/infrastructure/`
@@ -24,6 +25,7 @@ The architecture is ~80% correct — the kernel has pure ports, modules define t
 - `hashPassword, verifyPassword` from `shared/infrastructure/password-hasher`
 
 Plus 3 module adapters:
+
 - `PrismaUserRepository` from `modules/users/infrastructure/`
 - `PrismaOrderRepository` from `modules/orders/infrastructure/`
 - `PrismaProductRepository` from `modules/products/infrastructure/`
@@ -41,6 +43,7 @@ Plus 3 module adapters:
 ### Violation #2 — CRITICAL: Use cases import infrastructure
 
 **Files:**
+
 - `modules/orders/application/mark-as-paid-use-case.ts` (line 4)
 - `modules/orders/application/assign-to-production-use-case.ts` (line 4)
 
@@ -51,6 +54,7 @@ Plus 3 module adapters:
 **What it SHOULD do:** The use case should depend on a port (e.g., `TransactionalOrderPort`) that promises atomicity, without knowing it's Prisma underneath. The port would be: `updateStatusAndEmit(orderId, status, eventType, payload): Promise<void>`.
 
 **Proposed fix:**
+
 1. Extract `TransactionalOrderPort` interface into `modules/orders/domain/` (or `shared/kernel/` since it wraps both order + outbox).
 2. `TransactionalOrderService` already implements this contract — just add `implements TransactionalOrderPort`.
 3. Use cases accept the port type, not the concrete class.
@@ -71,6 +75,7 @@ Plus 3 module adapters:
 **What it SHOULD do:** The `EmailQueueRepository` port already exists (`shared/kernel/email-queue-repository.ts`) but is missing the methods the worker needs: `claimProcessing()`, `findProcessing()`, `markSent()`, `markFailed()`, `reschedule()`.
 
 **Proposed fix:**
+
 1. Extend `EmailQueueRepository` port with: `claimPending(limit)`, `findProcessing(limit)`, `markSent(id)`, `markFailed(id, error, retryCount, scheduledAt)`.
 2. Implement these in `PrismaEmailQueueRepository`.
 3. Worker imports only `EmailQueueRepository` port + `EmailSender` port from kernel, resolves via container.
@@ -90,6 +95,7 @@ Plus 3 module adapters:
 **What it SHOULD do:** This is actually a CORRECT adapter pattern (the comment in the file explains this). The adapter bridges orders' port to products' port. The import is type-only (`import type`). However, the coupling exists: if products changes its port, orders' adapter breaks.
 
 **Proposed fix:** Two options:
+
 1. **Accept as-is** — the adapter is the sanctioned boundary crossing point. Type-only imports have zero runtime cost. The adapter exists precisely to absorb this coupling.
 2. **Move products port to shared/kernel** — if `ProductRepository` is a shared contract, it belongs in kernel. But this conflicts with module autonomy.
 
@@ -104,6 +110,7 @@ Plus 3 module adapters:
 ### Violation #5 — HIGH: shared/ as global kernel
 
 **Files:**
+
 - `shared/events/index.ts` — imported by 7 application-layer files + 6 test files
 - `shared/validation/auth-schemas.ts` — imported by 3 auth routes
 - `shared/validation/order-schemas.ts` — imported by 1 orders route
@@ -142,24 +149,28 @@ For validation schemas: move `auth-schemas.ts` to `modules/auth/` (or keep in sh
 ### Violation #7 — MEDIUM: app/ imports infrastructure utilities
 
 **Files:**
+
 - `app/api/auth/signup/route.ts` — imports `handleApiError`, `escapeHtml`, `getBaseUrl`
 - `app/api/auth/resend-verification/route.ts` — imports `handleApiError`, `escapeHtml`, `getBaseUrl`
 - `app/api/auth/verify-email/route.ts` — imports `handleApiError`
 - `app/api/orders/route.ts` — imports `handleApiError`, `requireRole`
 
 **What they do:** API routes import utilities from `shared/infrastructure/`. These are:
+
 - `handleApiError` — error-to-HTTP-response mapper (presentation concern)
 - `escapeHtml` — XSS prevention utility (pure function, no infrastructure)
 - `getBaseUrl` — env-based URL reader (configuration)
 - `requireRole` — authorization middleware (uses kernel ports via container)
 
 **What it SHOULD do:** `app/api/` routes ARE the entry point layer — they're allowed to import from infrastructure. This is the outermost ring of hexagonal architecture. However, some of these are misplaced:
+
 - `escapeHtml` is a pure utility, not infrastructure — belongs in `shared/kernel/` or `shared/presentation/`
 - `getBaseUrl` is configuration, not infrastructure — belongs in `shared/kernel/secrets.ts` or a new `shared/kernel/config.ts`
 - `handleApiError` is presentation layer — belongs in `shared/presentation/`
 - `requireRole` already correctly uses kernel ports via container
 
 **Proposed fix:**
+
 1. Move `escapeHtml` to `shared/kernel/` (pure function, no deps)
 2. Move `getBaseUrl` to `shared/kernel/config.ts` or add to `SecretsPort`
 3. Move `handleApiError` to `shared/presentation/error-handler.ts`
@@ -196,6 +207,7 @@ For validation schemas: move `auth-schemas.ts` to `modules/auth/` (or keep in sh
 **What it SHOULD do:** Background workers should be started from a dedicated entry point, not from a React layout component. Layout.tsx is a presentation component — it shouldn't own infrastructure lifecycle.
 
 **Proposed fix:** Start the outbox worker from:
+
 1. A `workers/` entry point (like `email-worker.ts`)
 2. A Next.js middleware or instrument file
 3. A dedicated `start-workers.ts` script imported by the app entry
@@ -209,6 +221,7 @@ For validation schemas: move `auth-schemas.ts` to `modules/auth/` (or keep in sh
 ### Violation #10 — LOW: Test doubles in infrastructure
 
 **Files:**
+
 - `modules/users/infrastructure/memory-user-repository.ts`
 - `modules/orders/infrastructure/memory-order-repository.ts`
 - `modules/products/infrastructure/memory-product-repository.ts`
@@ -228,6 +241,7 @@ For validation schemas: move `auth-schemas.ts` to `modules/auth/` (or keep in sh
 ### Violation #11 — LOW: Validation outside modules
 
 **Files:**
+
 - `shared/validation/auth-schemas.ts`
 - `shared/validation/order-schemas.ts`
 
@@ -311,12 +325,14 @@ Phase 5 — Entry point cleanup (depends on #1, #6):
 ### Additional Findings
 
 **Import health summary:**
+
 - `shared/infrastructure/prisma` is imported by 9 files — all are infrastructure adapters (correct) + 1 worker (violation #3)
 - `shared/infrastructure/` utilities are imported by 34 files total — most are tests or entry points (acceptable)
 - `shared/events` is imported by 13 files — all are application layer or tests (correct for shared kernel)
 - Cross-module imports: only 1 (orders adapter → products domain) — this is the sanctioned adapter pattern
 
 **What's actually CLEAN:**
+
 - Domain layers (`modules/*/domain/`) have ZERO infrastructure imports
 - Use cases only import from kernel ports + their own domain (except #2)
 - All Prisma imports are confined to `shared/infrastructure/` + `modules/*/infrastructure/` (except #3)

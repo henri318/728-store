@@ -1,4 +1,7 @@
-import type { RateLimitResult, RateLimiter } from '@/modules/auth/domain/rate-limiter';
+import type {
+  RateLimitResult,
+  RateLimiter,
+} from '@/modules/auth/domain/rate-limiter';
 
 /**
  * In-memory RateLimiter test double.

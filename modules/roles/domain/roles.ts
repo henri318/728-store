@@ -2,4 +2,4 @@
 export const ROLES = ['ADMIN', 'SUPPORT', 'DESIGNER', 'CUSTOMER'] as const;
 
 /** Union type of all valid role names. */
-export type Role = typeof ROLES[number];
+export type Role = (typeof ROLES)[number];

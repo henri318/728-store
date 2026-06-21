@@ -4,7 +4,10 @@ import type { SessionPort } from '@/modules/auth/domain/session';
 import type { UserLookupPort } from '@/modules/auth/domain/user-lookup';
 
 /** Signature of a Next.js route handler wrapped by requireRole. */
-type RouteHandler = (req: NextRequest, context?: unknown) => Response | Promise<Response>;
+type RouteHandler = (
+  req: NextRequest,
+  context?: unknown,
+) => Response | Promise<Response>;
 
 /**
  * Factory: create an authorization helper bound to specific ports.
