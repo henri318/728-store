@@ -7,7 +7,11 @@ import type { EmailSender } from './email-sender';
  * while running `next dev`.
  */
 export class ConsoleEmailSender implements EmailSender {
-  async send(params: { to: string; subject: string; htmlBody: string }): Promise<void> {
+  async send(params: {
+    to: string;
+    subject: string;
+    htmlBody: string;
+  }): Promise<void> {
     console.log(`[DEV EMAIL] To: ${params.to} | Subject: ${params.subject}`);
     console.log(`[DEV EMAIL] Body:\n${params.htmlBody}`);
   }

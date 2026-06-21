@@ -7,12 +7,17 @@ import type { ProductSnapshot } from '@/modules/orders/domain/product-snapshot';
 export class MemoryOrderProductRepository implements ProductRepository {
   private products = new Map<string, ProductSnapshot>();
 
-  async findById(id: string, _locale?: string): Promise<ProductSnapshot | null> {
+  async findById(
+    id: string,
+    _locale?: string,
+  ): Promise<ProductSnapshot | null> {
     return this.products.get(id) ?? null;
   }
 
   async findByIds(ids: string[], _locale?: string): Promise<ProductSnapshot[]> {
-    return ids.map((id) => this.products.get(id)).filter((p): p is ProductSnapshot => p != null);
+    return ids
+      .map((id) => this.products.get(id))
+      .filter((p): p is ProductSnapshot => p != null);
   }
 
   seed(products: ProductSnapshot[]): void {

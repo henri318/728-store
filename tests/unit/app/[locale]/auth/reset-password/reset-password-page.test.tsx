@@ -16,7 +16,9 @@ import { useSearchParams, useRouter } from 'next/navigation';
 describe('ResetPasswordPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useSearchParams).mockReturnValue(new URLSearchParams('token=valid-token') as any);
+    vi.mocked(useSearchParams).mockReturnValue(
+      new URLSearchParams('token=valid-token'),
+    );
   });
 
   it('renders new password form', () => {
@@ -28,24 +30,32 @@ describe('ResetPasswordPage', () => {
   });
 
   it('shows error when no token present', async () => {
-    vi.mocked(useSearchParams).mockReturnValue(new URLSearchParams('') as any);
+    vi.mocked(useSearchParams).mockReturnValue(new URLSearchParams(''));
 
     render(<ResetPasswordPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('El enlace ha expirado. Solicitá uno nuevo.')).toBeInTheDocument();
+      expect(
+        screen.getByText('El enlace ha expirado. Solicitá uno nuevo.'),
+      ).toBeInTheDocument();
     });
   });
 
   it('shows error when passwords do not match', async () => {
     render(<ResetPasswordPage />);
 
-    fireEvent.change(screen.getByLabelText('Nueva contraseña'), { target: { value: 'newpass123' } });
-    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), { target: { value: 'different' } });
+    fireEvent.change(screen.getByLabelText('Nueva contraseña'), {
+      target: { value: 'newpass123' },
+    });
+    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), {
+      target: { value: 'different' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Enviar' }));
 
     await waitFor(() => {
-      expect(screen.getByText('Las contraseñas no coinciden')).toBeInTheDocument();
+      expect(
+        screen.getByText('Las contraseñas no coinciden'),
+      ).toBeInTheDocument();
     });
   });
 
@@ -57,20 +67,27 @@ describe('ResetPasswordPage', () => {
 
     render(<ResetPasswordPage />);
 
-    fireEvent.change(screen.getByLabelText('Nueva contraseña'), { target: { value: 'newpass123' } });
-    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), { target: { value: 'newpass123' } });
+    fireEvent.change(screen.getByLabelText('Nueva contraseña'), {
+      target: { value: 'newpass123' },
+    });
+    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), {
+      target: { value: 'newpass123' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Enviar' }));
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith('/api/auth/reset-password', expect.objectContaining({
-        method: 'POST',
-      }));
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/auth/reset-password',
+        expect.objectContaining({
+          method: 'POST',
+        }),
+      );
     });
   });
 
   it('redirects after successful reset', async () => {
     const mockPush = vi.fn();
-    vi.mocked(useRouter).mockReturnValue({ push: mockPush } as any);
+    vi.mocked(useRouter).mockReturnValue({ push: mockPush });
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -79,8 +96,12 @@ describe('ResetPasswordPage', () => {
 
     render(<ResetPasswordPage />);
 
-    fireEvent.change(screen.getByLabelText('Nueva contraseña'), { target: { value: 'newpass123' } });
-    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), { target: { value: 'newpass123' } });
+    fireEvent.change(screen.getByLabelText('Nueva contraseña'), {
+      target: { value: 'newpass123' },
+    });
+    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), {
+      target: { value: 'newpass123' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Enviar' }));
 
     await waitFor(() => {

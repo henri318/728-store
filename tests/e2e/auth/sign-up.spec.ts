@@ -8,7 +8,9 @@ test.describe('Sign Up', () => {
     await expect(page.getByLabel('Nombre')).toBeVisible();
     await expect(page.getByLabel('Correo electrónico')).toBeVisible();
     await expect(page.getByLabel('Contraseña', { exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Crear cuenta' })).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Crear cuenta' }),
+    ).toBeVisible();
   });
 
   test('registers a new user and redirects to sign in', async ({ page }) => {

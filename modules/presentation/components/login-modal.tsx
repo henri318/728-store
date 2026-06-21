@@ -56,8 +56,16 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ margin: 0, fontSize: '1.3rem' }}>{dict.auth.signInTitle}</h2>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <h2 style={{ margin: 0, fontSize: '1.3rem' }}>
+            {dict.auth.signInTitle}
+          </h2>
           <button
             type="button"
             onClick={onClose}
@@ -78,7 +86,10 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+        >
           <Input
             label={dict.auth.email}
             type="email"
@@ -93,7 +104,10 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
             required
           />
           {error && (
-            <span role="alert" style={{ color: '#ff4d4f', fontSize: '0.85rem' }}>
+            <span
+              role="alert"
+              style={{ color: '#ff4d4f', fontSize: '0.85rem' }}
+            >
               {error}
             </span>
           )}

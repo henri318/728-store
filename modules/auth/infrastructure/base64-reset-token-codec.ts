@@ -1,4 +1,7 @@
-import type { ResetTokenCodec, ResetTokenPayload } from '@/modules/auth/domain/reset-token-codec-port';
+import type {
+  ResetTokenCodec,
+  ResetTokenPayload,
+} from '@/modules/auth/domain/reset-token-codec-port';
 
 /**
  * Base64ResetTokenCodec — jsdom-safe adapter for tests.

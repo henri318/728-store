@@ -53,9 +53,8 @@ describe('ResetPasswordUseCase', () => {
   });
 
   async function createUseCase() {
-    const { ResetPasswordUseCase } = await import(
-      '@/modules/users/application/use-cases/reset-password-use-case'
-    );
+    const { ResetPasswordUseCase } =
+      await import('@/modules/users/application/use-cases/reset-password-use-case');
     return new ResetPasswordUseCase(
       userRepository,
       passwordHasher,
@@ -65,7 +64,10 @@ describe('ResetPasswordUseCase', () => {
     );
   }
 
-  async function createValidToken(email = userEmail, ttlMs = 3600_000): Promise<string> {
+  async function createValidToken(
+    email = userEmail,
+    ttlMs = 3600_000,
+  ): Promise<string> {
     return tokenCodec.encode({
       email,
       exp: Date.now() + ttlMs,
@@ -89,10 +91,6 @@ describe('ResetPasswordUseCase', () => {
     expect(user!.passwordHash.value).toBe(`mem:${newPassword}`);
 
     // Token should be marked as used
-    const encodedToken = await tokenCodec.encode({
-      email: userEmail,
-      exp: Date.now() + 3600_000,
-    });
     // The original token's jti should now be marked used
     // (verify replay rejection below tests this separately)
   });
@@ -104,7 +102,9 @@ describe('ResetPasswordUseCase', () => {
     await useCase.execute({ token, newPassword });
 
     expect(outboxRepository.events.length).toBe(1);
-    expect(outboxRepository.events[0].eventType).toBe(GlobalEvents.PASSWORD_RESET);
+    expect(outboxRepository.events[0].eventType).toBe(
+      GlobalEvents.PASSWORD_RESET,
+    );
     expect(outboxRepository.events[0].payload.userId).toBe('user-rp-1');
   });
 
@@ -119,9 +119,9 @@ describe('ResetPasswordUseCase', () => {
     expect(result1.success).toBe(true);
 
     // Second use — must fail (replay)
-    await expect(
-      useCase.execute({ token, newPassword }),
-    ).rejects.toThrow('already been used');
+    await expect(useCase.execute({ token, newPassword })).rejects.toThrow(
+      'already been used',
+    );
   });
 
   // ── Expired token ────────────────────────────────────────────
@@ -131,9 +131,9 @@ describe('ResetPasswordUseCase', () => {
     const token = await createValidToken(userEmail, -1000);
     const useCase = await createUseCase();
 
-    await expect(
-      useCase.execute({ token, newPassword }),
-    ).rejects.toThrow('Invalid or expired token');
+    await expect(useCase.execute({ token, newPassword })).rejects.toThrow(
+      'Invalid or expired token',
+    );
   });
 
   // ── Deleted user ─────────────────────────────────────────────
@@ -150,9 +150,9 @@ describe('ResetPasswordUseCase', () => {
     const token = await createValidToken();
     const useCase = await createUseCase();
 
-    await expect(
-      useCase.execute({ token, newPassword }),
-    ).rejects.toThrow('Account is deactivated');
+    await expect(useCase.execute({ token, newPassword })).rejects.toThrow(
+      'Account is deactivated',
+    );
   });
 
   // ── User not found (email in token doesn't match any user) ──
@@ -161,8 +161,8 @@ describe('ResetPasswordUseCase', () => {
     const token = await createValidToken('nonexistent@example.com');
     const useCase = await createUseCase();
 
-    await expect(
-      useCase.execute({ token, newPassword }),
-    ).rejects.toThrow('User not found');
+    await expect(useCase.execute({ token, newPassword })).rejects.toThrow(
+      'User not found',
+    );
   });
 });

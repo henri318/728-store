@@ -1,8 +1,10 @@
 # Entity Model
 
 # Overview
+
 This model defines the main domain entities of the system.
 Designed for:
+
 - Modular monolith (DDD-lite)
 - Event-driven communication
 - Multi-vendor ready (mandatory seller)
@@ -12,9 +14,11 @@ Designed for:
 ---
 
 # User
+
 Represents a system user.
 
 ## Fields
+
 - id
 - email
 - username
@@ -26,6 +30,7 @@ Represents a system user.
 - updatedAt
 
 ## Relations
+
 - role
 - orders
 - tickets
@@ -34,39 +39,48 @@ Represents a system user.
 ---
 
 # Role
+
 Defines user permissions.
 
 ## Fields
+
 - id
 - name (admin | support | designer | user)
 
 ## Relations
+
 - users
 
 ---
 
 # Seller
+
 Base business entity.
 
 ## Fields
+
 - id
 - name
 - createdAt
 
 ## Relations
+
 - products
 - orders
 
 ## Note
+
 - Mandatory across the system.
 - Currently, only 1 seller exists.
 
 ---
 
 # Product
+
 Sellable product.
 
 ## Fields
+
 - id
 - name
 - description
@@ -75,6 +89,7 @@ Sellable product.
 - createdAt
 
 ## Relations
+
 - seller
 - customizations
 - orderItems
@@ -82,9 +97,11 @@ Sellable product.
 ---
 
 # ProductCustomization
+
 Product customization options.
 
 ## Fields
+
 - id
 - text
 - color
@@ -94,15 +111,18 @@ Product customization options.
 - createdAt
 
 ## Relations
+
 - product
 - orderItems
 
 ---
 
 # Order
+
 User's order.
 
 ## Fields
+
 - id
 - status (pending | paid | production | shipped)
 - total
@@ -111,6 +131,7 @@ User's order.
 - createdAt
 
 ## Relations
+
 - user
 - seller
 - items
@@ -120,9 +141,11 @@ User's order.
 ---
 
 # OrderItem
+
 Item within an order.
 
 ## Fields
+
 - id
 - quantity
 - price
@@ -131,6 +154,7 @@ Item within an order.
 - customizationId
 
 ## Relations
+
 - order
 - product
 - customization
@@ -138,9 +162,11 @@ Item within an order.
 ---
 
 # Payment
+
 Order payment.
 
 ## Fields
+
 - id
 - provider (paypal)
 - status (pending | completed | failed)
@@ -151,14 +177,17 @@ Order payment.
 - createdAt
 
 ## Relations
+
 - order
 
 ---
 
 # Ticket
+
 Support system.
 
 ## Fields
+
 - id
 - subject
 - status (open | in_progress | closed)
@@ -167,6 +196,7 @@ Support system.
 - createdAt
 
 ## Relations
+
 - user
 - order
 - messages
@@ -174,9 +204,11 @@ Support system.
 ---
 
 # TicketMessage
+
 Messages within a ticket.
 
 ## Fields
+
 - id
 - message
 - role (user | support | designer | ai)
@@ -185,14 +217,17 @@ Messages within a ticket.
 - createdAt
 
 ## Relations
+
 - ticket
 
 ---
 
 # AIInteraction
+
 AI interaction history.
 
 ## Fields
+
 - id
 - prompt
 - response
@@ -200,14 +235,17 @@ AI interaction history.
 - createdAt
 
 ## Relations
+
 - ticket (optional)
 
 ---
 
 # Upload
+
 User uploaded files.
 
 ## Fields
+
 - id
 - url
 - type (product | ticket | avatar)
@@ -215,6 +253,7 @@ User uploaded files.
 - createdAt
 
 ## Relations
+
 - user
 
 ---

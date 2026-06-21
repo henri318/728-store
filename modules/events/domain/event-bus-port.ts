@@ -18,7 +18,7 @@
  *     adds it again (handlers are kept in a list per event).
  */
 
-export type EventHandler = (data: any) => void | Promise<void>;
+export type EventHandler = (data: unknown) => void | Promise<void>;
 
 /**
  * The port — what production code and tests consume.
@@ -34,5 +34,5 @@ export interface EventBusPort {
    * Fan out an event to every registered handler.
    * Throws the first handler's rejection so failures are visible.
    */
-  emit(event: string, data: any): Promise<void>;
+  emit(event: string, data: unknown): Promise<void>;
 }

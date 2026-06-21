@@ -15,7 +15,7 @@ interface UserMenuDropdownProps {
   };
 }
 
-export function UserMenuDropdown({ user }: UserMenuDropdownProps) {
+export function UserMenuDropdown(_props: UserMenuDropdownProps) {
   const { locale } = useParams<{ locale: string }>();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);

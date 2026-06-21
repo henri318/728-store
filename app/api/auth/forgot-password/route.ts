@@ -33,7 +33,11 @@ export async function POST(req: NextRequest) {
     const emailPort = container.getForgotPasswordEmailPort();
     const tokenCodec = container.getResetTokenCodec();
 
-    const useCase = new ForgotPasswordUseCase(userRepository, emailPort, tokenCodec);
+    const useCase = new ForgotPasswordUseCase(
+      userRepository,
+      emailPort,
+      tokenCodec,
+    );
     const result = await useCase.execute({ email });
 
     // Record successful attempt — legitimate requests should not count

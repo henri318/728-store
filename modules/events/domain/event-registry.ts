@@ -36,4 +36,4 @@ export const GlobalEvents = {
  * Type representing all possible global event names.
  * Derived from the GlobalEvents constant values.
  */
-export type GlobalEventName = typeof GlobalEvents[keyof typeof GlobalEvents];
+export type GlobalEventName = (typeof GlobalEvents)[keyof typeof GlobalEvents];

@@ -4,37 +4,19 @@ import { EyeToggleWrapper } from '@/modules/presentation/components/eye-toggle-w
 
 describe('EyeToggleWrapper component', () => {
   it('renders with password input type by default', () => {
-    render(
-      <EyeToggleWrapper
-        label="Password"
-        value=""
-        onChange={() => {}}
-      />
-    );
+    render(<EyeToggleWrapper label="Password" value="" onChange={() => {}} />);
     const input = screen.getByLabelText('Password');
     expect(input).toHaveAttribute('type', 'password');
   });
 
   it('shows eye-off icon by default (password hidden)', () => {
-    render(
-      <EyeToggleWrapper
-        label="Password"
-        value=""
-        onChange={() => {}}
-      />
-    );
+    render(<EyeToggleWrapper label="Password" value="" onChange={() => {}} />);
     const toggleButton = screen.getByRole('button', { name: /show password/i });
     expect(toggleButton).toBeInTheDocument();
   });
 
   it('toggles to text input type when eye icon is clicked', () => {
-    render(
-      <EyeToggleWrapper
-        label="Password"
-        value=""
-        onChange={() => {}}
-      />
-    );
+    render(<EyeToggleWrapper label="Password" value="" onChange={() => {}} />);
     const toggleButton = screen.getByRole('button', { name: /show password/i });
     fireEvent.click(toggleButton);
     const input = screen.getByLabelText('Password');
@@ -42,13 +24,7 @@ describe('EyeToggleWrapper component', () => {
   });
 
   it('toggles back to password type when clicked again', () => {
-    render(
-      <EyeToggleWrapper
-        label="Password"
-        value=""
-        onChange={() => {}}
-      />
-    );
+    render(<EyeToggleWrapper label="Password" value="" onChange={() => {}} />);
     const toggleButton = screen.getByRole('button', { name: /show password/i });
     fireEvent.click(toggleButton);
     fireEvent.click(toggleButton);
@@ -58,11 +34,7 @@ describe('EyeToggleWrapper component', () => {
 
   it('passes label prop through to Input', () => {
     render(
-      <EyeToggleWrapper
-        label="My Password"
-        value=""
-        onChange={() => {}}
-      />
+      <EyeToggleWrapper label="My Password" value="" onChange={() => {}} />,
     );
     expect(screen.getByText('My Password')).toBeInTheDocument();
   });
@@ -73,7 +45,7 @@ describe('EyeToggleWrapper component', () => {
         label="Password"
         value="secret123"
         onChange={() => {}}
-      />
+      />,
     );
     const input = screen.getByLabelText('Password');
     expect(input).toHaveValue('secret123');
@@ -86,7 +58,7 @@ describe('EyeToggleWrapper component', () => {
         value=""
         onChange={() => {}}
         error="Password is required"
-      />
+      />,
     );
     expect(screen.getByText('Password is required')).toBeInTheDocument();
   });
@@ -98,7 +70,7 @@ describe('EyeToggleWrapper component', () => {
         value=""
         onChange={() => {}}
         required
-      />
+      />,
     );
     const input = screen.getByLabelText('Password');
     expect(input).toBeRequired();
@@ -106,26 +78,14 @@ describe('EyeToggleWrapper component', () => {
 
   it('calls onChange with new value', () => {
     const onChange = vi.fn();
-    render(
-      <EyeToggleWrapper
-        label="Password"
-        value=""
-        onChange={onChange}
-      />
-    );
+    render(<EyeToggleWrapper label="Password" value="" onChange={onChange} />);
     const input = screen.getByLabelText('Password');
     fireEvent.change(input, { target: { value: 'newpass' } });
     expect(onChange).toHaveBeenCalledWith('newpass');
   });
 
   it('is keyboard accessible: Enter toggles visibility', () => {
-    render(
-      <EyeToggleWrapper
-        label="Password"
-        value=""
-        onChange={() => {}}
-      />
-    );
+    render(<EyeToggleWrapper label="Password" value="" onChange={() => {}} />);
     const toggleButton = screen.getByRole('button', { name: /show password/i });
     toggleButton.focus();
     fireEvent.keyDown(toggleButton, { key: 'Enter' });
@@ -134,13 +94,7 @@ describe('EyeToggleWrapper component', () => {
   });
 
   it('is keyboard accessible: Space toggles visibility', () => {
-    render(
-      <EyeToggleWrapper
-        label="Password"
-        value=""
-        onChange={() => {}}
-      />
-    );
+    render(<EyeToggleWrapper label="Password" value="" onChange={() => {}} />);
     const toggleButton = screen.getByRole('button', { name: /show password/i });
     toggleButton.focus();
     fireEvent.keyDown(toggleButton, { key: ' ' });
@@ -149,13 +103,7 @@ describe('EyeToggleWrapper component', () => {
   });
 
   it('changes aria-label between Show password and Hide password', () => {
-    render(
-      <EyeToggleWrapper
-        label="Password"
-        value=""
-        onChange={() => {}}
-      />
-    );
+    render(<EyeToggleWrapper label="Password" value="" onChange={() => {}} />);
     const toggleButton = screen.getByRole('button', { name: /show password/i });
     expect(toggleButton).toHaveAttribute('aria-label', 'Show password');
     fireEvent.click(toggleButton);

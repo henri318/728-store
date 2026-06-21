@@ -10,6 +10,6 @@ export interface EmailQueueEntry {
   subject: string;
   htmlBody: string;
   template: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
 }

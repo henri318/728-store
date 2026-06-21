@@ -1,7 +1,13 @@
 import { randomUUID } from 'crypto';
-import type { OutboxEvent, OutboxRepository } from '@/shared/kernel/outbox-repository';
+import type {
+  OutboxEvent,
+  OutboxRepository,
+} from '@/shared/kernel/outbox-repository';
 
-type SeedableEvent = Omit<OutboxEvent, 'processedAt' | 'status'> & { processedAt?: Date | null; status?: string };
+type SeedableEvent = Omit<OutboxEvent, 'processedAt' | 'status'> & {
+  processedAt?: Date | null;
+  status?: string;
+};
 
 /**
  * In-memory OutboxRepository test double.
@@ -18,11 +24,15 @@ export class MemoryOutboxRepository implements OutboxRepository {
   private store: OutboxEvent[] = [];
 
   /** Backward-compat shape used by existing tests. */
-  public get events(): { eventType: string; payload: any }[] {
+  public get events(): { eventType: string; payload: unknown }[] {
     return this.store.map(({ eventType, payload }) => ({ eventType, payload }));
   }
 
-  async saveEvent(eventType: string, payload: any, _tx?: any): Promise<void> {
+  async saveEvent(
+    eventType: string,
+    payload: unknown,
+    _tx?: unknown,
+  ): Promise<void> {
     this.store.push({
       id: randomUUID(),
       eventType,

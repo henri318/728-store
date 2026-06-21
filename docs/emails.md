@@ -39,6 +39,7 @@ No usamos Redis. La cola de emails se implementa con una tabla `EmailQueue` en P
 ```
 
 **Protecciones**:
+
 - Token expira en 24h
 - `purpose: "email-verification"` en el JWT para evitar reuso del token en otro contexto
 - Reenviar email: máximo 1 vez cada 5 min (rate limiting por userId)
@@ -48,6 +49,7 @@ No usamos Redis. La cola de emails se implementa con una tabla `EmailQueue` en P
 **Disparador**: Cuando `user.emailVerified` pasa de `null` a `DateTime`.
 
 **Flujo**:
+
 ```
 1. Webhook o worker detecta emailVerified cambiado
 2. Envía email de bienvenida con resumen de la cuenta
@@ -93,13 +95,14 @@ model EmailQueue {
   sentAt      DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   @@index([status, scheduledAt])
   @@index([createdAt])
 }
 ```
 
 **Estrategia de reintentos**:
+
 - `maxRetries: 3`
 - Backoff: `2^retryCount * 60` segundos (1min → 2min → 4min)
 - Después del 3er fallo, el worker marca como FAILED y alerta
@@ -119,7 +122,10 @@ npm install @getbrevo/brevo
 import * as brevo from '@getbrevo/brevo';
 
 const apiInstance = new brevo.TransactionalEmailsApi();
-apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY!);
+apiInstance.setApiKey(
+  brevo.TransactionalEmailsApiApiKeys.apiKey,
+  process.env.BREVO_API_KEY!,
+);
 
 export const emailClient = apiInstance;
 
@@ -154,7 +160,10 @@ async function processEmailQueue() {
       const sendSmtpEmail = new brevo.SendSmtpEmail();
       sendSmtpEmail.subject = email.subject;
       sendSmtpEmail.htmlContent = email.htmlBody;
-      sendSmtpEmail.sender = { name: FROM_NAME, email: 'no-reply@tudominio.com' };
+      sendSmtpEmail.sender = {
+        name: FROM_NAME,
+        email: 'no-reply@tudominio.com',
+      };
       sendSmtpEmail.to = [{ email: email.to }];
 
       await emailClient.sendTransacEmail(sendSmtpEmail);
@@ -167,7 +176,11 @@ async function processEmailQueue() {
       if (newRetryCount >= email.maxRetries) {
         await prisma.emailQueue.update({
           where: { id: email.id },
-          data: { status: 'FAILED', error: String(error), retryCount: newRetryCount },
+          data: {
+            status: 'FAILED',
+            error: String(error),
+            retryCount: newRetryCount,
+          },
         });
       } else {
         const backoff = Math.pow(2, newRetryCount) * 60; // segundos
@@ -240,12 +253,12 @@ if (account.provider === 'google') {
 
 ## Endpoints API
 
-| Método | Ruta | Propósito |
-|--------|------|-----------|
-| POST | `/api/auth/verify-email` | Verificar email con token JWT |
-| POST | `/api/auth/resend-verification` | Reenviar email de verificación (rate limit: 1/5min) |
-| POST | `/api/auth/forgot-password` | Enviar email de reset de contraseña |
-| POST | `/api/auth/reset-password` | Resetear contraseña con token |
+| Método | Ruta                            | Propósito                                           |
+| ------ | ------------------------------- | --------------------------------------------------- |
+| POST   | `/api/auth/verify-email`        | Verificar email con token JWT                       |
+| POST   | `/api/auth/resend-verification` | Reenviar email de verificación (rate limit: 1/5min) |
+| POST   | `/api/auth/forgot-password`     | Enviar email de reset de contraseña                 |
+| POST   | `/api/auth/reset-password`      | Resetear contraseña con token                       |
 
 ---
 

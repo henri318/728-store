@@ -82,6 +82,8 @@ describe('PasswordStrengthIndicator component', () => {
     render(<PasswordStrengthIndicator password="" />);
     expect(screen.getByText(/Tiene números/i)).toBeInTheDocument();
     expect(screen.getByText(/Tiene letras/i)).toBeInTheDocument();
-    expect(screen.getByText(/Tiene caracteres especiales/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Tiene caracteres especiales/i),
+    ).toBeInTheDocument();
   });
 });

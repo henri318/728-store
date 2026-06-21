@@ -84,7 +84,10 @@ export class MemoryEmailQueueRepository implements EmailQueueRepository {
   // Worker operations
   // -------------------------------------------------------------------------
 
-  async claimPending(now: Date, batchSize: number): Promise<EmailQueueWorkerEntry[]> {
+  async claimPending(
+    now: Date,
+    batchSize: number,
+  ): Promise<EmailQueueWorkerEntry[]> {
     const nowTime = now.getTime();
     const claimed: EmailQueueWorkerEntry[] = [];
     let remaining = batchSize;
@@ -119,7 +122,11 @@ export class MemoryEmailQueueRepository implements EmailQueueRepository {
     e.error = null;
   }
 
-  async markFailed(id: string, error: string, retryCount: number): Promise<void> {
+  async markFailed(
+    id: string,
+    error: string,
+    retryCount: number,
+  ): Promise<void> {
     const e = this.entries.find((x) => x.id === id);
     if (!e) return;
     e.status = 'FAILED';

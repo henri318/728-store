@@ -11,15 +11,18 @@ import type { EmailSender } from './email-sender';
  * BREVO_API_KEY is not set (e.g. during `next dev` without .env.local).
  */
 export class BrevoEmailSender implements EmailSender {
-  private getClient() {
-    // Lazy import — only crashes if this adapter is actually invoked without a key
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { brevoClient, FROM_EMAIL, FROM_NAME } = require('@/modules/email/infrastructure/brevo-client') as typeof import('@/modules/email/infrastructure/brevo-client');
+  private async getClient() {
+    const { brevoClient, FROM_EMAIL, FROM_NAME } =
+      await import('@/modules/email/infrastructure/brevo-client');
     return { brevoClient, FROM_EMAIL, FROM_NAME };
   }
 
-  async send(params: { to: string; subject: string; htmlBody: string }): Promise<void> {
-    const { brevoClient, FROM_EMAIL, FROM_NAME } = this.getClient();
+  async send(params: {
+    to: string;
+    subject: string;
+    htmlBody: string;
+  }): Promise<void> {
+    const { brevoClient, FROM_EMAIL, FROM_NAME } = await this.getClient();
     await brevoClient.transactionalEmails.sendTransacEmail({
       subject: params.subject,
       htmlContent: params.htmlBody,

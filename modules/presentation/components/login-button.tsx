@@ -34,10 +34,7 @@ export function LoginButton({ label }: LoginButtonProps) {
       >
         {label}
       </button>
-      <LoginModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
+      <LoginModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </>
   );
 }

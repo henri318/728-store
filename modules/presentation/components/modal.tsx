@@ -16,7 +16,7 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
         onClose();
       }
     },
-    [onClose]
+    [onClose],
   );
 
   useEffect(() => {

@@ -17,14 +17,20 @@ describe('CreateOrderUseCase', () => {
     outboxRepository = new MemoryOutboxRepository();
 
     // Manual dependency injection for test
-    useCase = new CreateOrderUseCase(orderRepository, productRepository, outboxRepository);
+    useCase = new CreateOrderUseCase(
+      orderRepository,
+      productRepository,
+      outboxRepository,
+    );
 
     // Seed product — orders' ProductRepository only needs id/basePrice/sellerId
-    productRepository.seed([{
-      id: 'p1',
-      basePrice: 100,
-      sellerId: 's1',
-    }]);
+    productRepository.seed([
+      {
+        id: 'p1',
+        basePrice: 100,
+        sellerId: 's1',
+      },
+    ]);
   });
 
   const validItem = {
@@ -45,15 +51,19 @@ describe('CreateOrderUseCase', () => {
     const result = await useCase.execute({ userId: 'u1', items: [validItem] });
 
     expect(outboxRepository.events.length).toBe(1);
-    expect(outboxRepository.events[0].eventType).toBe(GlobalEvents.ORDER_CREATED);
+    expect(outboxRepository.events[0].eventType).toBe(
+      GlobalEvents.ORDER_CREATED,
+    );
     expect(outboxRepository.events[0].payload.orderId).toBe(result.id);
     expect(outboxRepository.events[0].payload.totalAmount).toBe(100);
   });
 
   it('should throw an error if the product does not exist', async () => {
-    await expect(useCase.execute({
-      userId: 'u1',
-      items: [{ productId: 'p99', quantity: 1, customization: {} }]
-    })).rejects.toThrow('Product with ID p99 not found.');
+    await expect(
+      useCase.execute({
+        userId: 'u1',
+        items: [{ productId: 'p99', quantity: 1, customization: {} }],
+      }),
+    ).rejects.toThrow('Product with ID p99 not found.');
   });
 });

@@ -9,7 +9,10 @@ import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { DictionaryProvider } from '@/shared/i18n/dictionary-context';
 
 // Start the outbox worker when the server starts
-if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_OUTBOX_WORKER === 'true') {
+if (
+  process.env.NODE_ENV !== 'production' ||
+  process.env.ENABLE_OUTBOX_WORKER === 'true'
+) {
   outboxWorker.start();
 }
 
@@ -28,10 +31,25 @@ export default async function RootLayout({
     <html lang={locale}>
       <body style={{ margin: 0, fontFamily: 'system-ui, sans-serif' }}>
         <SessionProviderWrapper session={session}>
-          <header style={{ padding: '1rem', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h1 style={{ fontSize: '1.2rem', margin: 0 }}>Modular E-commerce</h1>
+          <header
+            style={{
+              padding: '1rem',
+              borderBottom: '1px solid #eee',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <h1 style={{ fontSize: '1.2rem', margin: 0 }}>
+              Modular E-commerce
+            </h1>
             <nav style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <a href={`/${locale}`} style={{ textDecoration: 'none', color: '#0070f3' }}>{dict.common.home}</a>
+              <a
+                href={`/${locale}`}
+                style={{ textDecoration: 'none', color: '#0070f3' }}
+              >
+                {dict.common.home}
+              </a>
               <LanguageSelector currentLocale={locale} />
               <HeaderNav loginLabel={dict.common.login} />
             </nav>

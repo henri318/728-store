@@ -11,7 +11,9 @@ export class MemorySecrets implements SecretsPort {
 
   getAuthSecret(): Uint8Array {
     if (!this.secret) {
-      throw new Error('[Auth] NEXTAUTH_SECRET environment variable is required but not set.');
+      throw new Error(
+        '[Auth] NEXTAUTH_SECRET environment variable is required but not set.',
+      );
     }
     return new TextEncoder().encode(this.secret);
   }

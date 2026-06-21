@@ -47,9 +47,8 @@ describe('ForgotPasswordUseCase', () => {
   });
 
   it('should call EmailPort.send with a token when email exists', async () => {
-    const { ForgotPasswordUseCase } = await import(
-      '@/modules/users/application/use-cases/forgot-password-use-case'
-    );
+    const { ForgotPasswordUseCase } =
+      await import('@/modules/users/application/use-cases/forgot-password-use-case');
 
     const useCase = new ForgotPasswordUseCase(
       userRepository,
@@ -60,7 +59,9 @@ describe('ForgotPasswordUseCase', () => {
     const result = await useCase.execute({ email: 'forgot@example.com' });
 
     expect(result.success).toBe(true);
-    expect(result.message).toBe('If the email exists, a reset link has been sent');
+    expect(result.message).toBe(
+      'If the email exists, a reset link has been sent',
+    );
 
     // EmailPort.send called with the email and a non-empty token
     expect(emailPort.send).toHaveBeenCalledTimes(1);
@@ -69,8 +70,9 @@ describe('ForgotPasswordUseCase', () => {
       expect.any(String),
     );
 
-    const [calledEmail, calledToken] = (emailPort.send as ReturnType<typeof vi.fn>).mock
-      .calls[0];
+    const [calledEmail, calledToken] = (
+      emailPort.send as ReturnType<typeof vi.fn>
+    ).mock.calls[0];
     expect(calledEmail).toBe('forgot@example.com');
     expect(calledToken).toBeTruthy();
     expect(typeof calledToken).toBe('string');
@@ -82,9 +84,8 @@ describe('ForgotPasswordUseCase', () => {
   });
 
   it('should return success without calling EmailPort when email does NOT exist (anti-enumeration)', async () => {
-    const { ForgotPasswordUseCase } = await import(
-      '@/modules/users/application/use-cases/forgot-password-use-case'
-    );
+    const { ForgotPasswordUseCase } =
+      await import('@/modules/users/application/use-cases/forgot-password-use-case');
 
     const useCase = new ForgotPasswordUseCase(
       userRepository,
@@ -98,16 +99,17 @@ describe('ForgotPasswordUseCase', () => {
 
     // Same success message — no enumeration
     expect(result.success).toBe(true);
-    expect(result.message).toBe('If the email exists, a reset link has been sent');
+    expect(result.message).toBe(
+      'If the email exists, a reset link has been sent',
+    );
 
     // EmailPort.send NOT called
     expect(emailPort.send).not.toHaveBeenCalled();
   });
 
   it('should NOT send email when user is deactivated (deletedAt)', async () => {
-    const { ForgotPasswordUseCase } = await import(
-      '@/modules/users/application/use-cases/forgot-password-use-case'
-    );
+    const { ForgotPasswordUseCase } =
+      await import('@/modules/users/application/use-cases/forgot-password-use-case');
 
     // Soft-delete the seeded user
     const user = await userRepository.findByEmail('forgot@example.com');
@@ -128,7 +130,9 @@ describe('ForgotPasswordUseCase', () => {
 
     // Still returns success (anti-enumeration), but email NOT sent
     expect(result.success).toBe(true);
-    expect(result.message).toBe('If the email exists, a reset link has been sent');
+    expect(result.message).toBe(
+      'If the email exists, a reset link has been sent',
+    );
     expect(emailPort.send).not.toHaveBeenCalled();
   });
 });

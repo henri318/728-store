@@ -19,11 +19,15 @@ test.describe('Delete Account', () => {
 
     // Click delete — confirmation modal should appear
     await deleteButton.click();
-    await expect(page.getByRole('heading', { name: /eliminar cuenta/i })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /eliminar cuenta/i }),
+    ).toBeVisible();
 
     // Cancel should close modal
     await page.getByRole('button', { name: /cancelar/i }).click();
-    await expect(page.getByRole('heading', { name: /eliminar cuenta/i })).not.toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /eliminar cuenta/i }),
+    ).not.toBeVisible();
   });
 
   test('delete is NOT available in the header menu', async ({ page }) => {
@@ -38,6 +42,8 @@ test.describe('Delete Account', () => {
     await page.getByRole('button', { name: /menu/i }).click();
 
     // Delete should NOT be in the dropdown
-    await expect(page.getByRole('menuitem', { name: /eliminar cuenta/i })).not.toBeVisible();
+    await expect(
+      page.getByRole('menuitem', { name: /eliminar cuenta/i }),
+    ).not.toBeVisible();
   });
 });

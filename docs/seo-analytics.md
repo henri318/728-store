@@ -37,6 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 ```
 
 **Reglas**:
+
 - `title` único por página (formato: `"Página | Modular Ecommerce"`)
 - `description` entre 120-160 caracteres
 - `alternates.languages` para cada locale (es, cat)
@@ -52,7 +53,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const products = await getPublishedProducts();
   const categories = await getCategories();
 
-  const productUrls = products.map(p => ({
+  const productUrls = products.map((p) => ({
     url: `https://tudominio.com/products/${p.slug}`,
     lastModified: p.updatedAt,
     changeFrequency: 'daily' as const,

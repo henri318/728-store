@@ -18,10 +18,10 @@ describe('GetProductsUseCase with i18n', () => {
         sellerName: 'Store 1',
         translations: [
           { locale: 'es', name: 'Taza', description: 'Una taza' },
-          { locale: 'cat', name: 'Tassa', description: 'Una tassa' }
+          { locale: 'cat', name: 'Tassa', description: 'Una tassa' },
         ],
         customizations: [],
-      }
+      },
     ]);
   });
 

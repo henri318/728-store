@@ -19,8 +19,14 @@ describe('Orders Module - Integration Tests', () => {
   beforeEach(() => {
     orderRepository = new MemoryOrderRepository();
     outboxRepository = new MemoryOutboxRepository();
-    markAsPaidUseCase = new MarkAsPaidUseCase(orderRepository, outboxRepository);
-    assignToProductionUseCase = new AssignToProductionUseCase(orderRepository, outboxRepository);
+    markAsPaidUseCase = new MarkAsPaidUseCase(
+      orderRepository,
+      outboxRepository,
+    );
+    assignToProductionUseCase = new AssignToProductionUseCase(
+      orderRepository,
+      outboxRepository,
+    );
   });
 
   describe('Complete Order Lifecycle', () => {
@@ -33,7 +39,12 @@ describe('Orders Module - Integration Tests', () => {
         total: 250,
         status: 'pending',
         lineItems: [
-          { id: 'item-1', orderId: 'order-lifecycle-1', productId: 'prod-1', quantity: 1 },
+          {
+            id: 'item-1',
+            orderId: 'order-lifecycle-1',
+            productId: 'prod-1',
+            quantity: 1,
+          },
         ],
       };
       await orderRepository.save(order);
@@ -49,7 +60,9 @@ describe('Orders Module - Integration Tests', () => {
       let updatedOrder = await orderRepository.findById('order-lifecycle-1');
       expect(updatedOrder?.status).toBe('paid');
       expect(outboxRepository.events.length).toBe(1);
-      expect(outboxRepository.events[0].eventType).toBe(GlobalEvents.ORDER_PAID);
+      expect(outboxRepository.events[0].eventType).toBe(
+        GlobalEvents.ORDER_PAID,
+      );
 
       // Act 2 - Customizations ready, assign to production
       await assignToProductionUseCase.execute({
@@ -61,7 +74,9 @@ describe('Orders Module - Integration Tests', () => {
       updatedOrder = await orderRepository.findById('order-lifecycle-1');
       expect(updatedOrder?.status).toBe('ready-for-production');
       expect(outboxRepository.events.length).toBe(2);
-      expect(outboxRepository.events[1].eventType).toBe(GlobalEvents.ORDER_READY_FOR_PRODUCTION);
+      expect(outboxRepository.events[1].eventType).toBe(
+        GlobalEvents.ORDER_READY_FOR_PRODUCTION,
+      );
     });
 
     it('should handle multiple orders through complete lifecycle', async () => {
@@ -94,7 +109,11 @@ describe('Orders Module - Integration Tests', () => {
         const order = await orderRepository.findById(`order-${i}`);
         expect(order?.status).toBe('paid');
       }
-      expect(outboxRepository.events.filter(e => e.eventType === GlobalEvents.ORDER_PAID).length).toBe(3);
+      expect(
+        outboxRepository.events.filter(
+          (e) => e.eventType === GlobalEvents.ORDER_PAID,
+        ).length,
+      ).toBe(3);
 
       // Act - Assign all to production
       for (let i = 1; i <= 3; i++) {
@@ -109,7 +128,11 @@ describe('Orders Module - Integration Tests', () => {
         const order = await orderRepository.findById(`order-${i}`);
         expect(order?.status).toBe('ready-for-production');
       }
-      expect(outboxRepository.events.filter(e => e.eventType === GlobalEvents.ORDER_READY_FOR_PRODUCTION).length).toBe(3);
+      expect(
+        outboxRepository.events.filter(
+          (e) => e.eventType === GlobalEvents.ORDER_READY_FOR_PRODUCTION,
+        ).length,
+      ).toBe(3);
     });
   });
 
@@ -135,7 +158,9 @@ describe('Orders Module - Integration Tests', () => {
 
       // Assert - Outbox has ORDER_PAID event
       expect(outboxRepository.events.length).toBe(1);
-      expect(outboxRepository.events[0].eventType).toBe(GlobalEvents.ORDER_PAID);
+      expect(outboxRepository.events[0].eventType).toBe(
+        GlobalEvents.ORDER_PAID,
+      );
       expect(outboxRepository.events[0].payload.orderId).toBe('order-outbox');
 
       // Act - Production assignment
@@ -146,14 +171,18 @@ describe('Orders Module - Integration Tests', () => {
 
       // Assert - Outbox has both events in order
       expect(outboxRepository.events.length).toBe(2);
-      expect(outboxRepository.events[0].eventType).toBe(GlobalEvents.ORDER_PAID);
-      expect(outboxRepository.events[1].eventType).toBe(GlobalEvents.ORDER_READY_FOR_PRODUCTION);
+      expect(outboxRepository.events[0].eventType).toBe(
+        GlobalEvents.ORDER_PAID,
+      );
+      expect(outboxRepository.events[1].eventType).toBe(
+        GlobalEvents.ORDER_READY_FOR_PRODUCTION,
+      );
     });
 
     it('should handle outbox event batch processing', async () => {
       // Arrange - Multiple orders
       const orderIds = ['batch-1', 'batch-2', 'batch-3', 'batch-4', 'batch-5'];
-      
+
       for (const orderId of orderIds) {
         await orderRepository.save({
           id: orderId,
@@ -167,17 +196,27 @@ describe('Orders Module - Integration Tests', () => {
 
       // Act - Process all payments (batch)
       await Promise.all(
-        orderIds.map(id =>
-          markAsPaidUseCase.execute({ orderId: id, paymentId: `pay-${id}`, amount: 50 })
-        )
+        orderIds.map((id) =>
+          markAsPaidUseCase.execute({
+            orderId: id,
+            paymentId: `pay-${id}`,
+            amount: 50,
+          }),
+        ),
       );
 
       // Assert - All events in outbox
       expect(outboxRepository.events.length).toBe(5);
-      expect(outboxRepository.events.every(e => e.eventType === GlobalEvents.ORDER_PAID)).toBe(true);
+      expect(
+        outboxRepository.events.every(
+          (e) => e.eventType === GlobalEvents.ORDER_PAID,
+        ),
+      ).toBe(true);
 
       // Simulate outbox worker processing
-      const processedEvents = outboxRepository.events.map(e => e.payload.orderId);
+      const processedEvents = outboxRepository.events.map(
+        (e) => e.payload.orderId,
+      );
       expect(processedEvents.sort()).toEqual(orderIds.sort());
     });
   });
@@ -190,7 +229,7 @@ describe('Orders Module - Integration Tests', () => {
           orderId: 'non-existent',
           paymentId: 'payment-1',
           amount: 100,
-        })
+        }),
       ).rejects.toThrow('Order not found');
 
       // No side effects
@@ -238,7 +277,7 @@ describe('Orders Module - Integration Tests', () => {
         assignToProductionUseCase.execute({
           orderId: 'order-invalid',
           customizationId: 'custom-1',
-        })
+        }),
       ).rejects.toThrow('Order must be paid before production');
 
       // Assert - Order still pending, no events
@@ -343,7 +382,9 @@ describe('Orders Module - Integration Tests', () => {
         totalAmount: 199.99,
         paidAt: expect.any(String),
       });
-      expect(event.payload.paidAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/); // ISO 8601
+      expect(event.payload.paidAt).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/,
+      ); // ISO 8601
     });
 
     it('should emit ORDER_READY_FOR_PRODUCTION with complete payload structure', async () => {
@@ -374,7 +415,9 @@ describe('Orders Module - Integration Tests', () => {
         customizationId: 'custom-test',
         readyAt: expect.any(String),
       });
-      expect(event.payload.readyAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/); // ISO 8601
+      expect(event.payload.readyAt).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/,
+      ); // ISO 8601
     });
   });
 
@@ -425,7 +468,9 @@ describe('Orders Module - Integration Tests', () => {
       // Assert - Should handle special chars
       const updatedOrder = await orderRepository.findById('order-special');
       expect(updatedOrder?.status).toBe('ready-for-production');
-      expect(outboxRepository.events[0].payload.customizationId).toBe('custom-émoji-🎉');
+      expect(outboxRepository.events[0].payload.customizationId).toBe(
+        'custom-émoji-🎉',
+      );
     });
   });
 });

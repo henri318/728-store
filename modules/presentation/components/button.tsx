@@ -11,7 +11,10 @@ interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'danger';
 }
 
-const variantStyles: Record<NonNullable<ButtonProps['variant']>, React.CSSProperties> = {
+const variantStyles: Record<
+  NonNullable<ButtonProps['variant']>,
+  React.CSSProperties
+> = {
   primary: { background: '#0070f3', color: 'white' },
   secondary: { background: '#f0f0f0', color: '#333' },
   danger: { background: '#ff4d4f', color: 'white' },

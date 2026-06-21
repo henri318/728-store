@@ -24,7 +24,14 @@ describe('Input component', () => {
   });
 
   it('shows error styling and message when error prop is provided', () => {
-    render(<Input label="Email" value="" onChange={() => {}} error="Invalid email" />);
+    render(
+      <Input
+        label="Email"
+        value=""
+        onChange={() => {}}
+        error="Invalid email"
+      />,
+    );
     const input = screen.getByRole('textbox');
     expect(screen.getByText('Invalid email')).toBeInTheDocument();
     expect(input).toHaveAttribute('aria-invalid', 'true');
@@ -37,13 +44,22 @@ describe('Input component', () => {
   });
 
   it('accepts HTML input type prop', () => {
-    render(<Input label="Password" value="" onChange={() => {}} type="password" />);
+    render(
+      <Input label="Password" value="" onChange={() => {}} type="password" />,
+    );
     const input = screen.getByLabelText('Password');
     expect(input).toHaveAttribute('type', 'password');
   });
 
   it('accepts placeholder prop', () => {
-    render(<Input label="City" value="" onChange={() => {}} placeholder="Enter your city" />);
+    render(
+      <Input
+        label="City"
+        value=""
+        onChange={() => {}}
+        placeholder="Enter your city"
+      />,
+    );
     const input = screen.getByPlaceholderText('Enter your city');
     expect(input).toBeInTheDocument();
   });

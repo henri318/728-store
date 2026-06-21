@@ -34,7 +34,8 @@ describe('UpdateUserUseCase', () => {
       updatedAt: new Date(),
     });
 
-    const { UpdateUserUseCase } = await import('@/modules/users/application/use-cases/update-user-use-case');
+    const { UpdateUserUseCase } =
+      await import('@/modules/users/application/use-cases/update-user-use-case');
     const useCase = new UpdateUserUseCase(userRepository, outboxRepository);
 
     const result = await useCase.execute({
@@ -49,10 +50,16 @@ describe('UpdateUserUseCase', () => {
 
     // Event emitted with correct type and payload
     expect(outboxRepository.events.length).toBe(1);
-    expect(outboxRepository.events[0].eventType).toBe(GlobalEvents.USER_UPDATED);
+    expect(outboxRepository.events[0].eventType).toBe(
+      GlobalEvents.USER_UPDATED,
+    );
     expect(outboxRepository.events[0].payload.userId).toBe('user-1');
-    expect(outboxRepository.events[0].payload.changedFields).toContain('firstName');
-    expect(outboxRepository.events[0].payload.changedFields).toContain('lastName');
+    expect(outboxRepository.events[0].payload.changedFields).toContain(
+      'firstName',
+    );
+    expect(outboxRepository.events[0].payload.changedFields).toContain(
+      'lastName',
+    );
 
     // Persistence verified
     const updated = await userRepository.findById('user-1');
@@ -75,7 +82,8 @@ describe('UpdateUserUseCase', () => {
       updatedAt: new Date(),
     });
 
-    const { UpdateUserUseCase } = await import('@/modules/users/application/use-cases/update-user-use-case');
+    const { UpdateUserUseCase } =
+      await import('@/modules/users/application/use-cases/update-user-use-case');
     const useCase = new UpdateUserUseCase(userRepository, outboxRepository);
 
     const result = await useCase.execute({
@@ -85,7 +93,9 @@ describe('UpdateUserUseCase', () => {
 
     expect(result.firstName).toBe('NewFirst');
     expect(result.lastName).toBe('OldLast'); // unchanged
-    expect(outboxRepository.events[0].payload.changedFields).toEqual(['firstName']);
+    expect(outboxRepository.events[0].payload.changedFields).toEqual([
+      'firstName',
+    ]);
   });
 
   it('should update address when provided', async () => {
@@ -103,24 +113,33 @@ describe('UpdateUserUseCase', () => {
       updatedAt: new Date(),
     });
 
-    const { UpdateUserUseCase } = await import('@/modules/users/application/use-cases/update-user-use-case');
+    const { UpdateUserUseCase } =
+      await import('@/modules/users/application/use-cases/update-user-use-case');
     const useCase = new UpdateUserUseCase(userRepository, outboxRepository);
 
     const result = await useCase.execute({
       userId: 'user-addr',
-      address: { street: 'Calle 1', city: 'BOG', postalCode: '110111', country: 'CO' },
+      address: {
+        street: 'Calle 1',
+        city: 'BOG',
+        postalCode: '110111',
+        country: 'CO',
+      },
     });
 
     expect(result.address).not.toBeNull();
     expect(result.address!.street).toBe('Calle 1');
     expect(result.address!.city).toBe('BOG');
-    expect(outboxRepository.events[0].payload.changedFields).toContain('address');
+    expect(outboxRepository.events[0].payload.changedFields).toContain(
+      'address',
+    );
   });
 
   // ── Error Cases ─────────────────────────────────────────────
 
   it('should throw NotFoundError when user does not exist', async () => {
-    const { UpdateUserUseCase } = await import('@/modules/users/application/use-cases/update-user-use-case');
+    const { UpdateUserUseCase } =
+      await import('@/modules/users/application/use-cases/update-user-use-case');
     const useCase = new UpdateUserUseCase(userRepository, outboxRepository);
 
     await expect(
@@ -143,7 +162,8 @@ describe('UpdateUserUseCase', () => {
       updatedAt: new Date(),
     });
 
-    const { UpdateUserUseCase } = await import('@/modules/users/application/use-cases/update-user-use-case');
+    const { UpdateUserUseCase } =
+      await import('@/modules/users/application/use-cases/update-user-use-case');
     const useCase = new UpdateUserUseCase(userRepository, outboxRepository);
 
     await expect(
@@ -167,7 +187,8 @@ describe('UpdateUserUseCase', () => {
       deletedAt: new Date(),
     });
 
-    const { UpdateUserUseCase } = await import('@/modules/users/application/use-cases/update-user-use-case');
+    const { UpdateUserUseCase } =
+      await import('@/modules/users/application/use-cases/update-user-use-case');
     const useCase = new UpdateUserUseCase(userRepository, outboxRepository);
 
     await expect(
@@ -190,7 +211,8 @@ describe('UpdateUserUseCase', () => {
       updatedAt: new Date(),
     });
 
-    const { UpdateUserUseCase } = await import('@/modules/users/application/use-cases/update-user-use-case');
+    const { UpdateUserUseCase } =
+      await import('@/modules/users/application/use-cases/update-user-use-case');
     const useCase = new UpdateUserUseCase(userRepository, outboxRepository);
 
     await expect(

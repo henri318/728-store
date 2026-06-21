@@ -1,8 +1,8 @@
-import { defineConfig } from 'prisma/config'
-import { existsSync } from 'node:fs'
+import { defineConfig } from 'prisma/config';
+import { existsSync } from 'node:fs';
 
 if (existsSync('.env')) {
-  process.loadEnvFile()
+  process.loadEnvFile();
 }
 
 export default defineConfig({
@@ -13,4 +13,4 @@ export default defineConfig({
   migrations: {
     seed: 'tsx prisma/seed.ts',
   },
-})
+});

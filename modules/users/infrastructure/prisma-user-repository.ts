@@ -1,4 +1,5 @@
 import { prisma } from '@/shared/infrastructure/prisma';
+import type { PrismaClient } from '@prisma/client';
 import { UserEntity, UserRepository } from '../domain/user-repository';
 import { UserId } from '@/shared/kernel/domain/value-objects/user-id';
 import { Email } from '@/shared/kernel/domain/value-objects/email';
@@ -7,17 +8,37 @@ import { RoleId } from '@/modules/roles/domain/value-objects/role-id';
 import { PasswordHash } from '@/shared/kernel/domain/value-objects/password-hash';
 
 /** Maps a Prisma User row to the domain UserEntity (with VOs). */
-export function toDomain(user: any): UserEntity {
+export function toDomain(user: {
+  id: string;
+  email: string | null;
+  passwordHash: string | null;
+  firstName: string;
+  lastName: string;
+  role: string;
+  addressStreet: string | null;
+  addressCity: string | null;
+  addressPostalCode: string | null;
+  addressCountry: string | null;
+  emailVerified: Date | null;
+  deletedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}): UserEntity {
   if (!user.email) throw new Error('User email is required');
   if (!user.passwordHash) throw new Error('User password hash is required');
 
   let address: Address | null = null;
-  if (user.addressStreet && user.addressCity && user.addressPostalCode && user.addressCountry) {
+  if (
+    user.addressStreet &&
+    user.addressCity &&
+    user.addressPostalCode &&
+    user.addressCountry
+  ) {
     address = Address.create(
       user.addressStreet,
       user.addressCity,
       user.addressPostalCode,
-      user.addressCountry
+      user.addressCountry,
     );
   }
 
@@ -37,7 +58,7 @@ export function toDomain(user: any): UserEntity {
 }
 
 export class PrismaUserRepository implements UserRepository {
-  async save(user: UserEntity, tx: any = prisma): Promise<UserEntity> {
+  async save(user: UserEntity, tx: PrismaClient = prisma): Promise<UserEntity> {
     const savedUser = await tx.user.upsert({
       where: { id: user.userId.value },
       update: {
@@ -95,7 +116,10 @@ export class PrismaUserRepository implements UserRepository {
     });
   }
 
-  async update(user: UserEntity, tx: any = prisma): Promise<UserEntity> {
+  async update(
+    user: UserEntity,
+    tx: PrismaClient = prisma,
+  ): Promise<UserEntity> {
     const updatedUser = await tx.user.update({
       where: { id: user.userId.value },
       data: {

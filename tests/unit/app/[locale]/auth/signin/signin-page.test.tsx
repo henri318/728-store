@@ -30,10 +30,14 @@ describe('SignInPage', () => {
   it('renders i18n labels: signInTitle, email, password, loginButton', () => {
     render(<SignInPage />);
 
-    expect(screen.getByRole('heading', { name: 'Iniciar sesión' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Iniciar sesión' }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText('Correo electrónico')).toBeInTheDocument();
     expect(screen.getByLabelText('Contraseña')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Iniciar sesión' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Iniciar sesión' }),
+    ).toBeInTheDocument();
   });
 
   it('password field uses EyeToggleWrapper (has show/hide toggle)', () => {
@@ -49,12 +53,18 @@ describe('SignInPage', () => {
   });
 
   it('submits form with email and password via signIn', async () => {
-    const mockSignIn = vi.mocked(signIn).mockResolvedValue({ ok: true, error: null } as any);
+    const mockSignIn = vi
+      .mocked(signIn)
+      .mockResolvedValue({ ok: true, error: null });
 
     render(<SignInPage />);
 
-    fireEvent.change(screen.getByLabelText('Correo electrónico'), { target: { value: 'user@test.com' } });
-    fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'pass123' } });
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), {
+      target: { value: 'user@test.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Contraseña'), {
+      target: { value: 'pass123' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Iniciar sesión' }));
 
     await waitFor(() => {

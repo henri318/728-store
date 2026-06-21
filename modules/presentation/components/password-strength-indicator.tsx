@@ -6,7 +6,9 @@ interface PasswordStrengthIndicatorProps {
   password: string;
 }
 
-export function PasswordStrengthIndicator({ password }: PasswordStrengthIndicatorProps) {
+export function PasswordStrengthIndicator({
+  password,
+}: PasswordStrengthIndicatorProps) {
   const dict = useDictionary();
 
   const hasNumbers = /\d/.test(password);
@@ -43,17 +45,34 @@ export function PasswordStrengthIndicator({ password }: PasswordStrengthIndicato
           style={{
             height: '100%',
             width: `${percentage}%`,
-            backgroundColor: percentage === 100 ? '#52c41a' : percentage >= 66 ? '#faad14' : percentage >= 33 ? '#faad14' : '#ff4d4f',
+            backgroundColor:
+              percentage === 100
+                ? '#52c41a'
+                : percentage >= 66
+                  ? '#faad14'
+                  : percentage >= 33
+                    ? '#faad14'
+                    : '#ff4d4f',
             transition: 'width 0.3s ease',
           }}
         />
       </div>
-      <span style={{ fontSize: '0.8rem', color: '#666' }}>
-        {metCount}/3
-      </span>
-      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+      <span style={{ fontSize: '0.8rem', color: '#666' }}>{metCount}/3</span>
+      <ul
+        style={{
+          listStyle: 'none',
+          padding: 0,
+          margin: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.25rem',
+        }}
+      >
         {criteria.map((c) => (
-          <li key={c.label} style={{ fontSize: '0.8rem', color: c.met ? '#52c41a' : '#999' }}>
+          <li
+            key={c.label}
+            style={{ fontSize: '0.8rem', color: c.met ? '#52c41a' : '#999' }}
+          >
             {c.met ? '✓' : '✗'} {c.label}
           </li>
         ))}

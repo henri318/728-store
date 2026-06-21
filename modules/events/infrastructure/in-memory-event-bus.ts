@@ -5,7 +5,10 @@
  * Alternative transports (Redis, NATS) would implement the same
  * EventBusPort interface and be bound through the container.
  */
-import type { EventBusPort, EventHandler } from '@/modules/events/domain/event-bus-port';
+import type {
+  EventBusPort,
+  EventHandler,
+} from '@/modules/events/domain/event-bus-port';
 
 export class EventBus implements EventBusPort {
   private handlers: Map<string, EventHandler[]> = new Map();
@@ -28,7 +31,7 @@ export class EventBus implements EventBusPort {
    * throw would propagate up through `handlers.map(...)` and stop the
    * fan-out before `Promise.allSettled` could isolate the failure.
    */
-  async emit(event: string, data: any): Promise<void> {
+  async emit(event: string, data: unknown): Promise<void> {
     const handlers = this.handlers.get(event) || [];
     // Track errors per-handler; the first one wins
     const settled = await Promise.allSettled(

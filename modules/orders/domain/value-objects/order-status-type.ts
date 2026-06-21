@@ -6,4 +6,9 @@
  * - completed: Order fulfilled and delivered
  * - cancelled: Order cancelled by user or system
  */
-export type OrderStatus = 'pending' | 'paid' | 'ready-for-production' | 'completed' | 'cancelled';
+export type OrderStatus =
+  | 'pending'
+  | 'paid'
+  | 'ready-for-production'
+  | 'completed'
+  | 'cancelled';

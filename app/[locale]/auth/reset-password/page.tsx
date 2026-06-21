@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Input } from '@/modules/presentation/components/input';
 import { Button } from '@/modules/presentation/components/button';
@@ -15,15 +16,11 @@ export default function ResetPasswordPage() {
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(() =>
+    !token ? dict.auth.tokenExpired : null,
+  );
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-
-  useEffect(() => {
-    if (!token) {
-      setError(dict.auth.tokenExpired);
-    }
-  }, [token, dict]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +45,9 @@ export default function ResetPasswordPage() {
       setSuccess(true);
       router.push('/');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : dict.auth.failedToResetPassword);
+      setError(
+        err instanceof Error ? err.message : dict.auth.failedToResetPassword,
+      );
     } finally {
       setLoading(false);
     }
@@ -56,24 +55,49 @@ export default function ResetPasswordPage() {
 
   if (!token) {
     return (
-      <div style={{ maxWidth: '480px', margin: '4rem auto', padding: '2rem', border: '1px solid #ddd', borderRadius: '8px', textAlign: 'center' }}>
+      <div
+        style={{
+          maxWidth: '480px',
+          margin: '4rem auto',
+          padding: '2rem',
+          border: '1px solid #ddd',
+          borderRadius: '8px',
+          textAlign: 'center',
+        }}
+      >
         <h2 style={{ marginTop: 0 }}>{dict.auth.resetPasswordTitle}</h2>
         <ErrorMessage message={error ?? undefined} />
-        <a href="/auth/forgot-password" style={{ color: '#0070f3' }}>{dict.auth.requestNewLink}</a>
+        <Link href="/auth/forgot-password" style={{ color: '#0070f3' }}>
+          {dict.auth.requestNewLink}
+        </Link>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: '480px', margin: '4rem auto', padding: '2rem', border: '1px solid #ddd', borderRadius: '8px' }}>
+    <div
+      style={{
+        maxWidth: '480px',
+        margin: '4rem auto',
+        padding: '2rem',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+      }}
+    >
       <h2 style={{ marginTop: 0 }}>{dict.auth.resetPasswordTitle}</h2>
       {error && <ErrorMessage message={error} />}
       {success && (
-        <div role="alert" style={{ color: '#52c41a', fontSize: '0.9rem', marginBottom: '1rem' }}>
+        <div
+          role="alert"
+          style={{ color: '#52c41a', fontSize: '0.9rem', marginBottom: '1rem' }}
+        >
           {dict.auth.passwordChanged}. {dict.common.redirecting}
         </div>
       )}
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+      >
         <Input
           label={dict.auth.newPassword}
           type="password"

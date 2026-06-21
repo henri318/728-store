@@ -18,7 +18,11 @@ describe('RegisterUserUseCase', () => {
     userRepository = new MemoryUserRepository();
     outboxRepository = new MemoryOutboxRepository();
     passwordHasher = new MemoryPasswordHasher();
-    useCase = new RegisterUserUseCase(userRepository, outboxRepository, passwordHasher);
+    useCase = new RegisterUserUseCase(
+      userRepository,
+      outboxRepository,
+      passwordHasher,
+    );
   });
 
   it('should register a new user with full profile (firstName, lastName, address)', async () => {
@@ -87,7 +91,9 @@ describe('RegisterUserUseCase', () => {
     const result = await useCase.execute(dto);
 
     expect(outboxRepository.events.length).toBe(1);
-    expect(outboxRepository.events[0].eventType).toBe(GlobalEvents.USER_REGISTERED);
+    expect(outboxRepository.events[0].eventType).toBe(
+      GlobalEvents.USER_REGISTERED,
+    );
     expect(outboxRepository.events[0].payload.userId).toBe(result.userId.value);
     expect(outboxRepository.events[0].payload.email).toBe(result.email.value);
     expect(outboxRepository.events[0].payload.roleId).toBe(result.roleId.value);
@@ -113,7 +119,9 @@ describe('RegisterUserUseCase', () => {
       password: 'MiPassword123!',
     };
 
-    await expect(useCase.execute(dto)).rejects.toThrow('First name is required');
+    await expect(useCase.execute(dto)).rejects.toThrow(
+      'First name is required',
+    );
   });
 
   it('should reject empty lastName', async () => {
@@ -135,7 +143,9 @@ describe('RegisterUserUseCase', () => {
       password: 'MiPassword123!',
     };
 
-    await expect(useCase.execute(dto)).rejects.toThrow('First name cannot exceed 50 characters');
+    await expect(useCase.execute(dto)).rejects.toThrow(
+      'First name cannot exceed 50 characters',
+    );
   });
 
   it('should reject lastName exceeding max length (default 50)', async () => {
@@ -146,7 +156,9 @@ describe('RegisterUserUseCase', () => {
       password: 'MiPassword123!',
     };
 
-    await expect(useCase.execute(dto)).rejects.toThrow('Last name cannot exceed 50 characters');
+    await expect(useCase.execute(dto)).rejects.toThrow(
+      'Last name cannot exceed 50 characters',
+    );
   });
 
   // Character whitelist tests
@@ -170,7 +182,9 @@ describe('RegisterUserUseCase', () => {
       password: 'MiPassword123!',
     };
 
-    await expect(useCase.execute(dto)).rejects.toThrow('can only contain letters');
+    await expect(useCase.execute(dto)).rejects.toThrow(
+      'can only contain letters',
+    );
   });
 
   it('should reject firstName with HTML/script tags', async () => {
@@ -181,7 +195,9 @@ describe('RegisterUserUseCase', () => {
       password: 'MiPassword123!',
     };
 
-    await expect(useCase.execute(dto)).rejects.toThrow('can only contain letters');
+    await expect(useCase.execute(dto)).rejects.toThrow(
+      'can only contain letters',
+    );
   });
 
   it('should reject firstName with numbers', async () => {
@@ -192,7 +208,9 @@ describe('RegisterUserUseCase', () => {
       password: 'MiPassword123!',
     };
 
-    await expect(useCase.execute(dto)).rejects.toThrow('can only contain letters');
+    await expect(useCase.execute(dto)).rejects.toThrow(
+      'can only contain letters',
+    );
   });
 
   it('should reject lastName with special characters', async () => {
@@ -203,6 +221,8 @@ describe('RegisterUserUseCase', () => {
       password: 'MiPassword123!',
     };
 
-    await expect(useCase.execute(dto)).rejects.toThrow('can only contain letters');
+    await expect(useCase.execute(dto)).rejects.toThrow(
+      'can only contain letters',
+    );
   });
 });

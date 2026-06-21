@@ -39,19 +39,27 @@ describe('UserMenuDropdown component', () => {
     const trigger = screen.getByRole('button', { name: /menu/i });
     fireEvent.click(trigger);
 
-    expect(screen.getByRole('menuitem', { name: /mi perfil/i })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: /editar contraseña/i })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: /cerrar sesión/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: /mi perfil/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: /editar contraseña/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: /cerrar sesión/i }),
+    ).toBeInTheDocument();
 
     // Delete account should NOT be in the dropdown
-    expect(screen.queryByRole('menuitem', { name: /eliminar cuenta/i })).toBeNull();
+    expect(
+      screen.queryByRole('menuitem', { name: /eliminar cuenta/i }),
+    ).toBeNull();
   });
 
   it('click outside closes dropdown', () => {
     render(
       <div data-testid="outside">
         <UserMenuDropdown user={mockUser} />
-      </div>
+      </div>,
     );
 
     const trigger = screen.getByRole('button', { name: /menu/i });
@@ -100,7 +108,12 @@ describe('UserMenuDropdown component', () => {
     const trigger = screen.getByRole('button', { name: /menu/i });
     fireEvent.click(trigger);
 
-    const changePasswordLink = screen.getByRole('menuitem', { name: /editar contraseña/i });
-    expect(changePasswordLink).toHaveAttribute('href', '/es/auth/change-password');
+    const changePasswordLink = screen.getByRole('menuitem', {
+      name: /editar contraseña/i,
+    });
+    expect(changePasswordLink).toHaveAttribute(
+      'href',
+      '/es/auth/change-password',
+    );
   });
 });

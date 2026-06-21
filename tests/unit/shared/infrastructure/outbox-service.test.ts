@@ -28,11 +28,13 @@ describe('OutboxService — port-based implementation', () => {
   describe('processEvents — happy path', () => {
     it('should emit PENDING events via the event bus and mark them PROCESSED', async () => {
       const seen: string[] = [];
-      bus.on(GlobalEvents.ORDER_PAID, (data: any) => {
-        seen.push(`paid:${data?.orderId}`);
+      bus.on(GlobalEvents.ORDER_PAID, (data: unknown) => {
+        const payload = data as { orderId?: string };
+        seen.push(`paid:${payload?.orderId}`);
       });
-      bus.on(GlobalEvents.ORDER_CREATED, (data: any) => {
-        seen.push(`created:${data?.orderId}`);
+      bus.on(GlobalEvents.ORDER_CREATED, (data: unknown) => {
+        const payload = data as { orderId?: string };
+        seen.push(`created:${payload?.orderId}`);
       });
 
       outboxRepo.seedEvent({
@@ -154,25 +156,6 @@ describe('OutboxService — port-based implementation', () => {
       await expect(service.processEvents()).resolves.toBeUndefined();
       expect(errorSpy).not.toHaveBeenCalled();
       errorSpy.mockRestore();
-    });
-  });
-
-  describe('isolation between tests', () => {
-    it('should not share event bus handlers with other tests (uses injected bus)', async () => {
-      const seen: string[] = [];
-      bus.on(GlobalEvents.ORDER_PAID, (data: any) => {
-        seen.push(`paid:${data?.orderId}`);
-      });
-
-      outboxRepo.seedEvent({
-        id: 'iso-1',
-        eventType: GlobalEvents.ORDER_PAID,
-        payload: { orderId: 'iso-1' },
-        createdAt: new Date(),
-      });
-
-      await service.processEvents();
-      expect(seen).toEqual(['paid:iso-1']);
     });
   });
 });

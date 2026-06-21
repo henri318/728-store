@@ -1,5 +1,8 @@
 import { prisma } from '@/shared/infrastructure/prisma';
-import type { RateLimitResult, RateLimiter } from '@/modules/auth/domain/rate-limiter';
+import type {
+  RateLimitResult,
+  RateLimiter,
+} from '@/modules/auth/domain/rate-limiter';
 
 /**
  * Prisma-backed implementation of the RateLimiter port.
@@ -28,7 +31,11 @@ export class PrismaRateLimiter implements RateLimiter {
       where: { email, success: false, createdAt: { gte: since } },
     });
     if (emailFails >= EMAIL_FAIL_THRESHOLD) {
-      return { blocked: true, reason: 'email', retryAfterSeconds: EMAIL_BLOCK_SECONDS };
+      return {
+        blocked: true,
+        reason: 'email',
+        retryAfterSeconds: EMAIL_BLOCK_SECONDS,
+      };
     }
 
     // 20 failed attempts per IP in 15 min
@@ -36,13 +43,21 @@ export class PrismaRateLimiter implements RateLimiter {
       where: { ipAddress: ip, success: false, createdAt: { gte: since } },
     });
     if (ipFails >= IP_FAIL_THRESHOLD) {
-      return { blocked: true, reason: 'ip', retryAfterSeconds: IP_BLOCK_SECONDS };
+      return {
+        blocked: true,
+        reason: 'ip',
+        retryAfterSeconds: IP_BLOCK_SECONDS,
+      };
     }
 
     return { blocked: false };
   }
 
-  async recordLoginAttempt(email: string, ip: string, success: boolean): Promise<void> {
+  async recordLoginAttempt(
+    email: string,
+    ip: string,
+    success: boolean,
+  ): Promise<void> {
     await prisma.loginAttempt.create({
       data: { email, ipAddress: ip, success },
     });
