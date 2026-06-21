@@ -1,41 +1,53 @@
 'use client';
 
 import { useState } from 'react';
+import { useParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import { Input } from '@/modules/presentation/components/input';
+import { Button } from '@/modules/presentation/components/button';
+import { EyeToggleWrapper } from '@/modules/presentation/components/eye-toggle-wrapper';
+import { useDictionary } from '@/shared/i18n/dictionary-context';
 
 export default function SignInPage() {
+  const { locale } = useParams<{ locale: string }>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const dict = useDictionary();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await signIn('credentials', { email, password, callbackUrl: '/' });
+    setLoading(true);
+    await signIn('credentials', { email, password, callbackUrl: `/${locale}` });
+    setLoading(false);
   };
 
   return (
     <div style={{ maxWidth: '400px', margin: '4rem auto', padding: '2rem', border: '1px solid #ddd', borderRadius: '8px' }}>
-      <h2>Login</h2>
+      <h2>{dict.auth.signInTitle}</h2>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <input 
-          type="email" 
-          placeholder="Email" 
-          value={email} 
-          onChange={(e) => setEmail(e.target.value)} 
-          style={{ padding: '0.5rem' }}
+        <Input
+          label={dict.auth.email}
+          type="email"
+          value={email}
+          onChange={setEmail}
+          required
         />
-        <input 
-          type="password" 
-          placeholder="Password" 
-          value={password} 
-          onChange={(e) => setPassword(e.target.value)} 
-          style={{ padding: '0.5rem' }}
+        <EyeToggleWrapper
+          label={dict.auth.password}
+          value={password}
+          onChange={setPassword}
+          required
         />
-        <button type="submit" style={{ padding: '0.7rem', background: '#0070f3', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-          Sign In
-        </button>
+        <Button type="submit" loading={loading}>
+          {dict.auth.loginButton}
+        </Button>
       </form>
       <p style={{ marginTop: '1rem' }}>
-        Don't have an account? <a href="/auth/signup">Sign Up</a>
+        {dict.auth.dontHaveAccount}{' '}
+        <a href={`/${locale}/auth/signup`} style={{ color: '#0070f3' }}>
+          {dict.auth.signUpButton}
+        </a>
       </p>
     </div>
   );

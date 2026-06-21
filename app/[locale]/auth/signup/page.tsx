@@ -2,9 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { signIn, useSession } from 'next-auth/react';
 import { Input } from '@/modules/presentation/components/input';
 import { Button } from '@/modules/presentation/components/button';
 import { ErrorMessage } from '@/modules/presentation/components/error-message';
+import { EyeToggleWrapper } from '@/modules/presentation/components/eye-toggle-wrapper';
+import { PasswordStrengthIndicator } from '@/modules/presentation/components/password-strength-indicator';
 import { signupSchema } from '@/modules/auth/presentation/schemas/auth-schemas';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 
@@ -20,6 +23,7 @@ interface FormState {
   lastName: string;
   email: string;
   password: string;
+  confirmPassword: string;
   address: AddressFields;
 }
 
@@ -28,6 +32,7 @@ interface FormErrors {
   lastName?: string;
   email?: string;
   password?: string;
+  confirmPassword?: string;
   address?: {
     street?: string;
     city?: string;
@@ -36,7 +41,12 @@ interface FormErrors {
   };
 }
 
-function validateForm(form: FormState): FormErrors | null {
+function validateForm(form: FormState, passwordsDoNotMatch: string): FormErrors | null {
+  // Check password match first
+  if (form.password !== form.confirmPassword) {
+    return { confirmPassword: passwordsDoNotMatch };
+  }
+
   // Only validate address if user has expanded the section and filled at least one field
   const formToValidate = {
     ...form,
@@ -70,11 +80,13 @@ export default function SignUpPage() {
   const params = useParams();
   const locale = (params.locale as string) || 'es';
   const dict = useDictionary();
+  const { update } = useSession();
   const [form, setForm] = useState<FormState>({
     firstName: '',
     lastName: '',
     email: '',
     password: '',
+    confirmPassword: '',
     address: { street: '', city: '', postalCode: '', country: '' },
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -117,7 +129,7 @@ export default function SignUpPage() {
     e.preventDefault();
     setServerError(null);
 
-    const validationErrors = validateForm(form);
+    const validationErrors = validateForm(form, dict.auth.passwordsDoNotMatch);
     if (validationErrors) {
       setErrors(validationErrors);
       return;
@@ -146,10 +158,27 @@ export default function SignUpPage() {
         if (data.error === 'Resource already exists') {
           throw new Error(dict.auth.errorMailExists);
         }
+        if (data.details && Array.isArray(data.details)) {
+          const firstError = data.details[0];
+          throw new Error(firstError.message || dict.auth.genericSignupError);
+        }
         throw new Error(data.error || dict.auth.genericSignupError);
       }
 
-      router.push(`/${locale}/auth/signin?registered=true`);
+      // Auto-login after successful registration
+      const signInResult = await signIn('credentials', {
+        email: form.email,
+        password: form.password,
+        redirect: false,
+      });
+
+      if (signInResult?.ok) {
+        await update(); // Refresh session without page reload
+        router.push(`/${locale}`);
+      } else {
+        // Fallback: redirect to sign-in if auto-login fails
+        router.push(`/${locale}/auth/signin?registered=true`);
+      }
     } catch (err: any) {
       setServerError(err.message);
     } finally {
@@ -185,12 +214,19 @@ export default function SignUpPage() {
           error={errors.email}
           required
         />
-        <Input
+        <EyeToggleWrapper
           label={dict.auth.password}
-          type="password"
           value={form.password}
           onChange={(v) => updateField('password', v)}
           error={errors.password}
+          required
+        />
+        <PasswordStrengthIndicator password={form.password} />
+        <EyeToggleWrapper
+          label={dict.auth.confirmPassword}
+          value={form.confirmPassword}
+          onChange={(v) => updateField('confirmPassword', v)}
+          error={errors.confirmPassword}
           required
         />
 
@@ -244,10 +280,10 @@ export default function SignUpPage() {
           {dict.auth.signUpButton}
         </Button>
       </form>
-      <p style={{ marginTop: '1rem', fontSize: '0.9rem' }}>
-        ¿Ya tenés una cuenta?{' '}
+      <p style={{ marginTop: '1rem' }}>
+        {dict.auth.alreadyHaveAccount}{' '}
         <a href={`/${locale}/auth/signin`} style={{ color: '#0070f3' }}>
-          Iniciá sesión
+          {dict.auth.loginButton}
         </a>
       </p>
     </div>

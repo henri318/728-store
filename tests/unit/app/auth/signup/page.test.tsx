@@ -8,6 +8,16 @@ vi.mock('next/navigation', () => ({
   useParams: () => ({ locale: 'es' }),
 }));
 
+// Mock next-auth/react
+vi.mock('next-auth/react', () => ({
+  signIn: vi.fn().mockResolvedValue({ ok: true, error: null }),
+  useSession: vi.fn(() => ({
+    data: null,
+    status: 'unauthenticated',
+    update: vi.fn().mockResolvedValue(null),
+  })),
+}));
+
 import SignUpPage from '@/app/[locale]/auth/signup/page';
 
 describe('SignUpPage', () => {
@@ -55,6 +65,7 @@ describe('SignUpPage', () => {
     fireEvent.change(screen.getByLabelText('Apellido'), { target: { value: 'Doe' } });
     fireEvent.change(screen.getByLabelText('Correo electrónico'), { target: { value: 'john@example.com' } });
     fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'Password123' } });
+    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), { target: { value: 'Password123' } });
 
     // Expand address section
     fireEvent.click(screen.getByText(/agregar dirección/i));
@@ -98,6 +109,7 @@ describe('SignUpPage', () => {
     fireEvent.change(screen.getByLabelText('Apellido'), { target: { value: 'Doe' } });
     fireEvent.change(screen.getByLabelText('Correo electrónico'), { target: { value: 'john@example.com' } });
     fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'Password123' } });
+    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), { target: { value: 'Password123' } });
 
     const form = screen.getByRole('button', { name: 'Crear cuenta' }).closest('form')!;
     fireEvent.submit(form);
@@ -120,6 +132,7 @@ describe('SignUpPage', () => {
     fireEvent.change(screen.getByLabelText('Apellido'), { target: { value: 'Doe' } });
     fireEvent.change(screen.getByLabelText('Correo electrónico'), { target: { value: 'existing@example.com' } });
     fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'Password123' } });
+    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), { target: { value: 'Password123' } });
 
     const form = screen.getByRole('button', { name: 'Crear cuenta' }).closest('form')!;
     fireEvent.submit(form);
@@ -131,5 +144,55 @@ describe('SignUpPage', () => {
     await vi.waitFor(() => {
       expect(screen.getByRole('alert')).toBeInTheDocument();
     }, { timeout: 3000 });
+  });
+
+  it('renders confirmPassword field', () => {
+    render(<SignUpPage />);
+
+    expect(screen.getByLabelText('Confirmar contraseña')).toBeInTheDocument();
+  });
+
+  it('shows error when passwords do not match', async () => {
+    render(<SignUpPage />);
+
+    fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'John' } });
+    fireEvent.change(screen.getByLabelText('Apellido'), { target: { value: 'Doe' } });
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), { target: { value: 'john@example.com' } });
+    fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'Password123' } });
+    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), { target: { value: 'Different123!' } });
+
+    const form = screen.getByRole('button', { name: 'Crear cuenta' }).closest('form')!;
+    fireEvent.submit(form);
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Las contraseñas no coinciden');
+  });
+
+  it('shows password strength indicator', () => {
+    render(<SignUpPage />);
+
+    expect(screen.getByText('Fortaleza de la contraseña')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+  });
+
+  it('eye toggles on both password and confirmPassword fields', () => {
+    render(<SignUpPage />);
+
+    const passwordInput = screen.getByLabelText('Contraseña');
+    const confirmInput = screen.getByLabelText('Confirmar contraseña');
+
+    expect(passwordInput).toHaveAttribute('type', 'password');
+    expect(confirmInput).toHaveAttribute('type', 'password');
+
+    const toggleButtons = screen.getAllByRole('button', { name: /show password/i });
+    expect(toggleButtons).toHaveLength(2);
+
+    fireEvent.click(toggleButtons[0]);
+    expect(passwordInput).toHaveAttribute('type', 'text');
+    expect(confirmInput).toHaveAttribute('type', 'password');
+
+    fireEvent.click(toggleButtons[1]);
+    expect(passwordInput).toHaveAttribute('type', 'text');
+    expect(confirmInput).toHaveAttribute('type', 'text');
   });
 });

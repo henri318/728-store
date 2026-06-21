@@ -1,11 +1,14 @@
 import { z } from 'zod';
 
 export const signupSchema = z.object({
-  firstName: z.string().min(1, 'El nombre es obligatorio').max(50),
-  lastName: z.string().min(1, 'El apellido es obligatorio').max(50),
+  firstName: z.string().min(1, 'El nombre es obligatorio').max(50, 'El nombre es demasiado largo'),
+  lastName: z.string().min(1, 'El apellido es obligatorio').max(50, 'El apellido es demasiado largo'),
   email: z.string().email('Correo electrónico inválido'),
-  password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres')
-    .max(128, 'La contraseña es demasiado larga'),
+  password: z.string()
+    .min(8, 'La contraseña debe tener al menos 8 caracteres')
+    .max(128, 'La contraseña es demasiado larga')
+    .regex(/[a-zA-Z]/, 'La contraseña debe contener al menos una letra')
+    .regex(/\d/, 'La contraseña debe contener al menos un número'),
   confirmPassword: z.string().optional(),
   address: z.object({
     street: z.string().min(1),

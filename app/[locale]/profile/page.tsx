@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter, useParams } from 'next/navigation';
 import { Input } from '@/modules/presentation/components/input';
 import { Button } from '@/modules/presentation/components/button';
 import { ErrorMessage } from '@/modules/presentation/components/error-message';
@@ -28,6 +29,8 @@ interface ProfileForm extends ProfileData {
 
 export default function ProfilePage() {
   const { status } = useSession();
+  const router = useRouter();
+  const { locale } = useParams<{ locale: string }>();
   const dict = useDictionary();
   const [form, setForm] = useState<ProfileForm>({
     firstName: '',
@@ -66,6 +69,8 @@ export default function ProfilePage() {
   useEffect(() => {
     if (status === 'authenticated') {
       fetchProfile();
+    } else if (status === 'unauthenticated') {
+      router.push(`/${locale}/auth/signin`);
     }
   }, [status, fetchProfile]);
 
@@ -118,7 +123,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (loading) {
+  if (status === 'loading' || loading) {
     return <div style={{ textAlign: 'center', padding: '2rem' }}>{dict.common.loading}</div>;
   }
 
