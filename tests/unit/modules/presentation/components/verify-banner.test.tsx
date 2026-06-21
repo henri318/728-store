@@ -14,7 +14,7 @@ describe('VerifyBanner', () => {
     render(<VerifyBanner email="test@example.com" />);
 
     expect(
-      screen.getByText('Por favor, verificá tu correo electrónico.'),
+      screen.getByText('Por favor, verifica tu correo electrónico.'),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Reenviar verificación' }),

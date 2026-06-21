@@ -36,7 +36,7 @@ describe('ResetPasswordPage', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('El enlace ha expirado. Solicitá uno nuevo.'),
+        screen.getByText('El enlace ha expirado. Solicita uno nuevo.'),
       ).toBeInTheDocument();
     });
   });

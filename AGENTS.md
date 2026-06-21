@@ -14,6 +14,7 @@ This document defines the mandatory rules and constraints for the AI agent worki
 2. **Event-Driven**: All cross-module communication must use the internal event bus.
 3. **Domain-First**: Business logic stays in the domain layer.
 4. **Multi-vendor Ready**: `sellerId` is mandatory for all primary entities.
+5. **Neutral Locale**: The `es` locale is considered neutral.
 
 ---
 

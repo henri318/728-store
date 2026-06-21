@@ -92,7 +92,7 @@ describe('LoginModal component', () => {
   it('renders registration link', () => {
     render(<LoginModal isOpen={true} onClose={mockOnClose} />);
 
-    const registerLink = screen.getByText(/no tenés cuenta/i);
+    const registerLink = screen.getByText(/no tienes cuenta/i);
     expect(registerLink).toBeInTheDocument();
     expect(registerLink).toHaveAttribute('href', '/auth/signup');
   });
