@@ -17,7 +17,11 @@ if (
   outboxWorker.start();
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
   const { locale } = await params;
 
   const titleMap: Record<string, string> = {
@@ -43,7 +47,14 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       default: `${titleMap[locale]} | 728store`,
     },
     description: descriptionMap[locale],
-    keywords: ['ecommerce', 'modular', 'tienda online', 'plataforma', 'venta online', locale === 'cat' ? 'compra online' : 'comprar online'],
+    keywords: [
+      'ecommerce',
+      'modular',
+      'tienda online',
+      'plataforma',
+      'venta online',
+      locale === 'cat' ? 'compra online' : 'comprar online',
+    ],
     robots: {
       index: true,
       follow: true,
@@ -51,8 +62,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     alternates: {
       canonical: `${baseUrl}/${locale}`,
       languages: {
-        'es': alternates['es'],
-        'ca': alternates['cat'],
+        es: alternates['es'],
+        ca: alternates['cat'],
         'x-default': alternates['es'],
       },
     },
