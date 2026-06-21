@@ -3,6 +3,7 @@ import tseslint from 'typescript-eslint';
 import eslintReact from '@eslint-react/eslint-plugin';
 import reactHooks from 'eslint-plugin-react-hooks';
 import nextPlugin from '@next/eslint-plugin-next';
+import path from 'node:path';
 
 /**
  * Custom rule: no-cross-module-imports
@@ -15,33 +16,40 @@ import nextPlugin from '@next/eslint-plugin-next';
  */
 const noCrossModuleImports = {
   meta: {
-    type: "problem",
+    type: 'problem',
     docs: {
-      description: "Prevent cross-module imports in domain layer",
-      category: "Architecture",
+      description: 'Prevent cross-module imports in domain layer',
+      category: 'Architecture',
     },
   },
   create(context) {
     return {
       ImportDeclaration(node) {
         const importPath = node.source.value;
-        const filePath = context.filename;
+        // Normalize path to handle both POSIX and Windows separators
+        const normalizedPath = context.filename.split(path.sep).join('/');
+        const normalizedImport = importPath.split(path.sep).join('/');
+
+        // Skip test files — they need cross-module imports for test doubles
+        if (normalizedPath.includes('/tests/')) return;
 
         // Only apply to domain layer files
-        if (!filePath.includes("/domain/")) return;
+        if (!normalizedPath.includes('/domain/')) return;
 
         // Allow relative imports (own module)
-        if (importPath.startsWith(".")) return;
+        if (normalizedImport.startsWith('.')) return;
 
         // Allow shared imports
-        if (importPath.startsWith("@/shared/")) return;
+        if (normalizedImport.startsWith('@/shared/')) return;
 
         // Allow external packages
-        if (!importPath.startsWith("@/modules/")) return;
+        if (!normalizedImport.startsWith('@/modules/')) return;
 
         // Extract module name from import path
-        const importedModule = importPath.split("/")[2]; // @/modules/{module}/...
-        const currentModule = filePath.split("/modules/")[1]?.split("/")[0];
+        const importedModule = normalizedImport.split('/')[2]; // @/modules/{module}/...
+        const currentModule = normalizedPath
+          .split('/modules/')[1]
+          ?.split('/')[0];
 
         // Allow imports from own module
         if (importedModule === currentModule) return;
@@ -102,9 +110,11 @@ export default tseslint.config(
 
   // Custom architecture rules
   {
-    plugins: { "custom": { rules: { "no-cross-module-imports": noCrossModuleImports } } },
+    plugins: {
+      custom: { rules: { 'no-cross-module-imports': noCrossModuleImports } },
+    },
     rules: {
-      "custom/no-cross-module-imports": "error",
+      'custom/no-cross-module-imports': 'error',
     },
   },
 );

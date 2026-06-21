@@ -22,7 +22,7 @@ export interface SellerEntity {
   readonly sellerId: SellerId;
   readonly name: string;
   readonly description: string | null;
-  readonly userId: string | null;
+  readonly userId: string;
   readonly status: SellerStatus;
   readonly deletedAt: Date | null;
   readonly createdAt: Date;

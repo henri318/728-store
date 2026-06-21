@@ -6,12 +6,16 @@ import type { SellerEntity } from './seller';
  * Production implementation: PrismaSellerRepository (in infrastructure layer).
  * Test implementation:      MemorySellerRepository (in tests/doubles).
  *
- * Following the existing UserRepository pattern: all methods return
- * domain entities, never persistence models. The adapter layer handles
- * mapping between the two.
+ * Following the existing codebase pattern (UserRepository, RoleRepository):
+ * all methods return domain entities, never persistence models.
+ * The adapter layer handles mapping between the two.
+ *
+ * Note: `save()` and `update()` accept full entities including generated
+ * fields (sellerId, timestamps). The caller is responsible for creating
+ * these values. This is consistent with the project's repository pattern.
  */
 export interface SellerRepository {
-  /** Persist a new seller. Returns the created entity with generated fields. */
+  /** Persist a new seller. Caller must provide all fields including generated ones. */
   save(seller: SellerEntity): Promise<SellerEntity>;
 
   /** Find a seller by its unique ID. Returns null if not found. */
