@@ -1,1 +1,7 @@
-npx lint-staged
+#!/usr/bin/env sh
+FILES=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -z "$FILES" ] && exit 0
+
+echo "$FILES" | xargs npx prettier --write --ignore-unknown
+echo "$FILES" | xargs npx eslint --fix
+git add $FILES
