@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import type { SellerRepository } from '@/modules/sellers/domain/seller-repository';
 import type { SellerEntity } from '@/modules/sellers/domain/seller';
 import { SellerStatus } from '@/modules/sellers/domain/seller-status';
+import { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
 
 /**
  * Task 1.4 — SellerRepository port interface.
@@ -14,7 +15,7 @@ import { SellerStatus } from '@/modules/sellers/domain/seller-status';
 
 function createMockSeller(overrides: Partial<SellerEntity> = {}): SellerEntity {
   return {
-    sellerId: 'seller-1' as any,
+    sellerId: SellerId.create('seller-1'),
     name: 'Test Shop',
     description: null,
     userId: 'user-1',
@@ -58,7 +59,7 @@ describe('SellerRepository — port contract', () => {
     const result = await repo.findById('seller-1');
 
     expect(result).toBeDefined();
-    expect(result!.sellerId).toBe('seller-1');
+    expect(result!.sellerId.value).toBe('seller-1');
     expect(repo.findById).toHaveBeenCalledWith('seller-1');
   });
 
@@ -71,16 +72,16 @@ describe('SellerRepository — port contract', () => {
 
   it('should have a findAll method that returns an array', async () => {
     const sellers = [
-      createMockSeller({ sellerId: 's1' as any }),
-      createMockSeller({ sellerId: 's2' as any }),
+      createMockSeller({ sellerId: SellerId.create('s1') }),
+      createMockSeller({ sellerId: SellerId.create('s2') }),
     ];
     vi.mocked(repo.findAll).mockResolvedValue(sellers);
 
     const result = await repo.findAll();
 
     expect(result).toHaveLength(2);
-    expect(result[0].sellerId).toBe('s1');
-    expect(result[1].sellerId).toBe('s2');
+    expect(result[0].sellerId.value).toBe('s1');
+    expect(result[1].sellerId.value).toBe('s2');
   });
 
   it('should have an update method', async () => {
