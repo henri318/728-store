@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { SellerRepository } from '@/modules/sellers/domain/seller-repository';
 import type { SellerEntity } from '@/modules/sellers/domain/seller';
 import { SellerStatus } from '@/modules/sellers/domain/seller-status';
