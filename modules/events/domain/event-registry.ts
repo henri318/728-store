@@ -30,6 +30,14 @@ export const GlobalEvents = {
   PASSWORD_CHANGED: 'password.changed',
   /** Password reset via forgot-password flow */
   PASSWORD_RESET: 'password.reset',
+  /** New seller created (initial status: active) */
+  SELLER_CREATED: 'seller.created',
+  /** Seller profile (name, description) updated */
+  SELLER_UPDATED: 'seller.updated',
+  /** Seller soft-deleted (deletedAt set) */
+  SELLER_DELETED: 'seller.deleted',
+  /** Seller status changed (active ↔ suspended → banned) */
+  SELLER_STATUS_CHANGED: 'seller.status-changed',
 } as const;
 
 /**
