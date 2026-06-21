@@ -1,6 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import bcrypt from 'bcrypt';
+import { existsSync } from 'node:fs';
+
+if (existsSync('.env')) {
+  process.loadEnvFile();
+}
 
 const adapter = new PrismaPg(process.env.DATABASE_URL!);
 const prisma = new PrismaClient({ adapter });
@@ -55,11 +60,36 @@ async function main() {
   ]);
   console.log(`  ✓ Roles seeded: ${roles.map((r) => r.name).join(', ')}`);
 
-  // 2. Create Seller (the company/store)
-  const seller = await prisma.seller.create({
-    data: { name: '728 Store' },
+  // 2. Create Admin user with ADMIN role
+  const adminPasswordHash = await bcrypt.hash('Admin123!', BCRYPT_COST);
+  const adminUser = await prisma.user.create({
+    data: {
+      firstName: 'Admin',
+      lastName: 'User',
+      email: 'admin@728store.com',
+      passwordHash: adminPasswordHash,
+      role: 'ADMIN',
+      emailVerified: new Date(),
+      preferredLanguage: 'es',
+    },
   });
-  console.log(`  ✓ Seller created: ${seller.name} (${seller.id})`);
+  console.log(
+    `  ✓ Admin user created: ${adminUser.firstName} ${adminUser.lastName} (${adminUser.email})`,
+  );
+
+  // 3. Create Seller (the company/store) linked to admin user
+  const seller = await prisma.seller.create({
+    data: {
+      name: '728 Store',
+      description:
+        'Tienda oficial de 728 Store — productos personalizados de calidad.',
+      userId: adminUser.id,
+      status: 'active',
+    },
+  });
+  console.log(
+    `  ✓ Seller created: ${seller.name} (${seller.id}, linked to user: ${seller.userId})`,
+  );
 
   // 3. Create Products with i18n translations
   const productsData = [
