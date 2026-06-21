@@ -19,6 +19,7 @@ export default function LanguageSelector({
 
   return (
     <select
+      aria-label={dict.common.selectLanguage}
       value={currentLocale}
       onChange={(e) => handleLanguageChange(e.target.value)}
       style={{

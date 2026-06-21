@@ -1,4 +1,5 @@
 import { getServerSession } from 'next-auth';
+import type { Metadata } from 'next';
 import { authOptions } from '@/shared/infrastructure/auth-options';
 import LanguageSelector from '@/modules/presentation/components/language-selector';
 import { SessionProviderWrapper } from '@/modules/presentation/components/session-provider';
@@ -14,6 +15,52 @@ if (
   process.env.ENABLE_OUTBOX_WORKER === 'true'
 ) {
   outboxWorker.start();
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+
+  const titleMap: Record<string, string> = {
+    es: 'Plataforma de Comercio Electrónico Modular',
+    cat: 'Plataforma de Comerç Electrònic Modular',
+  };
+
+  const descriptionMap: Record<string, string> = {
+    es: 'Descubre la mejor plataforma de comercio electrónico modular. Diseñada para vendedores y compradores con tecnología moderna y fácil uso.',
+    cat: 'Descobreix la millor plataforma de comerç electrònic modular. Dissenyada per a venedors i compradors amb tecnologia moderna i fàcil ús.',
+  };
+
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  const alternates: Record<string, string> = {};
+
+  ['es', 'cat'].forEach((lang) => {
+    alternates[lang] = `${baseUrl}/${lang}`;
+  });
+
+  return {
+    title: {
+      template: '%s | 728store',
+      default: `${titleMap[locale]} | 728store`,
+    },
+    description: descriptionMap[locale],
+    keywords: ['ecommerce', 'modular', 'tienda online', 'plataforma', 'venta online', locale === 'cat' ? 'compra online' : 'comprar online'],
+    robots: {
+      index: true,
+      follow: true,
+    },
+    alternates: {
+      canonical: `${baseUrl}/${locale}`,
+      languages: {
+        'es': alternates['es'],
+        'ca': alternates['cat'],
+        'x-default': alternates['es'],
+      },
+    },
+    viewport: {
+      width: 'device-width',
+      initialScale: 1,
+    },
+  };
 }
 
 export default async function RootLayout({
