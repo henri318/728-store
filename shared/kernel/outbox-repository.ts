@@ -15,7 +15,7 @@
 export interface OutboxEvent {
   id: string;
   eventType: string;
-  payload: any;
+  payload: unknown;
   status: string;
   createdAt: Date;
   processedAt?: Date | null;
@@ -27,7 +27,7 @@ export interface OutboxRepository {
    * The optional `tx` argument is the Prisma transaction client — only
    * the Prisma adapter uses it; in-memory implementations ignore it.
    */
-  saveEvent(eventType: string, payload: any, tx?: any): Promise<void>;
+  saveEvent(eventType: string, payload: unknown, tx?: unknown): Promise<void>;
 
   /**
    * Return PENDING events, oldest first, up to `limit`.

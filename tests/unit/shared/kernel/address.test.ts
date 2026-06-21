@@ -4,7 +4,12 @@ import { Address } from '@/shared/kernel/domain/value-objects/address';
 describe('Address', () => {
   describe('create()', () => {
     it('should create a valid address with all fields', () => {
-      const address = Address.create('123 Main St', 'Springfield', '12345', 'US');
+      const address = Address.create(
+        '123 Main St',
+        'Springfield',
+        '12345',
+        'US',
+      );
       expect(address).toBeInstanceOf(Address);
       expect(address.street).toBe('123 Main St');
       expect(address.city).toBe('Springfield');
@@ -26,15 +31,15 @@ describe('Address', () => {
     });
 
     it('should reject empty street', () => {
-      expect(() =>
-        Address.create('', 'Springfield', '12345', 'US'),
-      ).toThrow('All address fields are required');
+      expect(() => Address.create('', 'Springfield', '12345', 'US')).toThrow(
+        'All address fields are required',
+      );
     });
 
     it('should reject empty city', () => {
-      expect(() =>
-        Address.create('123 Main St', '', '12345', 'US'),
-      ).toThrow('All address fields are required');
+      expect(() => Address.create('123 Main St', '', '12345', 'US')).toThrow(
+        'All address fields are required',
+      );
     });
 
     it('should reject empty postalCode', () => {
@@ -50,9 +55,9 @@ describe('Address', () => {
     });
 
     it('should reject whitespace-only street', () => {
-      expect(() =>
-        Address.create('   ', 'Springfield', '12345', 'US'),
-      ).toThrow('All address fields are required');
+      expect(() => Address.create('   ', 'Springfield', '12345', 'US')).toThrow(
+        'All address fields are required',
+      );
     });
   });
 

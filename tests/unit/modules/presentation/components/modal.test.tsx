@@ -7,7 +7,7 @@ describe('Modal component', () => {
     render(
       <Modal isOpen={true} onClose={() => {}}>
         <p>Modal content</p>
-      </Modal>
+      </Modal>,
     );
     expect(screen.getByText('Modal content')).toBeInTheDocument();
   });
@@ -16,7 +16,7 @@ describe('Modal component', () => {
     render(
       <Modal isOpen={false} onClose={() => {}}>
         <p>Hidden content</p>
-      </Modal>
+      </Modal>,
     );
     expect(screen.queryByText('Hidden content')).toBeNull();
   });
@@ -26,7 +26,7 @@ describe('Modal component', () => {
     render(
       <Modal isOpen={true} onClose={onClose}>
         <p>Content</p>
-      </Modal>
+      </Modal>,
     );
     const overlay = screen.getByTestId('modal-overlay');
     fireEvent.click(overlay);
@@ -38,7 +38,7 @@ describe('Modal component', () => {
     render(
       <Modal isOpen={true} onClose={onClose}>
         <p>Content</p>
-      </Modal>
+      </Modal>,
     );
     fireEvent.click(screen.getByText('Content'));
     expect(onClose).not.toHaveBeenCalled();
@@ -49,7 +49,7 @@ describe('Modal component', () => {
     render(
       <Modal isOpen={true} onClose={onClose}>
         <p>Content</p>
-      </Modal>
+      </Modal>,
     );
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -60,7 +60,7 @@ describe('Modal component', () => {
     render(
       <Modal isOpen={true} onClose={onClose}>
         <p>Content</p>
-      </Modal>
+      </Modal>,
     );
     fireEvent.keyDown(document, { key: 'Enter' });
     expect(onClose).not.toHaveBeenCalled();
@@ -71,7 +71,7 @@ describe('Modal component', () => {
     render(
       <Modal isOpen={true} onClose={onClose}>
         <button>Inside Button</button>
-      </Modal>
+      </Modal>,
     );
     fireEvent.click(screen.getByRole('button', { name: 'Inside Button' }));
     expect(onClose).not.toHaveBeenCalled();

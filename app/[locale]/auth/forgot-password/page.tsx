@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Input } from '@/modules/presentation/components/input';
 import { Button } from '@/modules/presentation/components/button';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
@@ -27,16 +28,29 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div style={{ maxWidth: '480px', margin: '4rem auto', padding: '2rem', border: '1px solid #ddd', borderRadius: '8px' }}>
+    <div
+      style={{
+        maxWidth: '480px',
+        margin: '4rem auto',
+        padding: '2rem',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+      }}
+    >
       <h2 style={{ marginTop: 0 }}>{dict.auth.forgotPasswordTitle}</h2>
 
       {submitted ? (
         <div role="alert" style={{ color: '#52c41a' }}>
           <p>{dict.auth.checkEmailMessage}</p>
-          <a href="/" style={{ color: '#0070f3' }}>{dict.common.backToHome}</a>
+          <Link href="/" style={{ color: '#0070f3' }}>
+            {dict.common.backToHome}
+          </Link>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+        >
           <Input
             label={dict.auth.email}
             type="email"

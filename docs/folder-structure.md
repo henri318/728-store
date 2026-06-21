@@ -24,6 +24,7 @@
 ```
 
 # Rules
+
 - A module does not import another module.
 - Shared contains only utilities and global events.
 - App only orchestrates.

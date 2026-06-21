@@ -34,7 +34,8 @@ describe('DeleteUserUseCase — soft-delete', () => {
       updatedAt: new Date(),
     });
 
-    const { DeleteUserUseCase } = await import('@/modules/users/application/use-cases/delete-user-use-case');
+    const { DeleteUserUseCase } =
+      await import('@/modules/users/application/use-cases/delete-user-use-case');
     const useCase = new DeleteUserUseCase(userRepository, outboxRepository);
 
     await useCase.execute({ userId: 'user-1' });
@@ -46,19 +47,23 @@ describe('DeleteUserUseCase — soft-delete', () => {
 
     // Event emitted
     expect(outboxRepository.events.length).toBe(1);
-    expect(outboxRepository.events[0].eventType).toBe(GlobalEvents.USER_DELETED);
-    expect(outboxRepository.events[0].payload.userId).toBe('user-1');
+    expect(outboxRepository.events[0].eventType).toBe(
+      GlobalEvents.USER_DELETED,
+    );
+    const payload = outboxRepository.events[0].payload as { userId: string };
+    expect(payload.userId).toBe('user-1');
   });
 
   // ── Error Cases ─────────────────────────────────────────────
 
   it('should throw NotFoundError when user does not exist', async () => {
-    const { DeleteUserUseCase } = await import('@/modules/users/application/use-cases/delete-user-use-case');
+    const { DeleteUserUseCase } =
+      await import('@/modules/users/application/use-cases/delete-user-use-case');
     const useCase = new DeleteUserUseCase(userRepository, outboxRepository);
 
-    await expect(
-      useCase.execute({ userId: 'nonexistent' }),
-    ).rejects.toThrow('User not found');
+    await expect(useCase.execute({ userId: 'nonexistent' })).rejects.toThrow(
+      'User not found',
+    );
   });
 
   // ── Idempotency ─────────────────────────────────────────────
@@ -78,15 +83,16 @@ describe('DeleteUserUseCase — soft-delete', () => {
       updatedAt: new Date(),
     });
 
-    const { DeleteUserUseCase } = await import('@/modules/users/application/use-cases/delete-user-use-case');
+    const { DeleteUserUseCase } =
+      await import('@/modules/users/application/use-cases/delete-user-use-case');
     const useCase = new DeleteUserUseCase(userRepository, outboxRepository);
 
     // Soft-delete once
     await useCase.execute({ userId: 'user-2' });
 
     // Soft-delete again — should throw (already deleted)
-    await expect(
-      useCase.execute({ userId: 'user-2' }),
-    ).rejects.toThrow('User already deactivated');
+    await expect(useCase.execute({ userId: 'user-2' })).rejects.toThrow(
+      'User already deactivated',
+    );
   });
 });

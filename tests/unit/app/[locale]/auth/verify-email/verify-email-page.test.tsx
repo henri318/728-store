@@ -19,7 +19,11 @@ describe('VerifyEmailPage', () => {
   });
 
   it('shows success when token is valid', async () => {
-    vi.mocked(useSearchParams).mockReturnValue(new URLSearchParams('token=valid-token') as any);
+    vi.mocked(useSearchParams).mockReturnValue(
+      new URLSearchParams('token=valid-token') as unknown as ReturnType<
+        typeof useSearchParams
+      >,
+    );
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ success: true, message: 'Email verified' }),
@@ -28,12 +32,18 @@ describe('VerifyEmailPage', () => {
     render(<VerifyEmailPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Correo electrónico verificado correctamente')).toBeInTheDocument();
+      expect(
+        screen.getByText('Correo electrónico verificado correctamente'),
+      ).toBeInTheDocument();
     });
   });
 
   it('shows error when token is invalid', async () => {
-    vi.mocked(useSearchParams).mockReturnValue(new URLSearchParams('token=bad-token') as any);
+    vi.mocked(useSearchParams).mockReturnValue(
+      new URLSearchParams('token=bad-token') as unknown as ReturnType<
+        typeof useSearchParams
+      >,
+    );
     mockFetch.mockResolvedValueOnce({
       ok: false,
       json: async () => ({ error: 'Invalid or expired token' }),
@@ -42,17 +52,23 @@ describe('VerifyEmailPage', () => {
     render(<VerifyEmailPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('El enlace ha expirado. Solicitá uno nuevo.')).toBeInTheDocument();
+      expect(
+        screen.getByText('El enlace ha expirado. Solicita uno nuevo.'),
+      ).toBeInTheDocument();
     });
   });
 
   it('shows error when no token in URL', async () => {
-    vi.mocked(useSearchParams).mockReturnValue(new URLSearchParams('') as any);
+    vi.mocked(useSearchParams).mockReturnValue(
+      new URLSearchParams('') as unknown as ReturnType<typeof useSearchParams>,
+    );
 
     render(<VerifyEmailPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('El enlace de verificación no es válido.')).toBeInTheDocument();
+      expect(
+        screen.getByText('El enlace de verificación no es válido.'),
+      ).toBeInTheDocument();
     });
   });
 });

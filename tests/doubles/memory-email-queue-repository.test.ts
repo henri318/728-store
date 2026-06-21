@@ -62,7 +62,11 @@ describe('MemoryEmailQueueRepository', () => {
       created.createdAt = new Date(Date.now() - 3 * 60 * 1000);
 
       const since = new Date(Date.now() - 5 * 60 * 1000);
-      const found = await repo.findRecentByRecipient('a@b.com', 'verification', since);
+      const found = await repo.findRecentByRecipient(
+        'a@b.com',
+        'verification',
+        since,
+      );
 
       expect(found).not.toBeNull();
       expect(found!.to).toBe('a@b.com');
@@ -81,7 +85,11 @@ describe('MemoryEmailQueueRepository', () => {
       all[0].createdAt = new Date(Date.now() - 10 * 60 * 1000);
 
       const since = new Date(Date.now() - 5 * 60 * 1000);
-      const found = await repo.findRecentByRecipient('a@b.com', 'verification', since);
+      const found = await repo.findRecentByRecipient(
+        'a@b.com',
+        'verification',
+        since,
+      );
       expect(found).toBeNull();
     });
 

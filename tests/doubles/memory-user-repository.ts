@@ -1,10 +1,15 @@
-import { UserEntity, UserRepository } from '@/modules/users/domain/user-repository';
+import {
+  UserEntity,
+  UserRepository,
+} from '@/modules/users/domain/user-repository';
 
 export class MemoryUserRepository implements UserRepository {
   private users: UserEntity[] = [];
 
-  async save(user: UserEntity, _tx?: any): Promise<UserEntity> {
-    const existingIndex = this.users.findIndex(u => u.userId.equals(user.userId));
+  async save(user: UserEntity, _tx?: unknown): Promise<UserEntity> {
+    const existingIndex = this.users.findIndex((u) =>
+      u.userId.equals(user.userId),
+    );
     if (existingIndex >= 0) {
       this.users[existingIndex] = user;
     } else {
@@ -15,22 +20,22 @@ export class MemoryUserRepository implements UserRepository {
 
   async findByEmail(email: string): Promise<UserEntity | null> {
     const lower = email.trim().toLowerCase();
-    return this.users.find(u => u.email.value === lower) ?? null;
+    return this.users.find((u) => u.email.value === lower) ?? null;
   }
 
   async findById(id: string): Promise<UserEntity | null> {
-    return this.users.find(u => u.userId.value === id) ?? null;
+    return this.users.find((u) => u.userId.value === id) ?? null;
   }
 
   async markEmailVerified(userId: string): Promise<void> {
-    const existing = this.users.find(u => u.userId.value === userId);
+    const existing = this.users.find((u) => u.userId.value === userId);
     if (!existing) return;
     // Mutate in place — matches previous behavior
-    (existing as any).emailVerified = new Date();
+    Object.assign(existing, { emailVerified: new Date() });
   }
 
-  async update(user: UserEntity, _tx?: any): Promise<UserEntity> {
-    const index = this.users.findIndex(u => u.userId.equals(user.userId));
+  async update(user: UserEntity, _tx?: unknown): Promise<UserEntity> {
+    const index = this.users.findIndex((u) => u.userId.equals(user.userId));
     if (index < 0) {
       throw new Error(`User with id ${user.userId.value} not found`);
     }
@@ -39,7 +44,7 @@ export class MemoryUserRepository implements UserRepository {
   }
 
   async delete(id: string): Promise<void> {
-    const index = this.users.findIndex(u => u.userId.value === id);
+    const index = this.users.findIndex((u) => u.userId.value === id);
     if (index >= 0) {
       this.users.splice(index, 1);
     }

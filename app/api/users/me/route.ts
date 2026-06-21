@@ -26,7 +26,10 @@ export async function GET() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
     if (user.deletedAt) {
-      return NextResponse.json({ error: 'Account deactivated' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Account deactivated' },
+        { status: 401 },
+      );
     }
 
     return NextResponse.json({
@@ -34,12 +37,14 @@ export async function GET() {
       email: user.email.value,
       firstName: user.firstName,
       lastName: user.lastName,
-      address: user.address ? {
-        street: user.address.street,
-        city: user.address.city,
-        postalCode: user.address.postalCode,
-        country: user.address.country,
-      } : null,
+      address: user.address
+        ? {
+            street: user.address.street,
+            city: user.address.city,
+            postalCode: user.address.postalCode,
+            country: user.address.country,
+          }
+        : null,
       emailVerified: user.emailVerified?.toISOString() ?? null,
       createdAt: user.createdAt.toISOString(),
     });
@@ -73,12 +78,14 @@ export async function PATCH(req: NextRequest) {
       email: updated.email.value,
       firstName: updated.firstName,
       lastName: updated.lastName,
-      address: updated.address ? {
-        street: updated.address.street,
-        city: updated.address.city,
-        postalCode: updated.address.postalCode,
-        country: updated.address.country,
-      } : null,
+      address: updated.address
+        ? {
+            street: updated.address.street,
+            city: updated.address.city,
+            postalCode: updated.address.postalCode,
+            country: updated.address.country,
+          }
+        : null,
     });
   } catch (error: unknown) {
     return handleApiError(error);

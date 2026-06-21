@@ -8,20 +8,20 @@ Arquitectura de módulo monolítico: cada dominio (usuarios, pedidos, productos.
 
 ## Stack tecnológico
 
-| Capa | Tecnología |
-|------|-----------|
-| Framework | Next.js 16 (App Router, Turbopack) |
-| UI | React 19, lucide-react |
-| Lenguaje | TypeScript 6 |
-| Base de datos | PostgreSQL 15 (Alpine) |
-| ORM | Prisma 7 |
-| Autenticación | NextAuth.js 4 (JWT + credentials + Google) |
-| Validación | Zod 4 |
-| Email transaccional | Brevo (ex-Sendinblue) |
-| Hashing de passwords | bcrypt (cost 12) |
-| Testing | Vitest 4 + Testing Library + jest-axe + Playwright |
-| Linting | ESLint 10 + typescript-eslint |
-| Infra local | Docker (solo PostgreSQL) |
+| Capa                 | Tecnología                                         |
+| -------------------- | -------------------------------------------------- |
+| Framework            | Next.js 16 (App Router, Turbopack)                 |
+| UI                   | React 19, lucide-react                             |
+| Lenguaje             | TypeScript 6                                       |
+| Base de datos        | PostgreSQL 15 (Alpine)                             |
+| ORM                  | Prisma 7                                           |
+| Autenticación        | NextAuth.js 4 (JWT + credentials + Google)         |
+| Validación           | Zod 4                                              |
+| Email transaccional  | Brevo (ex-Sendinblue)                              |
+| Hashing de passwords | bcrypt (cost 12)                                   |
+| Testing              | Vitest 4 + Testing Library + jest-axe + Playwright |
+| Linting              | ESLint 10 + typescript-eslint                      |
+| Infra local          | Docker (solo PostgreSQL)                           |
 
 **No usamos Redis** — todas las colas (email, outbox, rate limiting) son Prisma-based.
 
@@ -118,13 +118,13 @@ npm run test:e2e:debug
 
 ### Tests disponibles
 
-| Archivo | Qué prueba |
-|---------|-----------|
-| `000-health-check.spec.ts` | Health check del servidor |
-| `home/home.spec.ts` | Página principal, grid de productos, navegación |
-| `auth/sign-up.spec.ts` | Registro de usuario |
-| `auth/sign-in.spec.ts` | Login y credenciales |
-| `auth/navigation.spec.ts` | Links entre páginas de auth |
+| Archivo                     | Qué prueba                                      |
+| --------------------------- | ----------------------------------------------- |
+| `000-health-check.spec.ts`  | Health check del servidor                       |
+| `home/home.spec.ts`         | Página principal, grid de productos, navegación |
+| `auth/sign-up.spec.ts`      | Registro de usuario                             |
+| `auth/sign-in.spec.ts`      | Login y credenciales                            |
+| `auth/navigation.spec.ts`   | Links entre páginas de auth                     |
 | `products/products.spec.ts` | Listado de productos, precios, cambio de idioma |
 
 ---
@@ -197,15 +197,15 @@ modulo/
 
 ### Implementadas
 
-| Módulo | Qué hace |
-|--------|----------|
-| **Auth** | Login con credenciales + Google, registro, verificación de email, rate limiting (5 intentos/email/15min, 20 intentos/IP/15min) |
-| **Usuarios** | CRUD completo, borrado suave (soft delete), asignación de roles |
-| **Productos** | Catálogo con traducciones (es/cat), personalización de productos, listado y detalle |
-| **Pedidos** | Crear pedido, marcar como pagado, asignar a producción, outbox transaccional |
-| **Roles** | RBAC con 4 roles: ADMIN, SUPPORT, DESIGNER, CUSTOMER |
-| **Email** | Cola transaccional con Brevo, worker con retry exponencial, fallback a consola en desarrollo |
-| **Eventos** | Bus de eventos in-memory, patrón outbox para fiabilidad |
+| Módulo        | Qué hace                                                                                                                       |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **Auth**      | Login con credenciales + Google, registro, verificación de email, rate limiting (5 intentos/email/15min, 20 intentos/IP/15min) |
+| **Usuarios**  | CRUD completo, borrado suave (soft delete), asignación de roles                                                                |
+| **Productos** | Catálogo con traducciones (es/cat), personalización de productos, listado y detalle                                            |
+| **Pedidos**   | Crear pedido, marcar como pagado, asignar a producción, outbox transaccional                                                   |
+| **Roles**     | RBAC con 4 roles: ADMIN, SUPPORT, DESIGNER, CUSTOMER                                                                           |
+| **Email**     | Cola transaccional con Brevo, worker con retry exponencial, fallback a consola en desarrollo                                   |
+| **Eventos**   | Bus de eventos in-memory, patrón outbox para fiabilidad                                                                        |
 
 ### Eventos de dominio definidos
 

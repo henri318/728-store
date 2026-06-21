@@ -13,7 +13,16 @@ interface InputProps {
   disabled?: boolean;
 }
 
-export function Input({ label, value, onChange, error, type = 'text', placeholder, required, disabled }: InputProps) {
+export function Input({
+  label,
+  value,
+  onChange,
+  error,
+  type = 'text',
+  placeholder,
+  required,
+  disabled,
+}: InputProps) {
   const id = useId();
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);
@@ -23,7 +32,9 @@ export function Input({ label, value, onChange, error, type = 'text', placeholde
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-      <label htmlFor={id} style={{ fontSize: '0.9rem', fontWeight: 500 }}>{label}</label>
+      <label htmlFor={id} style={{ fontSize: '0.9rem', fontWeight: 500 }}>
+        {label}
+      </label>
       <input
         id={id}
         type={type}
@@ -43,7 +54,11 @@ export function Input({ label, value, onChange, error, type = 'text', placeholde
         }}
       />
       {error && (
-        <span id={errorId} role="alert" style={{ color: '#ff4d4f', fontSize: '0.8rem' }}>
+        <span
+          id={errorId}
+          role="alert"
+          style={{ color: '#ff4d4f', fontSize: '0.8rem' }}
+        >
           {error}
         </span>
       )}

@@ -18,7 +18,7 @@ describe('i18n getDictionary', () => {
   });
 
   it('should fallback to Spanish for an unknown locale', async () => {
-    // @ts-ignore - testing invalid input
+    // @ts-expect-error - testing invalid input
     const dict = await getDictionary('fr');
     expect(dict.common.home).toBe('Inicio');
   });

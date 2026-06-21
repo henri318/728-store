@@ -1,25 +1,39 @@
 import { z } from 'zod';
 
-export const signupSchema = z.object({
-  firstName: z.string().min(1, 'El nombre es obligatorio').max(50, 'El nombre es demasiado largo'),
-  lastName: z.string().min(1, 'El apellido es obligatorio').max(50, 'El apellido es demasiado largo'),
-  email: z.string().email('Correo electrónico inválido'),
-  password: z.string()
-    .min(8, 'La contraseña debe tener al menos 8 caracteres')
-    .max(128, 'La contraseña es demasiado larga')
-    .regex(/[a-zA-Z]/, 'La contraseña debe contener al menos una letra')
-    .regex(/\d/, 'La contraseña debe contener al menos un número'),
-  confirmPassword: z.string().optional(),
-  address: z.object({
-    street: z.string().min(1),
-    city: z.string().min(1),
-    postalCode: z.string().min(1),
-    country: z.string().min(1),
-  }).optional(),
-}).refine((data) => !data.confirmPassword || data.password === data.confirmPassword, {
-  message: 'Las contraseñas no coinciden',
-  path: ['confirmPassword'],
-});
+export const signupSchema = z
+  .object({
+    firstName: z
+      .string()
+      .min(1, 'El nombre es obligatorio')
+      .max(50, 'El nombre es demasiado largo'),
+    lastName: z
+      .string()
+      .min(1, 'El apellido es obligatorio')
+      .max(50, 'El apellido es demasiado largo'),
+    email: z.string().email('Correo electrónico inválido'),
+    password: z
+      .string()
+      .min(8, 'La contraseña debe tener al menos 8 caracteres')
+      .max(128, 'La contraseña es demasiado larga')
+      .regex(/[a-zA-Z]/, 'La contraseña debe contener al menos una letra')
+      .regex(/\d/, 'La contraseña debe contener al menos un número'),
+    confirmPassword: z.string().optional(),
+    address: z
+      .object({
+        street: z.string().min(1),
+        city: z.string().min(1),
+        postalCode: z.string().min(1),
+        country: z.string().min(1),
+      })
+      .optional(),
+  })
+  .refine(
+    (data) => !data.confirmPassword || data.password === data.confirmPassword,
+    {
+      message: 'Las contraseñas no coinciden',
+      path: ['confirmPassword'],
+    },
+  );
 
 export const resendVerificationSchema = z.object({
   email: z.string().email('Correo electrónico inválido'),
@@ -32,7 +46,8 @@ export const verifyTokenSchema = z.object({
 /** POST /api/users/me/change-password */
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'La contraseña actual es obligatoria'),
-  newPassword: z.string()
+  newPassword: z
+    .string()
     .min(8, 'La contraseña debe tener al menos 8 caracteres')
     .max(128, 'La contraseña es demasiado larga'),
 });
@@ -45,7 +60,8 @@ export const forgotPasswordSchema = z.object({
 /** POST /api/auth/reset-password */
 export const resetPasswordSchema = z.object({
   token: z.string().min(1, 'El token es obligatorio'),
-  newPassword: z.string()
+  newPassword: z
+    .string()
     .min(8, 'La contraseña debe tener al menos 8 caracteres')
     .max(128, 'La contraseña es demasiado larga'),
 });
@@ -54,10 +70,12 @@ export const resetPasswordSchema = z.object({
 export const updateProfileSchema = z.object({
   firstName: z.string().min(1).max(50).optional(),
   lastName: z.string().min(1).max(50).optional(),
-  address: z.object({
-    street: z.string().min(1),
-    city: z.string().min(1),
-    postalCode: z.string().min(1),
-    country: z.string().min(1),
-  }).optional(),
+  address: z
+    .object({
+      street: z.string().min(1),
+      city: z.string().min(1),
+      postalCode: z.string().min(1),
+      country: z.string().min(1),
+    })
+    .optional(),
 });

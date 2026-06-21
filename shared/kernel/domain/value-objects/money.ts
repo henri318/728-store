@@ -60,15 +60,17 @@ export class Money {
   }
 
   equals(other: Money): boolean {
-    return other instanceof Money
-      && this.amount === other.amount
-      && this.currency === other.currency;
+    return (
+      other instanceof Money &&
+      this.amount === other.amount &&
+      this.currency === other.currency
+    );
   }
 
   private assertSameCurrency(other: Money): void {
     if (this.currency !== other.currency) {
       throw new Error(
-        `Cannot operate on Money with different currencies: ${this.currency} vs ${other.currency}`
+        `Cannot operate on Money with different currencies: ${this.currency} vs ${other.currency}`,
       );
     }
   }

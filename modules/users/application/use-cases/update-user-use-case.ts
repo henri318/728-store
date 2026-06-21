@@ -1,7 +1,11 @@
 import { UserRepository } from '../../domain/user-repository';
 import { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
-import { NotFoundError, ValidationError, UnauthorizedError } from '@/shared/kernel/app-error';
+import {
+  NotFoundError,
+  ValidationError,
+  UnauthorizedError,
+} from '@/shared/kernel/app-error';
 import { Address } from '@/shared/kernel/domain/value-objects/address';
 import type { UpdateUserDTO } from '../dto/update-user.dto';
 
@@ -17,7 +21,9 @@ function validateName(value: string, field: string): string {
     throw new ValidationError(`${field} is required`);
   }
   if (trimmed.length > NAME_MAX_LENGTH) {
-    throw new ValidationError(`${field} cannot exceed ${NAME_MAX_LENGTH} characters`);
+    throw new ValidationError(
+      `${field} cannot exceed ${NAME_MAX_LENGTH} characters`,
+    );
   }
   if (!NAME_PATTERN.test(trimmed)) {
     throw new ValidationError(

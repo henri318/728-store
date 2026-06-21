@@ -41,7 +41,7 @@ export class TransactionalOrderService implements TransactionalOrderPort {
     orderId: string,
     newStatus: string,
     eventType: string,
-    eventPayload: Record<string, any>,
+    eventPayload: Record<string, unknown>,
   ): Promise<void> {
     // Pre-flight: use the port to verify the order exists
     const order = await this.orderRepository.findById(orderId);

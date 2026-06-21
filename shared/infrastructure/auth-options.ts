@@ -1,4 +1,4 @@
-import NextAuth, { NextAuthOptions } from 'next-auth';
+import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 import { container } from '@/composition-root/container';
@@ -14,22 +14,32 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
-        email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" }
+        email: { label: 'Email', type: 'text' },
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) return null;
 
         const ip =
-          (req?.headers as Record<string, string | string[] | undefined>)?.['x-forwarded-for']?.toString().split(',')[0]?.trim()
-          || (req?.headers as Record<string, string | string[] | undefined>)?.['x-real-ip']?.toString()
-          || 'unknown';
+          (req?.headers as Record<string, string | string[] | undefined>)?.[
+            'x-forwarded-for'
+          ]
+            ?.toString()
+            .split(',')[0]
+            ?.trim() ||
+          (req?.headers as Record<string, string | string[] | undefined>)?.[
+            'x-real-ip'
+          ]?.toString() ||
+          'unknown';
 
         // RateLimiter comes from the container — no direct infra import in app/
         const rateLimiter = container.getRateLimiter();
 
         // Check rate limit before credential validation
-        const rateCheck = await rateLimiter.checkRateLimit(credentials.email, ip);
+        const rateCheck = await rateLimiter.checkRateLimit(
+          credentials.email,
+          ip,
+        );
         if (rateCheck.blocked) {
           throw new Error(
             `RATE_LIMITED|${rateCheck.reason}|${rateCheck.retryAfterSeconds}`,
@@ -47,7 +57,10 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const isValid = await passwordHasher.verify(credentials.password, user.passwordHash.value);
+        const isValid = await passwordHasher.verify(
+          credentials.password,
+          user.passwordHash.value,
+        );
 
         if (!isValid) {
           await rateLimiter.recordLoginAttempt(credentials.email, ip, false);
@@ -73,7 +86,7 @@ export const authOptions: NextAuthOptions = {
           role: user.roleId.value,
           emailVerified: user.emailVerified,
         };
-      }
+      },
     }),
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
       ? [
@@ -101,21 +114,22 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
-        token.role = (user as any).role;
+        token.role = user.role;
         // emailVerified: credentials provider sets it from authorize() return;
         // OAuth users are pre-verified by the provider, so set a synthetic date
-        token.emailVerified = (user as any).emailVerified ?? (account ? new Date().toISOString() : null);
+        token.emailVerified =
+          user.emailVerified ?? (account ? new Date().toISOString() : null);
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).id = token.id;
-        (session.user as any).role = token.role;
-        (session.user as any).emailVerified = token.emailVerified;
+        session.user.id = token.id ?? '';
+        session.user.role = token.role ?? 'GUEST';
+        session.user.emailVerified = token.emailVerified ?? null;
       }
       return session;
-    }
+    },
   },
   session: {
     strategy: 'jwt',

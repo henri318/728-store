@@ -22,10 +22,14 @@ function validateName(value: string, field: string): string {
     throw new ValidationError(`${field} is required`);
   }
   if (trimmed.length > NAME_MAX_LENGTH) {
-    throw new ValidationError(`${field} cannot exceed ${NAME_MAX_LENGTH} characters`);
+    throw new ValidationError(
+      `${field} cannot exceed ${NAME_MAX_LENGTH} characters`,
+    );
   }
   if (!NAME_PATTERN.test(trimmed)) {
-    throw new ValidationError(`${field} can only contain letters, spaces, hyphens, and apostrophes`);
+    throw new ValidationError(
+      `${field} can only contain letters, spaces, hyphens, and apostrophes`,
+    );
   }
   return trimmed;
 }
@@ -34,7 +38,7 @@ export class RegisterUserUseCase {
   constructor(
     private userRepository: UserRepository,
     private outboxRepository: OutboxRepository,
-    private passwordHasher: PasswordHasher
+    private passwordHasher: PasswordHasher,
   ) {}
 
   async execute(dto: RegisterUserDTO) {
@@ -50,7 +54,9 @@ export class RegisterUserUseCase {
 
     // 4. Construct Value Objects
     const email = Email.create(dto.email);
-    const passwordHash = PasswordHash.create(await this.passwordHasher.hash(dto.password));
+    const passwordHash = PasswordHash.create(
+      await this.passwordHasher.hash(dto.password),
+    );
     const userId = UserId.create(crypto.randomUUID());
     const roleId = RoleId.create('CUSTOMER');
 
@@ -60,7 +66,7 @@ export class RegisterUserUseCase {
         dto.address.street,
         dto.address.city,
         dto.address.postalCode,
-        dto.address.country
+        dto.address.country,
       );
     }
 

@@ -18,16 +18,25 @@ export async function POST(request: NextRequest) {
     const user = await userRepository.findByEmail(email);
     if (!user) {
       // Don't reveal whether the email exists — return success to avoid enumeration
-      return NextResponse.json({ success: true, message: 'If the email exists, a verification link has been sent.' });
+      return NextResponse.json({
+        success: true,
+        message: 'If the email exists, a verification link has been sent.',
+      });
     }
 
     if (user.deletedAt) {
       // Don't reveal whether the email exists or is deleted — return generic success
-      return NextResponse.json({ success: true, message: 'If the email exists, a verification link has been sent.' });
+      return NextResponse.json({
+        success: true,
+        message: 'If the email exists, a verification link has been sent.',
+      });
     }
 
     if (user.emailVerified) {
-      return NextResponse.json({ success: true, message: 'Email already verified' });
+      return NextResponse.json({
+        success: true,
+        message: 'Email already verified',
+      });
     }
 
     // Rate limit: check if a verification email was sent in the last 5 minutes
@@ -41,7 +50,7 @@ export async function POST(request: NextRequest) {
     if (recentEmail) {
       return NextResponse.json(
         { error: 'Please wait before requesting another verification email' },
-        { status: 429 }
+        { status: 429 },
       );
     }
 
@@ -89,7 +98,10 @@ export async function POST(request: NextRequest) {
       metadata: { userId: user.userId.value },
     });
 
-    return NextResponse.json({ success: true, message: 'Verification email sent' });
+    return NextResponse.json({
+      success: true,
+      message: 'Verification email sent',
+    });
   } catch (error: unknown) {
     return handleApiError(error);
   }

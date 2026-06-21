@@ -15,21 +15,24 @@ export interface OrderRepository {
    * @returns The saved order entity
    */
   save(order: OrderEntity): Promise<OrderEntity>;
-  
+
   /**
    * Saves line items associated with an order.
    * @param orderId - The ID of the parent order
    * @param lineItems - Array of line item entities to save
    */
-  saveOrderLineItems(orderId: string, lineItems: OrderLineItemEntity[]): Promise<void>;
-  
+  saveOrderLineItems(
+    orderId: string,
+    lineItems: OrderLineItemEntity[],
+  ): Promise<void>;
+
   /**
    * Finds an order by its unique identifier.
    * @param orderId - The unique ID of the order to find
    * @returns The order entity if found, null otherwise
    */
   findById(orderId: string): Promise<OrderEntity | null>;
-  
+
   /**
    * Updates the status of an order.
    * Validates that the order exists before updating.

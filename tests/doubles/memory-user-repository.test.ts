@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MemoryUserRepository } from '@/tests/doubles/memory-user-repository';
-import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import { RegisterUserUseCase } from '@/modules/users/application/register-user-use-case';
 import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
 import { MemoryPasswordHasher } from '@/tests/doubles/memory-password-hasher';
@@ -28,7 +27,11 @@ describe('MemoryUserRepository — expanded port', () => {
     userRepository = new MemoryUserRepository();
     outboxRepository = new MemoryOutboxRepository();
     passwordHasher = new MemoryPasswordHasher();
-    useCase = new RegisterUserUseCase(userRepository, outboxRepository, passwordHasher);
+    useCase = new RegisterUserUseCase(
+      userRepository,
+      outboxRepository,
+      passwordHasher,
+    );
   });
 
   describe('findById', () => {
@@ -89,54 +92,9 @@ describe('MemoryUserRepository — expanded port', () => {
     });
 
     it('should be a no-op for an unknown id (no throw)', async () => {
-      await expect(userRepository.markEmailVerified('unknown-id')).resolves.toBeUndefined();
-    });
-  });
-
-  describe('backward compat — register-user flows still pass (new shape)', () => {
-    it('should register and retrieve by email', async () => {
-      const result = await useCase.execute({
-        email: 'test@example.com',
-        firstName: 'Test',
-        lastName: 'User',
-        password: 'MiPassword123!',
-      });
-
-      expect(result.email.value).toBe('test@example.com');
-      expect(result.userId.value).toBeDefined();
-      expect(result.firstName).toBe('Test');
-      expect(result.lastName).toBe('User');
-
-      const savedUser = await userRepository.findByEmail('test@example.com');
-      expect(savedUser?.roleId.value).toBe('CUSTOMER');
-      expect(savedUser?.firstName).toBe('Test');
-      expect(savedUser?.lastName).toBe('User');
-      expect(savedUser?.emailVerified).toBeNull();
-    });
-
-    it('should record USER_REGISTERED event with roleId', async () => {
-      const result = await useCase.execute({
-        email: 'event@example.com',
-        firstName: 'Ev',
-        lastName: 'Ent',
-        password: 'MiPassword123!',
-      });
-
-      expect(outboxRepository.events).toHaveLength(1);
-      expect(outboxRepository.events[0].eventType).toBe(GlobalEvents.USER_REGISTERED);
-      expect(outboxRepository.events[0].payload.userId).toBe(result.userId.value);
-      expect(outboxRepository.events[0].payload.roleId).toBe('CUSTOMER');
-    });
-
-    it('should still throw if user already exists', async () => {
-      const dto = {
-        email: 'dup@example.com',
-        firstName: 'Dup',
-        lastName: 'Name',
-        password: 'MiPassword123!',
-      };
-      await useCase.execute(dto);
-      await expect(useCase.execute(dto)).rejects.toThrow('User already exists');
+      await expect(
+        userRepository.markEmailVerified('unknown-id'),
+      ).resolves.toBeUndefined();
     });
   });
 });

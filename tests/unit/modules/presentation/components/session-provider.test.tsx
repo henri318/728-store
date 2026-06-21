@@ -15,10 +15,12 @@ describe('SessionProviderWrapper', () => {
     render(
       <SessionProviderWrapper session={null}>
         <span>Child content</span>
-      </SessionProviderWrapper>
+      </SessionProviderWrapper>,
     );
     expect(screen.getByText('Child content')).toBeInTheDocument();
-    expect(screen.getByTestId('next-auth-session-provider')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('next-auth-session-provider'),
+    ).toBeInTheDocument();
   });
 
   it('renders multiple children', () => {
@@ -26,16 +28,18 @@ describe('SessionProviderWrapper', () => {
       <SessionProviderWrapper session={null}>
         <span>First</span>
         <span>Second</span>
-      </SessionProviderWrapper>
+      </SessionProviderWrapper>,
     );
     expect(screen.getByText('First')).toBeInTheDocument();
     expect(screen.getByText('Second')).toBeInTheDocument();
   });
 
   it('renders nothing when no children provided', () => {
-    const { container } = render(
-      <SessionProviderWrapper session={null}>{null}</SessionProviderWrapper>
+    render(
+      <SessionProviderWrapper session={null}>{null}</SessionProviderWrapper>,
     );
-    expect(screen.getByTestId('next-auth-session-provider')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('next-auth-session-provider'),
+    ).toBeInTheDocument();
   });
 });

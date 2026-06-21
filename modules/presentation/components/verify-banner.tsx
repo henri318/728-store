@@ -45,12 +45,15 @@ export function VerifyBanner({ email }: VerifyBannerProps) {
       }}
     >
       <span style={{ color: '#ad6800', fontSize: '0.9rem' }}>
-        {sent
-          ? dict.auth.emailVerified
-          : dict.common.unverifiedBanner}
+        {sent ? dict.auth.emailVerified : dict.common.unverifiedBanner}
       </span>
       {!sent && (
-        <Button type="button" variant="secondary" loading={loading} onClick={handleResend}>
+        <Button
+          type="button"
+          variant="secondary"
+          loading={loading}
+          onClick={handleResend}
+        >
           {dict.common.resendVerification}
         </Button>
       )}

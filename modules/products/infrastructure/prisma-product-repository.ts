@@ -7,23 +7,23 @@ export class PrismaProductRepository implements ProductRepository {
       include: {
         seller: true,
         translations: {
-          where: { locale }
+          where: { locale },
         },
-        customizations: true
-      }
+        customizations: true,
+      },
     });
 
-    return products.map(product => ({
+    return products.map((product) => ({
       id: product.id,
       basePrice: Math.round(Number(product.basePrice) * 100) / 100,
       sellerId: product.sellerId,
       sellerName: product.seller.name,
-      translations: product.translations.map(t => ({
+      translations: product.translations.map((t) => ({
         locale: t.locale,
         name: t.name,
-        description: t.description
+        description: t.description,
       })),
-      customizations: product.customizations.map(c => ({
+      customizations: product.customizations.map((c) => ({
         id: c.id,
         text: c.text,
         color: c.color,
@@ -41,10 +41,10 @@ export class PrismaProductRepository implements ProductRepository {
       include: {
         seller: true,
         translations: {
-          where: { locale }
+          where: { locale },
         },
-        customizations: true
-      }
+        customizations: true,
+      },
     });
 
     if (!product) return null;
@@ -54,12 +54,12 @@ export class PrismaProductRepository implements ProductRepository {
       basePrice: Math.round(Number(product.basePrice) * 100) / 100,
       sellerId: product.sellerId,
       sellerName: product.seller.name,
-      translations: product.translations.map(t => ({
+      translations: product.translations.map((t) => ({
         locale: t.locale,
         name: t.name,
-        description: t.description
+        description: t.description,
       })),
-      customizations: product.customizations.map(c => ({
+      customizations: product.customizations.map((c) => ({
         id: c.id,
         text: c.text,
         color: c.color,

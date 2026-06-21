@@ -33,5 +33,9 @@ export interface RateLimiter {
    * Successful and failed attempts are both recorded so that, in the
    * future, analytics / audit features can inspect history.
    */
-  recordLoginAttempt(email: string, ip: string, success: boolean): Promise<void>;
+  recordLoginAttempt(
+    email: string,
+    ip: string,
+    success: boolean,
+  ): Promise<void>;
 }

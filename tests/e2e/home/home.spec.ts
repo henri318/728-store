@@ -13,7 +13,10 @@ test.describe('Home Page', () => {
   test('navigates to product detail', async ({ page }) => {
     await page.goto('/es');
 
-    await page.getByRole('button', { name: /ver detalles/i }).first().click();
+    await page
+      .getByRole('button', { name: /ver detalles/i })
+      .first()
+      .click();
 
     await expect(page).toHaveURL(/\/es\/products\//);
   });

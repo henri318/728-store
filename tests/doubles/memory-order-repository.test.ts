@@ -83,8 +83,9 @@ describe('OrderRepository', () => {
 
     it('should throw error when updating non-existent order', async () => {
       // Act & Assert
-      await expect(repository.updateStatus('non-existent-id', 'paid'))
-        .rejects.toThrow('Order not found');
+      await expect(
+        repository.updateStatus('non-existent-id', 'paid'),
+      ).rejects.toThrow('Order not found');
     });
   });
 });

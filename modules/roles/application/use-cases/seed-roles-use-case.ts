@@ -6,7 +6,10 @@ import { RoleId } from '@/modules/roles/domain/value-objects/role-id';
 const DEFAULT_ROLES: Array<{ name: string; description: string }> = [
   { name: 'ADMIN', description: 'System administrator with full access' },
   { name: 'SUPPORT', description: 'Customer support agent' },
-  { name: 'DESIGNER', description: 'Product designer with customization access' },
+  {
+    name: 'DESIGNER',
+    description: 'Product designer with customization access',
+  },
   { name: 'CUSTOMER', description: 'Registered customer' },
 ];
 

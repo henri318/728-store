@@ -61,5 +61,10 @@ export interface EmailQueueRepository {
    * Reschedule a claimed entry for a future retry with exponential backoff.
    * `scheduledAt` MUST be in the future.
    */
-  reschedule(id: string, retryCount: number, scheduledAt: Date, error: string): Promise<void>;
+  reschedule(
+    id: string,
+    retryCount: number,
+    scheduledAt: Date,
+    error: string,
+  ): Promise<void>;
 }

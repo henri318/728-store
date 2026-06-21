@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
+import { type ZodError } from 'zod';
 import { Input } from '@/modules/presentation/components/input';
 import { Button } from '@/modules/presentation/components/button';
 import { ErrorMessage } from '@/modules/presentation/components/error-message';
@@ -33,15 +34,13 @@ interface FormErrors {
   email?: string;
   password?: string;
   confirmPassword?: string;
-  address?: {
-    street?: string;
-    city?: string;
-    postalCode?: string;
-    country?: string;
-  };
+  address?: Partial<AddressFields>;
 }
 
-function validateForm(form: FormState, passwordsDoNotMatch: string): FormErrors | null {
+function validateForm(
+  form: FormState,
+  passwordsDoNotMatch: string,
+): FormErrors | null {
   // Check password match first
   if (form.password !== form.confirmPassword) {
     return { confirmPassword: passwordsDoNotMatch };
@@ -50,14 +49,17 @@ function validateForm(form: FormState, passwordsDoNotMatch: string): FormErrors 
   // Only validate address if user has expanded the section and filled at least one field
   const formToValidate = {
     ...form,
-    address: form.address && Object.values(form.address).some((v) => v?.trim()) ? form.address : undefined,
+    address:
+      form.address && Object.values(form.address).some((v) => v?.trim())
+        ? form.address
+        : undefined,
   };
 
   const result = signupSchema.safeParse(formToValidate);
   if (result.success) return null;
 
   const errors: FormErrors = {};
-  const issues = (result.error as any).issues ?? [];
+  const issues = (result.error as ZodError).issues ?? [];
 
   for (const issue of issues) {
     const path = issue.path?.join('.') || '';
@@ -96,10 +98,10 @@ export default function SignUpPage() {
 
   const updateField = (field: keyof FormState, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    if ((errors as any)[field]) {
+    if (errors[field]) {
       setErrors((prev) => {
         const next = { ...prev };
-        delete (next as any)[field];
+        delete next[field];
         return next;
       });
     }
@@ -112,12 +114,14 @@ export default function SignUpPage() {
     }));
     if (errors.address?.[field]) {
       setErrors((prev) => {
-        const next = { ...prev, address: { ...prev.address } };
+        const next = {
+          ...prev,
+          address: prev.address ? { ...prev.address } : undefined,
+        };
         if (next.address) {
           delete next.address[field];
           if (Object.keys(next.address).length === 0) {
-            const { address: _addr, ...rest } = next;
-            return rest;
+            next.address = undefined;
           }
         }
         return next;
@@ -179,17 +183,30 @@ export default function SignUpPage() {
         // Fallback: redirect to sign-in if auto-login fails
         router.push(`/${locale}/auth/signin?registered=true`);
       }
-    } catch (err: any) {
-      setServerError(err.message);
+    } catch (err: unknown) {
+      setServerError(
+        err instanceof Error ? err.message : 'An unexpected error occurred',
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: '480px', margin: '4rem auto', padding: '2rem', border: '1px solid #ddd', borderRadius: '8px' }}>
+    <div
+      style={{
+        maxWidth: '480px',
+        margin: '4rem auto',
+        padding: '2rem',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+      }}
+    >
       <h2 style={{ marginTop: 0 }}>{dict.auth.signUpTitle}</h2>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+      >
         {serverError && <ErrorMessage message={serverError} />}
 
         <Input
@@ -243,12 +260,22 @@ export default function SignUpPage() {
               padding: 0,
             }}
           >
-            {showAddress ? `▾ ${dict.auth.hideAddress}` : `▸ ${dict.auth.addAddress}`}
+            {showAddress
+              ? `▾ ${dict.auth.hideAddress}`
+              : `▸ ${dict.auth.addAddress}`}
           </button>
         </div>
 
         {showAddress && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingLeft: '0.5rem', borderLeft: '3px solid #0070f3' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.8rem',
+              paddingLeft: '0.5rem',
+              borderLeft: '3px solid #0070f3',
+            }}
+          >
             <Input
               label={dict.auth.street}
               value={form.address.street}

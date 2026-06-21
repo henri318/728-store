@@ -27,11 +27,11 @@ describe('Email', () => {
     });
 
     it('should reject null', () => {
-      expect(() => Email.create(null as any)).toThrow();
+      expect(() => Email.create(null as unknown as string)).toThrow();
     });
 
     it('should reject undefined', () => {
-      expect(() => Email.create(undefined as any)).toThrow();
+      expect(() => Email.create(undefined as unknown as string)).toThrow();
     });
 
     it('should reject empty string', () => {
@@ -43,9 +43,10 @@ describe('Email', () => {
     });
 
     it('should reject strings longer than 254 chars', () => {
-      const longEmail = 'a'.repeat(242) + '@test.com'; // 242 + 9 = 251 — OK
       const tooLong = 'a'.repeat(246) + '@test.com'; // 246 + 9 = 255 — too long
-      expect(() => Email.create(tooLong)).toThrow('Email must be at most 254 characters');
+      expect(() => Email.create(tooLong)).toThrow(
+        'Email must be at most 254 characters',
+      );
     });
 
     it('should reject "test" (no @)', () => {
@@ -65,7 +66,9 @@ describe('Email', () => {
     });
 
     it('should reject "test @test.com" (space in email)', () => {
-      expect(() => Email.create('test @test.com')).toThrow('Invalid email format');
+      expect(() => Email.create('test @test.com')).toThrow(
+        'Invalid email format',
+      );
     });
   });
 

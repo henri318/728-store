@@ -3,7 +3,11 @@ import type { RoleEntity } from '@/modules/roles/domain/entities/role';
 import type { RoleRepository } from '@/modules/roles/domain/role-repository';
 import { RoleId } from '@/modules/roles/domain/value-objects/role-id';
 
-function toEntity(row: { id: string; name: string; description: string }): RoleEntity {
+function toEntity(row: {
+  id: string;
+  name: string;
+  description: string;
+}): RoleEntity {
   return {
     id: RoleId.create(row.id),
     name: row.name,

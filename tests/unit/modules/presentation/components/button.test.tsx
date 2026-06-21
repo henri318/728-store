@@ -29,14 +29,22 @@ describe('Button component', () => {
 
   it('does not call onClick when disabled', () => {
     const onClick = vi.fn();
-    render(<Button disabled onClick={onClick}>Submit</Button>);
+    render(
+      <Button disabled onClick={onClick}>
+        Submit
+      </Button>,
+    );
     fireEvent.click(screen.getByRole('button'));
     expect(onClick).not.toHaveBeenCalled();
   });
 
   it('does not call onClick when loading', () => {
     const onClick = vi.fn();
-    render(<Button loading onClick={onClick}>Submit</Button>);
+    render(
+      <Button loading onClick={onClick}>
+        Submit
+      </Button>,
+    );
     fireEvent.click(screen.getByRole('button'));
     expect(onClick).not.toHaveBeenCalled();
   });
@@ -53,16 +61,25 @@ describe('Button component', () => {
 
   it('uses primary variant by default', () => {
     render(<Button>Primary</Button>);
-    expect(screen.getByRole('button')).toHaveAttribute('data-variant', 'primary');
+    expect(screen.getByRole('button')).toHaveAttribute(
+      'data-variant',
+      'primary',
+    );
   });
 
   it('applies secondary variant', () => {
     render(<Button variant="secondary">Secondary</Button>);
-    expect(screen.getByRole('button')).toHaveAttribute('data-variant', 'secondary');
+    expect(screen.getByRole('button')).toHaveAttribute(
+      'data-variant',
+      'secondary',
+    );
   });
 
   it('applies danger variant', () => {
     render(<Button variant="danger">Delete</Button>);
-    expect(screen.getByRole('button')).toHaveAttribute('data-variant', 'danger');
+    expect(screen.getByRole('button')).toHaveAttribute(
+      'data-variant',
+      'danger',
+    );
   });
 });
