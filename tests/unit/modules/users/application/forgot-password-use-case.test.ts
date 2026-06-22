@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MemoryUserRepository } from '@/tests/doubles/memory-user-repository';
-import type { ForgotPasswordEmailPort } from '@/modules/auth/domain/forgot-password-email-port';
+import type { ForgotPasswordEmailPort } from '@/shared/contracts/email/forgot-password-email-port';
 import { Base64ResetTokenCodec } from '@/modules/auth/infrastructure/base64-reset-token-codec';
 import { UserId } from '@/shared/kernel/domain/value-objects/user-id';
 import { Email } from '@/shared/kernel/domain/value-objects/email';
-import { RoleId } from '@/modules/roles/domain/value-objects/role-id';
+import { RoleId } from '@/shared/kernel/domain/identifiers/role-id';
 import { PasswordHash } from '@/shared/kernel/domain/value-objects/password-hash';
 
 /**

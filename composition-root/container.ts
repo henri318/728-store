@@ -27,20 +27,20 @@
 
 import type { EmailSender } from '@/modules/email/domain/email-sender';
 import type { EventBusPort } from '@/modules/events/domain/event-bus-port';
-import type { ForgotPasswordEmailPort } from '@/modules/auth/domain/forgot-password-email-port';
+import type { ForgotPasswordEmailPort } from '@/shared/contracts/email/forgot-password-email-port';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import type { PasswordHasher } from '@/modules/users/domain/password-hasher';
 import type { RateLimiter } from '@/modules/auth/domain/rate-limiter';
-import type { ResetTokenCodec } from '@/modules/auth/domain/reset-token-codec-port';
+import type { ResetTokenCodec } from '@/shared/contracts/security/reset-token-codec';
 import type { SecretsPort } from '@/modules/auth/domain/secrets';
 import type { SessionPort } from '@/modules/auth/domain/session';
 import type { UserRepository } from '@/modules/users/domain/user-repository';
 import type { RoleRepository } from '@/modules/roles/domain/role-repository';
 import type { OrderRepository } from '@/modules/orders/domain/order-repository';
 import type { ProductRepository } from '@/modules/products/domain/product-repository';
-import type { EmailQueueRepository } from '@/modules/email/domain/email-queue-repository';
+import type { EmailQueueRepository } from '@/shared/contracts/email/email-queue-port';
 import type { UserLookupPort } from '@/modules/auth/domain/user-lookup';
-import type { UsedResetTokenStorePort } from '@/modules/auth/domain/used-reset-token-store-port';
+import type { UsedResetTokenStorePort } from '@/shared/contracts/security/used-reset-token-store-port';
 import type { SellerRepository } from '@/modules/sellers/domain/seller-repository';
 import type { TransactionRunner } from '@/shared/kernel/transaction-runner';
 

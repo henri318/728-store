@@ -1,4 +1,4 @@
-import type { RoleId } from '@/modules/roles/domain/value-objects/role-id';
+import type { RoleId } from '@/shared/kernel/domain/identifiers/role-id';
 
 /**
  * Role entity — represents a user role in the authorization system.

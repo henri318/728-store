@@ -4,7 +4,7 @@ import type {
   EmailQueueEntry,
   EmailQueueRepository,
   EmailQueueWorkerEntry,
-} from '@/modules/email/domain/email-queue-repository';
+} from '@/shared/contracts/email/email-queue-port';
 
 /**
  * In-memory EmailQueueRepository test double.

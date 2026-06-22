@@ -5,7 +5,7 @@ import { MemoryPasswordHasher } from '@/tests/doubles/memory-password-hasher';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import { UserId } from '@/shared/kernel/domain/value-objects/user-id';
 import { Email } from '@/shared/kernel/domain/value-objects/email';
-import { RoleId } from '@/modules/roles/domain/value-objects/role-id';
+import { RoleId } from '@/shared/kernel/domain/identifiers/role-id';
 import { PasswordHash } from '@/shared/kernel/domain/value-objects/password-hash';
 
 /**

@@ -4,7 +4,7 @@ import { UserEntity, UserRepository } from '../domain/user-repository';
 import { UserId } from '@/shared/kernel/domain/value-objects/user-id';
 import { Email } from '@/shared/kernel/domain/value-objects/email';
 import { Address } from '@/shared/kernel/domain/value-objects/address';
-import { RoleId } from '@/modules/roles/domain/value-objects/role-id';
+import { RoleId } from '@/shared/kernel/domain/identifiers/role-id';
 import { PasswordHash } from '@/shared/kernel/domain/value-objects/password-hash';
 
 /** Maps a Prisma User row to the domain UserEntity (with VOs). */

@@ -1,7 +1,7 @@
 import { prisma } from '@/shared/infrastructure/prisma';
 import type { RoleEntity } from '@/modules/roles/domain/entities/role';
 import type { RoleRepository } from '@/modules/roles/domain/role-repository';
-import { RoleId } from '@/modules/roles/domain/value-objects/role-id';
+import { RoleId } from '@/shared/kernel/domain/identifiers/role-id';
 
 function toEntity(row: {
   id: string;

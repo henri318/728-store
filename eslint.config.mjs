@@ -4,6 +4,46 @@ import eslintReact from '@eslint-react/eslint-plugin';
 import reactHooks from 'eslint-plugin-react-hooks';
 import nextPlugin from '@next/eslint-plugin-next';
 
+const MODULES = [
+  'auth',
+  'email',
+  'orders',
+  'payments',
+  'presentation',
+  'products',
+  'roles',
+  'tickets',
+  'users',
+];
+
+/**
+ * Cross-module boundary rules.
+ *
+ * Each module may only import from:
+ *   - Its own domain/infrastructure/application layers
+ *   - `events/` (shared event bus)
+ *   - `shared/` (kernel, contracts, infrastructure)
+ *
+ * Direct imports between sibling modules are BLOCKED.
+ * Cross-module communication MUST go through domain events or shared contracts.
+ */
+const moduleBoundaryRules = MODULES.map((mod) => ({
+  files: [`modules/${mod}/**/*.ts`, `modules/${mod}/**/*.tsx`],
+  rules: {
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: [
+          {
+            regex: `^@/modules/(?!${mod}/|events/|shared/)`,
+            message: `Module "${mod}" must not import directly from other modules. Use domain events or shared contracts instead.`,
+          },
+        ],
+      },
+    ],
+  },
+}));
+
 export default tseslint.config(
   // Base ESLint recommended
   eslintJs.configs.recommended,
@@ -42,6 +82,9 @@ export default tseslint.config(
       ],
     },
   },
+
+  // Cross-module boundary enforcement
+  ...moduleBoundaryRules,
 
   // Global ignores
   {

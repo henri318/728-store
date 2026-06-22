@@ -1,6 +1,6 @@
 import type { RoleRepository } from '@/modules/roles/domain/role-repository';
 import type { RoleEntity } from '@/modules/roles/domain/entities/role';
-import { RoleId } from '@/modules/roles/domain/value-objects/role-id';
+import { RoleId } from '@/shared/kernel/domain/identifiers/role-id';
 
 /** Default role definitions seeded on first boot. */
 const DEFAULT_ROLES: Array<{ name: string; description: string }> = [

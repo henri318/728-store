@@ -1,6 +1,6 @@
 import type { UserRepository } from '@/modules/users/domain/user-repository';
-import type { ForgotPasswordEmailPort } from '@/modules/auth/domain/forgot-password-email-port';
-import type { ResetTokenCodec } from '@/modules/auth/domain/reset-token-codec-port';
+import type { ForgotPasswordEmailPort } from '@/shared/contracts/email/forgot-password-email-port';
+import type { ResetTokenCodec } from '@/shared/contracts/security/reset-token-codec';
 
 export interface ForgotPasswordDTO {
   email: string;

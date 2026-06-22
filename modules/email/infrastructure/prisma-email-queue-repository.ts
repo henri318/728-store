@@ -5,7 +5,7 @@ import type {
   EmailQueueEntry,
   EmailQueueRepository,
   EmailQueueWorkerEntry,
-} from '@/modules/email/domain/email-queue-repository';
+} from '@/shared/contracts/email/email-queue-port';
 
 /**
  * Prisma adapter for the EmailQueueRepository port.

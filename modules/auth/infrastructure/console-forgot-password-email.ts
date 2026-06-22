@@ -1,4 +1,4 @@
-import type { ForgotPasswordEmailPort } from '@/modules/auth/domain/forgot-password-email-port';
+import type { ForgotPasswordEmailPort } from '@/shared/contracts/email/forgot-password-email-port';
 
 /**
  * ConsoleForgotPasswordEmail — dev-only mock implementation of ForgotPasswordEmailPort.

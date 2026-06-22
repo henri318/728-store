@@ -1,5 +1,5 @@
-import type { EmailQueueEntry } from './entities/email-queue-entry';
-import type { EmailQueueWorkerEntry } from './entities/email-queue-worker-entry';
+import type { EmailQueueEntry } from '@/modules/email/domain/entities/email-queue-entry';
+import type { EmailQueueWorkerEntry } from '@/modules/email/domain/entities/email-queue-worker-entry';
 
 export type { EmailQueueEntry, EmailQueueWorkerEntry };
 

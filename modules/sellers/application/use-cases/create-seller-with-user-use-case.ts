@@ -8,7 +8,7 @@ import { SellerStatus } from '@/modules/sellers/domain/seller-status';
 import { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
 import { UserId } from '@/shared/kernel/domain/value-objects/user-id';
 import { Email } from '@/shared/kernel/domain/value-objects/email';
-import { RoleId } from '@/modules/roles/domain/value-objects/role-id';
+import { RoleId } from '@/shared/kernel/domain/identifiers/role-id';
 import { PasswordHash } from '@/shared/kernel/domain/value-objects/password-hash';
 import { ConflictError, ValidationError } from '@/shared/kernel/app-error';
 
