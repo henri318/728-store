@@ -8,36 +8,36 @@ Add `no-restricted-imports` rule to `eslint.config.mjs` that blocks `@/modules/<
 
 ### Decision: Rule scope — which files are subject to the restriction
 
-| Option | Tradeoff | Decision |
-|--------|----------|----------|
-| All `.ts` files | Catches everything; forces composition-root to use barrel re-exports | ❌ Composition-root is designed to import from all modules |
-| `modules/**` only | Blocks module→module; ignores app/, tests/, composition-root | ✅ Chosen — modules are the boundary unit |
-| `modules/**` + `app/**` | Blocks route handlers too; but routes legitimately import use cases | ❌ Routes are presentation layer for specific modules |
+| Option                  | Tradeoff                                                             | Decision                                                   |
+| ----------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------- |
+| All `.ts` files         | Catches everything; forces composition-root to use barrel re-exports | ❌ Composition-root is designed to import from all modules |
+| `modules/**` only       | Blocks module→module; ignores app/, tests/, composition-root         | ✅ Chosen — modules are the boundary unit                  |
+| `modules/**` + `app/**` | Blocks route handlers too; but routes legitimately import use cases  | ❌ Routes are presentation layer for specific modules      |
 
 **Rationale**: The architectural boundary is between modules. `composition-root/` is the wiring layer (imports everything by design). `app/` routes are presentation for specific modules. `tests/` need cross-module access for setup. Only `modules/**` files need the restriction.
 
 ### Decision: Allow-list for shared code and events
 
-| Pattern | Rationale |
-|---------|-----------|
-| `@/shared/**` | Shared kernel is explicitly designed for cross-module consumption |
+| Pattern               | Rationale                                                                  |
+| --------------------- | -------------------------------------------------------------------------- |
+| `@/shared/**`         | Shared kernel is explicitly designed for cross-module consumption          |
 | `@/modules/events/**` | Event bus + registry are the sanctioned inter-module communication channel |
 
 ### Decision: File destination — `shared/contracts/` vs `shared/kernel/domain/`
 
-| Option | Tradeoff | Decision |
-|--------|----------|----------|
-| All to `shared/kernel/domain/ports/` | Simple; single location | ❌ Mixes identity values with behavioral ports |
+| Option                                           | Tradeoff                  | Decision                                                             |
+| ------------------------------------------------ | ------------------------- | -------------------------------------------------------------------- |
+| All to `shared/kernel/domain/ports/`             | Simple; single location   | ❌ Mixes identity values with behavioral ports                       |
 | Split: identifiers in kernel, ports in contracts | Clear semantic separation | ✅ Chosen — `RoleId` is a value-object (kernel), ports are contracts |
 
 **Rationale**: `RoleId` extends `EntityId` — it belongs with other identifiers. The ports (`ResetTokenCodec`, `UsedResetTokenStorePort`, `ForgotPasswordEmailPort`, `EmailSender`) define cross-module contracts, not kernel domain concepts.
 
 ### Decision: `composition-root/` exclusion strategy
 
-| Option | Tradeoff | Decision |
-|--------|----------|----------|
+| Option                               | Tradeoff                                        | Decision  |
+| ------------------------------------ | ----------------------------------------------- | --------- |
 | Exclude via `ignores` in rule config | Clean; composition-root never triggers the rule | ✅ Chosen |
-| Add allow patterns for every module | Verbose; breaks when new modules are added | ❌ |
+| Add allow patterns for every module  | Verbose; breaks when new modules are added      | ❌        |
 
 ### Decision: Path separator handling in regex
 
@@ -172,7 +172,7 @@ The best working approach with ESLint `no-restricted-imports`:
 
 ESint `no-restricted-imports` patterns DO support regex. Use a regex with negative lookahead to block `@/modules/X/` when imported from `modules/Y/` where Y≠X. But ESLint doesn't support backreferences to match "current file's module name" in the import path.
 
-**The pragmatic solution that works**: 
+**The pragmatic solution that works**:
 
 Block ALL `@/modules/<name>/**` imports from `modules/` files. Add per-module overrides that allow same-module imports. Since there are 11 modules, this is manageable.
 
@@ -239,23 +239,34 @@ Actually, looking at the ESLint docs more carefully: `no-restricted-imports` wit
     {
       regex: '^@/modules/(?!auth/)',
       message: '...',
-    }
-  ]
+    },
+  ];
 }
 ```
 
 But this only works for one module at a time. We'd need 11 patterns.
 
-**FINAL FINAL APPROACH (CHOSEN)**: 
+**FINAL FINAL APPROACH (CHOSEN)**:
 
 Use the `patterns` option with `regex` for each module. Each regex uses negative lookahead to allow same-module imports while blocking cross-module. This is the correct, working approach.
 
 ```js
-const MODULES = ['auth','email','events','orders','payments','presentation','products','roles','sellers','tickets','users'];
+const MODULES = [
+  'auth',
+  'email',
+  'events',
+  'orders',
+  'payments',
+  'presentation',
+  'products',
+  'roles',
+  'sellers',
+  'tickets',
+  'users',
+];
 
-const crossModuleBlockPatterns = MODULES
-  .filter(m => m !== 'events') // events is always allowed
-  .map(mod => ({
+const crossModuleBlockPatterns = MODULES.filter((m) => m !== 'events') // events is always allowed
+  .map((mod) => ({
     regex: `^@/modules/(?!${mod}/)`,
     message: `Cross-module import blocked. Module "${mod}" cannot import from other modules. Use domain events, shared ports, or the composition root.`,
   }));
@@ -263,13 +274,13 @@ const crossModuleBlockPatterns = MODULES
 
 **Wait** — this regex matches from the PERSPECTIVE of the importing file. But ESLint applies the same rule to ALL files. The regex `^@/modules/(?!auth/)` would block importing from non-auth modules when applied to auth files, but it would ALSO block importing from auth when applied to non-auth files.
 
-The regex needs to match the IMPORT PATH, not the file path. So `^@/modules/(?!auth/)` means "any import path that starts with @/modules/ but NOT @/modules/auth/". This would be applied to files in `modules/auth/**` — meaning auth files can import from `@/modules/auth/` but not from other modules. 
+The regex needs to match the IMPORT PATH, not the file path. So `^@/modules/(?!auth/)` means "any import path that starts with @/modules/ but NOT @/modules/auth/". This would be applied to files in `modules/auth/**` — meaning auth files can import from `@/modules/auth/` but not from other modules.
 
 **But** the same pattern would also be applied to files in `modules/users/**` — and it would ALLOW `@/modules/auth/` imports from users (because the regex blocks non-auth, not non-users). That's wrong.
 
 The issue is that `no-restricted-imports` patterns apply to the IMPORT PATH, not relative to the file. So we can't express "block imports from other modules" with a single pattern — we'd need per-file patterns.
 
-**THE ACTUAL CORRECT APPROACH**: 
+**THE ACTUAL CORRECT APPROACH**:
 
 Use `no-restricted-imports` with `paths` (not patterns) for specific blocked paths. But with 11 modules × 4 layers = 44 blocked paths, this is verbose.
 
@@ -314,6 +325,7 @@ Actually, looking at the ESLint source: `no-restricted-imports` with `patterns` 
 **THE REAL ANSWER**: ESLint `no-restricted-imports` patterns with `group` use minimatch globs. The glob `@/modules/*/domain/**` matches `@/modules/auth/domain/foo.ts`. There is NO way to say "match this BUT NOT when the file is in the same module" using minimatch.
 
 The ONLY working approaches are:
+
 1. Per-module `overrides` with the rule defined 11 times, each with a regex that blocks cross-module imports using negative lookahead relative to that module.
 2. A custom ESLint plugin.
 3. Use `import/no-restricted-paths` instead (which IS designed for this).
@@ -331,7 +343,7 @@ import restrictPaths from 'eslint-plugin-import/lib/rules/no-restricted-paths';
     'import/no-restricted-paths': ['error', {
       zones: [
         // For each module, restrict imports from all OTHER modules
-        ...MODULES.flatMap(mod => 
+        ...MODULES.flatMap(mod =>
           MODULES.filter(other => other !== mod && other !== 'events').map(other => ({
             target: `./modules/${mod}`,
             from: `./modules/${other}`,
@@ -353,25 +365,51 @@ import restrictPaths from 'eslint-plugin-import/lib/rules/no-restricted-paths';
 For each module (except events), define a regex that blocks imports from other modules using negative lookahead. The regex is applied to the import path. Since ESLint applies the rule per-file, and the `files` glob in the override scopes it to the correct module, this works:
 
 ```js
-const MODULES = ['auth','email','orders','payments','presentation','products','roles','sellers','tickets','users'];
+const MODULES = [
+  'auth',
+  'email',
+  'orders',
+  'payments',
+  'presentation',
+  'products',
+  'roles',
+  'sellers',
+  'tickets',
+  'users',
+];
 
 // For each module, create an override that blocks imports from other modules
-const moduleOverrides = MODULES.map(mod => ({
+const moduleOverrides = MODULES.map((mod) => ({
   files: [`modules/${mod}/**/*.ts`, `modules/${mod}/**/*.tsx`],
   rules: {
-    'no-restricted-imports': ['error', {
-      patterns: [
-        // Block imports from all modules EXCEPT this one, events, and shared
-        ...MODULES
-          .filter(other => other !== mod && other !== 'events')
-          .flatMap(other => [
-            { group: [`@/modules/${other}/domain/**`], message: `Cross-module: ${mod} cannot import from ${other}/domain` },
-            { group: [`@/modules/${other}/application/**`], message: `Cross-module: ${mod} cannot import from ${other}/application` },
-            { group: [`@/modules/${other}/infrastructure/**`], message: `Cross-module: ${mod} cannot import from ${other}/infrastructure` },
-            { group: [`@/modules/${other}/presentation/**`], message: `Cross-module: ${mod} cannot import from ${other}/presentation` },
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: [
+          // Block imports from all modules EXCEPT this one, events, and shared
+          ...MODULES.filter(
+            (other) => other !== mod && other !== 'events',
+          ).flatMap((other) => [
+            {
+              group: [`@/modules/${other}/domain/**`],
+              message: `Cross-module: ${mod} cannot import from ${other}/domain`,
+            },
+            {
+              group: [`@/modules/${other}/application/**`],
+              message: `Cross-module: ${mod} cannot import from ${other}/application`,
+            },
+            {
+              group: [`@/modules/${other}/infrastructure/**`],
+              message: `Cross-module: ${mod} cannot import from ${other}/infrastructure`,
+            },
+            {
+              group: [`@/modules/${other}/presentation/**`],
+              message: `Cross-module: ${mod} cannot import from ${other}/presentation`,
+            },
           ]),
-      ],
-    }],
+        ],
+      },
+    ],
   },
 }));
 ```
@@ -381,24 +419,28 @@ This generates 10 modules × 9 other modules × 4 layers = 360 patterns. That's 
 **Use regex instead of group**: For each module, one regex with negative lookahead:
 
 ```js
-const moduleOverrides = MODULES.map(mod => ({
+const moduleOverrides = MODULES.map((mod) => ({
   files: [`modules/${mod}/**/*.ts`, `modules/${mod}/**/*.tsx`],
   rules: {
-    'no-restricted-imports': ['error', {
-      patterns: [
-        {
-          regex: `^@/modules/(?!${mod}/|events/|shared/)`,
-          message: `Module "${mod}" cannot import from other modules. Use domain events, shared ports, or the composition root.`,
-        },
-      ],
-    }],
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: [
+          {
+            regex: `^@/modules/(?!${mod}/|events/|shared/)`,
+            message: `Module "${mod}" cannot import from other modules. Use domain events, shared ports, or the composition root.`,
+          },
+        ],
+      },
+    ],
   },
 }));
 ```
 
 **This works!** The regex `^@/modules/(?!auth/|events/|shared/)` applied to files in `modules/auth/**` means:
+
 - `@/modules/auth/domain/...` → matches `@/modules/` but NOT followed by `auth/` → does NOT match → ALLOWED ✓
-- `@/modules/events/domain/...` → matches `@/modules/` but NOT followed by `events/` → does NOT match → ALLOWED ✓  
+- `@/modules/events/domain/...` → matches `@/modules/` but NOT followed by `events/` → does NOT match → ALLOWED ✓
 - `@/shared/...` → doesn't start with `@/modules/` → does NOT match → ALLOWED ✓
 - `@/modules/users/domain/...` → matches `@/modules/` and NOT followed by `auth/` → MATCHES → BLOCKED ✓
 
@@ -409,21 +451,35 @@ const moduleOverrides = MODULES.map(mod => ({
 ```js
 // eslint.config.mjs — addition to the config array
 
-const MODULES = ['auth','email','orders','payments','presentation','products','roles','sellers','tickets','users'];
+const MODULES = [
+  'auth',
+  'email',
+  'orders',
+  'payments',
+  'presentation',
+  'products',
+  'roles',
+  'sellers',
+  'tickets',
+  'users',
+];
 
 // Per-module overrides: each module can import from itself, events, and shared only
-const moduleBoundaryRules = MODULES.map(mod => ({
+const moduleBoundaryRules = MODULES.map((mod) => ({
   files: [`modules/${mod}/**/*.ts`, `modules/${mod}/**/*.tsx`],
   rules: {
-    'no-restricted-imports': ['error', {
-      patterns: [
-        {
-          // Blocks @/modules/X/ where X is NOT this module, events, or shared
-          regex: `^@/modules/(?!${mod}/|events/[domaininfrastructurepresentation]*|shared/)`,
-          message: `Module "${mod}" cannot import from other modules. Use domain events, shared ports, or the composition root.`,
-        },
-      ],
-    }],
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: [
+          {
+            // Blocks @/modules/X/ where X is NOT this module, events, or shared
+            regex: `^@/modules/(?!${mod}/|events/[domaininfrastructurepresentation]*|shared/)`,
+            message: `Module "${mod}" cannot import from other modules. Use domain events, shared ports, or the composition root.`,
+          },
+        ],
+      },
+    ],
   },
 }));
 
@@ -442,6 +498,7 @@ export default tseslint.config(
 **Final regex**: `^@/modules/(?!${mod}/|events/|shared/)`
 
 This allows:
+
 - `@/modules/<this-module>/**` (same-module)
 - `@/modules/events/**` (event bus)
 - `@/shared/**` (shared kernel — doesn't start with @/modules/ so won't match anyway)
@@ -454,88 +511,88 @@ Wait — `@/shared/**` doesn't start with `@/modules/`, so the regex `^@/modules
 
 ### Files to Move
 
-| Source | Destination | Type moved |
-|--------|-------------|------------|
-| `modules/roles/domain/value-objects/role-id.ts` | `shared/kernel/domain/value-objects/role-id.ts` | Value object class |
-| `modules/auth/domain/reset-token-codec-port.ts` | `shared/contracts/security/reset-token-codec.ts` | Interface + type |
-| `modules/auth/domain/used-reset-token-store-port.ts` | `shared/contracts/security/used-reset-token-store-port.ts` | Interface |
-| `modules/auth/domain/forgot-password-email-port.ts` | `shared/contracts/email/forgot-password-email-port.ts` | Interface |
-| `modules/email/domain/email-sender.ts` | `shared/contracts/email/email-queue-port.ts` | Interface |
+| Source                                               | Destination                                                | Type moved         |
+| ---------------------------------------------------- | ---------------------------------------------------------- | ------------------ |
+| `modules/roles/domain/value-objects/role-id.ts`      | `shared/kernel/domain/value-objects/role-id.ts`            | Value object class |
+| `modules/auth/domain/reset-token-codec-port.ts`      | `shared/contracts/security/reset-token-codec.ts`           | Interface + type   |
+| `modules/auth/domain/used-reset-token-store-port.ts` | `shared/contracts/security/used-reset-token-store-port.ts` | Interface          |
+| `modules/auth/domain/forgot-password-email-port.ts`  | `shared/contracts/email/forgot-password-email-port.ts`     | Interface          |
+| `modules/email/domain/email-sender.ts`               | `shared/contracts/email/email-queue-port.ts`               | Interface          |
 
 ### Files to Create (barrel exports)
 
-| File | Purpose |
-|------|---------|
-| `shared/contracts/security/index.ts` | Re-exports `ResetTokenCodec`, `ResetTokenPayload`, `UsedResetTokenStorePort` |
-| `shared/contracts/email/index.ts` | Re-exports `EmailSender`, `ForgotPasswordEmailPort` |
-| `shared/contracts/index.ts` | Re-exports from `security/` and `email/` |
-| `shared/kernel/domain/value-objects/index.ts` | Re-exports all value objects including `RoleId` |
+| File                                          | Purpose                                                                      |
+| --------------------------------------------- | ---------------------------------------------------------------------------- |
+| `shared/contracts/security/index.ts`          | Re-exports `ResetTokenCodec`, `ResetTokenPayload`, `UsedResetTokenStorePort` |
+| `shared/contracts/email/index.ts`             | Re-exports `EmailSender`, `ForgotPasswordEmailPort`                          |
+| `shared/contracts/index.ts`                   | Re-exports from `security/` and `email/`                                     |
+| `shared/kernel/domain/value-objects/index.ts` | Re-exports all value objects including `RoleId`                              |
 
 ### Files to Delete
 
-| File | Reason |
-|------|--------|
+| File                                            | Reason          |
+| ----------------------------------------------- | --------------- |
 | `modules/roles/domain/value-objects/role-id.ts` | Moved to shared |
 
 ## Import Update Map
 
 ### `role-id.ts` move (17 files affected)
 
-| File | Old Import | New Import |
-|------|-----------|------------|
-| `modules/roles/domain/entities/role.ts` | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
-| `modules/roles/domain/value-objects/role-id.ts` (deleted) | — | — |
-| `modules/roles/infrastructure/prisma-role-repository.ts` | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
-| `modules/roles/application/use-cases/seed-roles-use-case.ts` | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
-| `modules/roles/application/use-cases/create-role-use-case.ts` | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
-| `modules/users/infrastructure/prisma-user-repository.ts` | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
-| `modules/users/domain/entities/user.ts` | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
-| `modules/users/application/use-cases/register-user-use-case.ts` | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
+| File                                                                        | Old Import                                     | New Import                                     |
+| --------------------------------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------- |
+| `modules/roles/domain/entities/role.ts`                                     | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
+| `modules/roles/domain/value-objects/role-id.ts` (deleted)                   | —                                              | —                                              |
+| `modules/roles/infrastructure/prisma-role-repository.ts`                    | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
+| `modules/roles/application/use-cases/seed-roles-use-case.ts`                | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
+| `modules/roles/application/use-cases/create-role-use-case.ts`               | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
+| `modules/users/infrastructure/prisma-user-repository.ts`                    | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
+| `modules/users/domain/entities/user.ts`                                     | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
+| `modules/users/application/use-cases/register-user-use-case.ts`             | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
 | `modules/sellers/application/use-cases/create-seller-with-user-use-case.ts` | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
-| `tests/unit/modules/users/application/update-user.test.ts` | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
-| `tests/unit/modules/users/application/reset-password-use-case.test.ts` | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
-| `tests/unit/modules/users/application/register-user-use-case.test.ts` | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
-| `tests/unit/modules/users/application/forgot-password-use-case.test.ts` | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
-| `tests/unit/modules/users/application/delete-user.test.ts` | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
-| `tests/unit/modules/users/application/change-password-use-case.test.ts` | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
-| `tests/unit/modules/users/application/assign-role.test.ts` | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
-| `tests/unit/modules/roles/application/create-role.test.ts` | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
-| `tests/doubles/memory-user-repository.test.ts` | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
+| `tests/unit/modules/users/application/update-user.test.ts`                  | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
+| `tests/unit/modules/users/application/reset-password-use-case.test.ts`      | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
+| `tests/unit/modules/users/application/register-user-use-case.test.ts`       | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
+| `tests/unit/modules/users/application/forgot-password-use-case.test.ts`     | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
+| `tests/unit/modules/users/application/delete-user.test.ts`                  | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
+| `tests/unit/modules/users/application/change-password-use-case.test.ts`     | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
+| `tests/unit/modules/users/application/assign-role.test.ts`                  | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
+| `tests/unit/modules/roles/application/create-role.test.ts`                  | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
+| `tests/doubles/memory-user-repository.test.ts`                              | `@/modules/roles/domain/value-objects/role-id` | `@/shared/kernel/domain/value-objects/role-id` |
 
 ### `reset-token-codec-port.ts` move (5 files affected)
 
-| File | Old Import | New Import |
-|------|-----------|------------|
-| `modules/auth/infrastructure/jwt-reset-token-codec.ts` | `@/modules/auth/domain/reset-token-codec-port` | `@/shared/contracts/security/reset-token-codec` |
-| `modules/auth/infrastructure/base64-reset-token-codec.ts` | `@/modules/auth/domain/reset-token-codec-port` | `@/shared/contracts/security/reset-token-codec` |
-| `modules/users/application/use-cases/reset-password-use-case.ts` | `@/modules/auth/domain/reset-token-codec-port` | `@/shared/contracts/security/reset-token-codec` |
+| File                                                              | Old Import                                     | New Import                                      |
+| ----------------------------------------------------------------- | ---------------------------------------------- | ----------------------------------------------- |
+| `modules/auth/infrastructure/jwt-reset-token-codec.ts`            | `@/modules/auth/domain/reset-token-codec-port` | `@/shared/contracts/security/reset-token-codec` |
+| `modules/auth/infrastructure/base64-reset-token-codec.ts`         | `@/modules/auth/domain/reset-token-codec-port` | `@/shared/contracts/security/reset-token-codec` |
+| `modules/users/application/use-cases/reset-password-use-case.ts`  | `@/modules/auth/domain/reset-token-codec-port` | `@/shared/contracts/security/reset-token-codec` |
 | `modules/users/application/use-cases/forgot-password-use-case.ts` | `@/modules/auth/domain/reset-token-codec-port` | `@/shared/contracts/security/reset-token-codec` |
-| `composition-root/container.ts` | `@/modules/auth/domain/reset-token-codec-port` | `@/shared/contracts/security/reset-token-codec` |
+| `composition-root/container.ts`                                   | `@/modules/auth/domain/reset-token-codec-port` | `@/shared/contracts/security/reset-token-codec` |
 
 ### `used-reset-token-store-port.ts` move (3 files affected)
 
-| File | Old Import | New Import |
-|------|-----------|------------|
-| `modules/auth/infrastructure/memory-used-reset-token-store.ts` | `@/modules/auth/domain/used-reset-token-store-port` | `@/shared/contracts/security/used-reset-token-store-port` |
+| File                                                             | Old Import                                          | New Import                                                |
+| ---------------------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------- |
+| `modules/auth/infrastructure/memory-used-reset-token-store.ts`   | `@/modules/auth/domain/used-reset-token-store-port` | `@/shared/contracts/security/used-reset-token-store-port` |
 | `modules/users/application/use-cases/reset-password-use-case.ts` | `@/modules/auth/domain/used-reset-token-store-port` | `@/shared/contracts/security/used-reset-token-store-port` |
-| `composition-root/container.ts` | `@/modules/auth/domain/used-reset-token-store-port` | `@/shared/contracts/security/used-reset-token-store-port` |
+| `composition-root/container.ts`                                  | `@/modules/auth/domain/used-reset-token-store-port` | `@/shared/contracts/security/used-reset-token-store-port` |
 
 ### `forgot-password-email-port.ts` move (4 files affected)
 
-| File | Old Import | New Import |
-|------|-----------|------------|
-| `modules/auth/infrastructure/console-forgot-password-email.ts` | `@/modules/auth/domain/forgot-password-email-port` | `@/shared/contracts/email/forgot-password-email-port` |
-| `modules/users/application/use-cases/forgot-password-use-case.ts` | `@/modules/auth/domain/forgot-password-email-port` | `@/shared/contracts/email/forgot-password-email-port` |
+| File                                                                    | Old Import                                         | New Import                                            |
+| ----------------------------------------------------------------------- | -------------------------------------------------- | ----------------------------------------------------- |
+| `modules/auth/infrastructure/console-forgot-password-email.ts`          | `@/modules/auth/domain/forgot-password-email-port` | `@/shared/contracts/email/forgot-password-email-port` |
+| `modules/users/application/use-cases/forgot-password-use-case.ts`       | `@/modules/auth/domain/forgot-password-email-port` | `@/shared/contracts/email/forgot-password-email-port` |
 | `tests/unit/modules/users/application/forgot-password-use-case.test.ts` | `@/modules/auth/domain/forgot-password-email-port` | `@/shared/contracts/email/forgot-password-email-port` |
-| `composition-root/container.ts` | `@/modules/auth/domain/forgot-password-email-port` | `@/shared/contracts/email/forgot-password-email-port` |
+| `composition-root/container.ts`                                         | `@/modules/auth/domain/forgot-password-email-port` | `@/shared/contracts/email/forgot-password-email-port` |
 
 ### `email-sender.ts` move (3 files affected)
 
-| File | Old Import | New Import |
-|------|-----------|------------|
+| File                                                   | Old Import                            | New Import                                  |
+| ------------------------------------------------------ | ------------------------------------- | ------------------------------------------- |
 | `modules/email/infrastructure/console-email-sender.ts` | `@/modules/email/domain/email-sender` | `@/shared/contracts/email/email-queue-port` |
-| `modules/email/infrastructure/brevo-email-sender.ts` | `@/modules/email/domain/email-sender` | `@/shared/contracts/email/email-queue-port` |
-| `composition-root/container.ts` | `@/modules/email/domain/email-sender` | `@/shared/contracts/email/email-queue-port` |
+| `modules/email/infrastructure/brevo-email-sender.ts`   | `@/modules/email/domain/email-sender` | `@/shared/contracts/email/email-queue-port` |
+| `composition-root/container.ts`                        | `@/modules/email/domain/email-sender` | `@/shared/contracts/email/email-queue-port` |
 
 ### Total: 32 import path updates across 28 unique files
 
@@ -586,14 +643,14 @@ export { UserId } from './user-id';
 
 ## Testing Strategy
 
-| Layer | What to Test | Approach |
-|-------|-------------|----------|
-| ESLint rule | Cross-module import blocked | Create a temp file in `modules/auth/` that imports `@/modules/users/domain/user-repository` — expect ESLint error |
-| ESLint rule | Same-module import allowed | Create a temp file in `modules/auth/application/` that imports `@/modules/auth/domain/secrets` — expect no error |
-| ESLint rule | Shared/events allowed | Create a temp file in `modules/auth/` that imports `@/shared/kernel/app-error` — expect no error |
-| TypeScript | All moved files resolve | Run `tsc --noEmit` — all imports must resolve to valid modules |
-| Unit tests | Existing tests pass | Run `npm test` — no regressions from moved files |
-| Integration | Composition root wires correctly | Run `npm run build` — Next.js build must succeed |
+| Layer       | What to Test                     | Approach                                                                                                          |
+| ----------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| ESLint rule | Cross-module import blocked      | Create a temp file in `modules/auth/` that imports `@/modules/users/domain/user-repository` — expect ESLint error |
+| ESLint rule | Same-module import allowed       | Create a temp file in `modules/auth/application/` that imports `@/modules/auth/domain/secrets` — expect no error  |
+| ESLint rule | Shared/events allowed            | Create a temp file in `modules/auth/` that imports `@/shared/kernel/app-error` — expect no error                  |
+| TypeScript  | All moved files resolve          | Run `tsc --noEmit` — all imports must resolve to valid modules                                                    |
+| Unit tests  | Existing tests pass              | Run `npm test` — no regressions from moved files                                                                  |
+| Integration | Composition root wires correctly | Run `npm run build` — Next.js build must succeed                                                                  |
 
 ### Verification commands
 

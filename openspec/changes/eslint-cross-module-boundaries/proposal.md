@@ -7,6 +7,7 @@ The modular monolith architecture mandates no direct imports between modules —
 ## Scope
 
 ### In Scope
+
 - ESLint `no-restricted-imports` rules blocking module-to-module imports
 - Move `RoleId` to `shared/kernel/domain/value-objects/` (currently in `modules/roles`)
 - Extract violated shared ports to `shared/kernel`:
@@ -21,6 +22,7 @@ The modular monolith architecture mandates no direct imports between modules —
 - Update all 65+ import paths across affected modules
 
 ### Out of Scope
+
 - Event bus refactoring
 - Outbox pattern changes
 - Module internal restructuring
@@ -29,23 +31,29 @@ The modular monolith architecture mandates no direct imports between modules —
 ## Capabilities
 
 ### New Capabilities
+
 - `module-boundary-enforcement`: ESLint rules and config preventing cross-module imports, with allow-list mechanism for type-only or extracted-port exceptions
 
 ### Modified Capabilities
+
 None — this is infrastructure/governance, not business behavior.
 
 ## Approach
 
 ### Phase 1: ESLint Configuration
+
 Create `no-restricted-imports` rules in `eslint.config.mjs`:
+
 - **Blocked**: `@/modules/<any-module>/**` when imported from a different module
 - **Allowed**: `@/shared/**`, `@/modules/events/**`, self-imports within same module
 - **Allow-list**: Temporary exceptions for ports being extracted (removed in Phase 3)
 
 ### Phase 2: Extract Ports to Shared Kernel
+
 Move interfaces to `shared/kernel/domain/ports/`:
+
 - `user-repository.ts` — `UserRepository` interface
-- `role-repository.ts` — `RoleRepository` interface  
+- `role-repository.ts` — `RoleRepository` interface
 - `email-queue-repository.ts` — `EmailQueueRepository` interface
 - `password-hasher.ts` — `PasswordHasher` interface
 - `reset-token-codec.ts` — `ResetTokenCodec` interface
@@ -56,35 +64,38 @@ Move interfaces to `shared/kernel/domain/ports/`:
 Move `RoleId` to `shared/kernel/domain/value-objects/role-id.ts`.
 
 ### Phase 3: Update Import Paths
+
 Update all 65+ imports across users, auth, sellers, orders to point to shared/kernel.
 
 ### Phase 4: Remove Allow-list
+
 Clean up ESLint config — no temporary exceptions needed.
 
 ### Phase 5: Verify
+
 Run `npm run lint` and `npm test` to confirm zero violations and all tests pass.
 
 ## Affected Areas
 
-| Area | Impact | Description |
-|------|--------|-------------|
-| `eslint.config.mjs` | Modified | Add `no-restricted-imports` rules |
-| `shared/kernel/domain/ports/` | New | 8 extracted port interfaces |
-| `shared/kernel/domain/value-objects/role-id.ts` | New | Moved from `modules/roles` |
-| `modules/users/**` | Modified | Update imports for ports + RoleId |
-| `modules/auth/**` | Modified | Update imports for ports + Role |
-| `modules/sellers/**` | Modified | Update imports for RoleId + PasswordHasher |
-| `modules/orders/infrastructure/product-repository-adapter.ts` | Modified | Already type-only; will use shared port |
-| `modules/roles/domain/value-objects/role-id.ts` | Removed | Replaced by shared/kernel version |
+| Area                                                          | Impact   | Description                                |
+| ------------------------------------------------------------- | -------- | ------------------------------------------ |
+| `eslint.config.mjs`                                           | Modified | Add `no-restricted-imports` rules          |
+| `shared/kernel/domain/ports/`                                 | New      | 8 extracted port interfaces                |
+| `shared/kernel/domain/value-objects/role-id.ts`               | New      | Moved from `modules/roles`                 |
+| `modules/users/**`                                            | Modified | Update imports for ports + RoleId          |
+| `modules/auth/**`                                             | Modified | Update imports for ports + Role            |
+| `modules/sellers/**`                                          | Modified | Update imports for RoleId + PasswordHasher |
+| `modules/orders/infrastructure/product-repository-adapter.ts` | Modified | Already type-only; will use shared port    |
+| `modules/roles/domain/value-objects/role-id.ts`               | Removed  | Replaced by shared/kernel version          |
 
 ## Risks
 
-| Risk | Likelihood | Mitigation |
-|------|------------|------------|
-| Breaking existing imports during port extraction | Medium | Extract first, update paths second, verify with lint + tests |
-| Type-only imports blocked by ESLint rule | Low | Use `allowImportingRelatedExports` or path-pattern exceptions |
-| Barrel re-exports in modules break after move | Low | Check `index.ts` files in affected modules |
-| Circular dependency in shared/kernel ports | Low | Ports reference only value-objects, not module implementations |
+| Risk                                             | Likelihood | Mitigation                                                     |
+| ------------------------------------------------ | ---------- | -------------------------------------------------------------- |
+| Breaking existing imports during port extraction | Medium     | Extract first, update paths second, verify with lint + tests   |
+| Type-only imports blocked by ESLint rule         | Low        | Use `allowImportingRelatedExports` or path-pattern exceptions  |
+| Barrel re-exports in modules break after move    | Low        | Check `index.ts` files in affected modules                     |
+| Circular dependency in shared/kernel ports       | Low        | Ports reference only value-objects, not module implementations |
 
 ## Rollback Plan
 
