@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ListSellersUseCase } from '@/modules/sellers/application/use-cases/list-sellers-use-case';
 import { MemorySellerRepository } from '@/tests/doubles/memory-seller-repository';
 import { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
@@ -26,6 +26,22 @@ describe('ListSellersUseCase', () => {
   beforeEach(() => {
     sellerRepository = new MemorySellerRepository();
     useCase = new ListSellersUseCase(sellerRepository);
+  });
+
+  it('should delegate to findAllByStatus when status is provided', async () => {
+    const spy = vi.spyOn(sellerRepository, 'findAllByStatus');
+
+    await useCase.execute({ status: SellerStatus.ACTIVE });
+
+    expect(spy).toHaveBeenCalledWith(SellerStatus.ACTIVE);
+  });
+
+  it('should delegate to findAll when status is NOT provided', async () => {
+    const spy = vi.spyOn(sellerRepository, 'findAll');
+
+    await useCase.execute({});
+
+    expect(spy).toHaveBeenCalled();
   });
 
   it('should return all non-deleted sellers', async () => {

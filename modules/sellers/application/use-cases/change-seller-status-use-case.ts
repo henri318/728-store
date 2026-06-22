@@ -1,5 +1,6 @@
 import type { SellerRepository } from '@/modules/sellers/domain/seller-repository';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
+import type { TransactionRunner } from '@/shared/kernel/transaction-runner';
 import { SellerEvents } from '@/modules/sellers/domain/seller-events';
 import {
   SellerStatus,
@@ -16,10 +17,12 @@ export class ChangeSellerStatusUseCase {
   constructor(
     private readonly sellerRepository: SellerRepository,
     private readonly outboxRepository: OutboxRepository,
+    private readonly transactionRunner: TransactionRunner,
   ) {}
 
   async execute(dto: ChangeSellerStatusDTO) {
-    // 1. Find seller
+    // 1. Find seller (pre-flight validation — outside the transaction
+    // because no writes happen here)
     const seller = await this.sellerRepository.findById(dto.sellerId);
     if (!seller) {
       throw new NotFoundError('Seller not found');
@@ -38,21 +41,32 @@ export class ChangeSellerStatusUseCase {
       );
     }
 
-    // 4. Apply status change
-    const now = new Date();
-    const updated = await this.sellerRepository.update({
-      ...seller,
-      status: dto.status,
-      updatedAt: now,
-    });
+    // 4. Persist status change + outbox event atomically
+    // (Transactional Outbox Pattern): if saveEvent fails, the update
+    // is rolled back so the database never holds a status change with
+    // a missing domain event.
+    return this.transactionRunner.run(async (tx) => {
+      const now = new Date();
+      const updated = await this.sellerRepository.update(
+        {
+          ...seller,
+          status: dto.status,
+          updatedAt: now,
+        },
+        tx,
+      );
 
-    // 5. Record SELLER_STATUS_CHANGED event
-    await this.outboxRepository.saveEvent(SellerEvents.SELLER_STATUS_CHANGED, {
-      sellerId: updated.sellerId.value,
-      previousStatus: seller.status,
-      newStatus: updated.status,
-    });
+      await this.outboxRepository.saveEvent(
+        SellerEvents.SELLER_STATUS_CHANGED,
+        {
+          sellerId: updated.sellerId.value,
+          previousStatus: seller.status,
+          newStatus: updated.status,
+        },
+        tx,
+      );
 
-    return updated;
+      return updated;
+    });
   }
 }

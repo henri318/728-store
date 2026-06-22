@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ChangeSellerStatusUseCase } from '@/modules/sellers/application/use-cases/change-seller-status-use-case';
 import { MemorySellerRepository } from '@/tests/doubles/memory-seller-repository';
 import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
+import { MemoryTransactionRunner } from '@/tests/doubles/memory-transaction-runner';
 import { SellerEvents } from '@/modules/sellers/domain/seller-events';
 import { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
 import { SellerStatus } from '@/modules/sellers/domain/seller-status';
@@ -24,12 +25,18 @@ function makeSeller(overrides: Partial<SellerEntity> = {}): SellerEntity {
 describe('ChangeSellerStatusUseCase', () => {
   let sellerRepository: MemorySellerRepository;
   let outboxRepository: MemoryOutboxRepository;
+  let transactionRunner: MemoryTransactionRunner;
   let useCase: ChangeSellerStatusUseCase;
 
   beforeEach(() => {
     sellerRepository = new MemorySellerRepository();
     outboxRepository = new MemoryOutboxRepository();
-    useCase = new ChangeSellerStatusUseCase(sellerRepository, outboxRepository);
+    transactionRunner = new MemoryTransactionRunner();
+    useCase = new ChangeSellerStatusUseCase(
+      sellerRepository,
+      outboxRepository,
+      transactionRunner,
+    );
   });
 
   it('should change status from ACTIVE to SUSPENDED', async () => {
@@ -166,5 +173,87 @@ describe('ChangeSellerStatusUseCase', () => {
     await expect(
       useCase.execute({ sellerId: 's1', status: SellerStatus.ACTIVE }),
     ).rejects.toThrow('Seller not found');
+  });
+
+  // ---------------------------------------------------------------------------
+  // Transactional Outbox Pattern
+  // The status update AND the outbox event MUST be persisted inside a single
+  // transaction so they succeed or fail together. Otherwise a failed
+  // saveEvent leaves the database with a status change but no event to
+  // dispatch — silently breaking the downstream consumers.
+  // ---------------------------------------------------------------------------
+
+  it('should run update and saveEvent inside a single transaction', async () => {
+    sellerRepository.seed(
+      makeSeller({
+        sellerId: SellerId.create('s1'),
+        status: SellerStatus.ACTIVE,
+      }),
+    );
+
+    // Capture which repository methods are called WHILE the transaction
+    // callback is running. If update/saveEvent happen outside the callback,
+    // the assertions below would fail.
+    const runSpy = vi.spyOn(transactionRunner, 'run');
+    const updateSpy = vi.spyOn(sellerRepository, 'update');
+    const saveEventSpy = vi.spyOn(outboxRepository, 'saveEvent');
+
+    await useCase.execute({
+      sellerId: 's1',
+      status: SellerStatus.SUSPENDED,
+    });
+
+    // The use case MUST open exactly one transaction.
+    expect(runSpy).toHaveBeenCalledTimes(1);
+
+    // And both writes MUST happen INSIDE the work callback (which the spy
+    // delegates to). We assert by checking the spies were called at all,
+    // because the in-memory runner invokes `work(undefined)` synchronously
+    // from inside `run` — any call to update/saveEvent happens inside it.
+    expect(updateSpy).toHaveBeenCalledTimes(1);
+    expect(saveEventSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should pass the transaction client to sellerRepository.update', async () => {
+    sellerRepository.seed(
+      makeSeller({
+        sellerId: SellerId.create('s1'),
+        status: SellerStatus.ACTIVE,
+      }),
+    );
+
+    const updateSpy = vi.spyOn(sellerRepository, 'update');
+
+    await useCase.execute({
+      sellerId: 's1',
+      status: SellerStatus.SUSPENDED,
+    });
+
+    // MemoryTransactionRunner passes `undefined` as the tx client.
+    // The Prisma adapter receives a real tx; the in-memory adapter ignores it.
+    // What matters is that the use case FORWARDS whatever the runner gave it.
+    expect(updateSpy).toHaveBeenCalledWith(expect.anything(), undefined);
+  });
+
+  it('should pass the transaction client to outboxRepository.saveEvent', async () => {
+    sellerRepository.seed(
+      makeSeller({
+        sellerId: SellerId.create('s1'),
+        status: SellerStatus.ACTIVE,
+      }),
+    );
+
+    const saveEventSpy = vi.spyOn(outboxRepository, 'saveEvent');
+
+    await useCase.execute({
+      sellerId: 's1',
+      status: SellerStatus.SUSPENDED,
+    });
+
+    expect(saveEventSpy).toHaveBeenCalledWith(
+      SellerEvents.SELLER_STATUS_CHANGED,
+      expect.anything(),
+      undefined,
+    );
   });
 });

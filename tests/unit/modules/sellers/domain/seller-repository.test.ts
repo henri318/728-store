@@ -33,6 +33,7 @@ function createMockRepository(): SellerRepository {
     findById: vi.fn().mockResolvedValue(createMockSeller()),
     findByName: vi.fn().mockResolvedValue(createMockSeller()),
     findAll: vi.fn().mockResolvedValue([]),
+    findAllByStatus: vi.fn().mockResolvedValue([]),
     update: vi.fn().mockResolvedValue(createMockSeller()),
     softDelete: vi.fn().mockResolvedValue(undefined),
     findByUserId: vi.fn().mockResolvedValue(null),
@@ -82,6 +83,20 @@ describe('SellerRepository — port contract', () => {
     expect(result).toHaveLength(2);
     expect(result[0].sellerId.value).toBe('s1');
     expect(result[1].sellerId.value).toBe('s2');
+  });
+
+  it('should have a findAllByStatus method that filters by status', async () => {
+    const activeSeller = createMockSeller({
+      sellerId: SellerId.create('s1'),
+      status: SellerStatus.ACTIVE,
+    });
+    vi.mocked(repo.findAllByStatus).mockResolvedValue([activeSeller]);
+
+    const result = await repo.findAllByStatus(SellerStatus.ACTIVE);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].status).toBe(SellerStatus.ACTIVE);
+    expect(repo.findAllByStatus).toHaveBeenCalledWith(SellerStatus.ACTIVE);
   });
 
   it('should have an update method', async () => {

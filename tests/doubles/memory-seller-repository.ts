@@ -1,5 +1,6 @@
 import type { SellerEntity } from '@/modules/sellers/domain/seller';
 import type { SellerRepository } from '@/modules/sellers/domain/seller-repository';
+import type { SellerStatus } from '@/modules/sellers/domain/seller-status';
 
 /**
  * In-memory SellerRepository test double.
@@ -16,7 +17,7 @@ export class MemorySellerRepository implements SellerRepository {
     this.sellers.push(seller);
   }
 
-  async save(seller: SellerEntity): Promise<SellerEntity> {
+  async save(seller: SellerEntity, _tx?: unknown): Promise<SellerEntity> {
     this.sellers.push(seller);
     return seller;
   }
@@ -42,7 +43,13 @@ export class MemorySellerRepository implements SellerRepository {
     return this.sellers.filter((s) => s.deletedAt === null);
   }
 
-  async update(seller: SellerEntity): Promise<SellerEntity> {
+  async findAllByStatus(status: SellerStatus): Promise<SellerEntity[]> {
+    return this.sellers.filter(
+      (s) => s.status === status && s.deletedAt === null,
+    );
+  }
+
+  async update(seller: SellerEntity, _tx?: unknown): Promise<SellerEntity> {
     const index = this.sellers.findIndex(
       (s) => s.sellerId.value === seller.sellerId.value,
     );
