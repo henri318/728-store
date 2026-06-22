@@ -3,6 +3,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { container } from '@/composition-root/container';
 import { GetProductByIdUseCase } from '@/modules/products/application/get-product-by-id-use-case';
 import { redirect } from 'next/navigation';
+import styles from './page.module.css';
 
 export default async function CheckoutPage({
   params,
@@ -32,31 +33,16 @@ export default async function CheckoutPage({
   }
 
   return (
-    <div
-      style={{
-        maxWidth: '600px',
-        margin: '0 auto',
-        padding: '2rem',
-        border: '1px solid #ddd',
-        borderRadius: '8px',
-      }}
-    >
+    <div className={styles.container}>
       <h2>Checkout Summary</h2>
-      <div
-        style={{
-          margin: '2rem 0',
-          padding: '1rem',
-          background: '#f9f9f9',
-          borderRadius: '4px',
-        }}
-      >
+      <div className={styles.summaryBox}>
         <p>
           <strong>Item:</strong> {product.displayName}
         </p>
         <p>
           <strong>Seller:</strong> {product.sellerName}
         </p>
-        <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
+        <p className={styles.totalPrice}>
           <strong>Total:</strong> {'$'}
           {product.basePrice}
         </p>
@@ -65,18 +51,7 @@ export default async function CheckoutPage({
       <form action={`/api/orders`} method="POST">
         <input type="hidden" name="productId" value={product.id} />
         <input type="hidden" name="locale" value={locale} />
-        <button
-          style={{
-            width: '100%',
-            padding: '1rem',
-            background: '#28a745',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '1.2rem',
-          }}
-        >
+        <button className={styles.submitButton}>
           Confirm and Pay with PayPal
         </button>
       </form>

@@ -11,6 +11,7 @@ import { EyeToggleWrapper } from '@/modules/presentation/components/eye-toggle-w
 import { PasswordStrengthIndicator } from '@/modules/presentation/components/password-strength-indicator';
 import { signupSchema } from '@/modules/auth/presentation/schemas/auth-schemas';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
+import styles from './page.module.css';
 
 interface AddressFields {
   street: string;
@@ -193,20 +194,9 @@ export default function SignUpPage() {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: '480px',
-        margin: '4rem auto',
-        padding: '2rem',
-        border: '1px solid #ddd',
-        borderRadius: '8px',
-      }}
-    >
-      <h2 style={{ marginTop: 0 }}>{dict.auth.signUpTitle}</h2>
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-      >
+    <div className={styles.container}>
+      <h2 className={styles.title}>{dict.auth.signUpTitle}</h2>
+      <form onSubmit={handleSubmit} className={styles.form}>
         {serverError && <ErrorMessage message={serverError} />}
 
         <Input
@@ -247,18 +237,11 @@ export default function SignUpPage() {
           required
         />
 
-        <div style={{ borderTop: '1px solid #eee', paddingTop: '0.5rem' }}>
+        <div className={styles.addressToggle}>
           <button
             type="button"
             onClick={() => setShowAddress((prev) => !prev)}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#0070f3',
-              cursor: 'pointer',
-              fontSize: '0.9rem',
-              padding: 0,
-            }}
+            className={styles.addressToggleButton}
           >
             {showAddress
               ? `▾ ${dict.auth.hideAddress}`
@@ -267,15 +250,7 @@ export default function SignUpPage() {
         </div>
 
         {showAddress && (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.8rem',
-              paddingLeft: '0.5rem',
-              borderLeft: '3px solid #0070f3',
-            }}
-          >
+          <div className={styles.addressFields}>
             <Input
               label={dict.auth.street}
               value={form.address.street}
@@ -307,9 +282,9 @@ export default function SignUpPage() {
           {dict.auth.signUpButton}
         </Button>
       </form>
-      <p style={{ marginTop: '1rem' }}>
+      <p className={styles.footer}>
         {dict.auth.alreadyHaveAccount}{' '}
-        <a href={`/${locale}/auth/signin`} style={{ color: '#0070f3' }}>
+        <a href={`/${locale}/auth/signin`} className={styles.footerLink}>
           {dict.auth.loginButton}
         </a>
       </p>

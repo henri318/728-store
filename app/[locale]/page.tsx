@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { container } from '@/composition-root/container';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
+import styles from './page.module.css';
 
 export default async function HomePage({
   params,
@@ -15,14 +16,8 @@ export default async function HomePage({
 
   return (
     <div>
-      <h2 style={{ marginBottom: '2rem' }}>{dict.common.products}</h2>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-          gap: '2rem',
-        }}
-      >
+      <h2 className={styles.productsTitle}>{dict.common.products}</h2>
+      <div className={styles.productGrid}>
         {products.length === 0 ? (
           <p>No products found.</p>
         ) : (
@@ -32,35 +27,18 @@ export default async function HomePage({
               description: '',
             };
             return (
-              <div
-                key={product.id}
-                style={{
-                  border: '1px solid #ddd',
-                  padding: '1rem',
-                  borderRadius: '8px',
-                }}
-              >
+              <div key={product.id} className={styles.productCard}>
                 <h3>{translation.name}</h3>
                 <p>{translation.description}</p>
-                <p style={{ fontWeight: 'bold' }}>
+                <p className={styles.productPrice}>
                   {'$'}
                   {Number(product.basePrice)}
                 </p>
-                <p style={{ fontSize: '0.8rem', color: '#666' }}>
+                <p className={styles.productSeller}>
                   Seller: {product.sellerName}
                 </p>
                 <Link href={`/${locale}/products/${product.id}`}>
-                  <button
-                    style={{
-                      width: '100%',
-                      padding: '0.5rem',
-                      background: '#000',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                    }}
-                  >
+                  <button className={styles.viewDetailsButton}>
                     {dict.common.viewDetails}
                   </button>
                 </Link>

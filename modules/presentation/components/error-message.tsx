@@ -1,5 +1,7 @@
 'use client';
 
+import styles from './error-message.module.css';
+
 interface ErrorMessageProps {
   message?: string;
 }
@@ -8,14 +10,7 @@ export function ErrorMessage({ message }: ErrorMessageProps) {
   if (!message) return null;
 
   return (
-    <span
-      role="alert"
-      style={{
-        color: '#ff4d4f',
-        fontSize: '0.8rem',
-        marginTop: '0.2rem',
-      }}
-    >
+    <span role="alert" className={styles.error}>
       {message}
     </span>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { signOut } from 'next-auth/react';
+import styles from './logout-button.module.css';
 
 interface LogoutButtonProps {
   label: string;
@@ -10,15 +11,7 @@ export default function LogoutButton({ label }: LogoutButtonProps) {
   return (
     <button
       onClick={() => signOut({ callbackUrl: '/' })}
-      style={{
-        margin: '0 1rem',
-        background: 'none',
-        border: 'none',
-        color: '#ff4d4f',
-        cursor: 'pointer',
-        fontSize: '1rem',
-        padding: 0,
-      }}
+      className={styles.button}
     >
       {label}
     </button>

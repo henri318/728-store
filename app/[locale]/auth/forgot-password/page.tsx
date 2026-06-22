@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Input } from '@/modules/presentation/components/input';
 import { Button } from '@/modules/presentation/components/button';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
+import styles from './page.module.css';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -28,29 +29,18 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: '480px',
-        margin: '4rem auto',
-        padding: '2rem',
-        border: '1px solid #ddd',
-        borderRadius: '8px',
-      }}
-    >
-      <h2 style={{ marginTop: 0 }}>{dict.auth.forgotPasswordTitle}</h2>
+    <div className={styles.container}>
+      <h2 className={styles.title}>{dict.auth.forgotPasswordTitle}</h2>
 
       {submitted ? (
-        <div role="alert" style={{ color: '#52c41a' }}>
+        <div role="alert" className={styles.successText}>
           <p>{dict.auth.checkEmailMessage}</p>
-          <Link href="/" style={{ color: '#0070f3' }}>
+          <Link href="/" className={styles.link}>
             {dict.common.backToHome}
           </Link>
         </div>
       ) : (
-        <form
-          onSubmit={handleSubmit}
-          style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-        >
+        <form onSubmit={handleSubmit} className={styles.form}>
           <Input
             label={dict.auth.email}
             type="email"

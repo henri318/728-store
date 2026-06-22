@@ -1,0 +1,34 @@
+.productsTitle {
+  margin-bottom: 2rem;
+}
+
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.productCard {
+  border: 1px solid #ddd;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.productPrice {
+  font-weight: bold;
+}
+
+.productSeller {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.viewDetailsButton {
+  width: 100%;
+  padding: 0.5rem;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}

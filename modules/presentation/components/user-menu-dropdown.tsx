@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { Menu, X } from 'lucide-react';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
+import styles from './user-menu-dropdown.module.css';
 
 interface UserMenuDropdownProps {
   user?: {
@@ -49,55 +50,25 @@ export function UserMenuDropdown(_props: UserMenuDropdownProps) {
   }, [isOpen]);
 
   return (
-    <div ref={menuRef} style={{ position: 'relative' }}>
+    <div ref={menuRef} className={styles.container}>
       <button
         type="button"
         onClick={toggleMenu}
         aria-label="Menu"
         aria-expanded={isOpen}
         aria-haspopup="menu"
-        style={{
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          padding: '4px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#333',
-        }}
+        className={styles.triggerButton}
       >
         {isOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
       {isOpen && (
-        <div
-          role="menu"
-          style={{
-            position: 'absolute',
-            top: '100%',
-            right: 0,
-            marginTop: '4px',
-            background: 'white',
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            minWidth: '200px',
-            zIndex: 100,
-            overflow: 'hidden',
-          }}
-        >
+        <div role="menu" className={styles.dropdown}>
           <Link
             href={`/${locale}/profile`}
             role="menuitem"
             onClick={closeMenu}
-            style={{
-              display: 'block',
-              padding: '0.75rem 1rem',
-              textDecoration: 'none',
-              color: '#333',
-              borderBottom: '1px solid #eee',
-            }}
+            className={styles.menuItem}
           >
             {dict.userMenu.profile}
           </Link>
@@ -105,13 +76,7 @@ export function UserMenuDropdown(_props: UserMenuDropdownProps) {
             href={`/${locale}/auth/change-password`}
             role="menuitem"
             onClick={closeMenu}
-            style={{
-              display: 'block',
-              padding: '0.75rem 1rem',
-              textDecoration: 'none',
-              color: '#333',
-              borderBottom: '1px solid #eee',
-            }}
+            className={styles.menuItem}
           >
             {dict.userMenu.changePassword}
           </Link>
@@ -119,17 +84,7 @@ export function UserMenuDropdown(_props: UserMenuDropdownProps) {
             type="button"
             role="menuitem"
             onClick={() => signOut({ callbackUrl: `/${locale}` })}
-            style={{
-              display: 'block',
-              width: '100%',
-              padding: '0.75rem 1rem',
-              background: 'none',
-              border: 'none',
-              textAlign: 'left',
-              cursor: 'pointer',
-              color: '#333',
-              fontSize: '1rem',
-            }}
+            className={styles.menuButton}
           >
             {dict.userMenu.closeSession}
           </button>

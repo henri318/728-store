@@ -1,6 +1,7 @@
 'use client';
 
 import { useDictionary } from '@/shared/i18n/dictionary-context';
+import styles from './password-strength-indicator.module.css';
 
 interface PasswordStrengthIndicatorProps {
   password: string;
@@ -24,9 +25,16 @@ export function PasswordStrengthIndicator({
   const metCount = criteria.filter((c) => c.met).length;
   const percentage = Math.round((metCount / 3) * 100);
 
+  const strengthClass =
+    percentage === 100
+      ? styles.strong
+      : percentage >= 33
+        ? styles.medium
+        : styles.weak;
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-      <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>
+    <div className={styles.container}>
+      <span className={styles.label}>
         {dict.passwordStrength.strengthLabel}
       </span>
       <div
@@ -34,44 +42,19 @@ export function PasswordStrengthIndicator({
         aria-valuenow={percentage}
         aria-valuemin={0}
         aria-valuemax={100}
-        style={{
-          height: '6px',
-          backgroundColor: '#e0e0e0',
-          borderRadius: '3px',
-          overflow: 'hidden',
-        }}
+        className={styles.progressTrack}
       >
         <div
-          style={{
-            height: '100%',
-            width: `${percentage}%`,
-            backgroundColor:
-              percentage === 100
-                ? '#52c41a'
-                : percentage >= 66
-                  ? '#faad14'
-                  : percentage >= 33
-                    ? '#faad14'
-                    : '#ff4d4f',
-            transition: 'width 0.3s ease',
-          }}
+          className={`${styles.progressFill} ${strengthClass}`}
+          style={{ width: `${percentage}%` }}
         />
       </div>
-      <span style={{ fontSize: '0.8rem', color: '#666' }}>{metCount}/3</span>
-      <ul
-        style={{
-          listStyle: 'none',
-          padding: 0,
-          margin: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.25rem',
-        }}
-      >
+      <span className={styles.counter}>{metCount}/3</span>
+      <ul className={styles.criteriaList}>
         {criteria.map((c) => (
           <li
             key={c.label}
-            style={{ fontSize: '0.8rem', color: c.met ? '#52c41a' : '#999' }}
+            className={`${styles.criteriaItem} ${c.met ? styles.criteriaMet : styles.criteriaNotMet}`}
           >
             {c.met ? '✓' : '✗'} {c.label}
           </li>

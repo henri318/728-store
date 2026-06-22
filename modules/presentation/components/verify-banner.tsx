@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/modules/presentation/components/button';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
+import styles from './verify-banner.module.css';
 
 interface VerifyBannerProps {
   email: string;
@@ -30,21 +31,8 @@ export function VerifyBanner({ email }: VerifyBannerProps) {
   };
 
   return (
-    <div
-      role="alert"
-      style={{
-        backgroundColor: '#fffbe6',
-        border: '1px solid #ffe58f',
-        borderRadius: '4px',
-        padding: '0.75rem 1rem',
-        marginBottom: '1rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '1rem',
-      }}
-    >
-      <span style={{ color: '#ad6800', fontSize: '0.9rem' }}>
+    <div role="alert" className={styles.banner}>
+      <span className={styles.message}>
         {sent ? dict.auth.emailVerified : dict.common.unverifiedBanner}
       </span>
       {!sent && (

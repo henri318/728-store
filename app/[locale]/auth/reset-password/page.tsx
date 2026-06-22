@@ -7,6 +7,7 @@ import { Input } from '@/modules/presentation/components/input';
 import { Button } from '@/modules/presentation/components/button';
 import { ErrorMessage } from '@/modules/presentation/components/error-message';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
+import styles from './page.module.css';
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
@@ -55,19 +56,10 @@ export default function ResetPasswordPage() {
 
   if (!token) {
     return (
-      <div
-        style={{
-          maxWidth: '480px',
-          margin: '4rem auto',
-          padding: '2rem',
-          border: '1px solid #ddd',
-          borderRadius: '8px',
-          textAlign: 'center',
-        }}
-      >
-        <h2 style={{ marginTop: 0 }}>{dict.auth.resetPasswordTitle}</h2>
+      <div className={styles.containerCentered}>
+        <h2 className={styles.title}>{dict.auth.resetPasswordTitle}</h2>
         <ErrorMessage message={error ?? undefined} />
-        <Link href="/auth/forgot-password" style={{ color: '#0070f3' }}>
+        <Link href="/auth/forgot-password" className={styles.link}>
           {dict.auth.requestNewLink}
         </Link>
       </div>
@@ -75,29 +67,15 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div
-      style={{
-        maxWidth: '480px',
-        margin: '4rem auto',
-        padding: '2rem',
-        border: '1px solid #ddd',
-        borderRadius: '8px',
-      }}
-    >
-      <h2 style={{ marginTop: 0 }}>{dict.auth.resetPasswordTitle}</h2>
+    <div className={styles.container}>
+      <h2 className={styles.title}>{dict.auth.resetPasswordTitle}</h2>
       {error && <ErrorMessage message={error} />}
       {success && (
-        <div
-          role="alert"
-          style={{ color: '#52c41a', fontSize: '0.9rem', marginBottom: '1rem' }}
-        >
+        <div role="alert" className={styles.successMessage}>
           {dict.auth.passwordChanged}. {dict.common.redirecting}
         </div>
       )}
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-      >
+      <form onSubmit={handleSubmit} className={styles.form}>
         <Input
           label={dict.auth.newPassword}
           type="password"

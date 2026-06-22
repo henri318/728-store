@@ -1,6 +1,7 @@
 'use client';
 
 import { useId, type ChangeEvent } from 'react';
+import styles from './input.module.css';
 
 interface InputProps {
   label: string;
@@ -31,8 +32,8 @@ export function Input({
   const errorId = error ? `${id}-error` : undefined;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-      <label htmlFor={id} style={{ fontSize: '0.9rem', fontWeight: 500 }}>
+    <div className={styles.wrapper}>
+      <label htmlFor={id} className={styles.label}>
         {label}
       </label>
       <input
@@ -45,20 +46,10 @@ export function Input({
         disabled={disabled}
         aria-invalid={error ? true : undefined}
         aria-describedby={errorId}
-        style={{
-          padding: '0.5rem',
-          border: `1px solid ${error ? '#ff4d4f' : '#d9d9d9'}`,
-          borderRadius: '4px',
-          fontSize: '1rem',
-          outline: 'none',
-        }}
+        className={`${styles.input} ${error ? styles.inputError : ''}`}
       />
       {error && (
-        <span
-          id={errorId}
-          role="alert"
-          style={{ color: '#ff4d4f', fontSize: '0.8rem' }}
-        >
+        <span id={errorId} role="alert" className={styles.errorText}>
           {error}
         </span>
       )}

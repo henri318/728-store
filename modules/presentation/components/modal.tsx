@@ -2,6 +2,7 @@
 
 import { useEffect, useCallback, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import styles from './modal.module.css';
 
 interface ModalProps {
   isOpen: boolean;
@@ -29,35 +30,8 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
   if (!isOpen) return null;
 
   const modal = (
-    <div
-      data-testid="modal-overlay"
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-      }}
-    >
-      <div
-        style={{
-          background: 'white',
-          padding: '2rem',
-          borderRadius: '8px',
-          minWidth: '300px',
-          maxWidth: '90vw',
-          maxHeight: '90vh',
-          overflow: 'auto',
-          position: 'relative',
-        }}
-      >
-        {children}
-      </div>
+    <div data-testid="modal-overlay" className={styles.overlay}>
+      <div className={styles.content}>{children}</div>
     </div>
   );
 
