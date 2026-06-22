@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname } from 'next/navigation';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
+import styles from './language-selector.module.css';
 
 export default function LanguageSelector({
   currentLocale,
@@ -22,11 +23,7 @@ export default function LanguageSelector({
       aria-label={dict.common.selectLanguage}
       value={currentLocale}
       onChange={(e) => handleLanguageChange(e.target.value)}
-      style={{
-        padding: '0.3rem',
-        borderRadius: '4px',
-        border: '1px solid #ccc',
-      }}
+      className={styles.select}
     >
       <option value="es">{dict.common.languageEs}</option>
       <option value="cat">{dict.common.languageCat}</option>

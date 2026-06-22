@@ -7,6 +7,7 @@ import { Button } from '@/modules/presentation/components/button';
 import { EyeToggleWrapper } from '@/modules/presentation/components/eye-toggle-wrapper';
 import { PasswordStrengthIndicator } from '@/modules/presentation/components/password-strength-indicator';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
+import styles from './page.module.css';
 
 export default function ChangePasswordPage() {
   const { status } = useSession();
@@ -27,11 +28,7 @@ export default function ChangePasswordPage() {
   }, [status, locale, router]);
 
   if (status === 'loading') {
-    return (
-      <div style={{ textAlign: 'center', padding: '2rem' }}>
-        {dict.common.loading}
-      </div>
-    );
+    return <div className={styles.loading}>{dict.common.loading}</div>;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,40 +66,19 @@ export default function ChangePasswordPage() {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: '480px',
-        margin: '4rem auto',
-        padding: '2rem',
-        border: '1px solid #ddd',
-        borderRadius: '8px',
-      }}
-    >
-      <h2 style={{ marginTop: 0 }}>{dict.auth.changePasswordTitle}</h2>
+    <div className={styles.container}>
+      <h2 className={styles.title}>{dict.auth.changePasswordTitle}</h2>
       {error && (
-        <span
-          role="alert"
-          style={{
-            color: '#ff4d4f',
-            fontSize: '0.85rem',
-            marginBottom: '0.5rem',
-          }}
-        >
+        <span role="alert" className={styles.errorText}>
           {error}
         </span>
       )}
       {success && (
-        <div
-          role="alert"
-          style={{ color: '#52c41a', fontSize: '0.9rem', marginBottom: '1rem' }}
-        >
+        <div role="alert" className={styles.successMessage}>
           {success}
         </div>
       )}
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-      >
+      <form onSubmit={handleSubmit} className={styles.form}>
         <EyeToggleWrapper
           label={dict.auth.currentPassword}
           value={currentPassword}

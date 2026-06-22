@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { LoginModal } from '@/modules/presentation/components/login-modal';
+import styles from './login-button.module.css';
 
 interface LoginButtonProps {
   label: string;
@@ -22,15 +23,7 @@ export function LoginButton({ label }: LoginButtonProps) {
       <button
         type="button"
         onClick={() => setIsModalOpen(true)}
-        style={{
-          background: 'none',
-          border: 'none',
-          color: '#0070f3',
-          cursor: 'pointer',
-          fontSize: '1rem',
-          textDecoration: 'none',
-          padding: 0,
-        }}
+        className={styles.button}
       >
         {label}
       </button>

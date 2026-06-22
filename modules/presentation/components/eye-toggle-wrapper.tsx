@@ -3,6 +3,7 @@
 import { useState, type KeyboardEvent } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { Input } from '@/modules/presentation/components/input';
+import styles from './eye-toggle-wrapper.module.css';
 
 interface EyeToggleWrapperProps {
   label: string;
@@ -36,7 +37,7 @@ export function EyeToggleWrapper({
   const ariaLabel = showPassword ? 'Hide password' : 'Show password';
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className={styles.wrapper}>
       <Input
         label={label}
         value={value}
@@ -50,20 +51,7 @@ export function EyeToggleWrapper({
         onClick={toggleVisibility}
         onKeyDown={handleKeyDown}
         aria-label={ariaLabel}
-        style={{
-          position: 'absolute',
-          right: '8px',
-          top: '38px',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          padding: '4px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#999',
-          borderRadius: '4px',
-        }}
+        className={styles.toggleButton}
       >
         {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
       </button>

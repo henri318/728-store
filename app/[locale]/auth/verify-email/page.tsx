@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
+import styles from './page.module.css';
 
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams();
@@ -41,44 +42,33 @@ export default function VerifyEmailPage() {
   }, [token]);
 
   return (
-    <div
-      style={{
-        maxWidth: '480px',
-        margin: '4rem auto',
-        padding: '2rem',
-        border: '1px solid #ddd',
-        borderRadius: '8px',
-        textAlign: 'center',
-      }}
-    >
-      <h2 style={{ marginTop: 0 }}>{dict.auth.verifyEmailTitle}</h2>
+    <div className={styles.container}>
+      <h2 className={styles.title}>{dict.auth.verifyEmailTitle}</h2>
 
       {status === 'loading' && (
-        <p style={{ color: '#666' }}>{dict.common.loading}</p>
+        <p className={styles.loadingText}>{dict.common.loading}</p>
       )}
 
       {status === 'success' && (
-        <div role="alert" style={{ color: '#52c41a' }}>
-          <p style={{ fontSize: '1.1rem', fontWeight: 500 }}>
-            {dict.auth.emailVerified}
-          </p>
+        <div role="alert" className={styles.successText}>
+          <p className={styles.successMessage}>{dict.auth.emailVerified}</p>
           <p>{dict.auth.canLoginAfterVerification}</p>
         </div>
       )}
 
       {status === 'expired' && (
-        <div role="alert" style={{ color: '#faad14' }}>
+        <div role="alert" className={styles.expiredText}>
           <p>{dict.auth.tokenExpired}</p>
-          <Link href="/" style={{ color: '#0070f3' }}>
+          <Link href="/" className={styles.link}>
             {dict.common.backToHome}
           </Link>
         </div>
       )}
 
       {status === 'invalid' && (
-        <div role="alert" style={{ color: '#ff4d4f' }}>
+        <div role="alert" className={styles.invalidText}>
           <p>{dict.auth.invalidToken}</p>
-          <Link href="/" style={{ color: '#0070f3' }}>
+          <Link href="/" className={styles.link}>
             {dict.common.backToHome}
           </Link>
         </div>

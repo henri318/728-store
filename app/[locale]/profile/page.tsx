@@ -8,6 +8,7 @@ import { Button } from '@/modules/presentation/components/button';
 import { ErrorMessage } from '@/modules/presentation/components/error-message';
 import { Modal } from '@/modules/presentation/components/modal';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
+import styles from './page.module.css';
 
 interface AddressFields {
   street: string;
@@ -141,39 +142,21 @@ export default function ProfilePage() {
   };
 
   if (status === 'loading' || loading) {
-    return (
-      <div style={{ textAlign: 'center', padding: '2rem' }}>
-        {dict.common.loading}
-      </div>
-    );
+    return <div className={styles.loading}>{dict.common.loading}</div>;
   }
 
   return (
-    <div
-      style={{
-        maxWidth: '520px',
-        margin: '2rem auto',
-        padding: '2rem',
-        border: '1px solid #ddd',
-        borderRadius: '8px',
-      }}
-    >
-      <h2 style={{ marginTop: 0 }}>{dict.profile.title}</h2>
+    <div className={styles.container}>
+      <h2 className={styles.title}>{dict.profile.title}</h2>
 
       {error && <ErrorMessage message={error} />}
       {success && (
-        <div
-          role="alert"
-          style={{ color: '#52c41a', fontSize: '0.9rem', marginBottom: '1rem' }}
-        >
+        <div role="alert" className={styles.successMessage}>
           {success}
         </div>
       )}
 
-      <form
-        onSubmit={handleSave}
-        style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-      >
+      <form onSubmit={handleSave} className={styles.form}>
         <Input
           label={dict.auth.firstName}
           value={form.firstName}
@@ -194,13 +177,9 @@ export default function ProfilePage() {
           disabled
         />
 
-        <div style={{ borderTop: '1px solid #eee', paddingTop: '0.5rem' }}>
-          <h3 style={{ fontSize: '1rem', margin: '0 0 0.5rem 0' }}>
-            {dict.auth.address}
-          </h3>
-          <div
-            style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}
-          >
+        <div className={styles.addressSection}>
+          <h3 className={styles.addressTitle}>{dict.auth.address}</h3>
+          <div className={styles.addressFields}>
             <Input
               label={dict.auth.street}
               value={form.address.street}
@@ -249,13 +228,7 @@ export default function ProfilePage() {
         </Button>
       </form>
 
-      <div
-        style={{
-          borderTop: '1px solid #eee',
-          marginTop: '1.5rem',
-          paddingTop: '1rem',
-        }}
-      >
+      <div className={styles.deleteSection}>
         <Button
           type="button"
           variant="danger"
@@ -266,13 +239,11 @@ export default function ProfilePage() {
       </div>
 
       <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-        <h3 style={{ marginTop: 0 }}>{dict.profile.deleteConfirmTitle}</h3>
-        <p style={{ marginBottom: '1.5rem' }}>
+        <h3 className={styles.modalTitle}>{dict.profile.deleteConfirmTitle}</h3>
+        <p className={styles.modalMessage}>
           {dict.profile.deleteConfirmMessage}
         </p>
-        <div
-          style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}
-        >
+        <div className={styles.modalActions}>
           <Button
             type="button"
             variant="secondary"

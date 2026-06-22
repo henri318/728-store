@@ -1,0 +1,37 @@
+.container {
+  max-width: 480px;
+  margin: 4rem auto;
+  padding: 2rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.title {
+  margin-top: 0;
+}
+
+.loadingText {
+  color: #666;
+}
+
+.successText {
+  color: #52c41a;
+}
+
+.successMessage {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.expiredText {
+  color: #faad14;
+}
+
+.invalidText {
+  color: #ff4d4f;
+}
+
+.link {
+  color: #0070f3;
+}

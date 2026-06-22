@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:analyze": "next experimental-analyze",
     "deploy": "prisma migrate deploy && next build",
     "start": "next start",
     "lint": "eslint .",
@@ -73,6 +74,7 @@
   "devDependencies": {
     "@eslint-react/eslint-plugin": "^5.9.0",
     "@eslint/js": "^10.0.1",
+    "@next/bundle-analyzer": "^16.2.9",
     "@next/eslint-plugin-next": "^16.2.9",
     "@playwright/test": "^1.61.0",
     "@testing-library/jest-dom": "^6.9.1",
@@ -83,6 +85,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.2",
+    "cross-env": "^10.1.0",
     "eslint": "^10.5.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.1.1",

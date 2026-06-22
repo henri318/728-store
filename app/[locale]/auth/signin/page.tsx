@@ -7,6 +7,7 @@ import { Input } from '@/modules/presentation/components/input';
 import { Button } from '@/modules/presentation/components/button';
 import { EyeToggleWrapper } from '@/modules/presentation/components/eye-toggle-wrapper';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
+import styles from './page.module.css';
 
 export default function SignInPage() {
   const { locale } = useParams<{ locale: string }>();
@@ -23,20 +24,9 @@ export default function SignInPage() {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: '400px',
-        margin: '4rem auto',
-        padding: '2rem',
-        border: '1px solid #ddd',
-        borderRadius: '8px',
-      }}
-    >
+    <div className={styles.container}>
       <h2>{dict.auth.signInTitle}</h2>
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-      >
+      <form onSubmit={handleSubmit} className={styles.form}>
         <Input
           label={dict.auth.email}
           type="email"
@@ -54,9 +44,9 @@ export default function SignInPage() {
           {dict.auth.loginButton}
         </Button>
       </form>
-      <p style={{ marginTop: '1rem' }}>
+      <p className={styles.footer}>
         {dict.auth.dontHaveAccount}{' '}
-        <a href={`/${locale}/auth/signup`} style={{ color: '#0070f3' }}>
+        <a href={`/${locale}/auth/signup`} className={styles.footerLink}>
           {dict.auth.signUpButton}
         </a>
       </p>
