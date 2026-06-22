@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 // Mock next/navigation
@@ -53,6 +53,7 @@ describe('SignUpPage', () => {
   });
 
   it('sends { firstName, lastName, email, password, address } to /api/auth/signup', async () => {
+    const user = userEvent.setup();
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ id: '123', email: 'test@example.com' }),
@@ -61,42 +62,27 @@ describe('SignUpPage', () => {
 
     render(<SignUpPage />);
 
-    fireEvent.change(screen.getByLabelText('Nombre'), {
-      target: { value: 'John' },
-    });
-    fireEvent.change(screen.getByLabelText('Apellido'), {
-      target: { value: 'Doe' },
-    });
-    fireEvent.change(screen.getByLabelText('Correo electrónico'), {
-      target: { value: 'john@example.com' },
-    });
-    fireEvent.change(screen.getByLabelText('Contraseña'), {
-      target: { value: 'Password123' },
-    });
-    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), {
-      target: { value: 'Password123' },
-    });
+    await user.type(screen.getByLabelText('Nombre'), 'John');
+    await user.type(screen.getByLabelText('Apellido'), 'Doe');
+    await user.type(
+      screen.getByLabelText('Correo electrónico'),
+      'john@example.com',
+    );
+    await user.type(screen.getByLabelText('Contraseña'), 'Password123');
+    await user.type(
+      screen.getByLabelText('Confirmar contraseña'),
+      'Password123',
+    );
 
     // Expand address section
-    fireEvent.click(screen.getByText(/agregar dirección/i));
+    await user.click(screen.getByText(/agregar dirección/i));
 
-    fireEvent.change(screen.getByLabelText('Calle'), {
-      target: { value: '123 Main St' },
-    });
-    fireEvent.change(screen.getByLabelText('Ciudad'), {
-      target: { value: 'Madrid' },
-    });
-    fireEvent.change(screen.getByLabelText('Código postal'), {
-      target: { value: '28001' },
-    });
-    fireEvent.change(screen.getByLabelText('País'), {
-      target: { value: 'Spain' },
-    });
+    await user.type(screen.getByLabelText('Calle'), '123 Main St');
+    await user.type(screen.getByLabelText('Ciudad'), 'Madrid');
+    await user.type(screen.getByLabelText('Código postal'), '28001');
+    await user.type(screen.getByLabelText('País'), 'Spain');
 
-    const form = screen
-      .getByRole('button', { name: 'Crear cuenta' })
-      .closest('form')!;
-    fireEvent.submit(form);
+    await user.click(screen.getByRole('button', { name: 'Crear cuenta' }));
 
     await vi.waitFor(
       () => {
@@ -123,29 +109,30 @@ describe('SignUpPage', () => {
     });
   });
 
-  it('shows validation error when firstName is empty', () => {
+  it('shows validation error when firstName is empty', async () => {
+    const user = userEvent.setup();
     const fetchMock = vi.fn();
     global.fetch = fetchMock;
 
     render(<SignUpPage />);
 
-    fireEvent.change(screen.getByLabelText('Apellido'), {
-      target: { value: 'Doe' },
-    });
-    fireEvent.change(screen.getByLabelText('Correo electrónico'), {
-      target: { value: 'john@example.com' },
-    });
-    fireEvent.change(screen.getByLabelText('Contraseña'), {
-      target: { value: 'Password123' },
-    });
-    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), {
-      target: { value: 'Password123' },
-    });
+    await user.type(screen.getByLabelText('Apellido'), 'Doe');
+    await user.type(
+      screen.getByLabelText('Correo electrónico'),
+      'john@example.com',
+    );
+    await user.type(screen.getByLabelText('Contraseña'), 'Password123');
+    await user.type(
+      screen.getByLabelText('Confirmar contraseña'),
+      'Password123',
+    );
 
     const form = screen
       .getByRole('button', { name: 'Crear cuenta' })
       .closest('form')!;
-    fireEvent.submit(form);
+    await act(async () => {
+      fireEvent.submit(form);
+    });
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(screen.getByLabelText('Nombre')).toHaveAttribute(
@@ -155,6 +142,7 @@ describe('SignUpPage', () => {
   });
 
   it('shows server error when email already exists (409)', async () => {
+    const user = userEvent.setup();
     const fetchMock = vi.fn().mockResolvedValue({
       ok: false,
       status: 409,
@@ -164,26 +152,19 @@ describe('SignUpPage', () => {
 
     render(<SignUpPage />);
 
-    fireEvent.change(screen.getByLabelText('Nombre'), {
-      target: { value: 'John' },
-    });
-    fireEvent.change(screen.getByLabelText('Apellido'), {
-      target: { value: 'Doe' },
-    });
-    fireEvent.change(screen.getByLabelText('Correo electrónico'), {
-      target: { value: 'existing@example.com' },
-    });
-    fireEvent.change(screen.getByLabelText('Contraseña'), {
-      target: { value: 'Password123' },
-    });
-    fireEvent.change(screen.getByLabelText('Confirmar contraseña'), {
-      target: { value: 'Password123' },
-    });
+    await user.type(screen.getByLabelText('Nombre'), 'John');
+    await user.type(screen.getByLabelText('Apellido'), 'Doe');
+    await user.type(
+      screen.getByLabelText('Correo electrónico'),
+      'existing@example.com',
+    );
+    await user.type(screen.getByLabelText('Contraseña'), 'Password123');
+    await user.type(
+      screen.getByLabelText('Confirmar contraseña'),
+      'Password123',
+    );
 
-    const form = screen
-      .getByRole('button', { name: 'Crear cuenta' })
-      .closest('form')!;
-    fireEvent.submit(form);
+    await user.click(screen.getByRole('button', { name: 'Crear cuenta' }));
 
     await vi.waitFor(
       () => {
