@@ -70,10 +70,10 @@ describe('ProfilePage', () => {
 
     await waitFor(() => {
       expect(screen.getByLabelText('Nombre')).toHaveValue('John');
+      expect(screen.getByLabelText('Apellido')).toHaveValue('Doe');
+      expect(screen.getByLabelText('Calle')).toHaveValue('123 Main St');
+      expect(screen.getByLabelText('Ciudad')).toHaveValue('Barcelona');
     });
-    expect(screen.getByLabelText('Apellido')).toHaveValue('Doe');
-    expect(screen.getByLabelText('Calle')).toHaveValue('123 Main St');
-    expect(screen.getByLabelText('Ciudad')).toHaveValue('Barcelona');
   });
 
   it('shows error message when GET fails', async () => {
