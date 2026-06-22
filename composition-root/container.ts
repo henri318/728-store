@@ -41,16 +41,20 @@ import type { ProductRepository } from '@/modules/products/domain/product-reposi
 import type { EmailQueueRepository } from '@/modules/email/domain/email-queue-repository';
 import type { UserLookupPort } from '@/modules/auth/domain/user-lookup';
 import type { UsedResetTokenStorePort } from '@/modules/auth/domain/used-reset-token-store-port';
+import type { SellerRepository } from '@/modules/sellers/domain/seller-repository';
+import type { TransactionRunner } from '@/shared/kernel/transaction-runner';
 
 import { BrevoEmailSender } from '@/modules/email/infrastructure/brevo-email-sender';
 import { ConsoleEmailSender } from '@/modules/email/infrastructure/console-email-sender';
 import { eventBus } from '@/modules/events/infrastructure/in-memory-event-bus';
 import { PrismaOutboxRepository } from '@/shared/infrastructure/prisma-outbox-repository';
+import { PrismaTransactionRunner } from '@/shared/infrastructure/prisma-transaction-runner';
 import { PrismaRateLimiter } from '@/modules/auth/infrastructure/prisma-rate-limiter';
 import { ProcessEnvSecrets } from '@/modules/auth/infrastructure/process-env-secrets';
 import { NextAuthSessionAdapter } from '@/modules/auth/infrastructure/nextauth-session';
 import { JwtResetTokenCodec } from '@/modules/auth/infrastructure/jwt-reset-token-codec';
 import { PrismaUserRepository } from '@/modules/users/infrastructure/prisma-user-repository';
+import { PrismaSellerRepository } from '@/modules/sellers/infrastructure/prisma-seller-repository';
 import { PrismaRoleRepository } from '@/modules/roles/infrastructure/prisma-role-repository';
 import { PrismaOrderRepository } from '@/modules/orders/infrastructure/prisma-order-repository';
 import { PrismaProductRepository } from '@/modules/products/infrastructure/prisma-product-repository';
@@ -84,6 +88,8 @@ let _emailQueueRepository: EmailQueueRepository | null = null;
 let _userLookup: UserLookupPort | null = null;
 let _forgotPasswordEmailPort: ForgotPasswordEmailPort | null = null;
 let _usedResetTokenStore: UsedResetTokenStorePort | null = null;
+let _sellerRepository: SellerRepository | null = null;
+let _transactionRunner: TransactionRunner | null = null;
 
 // ---------------------------------------------------------------------------
 // Initialization
@@ -180,6 +186,16 @@ export function initContainer(): void {
   // --- UsedResetTokenStore: in-memory adapter (single process) ---
   if (!_usedResetTokenStore) {
     _usedResetTokenStore = new MemoryUsedResetTokenStore();
+  }
+
+  // --- SellerRepository: Prisma adapter ---
+  if (!_sellerRepository) {
+    _sellerRepository = new PrismaSellerRepository();
+  }
+
+  // --- TransactionRunner: Prisma-backed atomic unit-of-work ---
+  if (!_transactionRunner) {
+    _transactionRunner = new PrismaTransactionRunner();
   }
 }
 
@@ -338,6 +354,26 @@ export function getUsedResetTokenStore(): UsedResetTokenStorePort {
   return _usedResetTokenStore!;
 }
 
+/**
+ * Returns the SellerRepository bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ */
+export function getSellerRepository(): SellerRepository {
+  if (!_sellerRepository) initContainer();
+  return _sellerRepository!;
+}
+
+/**
+ * Returns the TransactionRunner bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ * Use this in use cases that need to persist multiple writes atomically
+ * (e.g. user + seller in one go).
+ */
+export function getTransactionRunner(): TransactionRunner {
+  if (!_transactionRunner) initContainer();
+  return _transactionRunner!;
+}
+
 // ---------------------------------------------------------------------------
 // Testing helpers
 // ---------------------------------------------------------------------------
@@ -366,6 +402,8 @@ export const container = {
   getUserLookup,
   getForgotPasswordEmailPort,
   getUsedResetTokenStore,
+  getSellerRepository,
+  getTransactionRunner,
   /** Override — useful in tests to inject a mock without touching env vars. */
   setEmailSender(sender: EmailSender): void {
     _emailSender = sender;
@@ -429,5 +467,13 @@ export const container = {
   /** Override — useful in tests to inject a fresh UsedResetTokenStore. */
   setUsedResetTokenStore(store: UsedResetTokenStorePort): void {
     _usedResetTokenStore = store;
+  },
+  /** Override — useful in tests to inject an in-memory seller repository. */
+  setSellerRepository(repo: SellerRepository): void {
+    _sellerRepository = repo;
+  },
+  /** Override — useful in tests to inject a fake/stub transaction runner. */
+  setTransactionRunner(runner: TransactionRunner): void {
+    _transactionRunner = runner;
   },
 };

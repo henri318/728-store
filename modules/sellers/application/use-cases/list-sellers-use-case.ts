@@ -9,12 +9,9 @@ export class ListSellersUseCase {
   constructor(private readonly sellerRepository: SellerRepository) {}
 
   async execute(dto: ListSellersDTO) {
-    const sellers = await this.sellerRepository.findAll();
-
     if (dto.status) {
-      return sellers.filter((s) => s.status === dto.status);
+      return this.sellerRepository.findAllByStatus(dto.status);
     }
-
-    return sellers;
+    return this.sellerRepository.findAll();
   }
 }

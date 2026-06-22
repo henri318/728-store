@@ -1,4 +1,5 @@
 import type { SellerEntity } from './seller';
+import type { SellerStatus } from './seller-status';
 
 /**
  * SellerRepository — the port for persisting and querying sellers.
@@ -15,8 +16,12 @@ import type { SellerEntity } from './seller';
  * these values. This is consistent with the project's repository pattern.
  */
 export interface SellerRepository {
-  /** Persist a new seller. Caller must provide all fields including generated ones. */
-  save(seller: SellerEntity): Promise<SellerEntity>;
+  /**
+   * Persist a new seller. Caller must provide all fields including generated ones.
+   * Accepts an optional Prisma transaction client so writes can be composed
+   * atomically with outbox writes (Transactional Outbox Pattern).
+   */
+  save(seller: SellerEntity, tx?: unknown): Promise<SellerEntity>;
 
   /** Find a seller by its unique ID. Returns null if not found. */
   findById(id: string): Promise<SellerEntity | null>;
@@ -27,8 +32,14 @@ export interface SellerRepository {
   /** Return all non-deleted sellers. */
   findAll(): Promise<SellerEntity[]>;
 
+  /**
+   * Return all non-deleted sellers with the given status.
+   * Filtering happens in the persistence layer, not in memory.
+   */
+  findAllByStatus(status: SellerStatus): Promise<SellerEntity[]>;
+
   /** Update an existing seller. Returns the updated entity. */
-  update(seller: SellerEntity): Promise<SellerEntity>;
+  update(seller: SellerEntity, tx?: unknown): Promise<SellerEntity>;
 
   /** Soft-delete a seller by setting deletedAt. */
   softDelete(id: string): Promise<void>;
