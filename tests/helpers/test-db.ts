@@ -36,9 +36,11 @@ export async function cleanupDb(): Promise<void> {
       'Role',
     ];
 
-    for (const table of tables) {
-      await pool.query(`DELETE FROM "${table}"`);
-    }
+    // TRUNCATE ... CASCADE removes all rows and cascades through FKs.
+    // This is safe for parallel test suites because it atomically clears
+    // all tables regardless of FK relationships.
+    const tableList = tables.map((t) => `"${t}"`).join(', ');
+    await pool.query(`TRUNCATE ${tableList} CASCADE`);
   } finally {
     await pool.end();
   }
