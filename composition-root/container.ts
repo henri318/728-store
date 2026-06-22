@@ -43,6 +43,8 @@ import type { UserLookupPort } from '@/modules/auth/domain/user-lookup';
 import type { UsedResetTokenStorePort } from '@/shared/contracts/security/used-reset-token-store-port';
 import type { SellerRepository } from '@/modules/sellers/domain/seller-repository';
 import type { TransactionRunner } from '@/shared/kernel/transaction-runner';
+import type { UserVerificationPort } from '@/modules/auth/domain/ports/user-verification-port';
+import type { RoleValidatorPort } from '@/modules/users/domain/ports/role-validator-port';
 
 import { BrevoEmailSender } from '@/modules/email/infrastructure/brevo-email-sender';
 import { ConsoleEmailSender } from '@/modules/email/infrastructure/console-email-sender';
@@ -67,6 +69,8 @@ import {
   hashPassword,
   verifyPassword,
 } from '@/modules/users/infrastructure/bcrypt-password-hasher';
+import { UserVerificationAdapter } from '@/modules/users/infrastructure/user-verification-adapter';
+import { RoleValidatorAdapter } from '@/modules/roles/infrastructure/role-validator-adapter';
 
 // ---------------------------------------------------------------------------
 // State
@@ -90,6 +94,8 @@ let _forgotPasswordEmailPort: ForgotPasswordEmailPort | null = null;
 let _usedResetTokenStore: UsedResetTokenStorePort | null = null;
 let _sellerRepository: SellerRepository | null = null;
 let _transactionRunner: TransactionRunner | null = null;
+let _userVerification: UserVerificationPort | null = null;
+let _roleValidator: RoleValidatorPort | null = null;
 
 // ---------------------------------------------------------------------------
 // Initialization
@@ -196,6 +202,16 @@ export function initContainer(): void {
   // --- TransactionRunner: Prisma-backed atomic unit-of-work ---
   if (!_transactionRunner) {
     _transactionRunner = new PrismaTransactionRunner();
+  }
+
+  // --- UserVerificationPort: adapter bridging auth's port to users infrastructure ---
+  if (!_userVerification) {
+    _userVerification = new UserVerificationAdapter(_userRepository!);
+  }
+
+  // --- RoleValidatorPort: adapter bridging users' port to roles infrastructure ---
+  if (!_roleValidator) {
+    _roleValidator = new RoleValidatorAdapter(_roleRepository!);
   }
 }
 
@@ -374,6 +390,24 @@ export function getTransactionRunner(): TransactionRunner {
   return _transactionRunner!;
 }
 
+/**
+ * Returns the UserVerificationPort bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ */
+export function getUserVerification(): UserVerificationPort {
+  if (!_userVerification) initContainer();
+  return _userVerification!;
+}
+
+/**
+ * Returns the RoleValidatorPort bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ */
+export function getRoleValidator(): RoleValidatorPort {
+  if (!_roleValidator) initContainer();
+  return _roleValidator!;
+}
+
 // ---------------------------------------------------------------------------
 // Testing helpers
 // ---------------------------------------------------------------------------
@@ -404,6 +438,8 @@ export const container = {
   getUsedResetTokenStore,
   getSellerRepository,
   getTransactionRunner,
+  getUserVerification,
+  getRoleValidator,
   /** Override — useful in tests to inject a mock without touching env vars. */
   setEmailSender(sender: EmailSender): void {
     _emailSender = sender;
@@ -475,5 +511,13 @@ export const container = {
   /** Override — useful in tests to inject a fake/stub transaction runner. */
   setTransactionRunner(runner: TransactionRunner): void {
     _transactionRunner = runner;
+  },
+  /** Override — useful in tests to inject a mock UserVerificationPort. */
+  setUserVerification(port: UserVerificationPort): void {
+    _userVerification = port;
+  },
+  /** Override — useful in tests to inject a mock RoleValidatorPort. */
+  setRoleValidator(port: RoleValidatorPort): void {
+    _roleValidator = port;
   },
 };
