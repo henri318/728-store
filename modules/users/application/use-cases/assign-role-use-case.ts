@@ -1,8 +1,9 @@
 import type { UserRepository } from '@/modules/users/domain/user-repository';
-import type { RoleRepository } from '@/modules/roles/domain/role-repository';
+import type { RoleValidatorPort } from '@/modules/users/domain/ports/role-validator-port';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import { NotFoundError, UnauthorizedError } from '@/shared/kernel/app-error';
+import { RoleId } from '@/shared/kernel/domain/identifiers/role-id';
 
 export interface AssignRoleDTO {
   userId: string;
@@ -13,7 +14,7 @@ export interface AssignRoleDTO {
 export class AssignRoleUseCase {
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly roleRepository: RoleRepository,
+    private readonly roleValidator: RoleValidatorPort,
     private readonly outboxRepository: OutboxRepository,
   ) {}
 
@@ -30,23 +31,23 @@ export class AssignRoleUseCase {
     }
 
     // 2. Validate role exists
-    const role = await this.roleRepository.findByName(dto.roleName);
+    const role = await this.roleValidator.findByName(dto.roleName);
     if (!role) {
       throw new NotFoundError(`Role "${dto.roleName}" not found`);
     }
 
-    // 3. Update user's roleId to the role entity's actual id
+    // 3. Update user's roleId to the role's actual id
     const now = new Date();
     const updated = await this.userRepository.update({
       ...user,
-      roleId: role.id,
+      roleId: RoleId.create(role.id),
       updatedAt: now,
     });
 
     // 4. Emit ROLE_ASSIGNED event
     await this.outboxRepository.saveEvent(GlobalEvents.ROLE_ASSIGNED, {
       userId: updated.userId.value,
-      roleId: role.id.value,
+      roleId: role.id,
       roleName: role.name,
       assignedBy: dto.assignedBy,
     });

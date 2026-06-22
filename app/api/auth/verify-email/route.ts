@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 async function verifyEmailToken(token: string) {
   const useCase = new VerifyEmailUseCase(
     container.getSecrets(),
-    container.getUserRepository(),
+    container.getUserVerification(),
   );
 
   const result = await useCase.execute({ token });

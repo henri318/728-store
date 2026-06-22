@@ -3,14 +3,14 @@ import type {
   UserLookupPort,
   UserLookupResult,
 } from '@/modules/auth/domain/user-lookup';
-import type { Role } from '@/modules/roles/domain/roles';
+import type { AuthRole } from '@/modules/auth/domain/entities/user-lookup-result';
 
 /**
- * Maps legacy DB role strings to the new canonical Role type.
+ * Maps legacy DB role strings to the new canonical AuthRole type.
  * S4 migration will update DB values; this shim bridges the gap.
  */
-function mapDbRole(dbRole: string): Role {
-  const mapping: Record<string, Role> = {
+function mapDbRole(dbRole: string): AuthRole {
+  const mapping: Record<string, AuthRole> = {
     admin: 'ADMIN',
     guest: 'CUSTOMER',
     client: 'CUSTOMER',

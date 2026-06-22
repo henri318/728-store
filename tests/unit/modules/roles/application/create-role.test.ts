@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MemoryRoleRepository } from '@/tests/doubles/memory-role-repository';
 import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
-import { RoleId } from '@/modules/roles/domain/value-objects/role-id';
+import { RoleId } from '@/shared/kernel/domain/identifiers/role-id';
 
 describe('CreateRoleUseCase', () => {
   let roleRepository: MemoryRoleRepository;

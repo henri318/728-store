@@ -1,6 +1,6 @@
 import { SignJWT } from 'jose';
 import type { SecretsPort } from '@/modules/auth/domain/secrets';
-import type { EmailQueueRepository } from '@/modules/email/domain/email-queue-repository';
+import type { EmailQueueRepository } from '@/shared/contracts/email/email-queue-port';
 import { escapeHtml } from '@/shared/kernel/escape-html';
 import { getBaseUrl } from '@/shared/kernel/config';
 

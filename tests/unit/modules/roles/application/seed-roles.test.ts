@@ -53,7 +53,7 @@ describe('SeedRolesUseCase', () => {
 
     // Pre-seed all four roles manually
     const { RoleId } =
-      await import('@/modules/roles/domain/value-objects/role-id');
+      await import('@/shared/kernel/domain/identifiers/role-id');
     const seedData = [
       { name: 'ADMIN', description: 'System administrator' },
       { name: 'SUPPORT', description: 'Customer support agent' },

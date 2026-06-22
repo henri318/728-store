@@ -1,7 +1,7 @@
 import type { UserId } from '@/shared/kernel/domain/value-objects/user-id';
 import type { Email } from '@/shared/kernel/domain/value-objects/email';
 import type { Address } from '@/shared/kernel/domain/value-objects/address';
-import type { RoleId } from '@/modules/roles/domain/value-objects/role-id';
+import type { RoleId } from '@/shared/kernel/domain/identifiers/role-id';
 import type { PasswordHash } from '@/shared/kernel/domain/value-objects/password-hash';
 
 /**

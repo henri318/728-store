@@ -11,6 +11,7 @@ test.describe('Change Password', () => {
 
     // Navigate via menu
     await page.getByRole('button', { name: /menu/i }).click();
+    await expect(page.getByRole('menu')).toBeVisible();
     await page.getByRole('menuitem', { name: /editar contraseña/i }).click();
 
     // Form should be visible

@@ -1,6 +1,6 @@
 import { jwtVerify } from 'jose';
 import type { SecretsPort } from '@/modules/auth/domain/secrets';
-import type { UserRepository } from '@/modules/users/domain/user-repository';
+import type { UserVerificationPort } from '@/modules/auth/domain/ports/user-verification-port';
 
 export interface VerifyEmailInput {
   token: string;
@@ -22,7 +22,7 @@ export interface VerifyEmailOutput {
 export class VerifyEmailUseCase {
   constructor(
     private readonly secrets: SecretsPort,
-    private readonly userRepository: UserRepository,
+    private readonly userVerification: UserVerificationPort,
   ) {}
 
   async execute(input: VerifyEmailInput): Promise<VerifyEmailOutput> {
@@ -48,8 +48,8 @@ export class VerifyEmailUseCase {
       };
     }
 
-    // Use the UserRepository port — no direct Prisma access
-    const user = await this.userRepository.findById(userId);
+    // Use the UserVerificationPort — no direct Prisma access
+    const user = await this.userVerification.findById(userId);
     if (!user) {
       return { success: false, message: 'User not found', statusCode: 404 };
     }
@@ -67,7 +67,7 @@ export class VerifyEmailUseCase {
       return { success: true, message: 'Email already verified' };
     }
 
-    await this.userRepository.markEmailVerified(userId);
+    await this.userVerification.markEmailVerified(userId);
 
     return { success: true, message: 'Email verified' };
   }

@@ -1,8 +1,8 @@
 import type { UserRepository } from '@/modules/users/domain/user-repository';
 import type { PasswordHasher } from '@/modules/users/domain/password-hasher';
-import type { ResetTokenCodec } from '@/modules/auth/domain/reset-token-codec-port';
+import type { ResetTokenCodec } from '@/shared/contracts/security/reset-token-codec';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
-import type { UsedResetTokenStorePort } from '@/modules/auth/domain/used-reset-token-store-port';
+import type { UsedResetTokenStorePort } from '@/shared/contracts/security/used-reset-token-store-port';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import { UnauthorizedError, ConflictError } from '@/shared/kernel/app-error';
 import { PasswordHash } from '@/shared/kernel/domain/value-objects/password-hash';

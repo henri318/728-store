@@ -5,17 +5,33 @@ import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import { UserId } from '@/shared/kernel/domain/value-objects/user-id';
 import { Email } from '@/shared/kernel/domain/value-objects/email';
-import { RoleId } from '@/modules/roles/domain/value-objects/role-id';
+import { RoleId } from '@/shared/kernel/domain/identifiers/role-id';
 import { PasswordHash } from '@/shared/kernel/domain/value-objects/password-hash';
+import type { RoleValidatorPort } from '@/modules/users/domain/ports/role-validator-port';
+
+/**
+ * Test adapter — bridges MemoryRoleRepository to RoleValidatorPort interface.
+ */
+class TestRoleValidatorAdapter implements RoleValidatorPort {
+  constructor(private readonly repo: MemoryRoleRepository) {}
+
+  async findByName(name: string) {
+    const role = await this.repo.findByName(name);
+    if (!role) return null;
+    return { id: role.id.value, name: role.name };
+  }
+}
 
 describe('AssignRoleUseCase', () => {
   let userRepository: MemoryUserRepository;
   let roleRepository: MemoryRoleRepository;
+  let roleValidator: TestRoleValidatorAdapter;
   let outboxRepository: MemoryOutboxRepository;
 
   beforeEach(() => {
     userRepository = new MemoryUserRepository();
     roleRepository = new MemoryRoleRepository();
+    roleValidator = new TestRoleValidatorAdapter(roleRepository);
     outboxRepository = new MemoryOutboxRepository();
   });
 
@@ -48,7 +64,7 @@ describe('AssignRoleUseCase', () => {
       await import('@/modules/users/application/use-cases/assign-role-use-case');
     const useCase = new AssignRoleUseCase(
       userRepository,
-      roleRepository,
+      roleValidator,
       outboxRepository,
     );
 
@@ -90,7 +106,7 @@ describe('AssignRoleUseCase', () => {
       await import('@/modules/users/application/use-cases/assign-role-use-case');
     const useCase = new AssignRoleUseCase(
       userRepository,
-      roleRepository,
+      roleValidator,
       outboxRepository,
     );
 
@@ -124,7 +140,7 @@ describe('AssignRoleUseCase', () => {
       await import('@/modules/users/application/use-cases/assign-role-use-case');
     const useCase = new AssignRoleUseCase(
       userRepository,
-      roleRepository,
+      roleValidator,
       outboxRepository,
     );
 
@@ -157,7 +173,7 @@ describe('AssignRoleUseCase', () => {
       await import('@/modules/users/application/use-cases/assign-role-use-case');
     const useCase = new AssignRoleUseCase(
       userRepository,
-      roleRepository,
+      roleValidator,
       outboxRepository,
     );
 

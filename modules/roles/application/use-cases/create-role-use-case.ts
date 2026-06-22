@@ -1,7 +1,7 @@
 import type { RoleRepository } from '@/modules/roles/domain/role-repository';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import type { CreateRoleDTO } from '@/modules/roles/application/dto/create-role.dto';
-import { RoleId } from '@/modules/roles/domain/value-objects/role-id';
+import { RoleId } from '@/shared/kernel/domain/identifiers/role-id';
 import type { RoleEntity } from '@/modules/roles/domain/entities/role';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import { ConflictError, ValidationError } from '@/shared/kernel/app-error';

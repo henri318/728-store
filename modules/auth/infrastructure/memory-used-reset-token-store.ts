@@ -1,4 +1,4 @@
-import type { UsedResetTokenStorePort } from '@/modules/auth/domain/used-reset-token-store-port';
+import type { UsedResetTokenStorePort } from '@/shared/contracts/security/used-reset-token-store-port';
 
 /**
  * MemoryUsedResetTokenStore — in-memory adapter tracking already-used reset tokens.

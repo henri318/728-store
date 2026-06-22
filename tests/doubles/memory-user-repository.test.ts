@@ -5,7 +5,7 @@ import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository
 import { MemoryPasswordHasher } from '@/tests/doubles/memory-password-hasher';
 import { UserId } from '@/shared/kernel/domain/value-objects/user-id';
 import { Email } from '@/shared/kernel/domain/value-objects/email';
-import { RoleId } from '@/modules/roles/domain/value-objects/role-id';
+import { RoleId } from '@/shared/kernel/domain/identifiers/role-id';
 
 /**
  * Tests for the expanded UserRepository port:

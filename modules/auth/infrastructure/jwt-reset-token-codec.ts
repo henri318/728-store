@@ -2,7 +2,7 @@ import { SignJWT, jwtVerify } from 'jose';
 import type {
   ResetTokenCodec,
   ResetTokenPayload,
-} from '@/modules/auth/domain/reset-token-codec-port';
+} from '@/shared/contracts/security/reset-token-codec';
 
 /**
  * JwtResetTokenCodec — production adapter using HS256 JWT via jose.
