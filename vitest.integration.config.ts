@@ -9,6 +9,9 @@ export default defineConfig({
     testTimeout: 15_000,
     hookTimeout: 30_000,
     globalSetup: './tests/global-setup-integration.ts',
+    // Run integration tests sequentially to avoid FK/truncate interference
+    // between files sharing the same database.
+    fileParallelism: false,
   },
   resolve: {
     alias: {
