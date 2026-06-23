@@ -21,6 +21,11 @@ describe('ProductDescription', () => {
       expect(desc.value).toBe('');
     });
 
+    it('should create with whitespace-only string and normalize to empty', () => {
+      const desc = ProductDescription.create('   ')!;
+      expect(desc.value).toBe('');
+    });
+
     it('should create with exactly 2000 characters', () => {
       const value = 'A'.repeat(2000);
       const desc = ProductDescription.create(value)!;

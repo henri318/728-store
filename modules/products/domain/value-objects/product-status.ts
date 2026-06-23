@@ -22,9 +22,9 @@ export enum ProductStatus {
  *  - ACTIVE  → [ARCHIVED]         (can archive directly)
  *  - ARCHIVED → (none — terminal)  (no further transitions)
  */
-export const VALID_TRANSITIONS: Partial<
-  Record<ProductStatus, ProductStatus[]>
-> = {
-  [ProductStatus.DRAFT]: [ProductStatus.ACTIVE],
-  [ProductStatus.ACTIVE]: [ProductStatus.ARCHIVED],
-};
+export const VALID_TRANSITIONS: Readonly<
+  Partial<Record<ProductStatus, readonly ProductStatus[]>>
+> = Object.freeze({
+  [ProductStatus.DRAFT]: Object.freeze([ProductStatus.ACTIVE]),
+  [ProductStatus.ACTIVE]: Object.freeze([ProductStatus.ARCHIVED]),
+});
