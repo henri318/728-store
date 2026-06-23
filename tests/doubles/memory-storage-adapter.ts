@@ -2,18 +2,28 @@ import type { StoragePort } from '@/modules/uploads/domain/storage-port';
 
 /**
  * In-memory StoragePort for tests.
- * Implements the StoragePort port with simple mock URLs.
- * No tests needed per PR1 constraint — this is a test double, not business logic.
+ *
+ * Tracks generated URLs and deleted keys for assertions.
+ * No real R2 calls — pure test double.
  */
 export class MemoryStorageAdapter implements StoragePort {
+  public uploadedKeys: string[] = [];
   public deleted: string[] = [];
+  public readUrls: Map<string, string> = new Map();
 
-  async generateUploadUrl(key: string): Promise<string> {
-    return `https://mock-r2/${key}`;
+  async generateUploadUrl(
+    key: string,
+    _contentType: string,
+    _expiresIn?: number,
+  ): Promise<string> {
+    this.uploadedKeys.push(key);
+    return `https://mock-r2.upload/${key}`;
   }
 
-  async generateReadUrl(key: string): Promise<string> {
-    return `https://mock-r2/read/${key}`;
+  async generateReadUrl(key: string, _expiresIn?: number): Promise<string> {
+    const url = `https://mock-r2.read/${key}`;
+    this.readUrls.set(key, url);
+    return url;
   }
 
   async delete(key: string): Promise<void> {
