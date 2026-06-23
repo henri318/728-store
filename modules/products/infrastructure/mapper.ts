@@ -10,10 +10,13 @@ import { ProductStatus } from '../domain/value-objects/product-status';
  * Kept as a structural type (no Prisma import) so the mapper stays
  * decoupled from the Prisma client and can be unit-tested without
  * any database dependency.
+ *
+ * `basePrice` accepts both `number` and Prisma `Decimal` (which has
+ * a `toString()` method). The mapper converts via `Number()`.
  */
 export interface PrismaProductRow {
   id: string;
-  basePrice: number;
+  basePrice: number | { toString(): string };
   sellerId: string;
   seller: { name: string };
   status: string;
@@ -111,7 +114,7 @@ export function toDomainProduct(
 ): ProductEntity {
   return {
     id: prismaProduct.id,
-    basePrice: Number(prismaProduct.basePrice),
+    basePrice: Number(String(prismaProduct.basePrice)),
     sellerId: prismaProduct.sellerId,
     sellerName: prismaProduct.seller.name,
     status: prismaProduct.status as ProductStatus,
