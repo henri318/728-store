@@ -197,5 +197,4 @@ model Category {
   createdAt DateTime   @default(now())
 
   @@index([parentId])
-  @@index([slug])
 }

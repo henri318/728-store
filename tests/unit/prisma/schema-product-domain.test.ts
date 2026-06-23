@@ -223,14 +223,14 @@ describe('Product Domain Model Schema', () => {
       expect(model).toMatch(/@@index\(\[parentId\]\)/);
     });
 
-    it('should have index on slug', () => {
+    it('should have unique constraint on slug (creates index automatically)', () => {
       const categoryModelMatch = schemaContent.match(
         /model Category \{[\s\S]*?\n\}/,
       );
       expect(categoryModelMatch).not.toBeNull();
 
       const model = categoryModelMatch![0];
-      expect(model).toMatch(/@@index\(\[slug\]\)/);
+      expect(model).toMatch(/slug\s+String\s+@unique/);
     });
   });
 });
