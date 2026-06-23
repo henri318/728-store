@@ -84,6 +84,18 @@ describe('canTransitionTo()', () => {
       false,
     );
   });
+
+  it('should return false for same-status transitions (no-op)', () => {
+    expect(canTransitionTo(ProductStatus.DRAFT, ProductStatus.DRAFT)).toBe(
+      false,
+    );
+    expect(canTransitionTo(ProductStatus.ACTIVE, ProductStatus.ACTIVE)).toBe(
+      false,
+    );
+    expect(
+      canTransitionTo(ProductStatus.ARCHIVED, ProductStatus.ARCHIVED),
+    ).toBe(false);
+  });
 });
 
 /**

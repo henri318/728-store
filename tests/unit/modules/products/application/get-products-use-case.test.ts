@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { GetProductsUseCase } from '@/modules/products/application/get-products-use-case';
 import { MemoryProductRepository } from '@/tests/doubles/memory-product-repository';
+import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
 
 describe('GetProductsUseCase with i18n', () => {
   let productRepository: MemoryProductRepository;
@@ -16,7 +17,7 @@ describe('GetProductsUseCase with i18n', () => {
         basePrice: 10,
         sellerId: 's1',
         sellerName: 'Store 1',
-        status: 'ACTIVE',
+        status: ProductStatus.ACTIVE,
         categoryId: null,
         updatedAt: new Date(),
         translations: [

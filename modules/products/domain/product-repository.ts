@@ -11,5 +11,5 @@ export interface ProductRepository {
   findAll(locale: string): Promise<ProductEntity[]>;
   findById(id: string, locale: string): Promise<ProductEntity | null>;
   save(entity: ProductEntity): Promise<void>;
-  update(entity: ProductEntity): Promise<void>;
+  update(entity: ProductEntity): Promise<boolean>;
 }

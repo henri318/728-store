@@ -2,6 +2,7 @@ import type { ProductTranslationEntity } from './product-translation';
 import type { ProductCustomizationEntity } from './product-customization';
 import type { ProductImageEntity } from './product-image';
 import type { TagEntity } from './tag';
+import type { ProductStatus } from '../value-objects/product-status';
 
 /**
  * ProductEntity — a pure data interface representing a product in the system.
@@ -27,7 +28,7 @@ export interface ProductEntity {
   readonly basePrice: number;
   readonly sellerId: string;
   readonly sellerName: string;
-  readonly status: string;
+  readonly status: ProductStatus;
   readonly categoryId: string | null;
   readonly updatedAt: Date;
   readonly translations: ProductTranslationEntity[];
