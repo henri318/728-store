@@ -1,12 +1,9 @@
 /**
  * UploadType — the valid categories for an upload.
  *
- * Determines storage key prefix and downstream processing
- * (e.g. product images vs. user avatars).
+ * Single source of truth: Prisma schema enum.
+ * Re-exported here so domain code uses a local symbol,
+ * not a raw `@prisma/client` import everywhere.
  */
-export enum UploadType {
-  PRODUCT = 'product',
-  AVATAR = 'avatar',
-  TICKET = 'ticket',
-  GENERAL = 'general',
-}
+import { UploadType } from '@prisma/client';
+export { UploadType };

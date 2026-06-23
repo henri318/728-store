@@ -1,7 +1,6 @@
 import { prisma } from '@/shared/infrastructure/prisma';
 import type { UploadRepository } from '../domain/upload-repository';
 import type { UploadEntity } from '../domain/entities/upload';
-import { UploadType } from '../domain/value-objects/upload-type';
 import { UploadStatus } from '../domain/value-objects/upload-status';
 import { toDomainUpload, toPersistenceUpload } from './mapper';
 
@@ -11,19 +10,8 @@ import { toDomainUpload, toPersistenceUpload } from './mapper';
  * Handles CRUD operations and the orphan cleanup query against
  * the Upload table in PostgreSQL.
  */
-const VALID_UPLOAD_TYPES = Object.values(UploadType);
-const VALID_UPLOAD_STATUSES = Object.values(UploadStatus);
-
 export class PrismaUploadRepository implements UploadRepository {
   async save(entity: UploadEntity): Promise<void> {
-    // Validate enum values before persisting
-    if (!VALID_UPLOAD_TYPES.includes(entity.type)) {
-      throw new Error(`Invalid UploadType: ${entity.type}`);
-    }
-    if (!VALID_UPLOAD_STATUSES.includes(entity.status)) {
-      throw new Error(`Invalid UploadStatus: ${entity.status}`);
-    }
-
     const data = toPersistenceUpload(entity);
     await prisma.upload.upsert({
       where: { id: data.id },
@@ -61,10 +49,15 @@ export class PrismaUploadRepository implements UploadRepository {
   }
 
   async findPendingOlderThan(hours: number): Promise<UploadEntity[]> {
+    if (!Number.isFinite(hours) || hours <= 0) {
+      throw new Error(
+        `findPendingOlderThan: hours must be a positive finite number, got ${hours}`,
+      );
+    }
     const cutoff = new Date(Date.now() - hours * 3600_000);
     const rows = await prisma.upload.findMany({
       where: {
-        status: 'PENDING',
+        status: UploadStatus.PENDING,
         createdAt: { lt: cutoff },
       },
     });

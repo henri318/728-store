@@ -37,7 +37,7 @@ describe('PrismaUploadRepository — Integration', () => {
       mimeType: 'image/webp',
       size: 102400,
       uploadedBy: 'user-1',
-      type: UploadType.PRODUCT,
+      type: UploadType.product,
       status: UploadStatus.PENDING,
       createdAt: new Date('2025-01-01T10:00:00Z'),
       ...overrides,
@@ -59,7 +59,7 @@ describe('PrismaUploadRepository — Integration', () => {
       expect(found!.mimeType).toBe('image/webp');
       expect(found!.size).toBe(102400);
       expect(found!.uploadedBy).toBe('user-1');
-      expect(found!.type).toBe(UploadType.PRODUCT);
+      expect(found!.type).toBe(UploadType.product);
       expect(found!.status).toBe(UploadStatus.PENDING);
       expect(found!.createdAt).toEqual(new Date('2025-01-01T10:00:00Z'));
     });
@@ -84,10 +84,10 @@ describe('PrismaUploadRepository — Integration', () => {
 
     it('should persist all upload types', async () => {
       const types = [
-        UploadType.PRODUCT,
-        UploadType.AVATAR,
-        UploadType.TICKET,
-        UploadType.GENERAL,
+        UploadType.product,
+        UploadType.avatar,
+        UploadType.ticket,
+        UploadType.general,
       ];
 
       for (const type of types) {
@@ -104,6 +104,19 @@ describe('PrismaUploadRepository — Integration', () => {
         expect(found).not.toBeNull();
         expect(found!.type).toBe(type);
       }
+    });
+
+    // ─── Edge cases: invalid enum values ───
+    it('should reject save with invalid UploadType', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const entity = makeUpload({ type: 'INVALID_TYPE' as any });
+      await expect(repo.save(entity)).rejects.toThrow();
+    });
+
+    it('should reject save with invalid UploadStatus', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const entity = makeUpload({ status: 'INVALID_STATUS' as any });
+      await expect(repo.save(entity)).rejects.toThrow();
     });
   });
 
@@ -189,6 +202,31 @@ describe('PrismaUploadRepository — Integration', () => {
     it('should return empty array when no matching uploads exist', async () => {
       const results = await repo.findPendingOlderThan(24);
       expect(results).toEqual([]);
+    });
+
+    // ─── Edge cases: invalid inputs ───
+    it('should reject hours = 0', async () => {
+      await expect(repo.findPendingOlderThan(0)).rejects.toThrow(
+        'hours must be a positive finite number',
+      );
+    });
+
+    it('should reject negative hours', async () => {
+      await expect(repo.findPendingOlderThan(-5)).rejects.toThrow(
+        'hours must be a positive finite number',
+      );
+    });
+
+    it('should reject NaN', async () => {
+      await expect(repo.findPendingOlderThan(NaN)).rejects.toThrow(
+        'hours must be a positive finite number',
+      );
+    });
+
+    it('should reject Infinity', async () => {
+      await expect(repo.findPendingOlderThan(Infinity)).rejects.toThrow(
+        'hours must be a positive finite number',
+      );
     });
 
     it('should correctly distinguish old PENDING from old CONFIRMED', async () => {

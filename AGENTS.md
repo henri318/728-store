@@ -13,7 +13,7 @@ This document defines the mandatory rules and constraints for the AI agent worki
 1. **Modular Monolith**: Maintain strict separation between modules.
 2. **Event-Driven**: All cross-module communication must use the internal event bus.
 3. **Domain-First**: Business logic stays in the domain layer.
-4. **Multi-vendor Ready**: `sellerId` is mandatory for all primary entities.
+4. **Multi-vendor Ready**: Seller-scoped entities (Product, Order) must include `sellerId`. Cross-cutting entities (Upload, Ticket) use the appropriate owner field instead.
 5. **Neutral Locale**: The `es` locale is considered neutral.
 
 ---

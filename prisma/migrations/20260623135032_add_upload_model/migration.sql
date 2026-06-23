@@ -1,5 +1,8 @@
--- DropIndex
-DROP INDEX "Category_slug_idx";
+-- CreateEnum
+CREATE TYPE "UploadType" AS ENUM ('product', 'avatar', 'ticket', 'general');
+
+-- CreateEnum
+CREATE TYPE "UploadStatus" AS ENUM ('PENDING', 'CONFIRMED');
 
 -- CreateTable
 CREATE TABLE "Upload" (
@@ -9,8 +12,8 @@ CREATE TABLE "Upload" (
     "mimeType" TEXT NOT NULL,
     "size" INTEGER NOT NULL,
     "uploadedBy" TEXT NOT NULL,
-    "type" TEXT NOT NULL,
-    "status" TEXT NOT NULL DEFAULT 'PENDING',
+    "type" "UploadType" NOT NULL,
+    "status" "UploadStatus" NOT NULL DEFAULT 'PENDING',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Upload_pkey" PRIMARY KEY ("id")

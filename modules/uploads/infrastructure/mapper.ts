@@ -1,13 +1,13 @@
 import type { UploadEntity } from '../domain/entities/upload';
-import { UploadType } from '../domain/value-objects/upload-type';
-import { UploadStatus } from '../domain/value-objects/upload-status';
+import type { UploadType } from '../domain/value-objects/upload-type';
+import type { UploadStatus } from '../domain/value-objects/upload-status';
 
 /**
  * Shape of a Prisma `Upload` row as returned from the database.
  *
- * Kept as a structural type (no Prisma import) so the mapper stays
- * decoupled from the Prisma client and can be unit-tested without
- * any database dependency.
+ * Uses domain enum types (which ARE the Prisma enums via re-export).
+ * Kept as a structural type so the mapper can be unit-tested without
+ * a live database connection.
  */
 export interface PrismaUploadRow {
   id: string;
@@ -16,8 +16,8 @@ export interface PrismaUploadRow {
   mimeType: string;
   size: number;
   uploadedBy: string;
-  type: string;
-  status: string;
+  type: UploadType;
+  status: UploadStatus;
   createdAt: Date;
 }
 
@@ -29,8 +29,8 @@ export interface PrismaUploadInput {
   mimeType: string;
   size: number;
   uploadedBy: string;
-  type: string;
-  status: string;
+  type: UploadType;
+  status: UploadStatus;
   createdAt: Date;
 }
 
@@ -48,8 +48,8 @@ export function toDomainUpload(prismaUpload: PrismaUploadRow): UploadEntity {
     mimeType: prismaUpload.mimeType,
     size: prismaUpload.size,
     uploadedBy: prismaUpload.uploadedBy,
-    type: prismaUpload.type as UploadType,
-    status: prismaUpload.status as UploadStatus,
+    type: prismaUpload.type,
+    status: prismaUpload.status,
     createdAt: prismaUpload.createdAt,
   };
 }

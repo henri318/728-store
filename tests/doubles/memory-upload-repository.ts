@@ -29,6 +29,11 @@ export class MemoryUploadRepository implements UploadRepository {
   }
 
   async findPendingOlderThan(hours: number): Promise<UploadEntity[]> {
+    if (!Number.isFinite(hours) || hours <= 0) {
+      throw new Error(
+        `findPendingOlderThan: hours must be a positive finite number, got ${hours}`,
+      );
+    }
     const cutoff = new Date(Date.now() - hours * 3600_000);
     return this.store.filter(
       (e) => e.status === 'PENDING' && e.createdAt < cutoff,
