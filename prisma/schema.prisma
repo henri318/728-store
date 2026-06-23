@@ -198,3 +198,19 @@ model Category {
 
   @@index([parentId])
 }
+
+model Upload {
+  id         String   @id @default(cuid())
+  fileName   String
+  storageKey String   @unique
+  mimeType   String
+  size       Int
+  uploadedBy String
+  type       String   // product | avatar | ticket | general
+  status     String   @default("PENDING") // PENDING | CONFIRMED
+  createdAt  DateTime @default(now())
+
+  @@index([uploadedBy])
+  @@index([type, status])
+  @@index([status, createdAt]) // orphan cleanup query
+}
