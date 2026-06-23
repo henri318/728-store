@@ -16,11 +16,16 @@ describe('GetProductsUseCase with i18n', () => {
         basePrice: 10,
         sellerId: 's1',
         sellerName: 'Store 1',
+        status: 'ACTIVE',
+        categoryId: null,
+        updatedAt: new Date(),
         translations: [
           { locale: 'es', name: 'Taza', description: 'Una taza' },
           { locale: 'cat', name: 'Tassa', description: 'Una tassa' },
         ],
         customizations: [],
+        images: [],
+        tags: [],
       },
     ]);
   });
