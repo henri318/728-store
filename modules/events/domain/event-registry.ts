@@ -38,6 +38,14 @@ export const GlobalEvents = {
   SELLER_DELETED: 'seller.deleted',
   /** Seller status changed (active ↔ suspended → banned) */
   SELLER_STATUS_CHANGED: 'seller.status-changed',
+  /** New product created (initial status: DRAFT or ACTIVE) */
+  PRODUCT_CREATED: 'product.created',
+  /** Product profile or fields updated */
+  PRODUCT_UPDATED: 'product.updated',
+  /** Product published (DRAFT → ACTIVE) */
+  PRODUCT_PUBLISHED: 'product.published',
+  /** Product archived (ACTIVE → ARCHIVED) */
+  PRODUCT_ARCHIVED: 'product.archived',
 } as const;
 
 /**

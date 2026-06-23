@@ -23,6 +23,22 @@ export class MemoryProductRepository implements ProductRepository {
     };
   }
 
+  async save(entity: ProductEntity): Promise<void> {
+    const index = this.products.findIndex((p) => p.id === entity.id);
+    if (index !== -1) {
+      this.products[index] = entity;
+    } else {
+      this.products.push(entity);
+    }
+  }
+
+  async update(entity: ProductEntity): Promise<boolean> {
+    const index = this.products.findIndex((p) => p.id === entity.id);
+    if (index === -1) return false;
+    this.products[index] = entity;
+    return true;
+  }
+
   // Helper for testing
   seed(products: ProductEntity[]) {
     this.products = products;
