@@ -38,6 +38,7 @@ This document defines the mandatory rules and constraints for the AI agent worki
 - DO NOT execute business logic in the infrastructure layer.
 - AI MUST NOT take autonomous business decisions (suggestions only).
 - **No commits or PRs without explicit permission**: never run git commit, git push, or create PRs unless the user explicitly requests it. Changes must remain in the staging area/working tree until the user decides otherwise.
+- **Never auto-complete PRs**: always stop and ASK before merging. Never merge PRs automatically, even if all checks pass. The user must explicitly approve every merge.
 
 ---
 
