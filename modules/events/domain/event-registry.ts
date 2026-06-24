@@ -46,6 +46,10 @@ export const GlobalEvents = {
   PRODUCT_PUBLISHED: 'product.published',
   /** Product archived (ACTIVE → ARCHIVED) */
   PRODUCT_ARCHIVED: 'product.archived',
+  /** File uploaded and confirmed */
+  FILE_UPLOADED: 'file.uploaded',
+  /** File deleted from storage */
+  FILE_DELETED: 'file.deleted',
 } as const;
 
 /**
