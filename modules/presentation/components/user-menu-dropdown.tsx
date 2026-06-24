@@ -13,6 +13,7 @@ interface UserMenuDropdownProps {
     name?: string | null;
     email?: string | null;
     image?: string | null;
+    role?: string | null;
   };
 }
 
@@ -64,6 +65,26 @@ export function UserMenuDropdown(_props: UserMenuDropdownProps) {
 
       {isOpen && (
         <div role="menu" className={styles.dropdown}>
+          {_props.user?.role === 'ADMIN' && (
+            <Link
+              href={`/${locale}/admin/sellers`}
+              role="menuitem"
+              onClick={closeMenu}
+              className={styles.menuItem}
+            >
+              {dict.userMenu.dashboard}
+            </Link>
+          )}
+          {_props.user?.role === 'DESIGNER' && (
+            <Link
+              href={`/${locale}/profile`}
+              role="menuitem"
+              onClick={closeMenu}
+              className={styles.menuItem}
+            >
+              {dict.userMenu.designerPanel}
+            </Link>
+          )}
           <Link
             href={`/${locale}/profile`}
             role="menuitem"

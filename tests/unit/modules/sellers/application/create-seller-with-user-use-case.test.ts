@@ -50,7 +50,7 @@ describe('CreateSellerWithUserUseCase', () => {
     expect(result.deletedAt).toBeNull();
   });
 
-  it('should persist the user with SELLER role', async () => {
+  it('should persist the user with DESIGNER role', async () => {
     const result = await useCase.execute({
       email: 'owner@shop.com',
       password: 'password1',
@@ -62,7 +62,7 @@ describe('CreateSellerWithUserUseCase', () => {
     const user = await userRepository.findById(result.userId);
     expect(user).not.toBeNull();
     expect(user!.email.value).toBe('owner@shop.com');
-    expect(user!.roleId.value).toBe('SELLER');
+    expect(user!.roleId.value).toBe('DESIGNER');
     expect(user!.firstName).toBe('Owner');
     expect(user!.lastName).toBe('Person');
   });

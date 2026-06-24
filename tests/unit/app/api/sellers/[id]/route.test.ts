@@ -67,7 +67,7 @@ function makeRequest(
 
 const ADMIN_SESSION = { user: { id: 'admin-1', role: 'ADMIN' } };
 const OTHER_USER_SESSION = { user: { id: 'user-2', role: 'CUSTOMER' } };
-const SELF_USER_SESSION = { user: { id: 'user-1', role: 'SELLER' } };
+const SELF_USER_SESSION = { user: { id: 'user-1', role: 'DESIGNER' } };
 
 function makeSeller(
   overrides: Partial<{

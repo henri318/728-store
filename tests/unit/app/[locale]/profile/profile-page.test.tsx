@@ -66,6 +66,21 @@ describe('ProfilePage', () => {
       }),
     });
 
+    mockUseSession.mockReturnValue({
+      data: {
+        user: {
+          id: '1',
+          email: 'test@example.com',
+          name: 'John Doe',
+          role: 'CUSTOMER',
+          emailVerified: null,
+        },
+        expires: '2099-01-01T00:00:00.000Z',
+      },
+      status: 'authenticated',
+      update: vi.fn(),
+    });
+
     render(<ProfilePage />);
 
     await waitFor(() => {
@@ -165,7 +180,7 @@ describe('ProfilePage', () => {
           id: '1',
           email: 'test@example.com',
           name: 'John Doe',
-          role: 'user',
+          role: 'CUSTOMER',
           emailVerified: null,
         },
         expires: '2099-01-01T00:00:00.000Z',
@@ -179,5 +194,178 @@ describe('ProfilePage', () => {
     await waitFor(() => {
       expect(screen.getByLabelText('Nombre')).toHaveValue('John');
     });
+  });
+
+  // ── Address guard tests ──
+
+  it('shows address section for CUSTOMER role', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        id: '1',
+        email: 'customer@test.com',
+        firstName: 'Jane',
+        lastName: 'Doe',
+        address: {
+          street: '456 Oak Ave',
+          city: 'Madrid',
+          postalCode: '28001',
+          country: 'Spain',
+        },
+        emailVerified: null,
+        createdAt: '2025-01-01T00:00:00.000Z',
+      }),
+    });
+
+    mockUseSession.mockReturnValue({
+      data: {
+        user: {
+          id: '1',
+          email: 'customer@test.com',
+          name: 'Jane Doe',
+          role: 'CUSTOMER',
+          emailVerified: null,
+        },
+        expires: '2099-01-01T00:00:00.000Z',
+      },
+      status: 'authenticated',
+      update: vi.fn(),
+    });
+
+    render(<ProfilePage />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Calle')).toHaveValue('456 Oak Ave');
+      expect(screen.getByLabelText('Ciudad')).toHaveValue('Madrid');
+    });
+  });
+
+  it('hides address section for ADMIN role', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        id: '1',
+        email: 'admin@test.com',
+        firstName: 'Admin',
+        lastName: 'User',
+        address: {
+          street: '789 Pine St',
+          city: 'Valencia',
+          postalCode: '46001',
+          country: 'Spain',
+        },
+        emailVerified: null,
+        createdAt: '2025-01-01T00:00:00.000Z',
+      }),
+    });
+
+    mockUseSession.mockReturnValue({
+      data: {
+        user: {
+          id: '1',
+          email: 'admin@test.com',
+          name: 'Admin User',
+          role: 'ADMIN',
+          emailVerified: null,
+        },
+        expires: '2099-01-01T00:00:00.000Z',
+      },
+      status: 'authenticated',
+      update: vi.fn(),
+    });
+
+    render(<ProfilePage />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Nombre')).toHaveValue('Admin');
+    });
+
+    expect(screen.queryByLabelText('Calle')).toBeNull();
+    expect(screen.queryByLabelText('Ciudad')).toBeNull();
+    expect(screen.queryByLabelText('Código postal')).toBeNull();
+    expect(screen.queryByLabelText('País')).toBeNull();
+  });
+
+  it('hides address section for SUPPORT role', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        id: '1',
+        email: 'support@test.com',
+        firstName: 'Support',
+        lastName: 'User',
+        address: {
+          street: '101 Elm St',
+          city: 'Sevilla',
+          postalCode: '41001',
+          country: 'Spain',
+        },
+        emailVerified: null,
+        createdAt: '2025-01-01T00:00:00.000Z',
+      }),
+    });
+
+    mockUseSession.mockReturnValue({
+      data: {
+        user: {
+          id: '1',
+          email: 'support@test.com',
+          name: 'Support User',
+          role: 'SUPPORT',
+          emailVerified: null,
+        },
+        expires: '2099-01-01T00:00:00.000Z',
+      },
+      status: 'authenticated',
+      update: vi.fn(),
+    });
+
+    render(<ProfilePage />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Nombre')).toHaveValue('Support');
+    });
+
+    expect(screen.queryByLabelText('Calle')).toBeNull();
+    expect(screen.queryByLabelText('Ciudad')).toBeNull();
+  });
+
+  it('hides address section for DESIGNER role', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        id: '1',
+        email: 'designer@test.com',
+        firstName: 'Art',
+        lastName: 'Designer',
+        address: null,
+        emailVerified: null,
+        createdAt: '2025-01-01T00:00:00.000Z',
+      }),
+    });
+
+    mockUseSession.mockReturnValue({
+      data: {
+        user: {
+          id: '1',
+          email: 'designer@test.com',
+          name: 'Art Designer',
+          role: 'DESIGNER',
+          emailVerified: null,
+        },
+        expires: '2099-01-01T00:00:00.000Z',
+      },
+      status: 'authenticated',
+      update: vi.fn(),
+    });
+
+    render(<ProfilePage />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Nombre')).toHaveValue('Art');
+    });
+
+    expect(screen.queryByLabelText('Calle')).toBeNull();
+    expect(screen.queryByLabelText('Ciudad')).toBeNull();
   });
 });

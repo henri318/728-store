@@ -1,0 +1,14 @@
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+}
+
+.navLink:hover {
+  background-color: #f3f4f6;
+}
