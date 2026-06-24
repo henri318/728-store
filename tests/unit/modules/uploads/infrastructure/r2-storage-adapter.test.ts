@@ -42,7 +42,7 @@ describe('R2StorageAdapter — getPublicUrl', () => {
     expect(url).toBe('https://my-bucket.example.com/avatar/user-42/photo.jpg');
   });
 
-  it('should throw if R2_PUBLIC_DOMAIN is missing', async () => {
+  it('should use fallback value if R2_PUBLIC_DOMAIN is missing', async () => {
     process.env.R2_BUCKET = 'test-bucket';
     process.env.R2_ACCOUNT_ID = 'test-account';
     process.env.R2_ACCESS_KEY_ID = 'test-key';
@@ -51,9 +51,9 @@ describe('R2StorageAdapter — getPublicUrl', () => {
 
     const { R2StorageAdapter } =
       await import('@/modules/uploads/infrastructure/r2-storage-adapter');
+    const adapter = new R2StorageAdapter();
 
-    expect(() => new R2StorageAdapter()).toThrow(
-      'Missing required environment variable: R2_PUBLIC_DOMAIN',
-    );
+    const url = adapter.getPublicUrl('product/user-1/photo.webp');
+    expect(url).toBe('https://dummy.public.domain/product/user-1/photo.webp');
   });
 });

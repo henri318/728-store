@@ -45,6 +45,8 @@ import type { SellerRepository } from '@/modules/sellers/domain/seller-repositor
 import type { TransactionRunner } from '@/shared/kernel/transaction-runner';
 import type { UserVerificationPort } from '@/modules/auth/domain/ports/user-verification-port';
 import type { RoleValidatorPort } from '@/modules/users/domain/ports/role-validator-port';
+import type { StoragePort } from '@/modules/uploads/domain/storage-port';
+import type { UploadRepository } from '@/modules/uploads/domain/upload-repository';
 
 import { BrevoEmailSender } from '@/modules/email/infrastructure/brevo-email-sender';
 import { ConsoleEmailSender } from '@/modules/email/infrastructure/console-email-sender';
@@ -71,6 +73,8 @@ import {
 } from '@/modules/users/infrastructure/bcrypt-password-hasher';
 import { UserVerificationAdapter } from '@/modules/users/infrastructure/user-verification-adapter';
 import { RoleValidatorAdapter } from '@/modules/roles/infrastructure/role-validator-adapter';
+import { R2StorageAdapter } from '@/modules/uploads/infrastructure/r2-storage-adapter';
+import { PrismaUploadRepository } from '@/modules/uploads/infrastructure/prisma-upload-repository';
 
 // ---------------------------------------------------------------------------
 // State
@@ -96,6 +100,8 @@ let _sellerRepository: SellerRepository | null = null;
 let _transactionRunner: TransactionRunner | null = null;
 let _userVerification: UserVerificationPort | null = null;
 let _roleValidator: RoleValidatorPort | null = null;
+let _storagePort: StoragePort | null = null;
+let _uploadRepository: UploadRepository | null = null;
 
 // ---------------------------------------------------------------------------
 // Initialization
@@ -212,6 +218,16 @@ export function initContainer(): void {
   // --- RoleValidatorPort: adapter bridging users' port to roles infrastructure ---
   if (!_roleValidator) {
     _roleValidator = new RoleValidatorAdapter(_roleRepository!);
+  }
+
+  // --- StoragePort: R2 adapter for uploads ---
+  if (!_storagePort) {
+    _storagePort = new R2StorageAdapter();
+  }
+
+  // --- UploadRepository: Prisma adapter ---
+  if (!_uploadRepository) {
+    _uploadRepository = new PrismaUploadRepository();
   }
 }
 
@@ -408,6 +424,24 @@ export function getRoleValidator(): RoleValidatorPort {
   return _roleValidator!;
 }
 
+/**
+ * Returns the StoragePort bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ */
+export function getStoragePort(): StoragePort {
+  if (!_storagePort) initContainer();
+  return _storagePort!;
+}
+
+/**
+ * Returns the UploadRepository bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ */
+export function getUploadRepository(): UploadRepository {
+  if (!_uploadRepository) initContainer();
+  return _uploadRepository!;
+}
+
 // ---------------------------------------------------------------------------
 // Testing helpers
 // ---------------------------------------------------------------------------
@@ -440,6 +474,8 @@ export const container = {
   getTransactionRunner,
   getUserVerification,
   getRoleValidator,
+  getStoragePort,
+  getUploadRepository,
   /** Override — useful in tests to inject a mock without touching env vars. */
   setEmailSender(sender: EmailSender): void {
     _emailSender = sender;
@@ -519,5 +555,13 @@ export const container = {
   /** Override — useful in tests to inject a mock RoleValidatorPort. */
   setRoleValidator(port: RoleValidatorPort): void {
     _roleValidator = port;
+  },
+  /** Override — useful in tests to inject a mock StoragePort. */
+  setStoragePort(port: StoragePort): void {
+    _storagePort = port;
+  },
+  /** Override — useful in tests to inject an in-memory upload repository. */
+  setUploadRepository(repo: UploadRepository): void {
+    _uploadRepository = repo;
   },
 };

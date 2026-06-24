@@ -82,6 +82,19 @@ vi.mock('@/modules/users/infrastructure/bcrypt-password-hasher', () => ({
   verifyPassword: vi.fn(),
 }));
 
+vi.mock('@/modules/uploads/infrastructure/r2-storage-adapter', () => ({
+  R2StorageAdapter: class {},
+}));
+vi.mock('@/modules/uploads/infrastructure/prisma-upload-repository', () => ({
+  PrismaUploadRepository: class {},
+}));
+vi.mock('@/modules/users/infrastructure/user-verification-adapter', () => ({
+  UserVerificationAdapter: class {},
+}));
+vi.mock('@/modules/roles/infrastructure/role-validator-adapter', () => ({
+  RoleValidatorAdapter: class {},
+}));
+
 vi.mock('@/modules/sellers/infrastructure/prisma-seller-repository', () => ({
   PrismaSellerRepository: class {
     save = mocks.sellerRepositoryInstance.save;

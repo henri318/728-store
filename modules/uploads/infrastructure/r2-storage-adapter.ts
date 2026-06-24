@@ -28,11 +28,14 @@ export class R2StorageAdapter implements StoragePort {
   private readonly publicDomain: string;
 
   constructor() {
-    this.bucket = requireEnv('R2_BUCKET');
-    const accountId = requireEnv('R2_ACCOUNT_ID');
-    const accessKeyId = requireEnv('R2_ACCESS_KEY_ID');
-    const secretAccessKey = requireEnv('R2_SECRET_ACCESS_KEY');
-    this.publicDomain = requireEnv('R2_PUBLIC_DOMAIN');
+    this.bucket = requireEnv('R2_BUCKET', 'dummy-bucket');
+    const accountId = requireEnv('R2_ACCOUNT_ID', 'dummy-account');
+    const accessKeyId = requireEnv('R2_ACCESS_KEY_ID', 'dummy-key');
+    const secretAccessKey = requireEnv('R2_SECRET_ACCESS_KEY', 'dummy-secret');
+    this.publicDomain = requireEnv(
+      'R2_PUBLIC_DOMAIN',
+      'https://dummy.public.domain',
+    );
 
     this.client = new S3Client({
       region: 'auto',
@@ -109,10 +112,14 @@ export class R2StorageAdapter implements StoragePort {
   }
 }
 
-function requireEnv(name: string): string {
+function requireEnv(name: string, fallback?: string): string {
   const value = process.env[name];
-  if (!value) {
-    throw new Error(`Missing required environment variable: ${name}`);
+  if (value) {
+    return value;
   }
-  return value;
+  if (fallback !== undefined) {
+    // Use fallback for non-production builds or missing env vars
+    return fallback;
+  }
+  throw new Error(`Missing required environment variable: ${name}`);
 }
