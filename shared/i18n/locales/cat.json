@@ -86,5 +86,27 @@
     "hasLetters": "Té lletres",
     "hasSpecialChars": "Té caràcters especials",
     "strengthLabel": "Força de la contrasenya"
+  },
+  "admin": {
+    "sellersTitle": "Gestió de venedors",
+    "noSellers": "No s'han trobat venedors",
+    "sellerName": "Nom",
+    "sellerStatus": "Estat",
+    "sellerCreated": "Creat",
+    "actions": "Accions",
+    "viewProducts": "Veure productes",
+    "suspend": "Suspendre",
+    "activate": "Activar",
+    "ban": "Banejar",
+    "status_active": "Actiu",
+    "status_suspended": "Sospès",
+    "status_banned": "Banejat",
+    "backToSellers": "Tornar a venedors",
+    "sellerProductsTitle": "Productes del venedor",
+    "noProducts": "No s'han trobat productes per a aquest venedor",
+    "productName": "Nom del producte",
+    "productStatus": "Estat",
+    "productPrice": "Preu",
+    "productUpdated": "Actualitzat"
   }
 }
