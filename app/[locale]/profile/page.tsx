@@ -29,10 +29,12 @@ interface ProfileForm extends ProfileData {
 }
 
 export default function ProfilePage() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const { locale } = useParams<{ locale: string }>();
   const dict = useDictionary();
+  const role = session?.user?.role;
+  const showAddress = role === 'CUSTOMER';
   const [form, setForm] = useState<ProfileForm>({
     firstName: '',
     lastName: '',
@@ -102,7 +104,7 @@ export default function ProfilePage() {
     const body: Record<string, unknown> = {};
     if (form.firstName) body.firstName = form.firstName;
     if (form.lastName) body.lastName = form.lastName;
-    if (hasAddress) body.address = form.address;
+    if (showAddress && hasAddress) body.address = form.address;
 
     try {
       const res = await fetch('/api/users/me', {
@@ -177,51 +179,53 @@ export default function ProfilePage() {
           disabled
         />
 
-        <div className={styles.addressSection}>
-          <h3 className={styles.addressTitle}>{dict.auth.address}</h3>
-          <div className={styles.addressFields}>
-            <Input
-              label={dict.auth.street}
-              value={form.address.street}
-              onChange={(v) =>
-                setForm((prev) => ({
-                  ...prev,
-                  address: { ...prev.address, street: v },
-                }))
-              }
-            />
-            <Input
-              label={dict.auth.city}
-              value={form.address.city}
-              onChange={(v) =>
-                setForm((prev) => ({
-                  ...prev,
-                  address: { ...prev.address, city: v },
-                }))
-              }
-            />
-            <Input
-              label={dict.auth.postalCode}
-              value={form.address.postalCode}
-              onChange={(v) =>
-                setForm((prev) => ({
-                  ...prev,
-                  address: { ...prev.address, postalCode: v },
-                }))
-              }
-            />
-            <Input
-              label={dict.auth.country}
-              value={form.address.country}
-              onChange={(v) =>
-                setForm((prev) => ({
-                  ...prev,
-                  address: { ...prev.address, country: v },
-                }))
-              }
-            />
+        {showAddress && (
+          <div className={styles.addressSection}>
+            <h3 className={styles.addressTitle}>{dict.auth.address}</h3>
+            <div className={styles.addressFields}>
+              <Input
+                label={dict.auth.street}
+                value={form.address.street}
+                onChange={(v) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    address: { ...prev.address, street: v },
+                  }))
+                }
+              />
+              <Input
+                label={dict.auth.city}
+                value={form.address.city}
+                onChange={(v) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    address: { ...prev.address, city: v },
+                  }))
+                }
+              />
+              <Input
+                label={dict.auth.postalCode}
+                value={form.address.postalCode}
+                onChange={(v) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    address: { ...prev.address, postalCode: v },
+                  }))
+                }
+              />
+              <Input
+                label={dict.auth.country}
+                value={form.address.country}
+                onChange={(v) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    address: { ...prev.address, country: v },
+                  }))
+                }
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         <Button type="submit" loading={saving}>
           {dict.common.submit}

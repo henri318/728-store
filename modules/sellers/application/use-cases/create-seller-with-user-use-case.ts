@@ -34,7 +34,7 @@ export interface CreateSellerWithUserDTO {
 
 /**
  * CreateSellerWithUserUseCase — atomically creates a new user (with the
- * SELLER role) and a new seller profile, then records a SELLER_CREATED
+ * DESIGNER role) and a new seller profile, then records a SELLER_CREATED
  * domain event. All three writes happen inside ONE Prisma transaction.
  *
  * This is the single-entry-point for admin "add a new seller" flows.
@@ -76,7 +76,7 @@ export class CreateSellerWithUserUseCase {
         await this.passwordHasher.hash(dto.password),
       );
 
-      // 5. Create user (with SELLER role) — same transaction
+      // 5. Create user (with DESIGNER role) — same transaction
       const now = new Date();
       const userId = UserId.create(crypto.randomUUID());
       const user = await this.userRepository.save(
@@ -86,7 +86,7 @@ export class CreateSellerWithUserUseCase {
           firstName: dto.firstName,
           lastName: dto.lastName,
           address: null,
-          roleId: RoleId.create('SELLER'),
+          roleId: RoleId.create('DESIGNER'),
           passwordHash,
           emailVerified: null,
           deletedAt: null,

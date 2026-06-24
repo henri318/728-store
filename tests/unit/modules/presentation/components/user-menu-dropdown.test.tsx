@@ -116,4 +116,61 @@ describe('UserMenuDropdown component', () => {
       '/es/auth/change-password',
     );
   });
+
+  it('shows Dashboard menu item for ADMIN role', () => {
+    const adminUser = { ...mockUser, role: 'ADMIN' };
+    render(<UserMenuDropdown user={adminUser} />);
+
+    const trigger = screen.getByRole('button', { name: /menu/i });
+    fireEvent.click(trigger);
+
+    const dashboardLink = screen.getByRole('menuitem', {
+      name: /panel de administración/i,
+    });
+    expect(dashboardLink).toBeInTheDocument();
+    expect(dashboardLink).toHaveAttribute('href', '/es/admin/sellers');
+  });
+
+  it('shows Designer Panel menu item for DESIGNER role', () => {
+    const designerUser = { ...mockUser, role: 'DESIGNER' };
+    render(<UserMenuDropdown user={designerUser} />);
+
+    const trigger = screen.getByRole('button', { name: /menu/i });
+    fireEvent.click(trigger);
+
+    const designerLink = screen.getByRole('menuitem', {
+      name: /panel de diseñador/i,
+    });
+    expect(designerLink).toBeInTheDocument();
+    expect(designerLink).toHaveAttribute('href', '/es/profile');
+  });
+
+  it('does not show Dashboard or Designer Panel for CUSTOMER role', () => {
+    const customerUser = { ...mockUser, role: 'CUSTOMER' };
+    render(<UserMenuDropdown user={customerUser} />);
+
+    const trigger = screen.getByRole('button', { name: /menu/i });
+    fireEvent.click(trigger);
+
+    expect(
+      screen.queryByRole('menuitem', { name: /panel de administración/i }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole('menuitem', { name: /panel de diseñador/i }),
+    ).toBeNull();
+  });
+
+  it('does not show role-specific items when role is undefined', () => {
+    render(<UserMenuDropdown user={mockUser} />);
+
+    const trigger = screen.getByRole('button', { name: /menu/i });
+    fireEvent.click(trigger);
+
+    expect(
+      screen.queryByRole('menuitem', { name: /panel de administración/i }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole('menuitem', { name: /panel de diseñador/i }),
+    ).toBeNull();
+  });
 });

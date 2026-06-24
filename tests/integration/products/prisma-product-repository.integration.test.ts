@@ -26,7 +26,7 @@ describe('PrismaProductRepository — Integration', () => {
         email: 'seller-prod@test.com',
         firstName: 'Seller',
         lastName: 'Owner',
-        role: 'SELLER',
+        role: 'DESIGNER',
         passwordHash: 'hashed-pw',
       },
       update: {},

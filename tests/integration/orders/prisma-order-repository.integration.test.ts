@@ -56,7 +56,7 @@ describe('PrismaOrderRepository — Integration', () => {
         email: `seller-owner-${ids.sellerId}@test.com`,
         firstName: 'Seller',
         lastName: 'Owner',
-        role: 'SELLER',
+        role: 'DESIGNER',
         passwordHash: 'hashed-pw',
       },
       update: {},

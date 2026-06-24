@@ -16,7 +16,7 @@ export const listSellersQuerySchema = z.object({
 /**
  * POST /api/sellers — admin-only.
  *
- * Creates a new user (with the SELLER role) and a seller profile in one
+ * Creates a new user (with the DESIGNER role) and a seller profile in one
  * request. The seller is always created with status=active.
  */
 export const createSellerSchema = z.object({
