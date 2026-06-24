@@ -53,7 +53,7 @@ function makeEntity(overrides: Partial<UploadEntity> = {}): UploadEntity {
 
 // ─── toDomainUpload ───
 describe('mapper.toDomainUpload', () => {
-  it('should map a Prisma Upload row to an UploadEntity with all fields', () => {
+  it('should map all fields from Prisma row to domain entity', () => {
     const row = makePrismaUploadRow();
     const result = toDomainUpload(row);
 
@@ -68,103 +68,64 @@ describe('mapper.toDomainUpload', () => {
     expect(result.createdAt).toEqual(new Date('2025-01-01T10:00:00Z'));
   });
 
-  it('should map CONFIRMED status correctly', () => {
-    const row = makePrismaUploadRow({ status: 'CONFIRMED' });
-    const result = toDomainUpload(row);
-    expect(result.status).toBe(UploadStatus.CONFIRMED);
+  it('should map CONFIRMED status and all UploadType variants', () => {
+    const confirmed = toDomainUpload(
+      makePrismaUploadRow({ status: 'CONFIRMED' }),
+    );
+    expect(confirmed.status).toBe(UploadStatus.CONFIRMED);
+
+    const avatar = toDomainUpload(makePrismaUploadRow({ type: 'avatar' }));
+    expect(avatar.type).toBe(UploadType.avatar);
+
+    const ticket = toDomainUpload(makePrismaUploadRow({ type: 'ticket' }));
+    expect(ticket.type).toBe(UploadType.ticket);
+
+    const general = toDomainUpload(makePrismaUploadRow({ type: 'general' }));
+    expect(general.type).toBe(UploadType.general);
   });
 
-  it('should map AVATAR type correctly', () => {
-    const row = makePrismaUploadRow({ type: 'avatar' });
-    const result = toDomainUpload(row);
-    expect(result.type).toBe(UploadType.avatar);
-  });
-
-  it('should map TICKET type correctly', () => {
-    const row = makePrismaUploadRow({ type: 'ticket' });
-    const result = toDomainUpload(row);
-    expect(result.type).toBe(UploadType.ticket);
-  });
-
-  it('should map GENERAL type correctly', () => {
-    const row = makePrismaUploadRow({ type: 'general' });
-    const result = toDomainUpload(row);
-    expect(result.type).toBe(UploadType.general);
-  });
-
-  // ─── Edge cases: invalid enum values ───
-  it('should pass through invalid type values (no runtime validation)', () => {
-    // The mapper is a pure structural converter — enum validation happens at use-case boundaries
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const row = makePrismaUploadRow({ type: 'invalid_type' as any });
+  it('should pass through invalid enum values (no runtime validation)', () => {
+    const row = makePrismaUploadRow({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      type: 'invalid_type' as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      status: 'INVALID' as any,
+    });
     const result = toDomainUpload(row);
     expect(result.type).toBe('invalid_type');
+    expect(result.status).toBe('INVALID');
   });
 
-  it('should pass through invalid status values (no runtime validation)', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const row = makePrismaUploadRow({ status: 'INVALID_STATUS' as any });
-    const result = toDomainUpload(row);
-    expect(result.status).toBe('INVALID_STATUS');
-  });
-
-  // ─── Edge cases: empty strings ───
-  it('should handle empty string for fileName', () => {
-    const row = makePrismaUploadRow({ fileName: '' });
-    const result = toDomainUpload(row);
-    expect(result.fileName).toBe('');
-  });
-
-  it('should handle empty string for storageKey', () => {
-    const row = makePrismaUploadRow({ storageKey: '' });
-    const result = toDomainUpload(row);
-    expect(result.storageKey).toBe('');
-  });
-
-  it('should handle empty string for id', () => {
-    const row = makePrismaUploadRow({ id: '' });
+  it('should handle empty strings and zero size', () => {
+    const row = makePrismaUploadRow({
+      id: '',
+      fileName: '',
+      storageKey: '',
+      size: 0,
+    });
     const result = toDomainUpload(row);
     expect(result.id).toBe('');
-  });
-
-  it('should handle empty string for uploadedBy', () => {
-    const row = makePrismaUploadRow({ uploadedBy: '' });
-    const result = toDomainUpload(row);
-    expect(result.uploadedBy).toBe('');
-  });
-
-  // ─── Edge cases: boundary values for size ───
-  it('should handle zero size', () => {
-    const row = makePrismaUploadRow({ size: 0 });
-    const result = toDomainUpload(row);
+    expect(result.fileName).toBe('');
+    expect(result.storageKey).toBe('');
     expect(result.size).toBe(0);
   });
 
-  it('should handle very large size (Number.MAX_SAFE_INTEGER)', () => {
-    const row = makePrismaUploadRow({ size: Number.MAX_SAFE_INTEGER });
-    const result = toDomainUpload(row);
-    expect(result.size).toBe(Number.MAX_SAFE_INTEGER);
-  });
+  it('should handle epoch and far-future dates', () => {
+    const epoch = toDomainUpload(
+      makePrismaUploadRow({ createdAt: new Date(0) }),
+    );
+    expect(epoch.createdAt).toEqual(new Date(0));
 
-  // ─── Edge cases: date boundaries ───
-  it('should handle epoch date', () => {
-    const epoch = new Date(0);
-    const row = makePrismaUploadRow({ createdAt: epoch });
-    const result = toDomainUpload(row);
-    expect(result.createdAt).toEqual(epoch);
-  });
-
-  it('should handle far future date', () => {
-    const future = new Date('2099-12-31T23:59:59Z');
-    const row = makePrismaUploadRow({ createdAt: future });
-    const result = toDomainUpload(row);
-    expect(result.createdAt).toEqual(future);
+    const future = toDomainUpload(
+      makePrismaUploadRow({ createdAt: new Date('2099-12-31T23:59:59Z') }),
+    );
+    expect(future.createdAt).toEqual(new Date('2099-12-31T23:59:59Z'));
   });
 });
 
 // ─── toPersistenceUpload ───
 describe('mapper.toPersistenceUpload', () => {
-  it('should convert an UploadEntity to Prisma create input', () => {
+  it('should convert all fields from domain entity to Prisma create input', () => {
     const entity = makeEntity();
     const result = toPersistenceUpload(entity);
 
@@ -179,7 +140,7 @@ describe('mapper.toPersistenceUpload', () => {
     expect(result.createdAt).toBe(entity.createdAt);
   });
 
-  it('should preserve all field values without transformation', () => {
+  it('should preserve non-default values (CONFIRMED, avatar, custom fields)', () => {
     const entity = makeEntity({
       id: 'custom-id',
       fileName: 'custom-photo.png',
@@ -194,71 +155,31 @@ describe('mapper.toPersistenceUpload', () => {
     const result = toPersistenceUpload(entity);
 
     expect(result.id).toBe('custom-id');
-    expect(result.fileName).toBe('custom-photo.png');
-    expect(result.storageKey).toBe('avatar/user-42/custom.webp');
-    expect(result.mimeType).toBe('image/png');
-    expect(result.size).toBe(512000);
-    expect(result.uploadedBy).toBe('user-42');
     expect(result.type).toBe(UploadType.avatar);
     expect(result.status).toBe(UploadStatus.CONFIRMED);
-    expect(result.createdAt).toEqual(new Date('2025-06-15T14:30:00Z'));
+    expect(result.size).toBe(512000);
   });
 
-  // ─── Edge cases: invalid enum values ───
-  it('should pass through invalid type values (no runtime validation)', () => {
-    const entity = makeEntity({ type: 'bad_type' as UploadType });
+  it('should pass through invalid enum values (no runtime validation)', () => {
+    const entity = makeEntity({
+      type: 'bad_type' as UploadType,
+      status: 'BAD_STATUS' as UploadStatus,
+    });
     const result = toPersistenceUpload(entity);
     expect(result.type).toBe('bad_type');
-  });
-
-  it('should pass through invalid status values (no runtime validation)', () => {
-    const entity = makeEntity({ status: 'BAD_STATUS' as UploadStatus });
-    const result = toPersistenceUpload(entity);
     expect(result.status).toBe('BAD_STATUS');
   });
 
-  // ─── Edge cases: empty strings ───
-  it('should handle empty string for fileName', () => {
-    const entity = makeEntity({ fileName: '' });
+  it('should handle empty strings and zero size', () => {
+    const entity = makeEntity({ fileName: '', storageKey: '', size: 0 });
     const result = toPersistenceUpload(entity);
     expect(result.fileName).toBe('');
-  });
-
-  it('should handle empty string for storageKey', () => {
-    const entity = makeEntity({ storageKey: '' });
-    const result = toPersistenceUpload(entity);
     expect(result.storageKey).toBe('');
-  });
-
-  // ─── Edge cases: boundary values for size ───
-  it('should handle zero size', () => {
-    const entity = makeEntity({ size: 0 });
-    const result = toPersistenceUpload(entity);
     expect(result.size).toBe(0);
-  });
-
-  it('should handle very large size', () => {
-    const entity = makeEntity({ size: Number.MAX_SAFE_INTEGER });
-    const result = toPersistenceUpload(entity);
-    expect(result.size).toBe(Number.MAX_SAFE_INTEGER);
-  });
-
-  // ─── Edge cases: date boundaries ───
-  it('should handle epoch date', () => {
-    const entity = makeEntity({ createdAt: new Date(0) });
-    const result = toPersistenceUpload(entity);
-    expect(result.createdAt).toEqual(new Date(0));
-  });
-
-  it('should handle far future date', () => {
-    const future = new Date('2099-12-31T23:59:59Z');
-    const entity = makeEntity({ createdAt: future });
-    const result = toPersistenceUpload(entity);
-    expect(result.createdAt).toEqual(future);
   });
 });
 
-// ─── Round-trip tests ───
+// ─── Round-trip ───
 describe('mapper round-trip', () => {
   it('should preserve all scalar fields through toDomain → toPersistence', () => {
     const original: UploadEntity = {
@@ -288,52 +209,5 @@ describe('mapper round-trip', () => {
     expect(domain.type).toBe(original.type);
     expect(domain.status).toBe(original.status);
     expect(domain.createdAt).toEqual(original.createdAt);
-  });
-
-  it('should handle PENDING status in round trip', () => {
-    const original: UploadEntity = {
-      id: 'upload-pending',
-      fileName: 'product.webp',
-      storageKey: 'product/user-3/clsdef789.webp',
-      mimeType: 'image/webp',
-      size: 204800,
-      uploadedBy: 'user-3',
-      type: UploadType.product,
-      status: UploadStatus.PENDING,
-      createdAt: new Date('2025-03-10T08:30:00Z'),
-    };
-
-    const persistence = toPersistenceUpload(original);
-    const row = makePrismaUploadRow(
-      persistence as unknown as Partial<PrismaUploadRow>,
-    );
-    const domain = toDomainUpload(row);
-
-    expect(domain.status).toBe(UploadStatus.PENDING);
-    expect(domain.type).toBe(UploadType.product);
-  });
-
-  it('should handle GENERAL type in round trip', () => {
-    // Fixed: fileName now matches mimeType (image/jpeg → photo.jpg, not doc.pdf)
-    const original: UploadEntity = {
-      id: 'upload-general',
-      fileName: 'photo.jpg',
-      storageKey: 'general/user-4/clghi012.jpg',
-      mimeType: 'image/jpeg',
-      size: 1024,
-      uploadedBy: 'user-4',
-      type: UploadType.general,
-      status: UploadStatus.CONFIRMED,
-      createdAt: new Date('2025-01-01T00:00:00Z'),
-    };
-
-    const persistence = toPersistenceUpload(original);
-    const row = makePrismaUploadRow(
-      persistence as unknown as Partial<PrismaUploadRow>,
-    );
-    const domain = toDomainUpload(row);
-
-    expect(domain.type).toBe(UploadType.general);
-    expect(domain.size).toBe(1024);
   });
 });

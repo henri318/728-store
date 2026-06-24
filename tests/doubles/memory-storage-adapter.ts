@@ -10,6 +10,7 @@ export class MemoryStorageAdapter implements StoragePort {
   public uploadedKeys: string[] = [];
   public deleted: string[] = [];
   public readUrls: Map<string, string> = new Map();
+  public publicDomain = 'https://mock-r2.example.com';
 
   async generateUploadUrl(
     key: string,
@@ -24,6 +25,10 @@ export class MemoryStorageAdapter implements StoragePort {
     const url = `https://mock-r2.read/${key}`;
     this.readUrls.set(key, url);
     return url;
+  }
+
+  getPublicUrl(key: string): string {
+    return `${this.publicDomain}/${key}`;
   }
 
   async delete(key: string): Promise<void> {
