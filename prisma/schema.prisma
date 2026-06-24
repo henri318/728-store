@@ -178,6 +178,18 @@ model ProductImage {
   @@index([productId, position])
 }
 
+enum UploadType {
+  product
+  avatar
+  ticket
+  general
+}
+
+enum UploadStatus {
+  PENDING
+  CONFIRMED
+}
+
 model Tag {
   id        String    @id @default(cuid())
   name      String    @unique
@@ -206,8 +218,8 @@ model Upload {
   mimeType   String
   size       Int
   uploadedBy String
-  type       String   // product | avatar | ticket | general
-  status     String   @default("PENDING") // PENDING | CONFIRMED
+  type       UploadType
+  status     UploadStatus @default(PENDING)
   createdAt  DateTime @default(now())
 
   @@index([uploadedBy])

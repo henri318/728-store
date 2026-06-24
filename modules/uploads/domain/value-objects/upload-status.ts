@@ -1,10 +1,8 @@
 /**
  * UploadStatus — the valid lifecycle states for an upload.
  *
- * PENDING  → CONFIRMED (upload completed and verified)
- * CONFIRMED is terminal.
+ * Single source of truth: Prisma schema enum.
+ * Re-exported here so domain code uses a local symbol.
  */
-export enum UploadStatus {
-  PENDING = 'PENDING',
-  CONFIRMED = 'CONFIRMED',
-}
+import { UploadStatus } from '@prisma/client';
+export { UploadStatus };
