@@ -23,6 +23,14 @@ export interface StoragePort {
   generateReadUrl(key: string, expiresIn?: number): Promise<string>;
 
   /**
+   * Get a permanent public URL for the given key.
+   * Used for product images and avatars where presigned URLs
+   * would break SEO, social sharing, and CDN caching.
+   * This is synchronous — no network call needed.
+   */
+  getPublicUrl(key: string): string;
+
+  /**
    * Delete an object from storage by key.
    */
   delete(key: string): Promise<void>;

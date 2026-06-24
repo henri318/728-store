@@ -19,16 +19,20 @@ import type { StoragePort } from '../domain/storage-port';
  *   R2_ACCOUNT_ID      — Cloudflare account ID
  *   R2_ACCESS_KEY_ID   — R2 API token access key
  *   R2_SECRET_ACCESS_KEY — R2 API token secret key
+ *   R2_PUBLIC_DOMAIN   — Public domain for permanent URLs
+ *                         (e.g. "https://bucket.account.r2.dev" or custom domain)
  */
 export class R2StorageAdapter implements StoragePort {
   private readonly client: S3Client;
   private readonly bucket: string;
+  private readonly publicDomain: string;
 
   constructor() {
     this.bucket = requireEnv('R2_BUCKET');
     const accountId = requireEnv('R2_ACCOUNT_ID');
     const accessKeyId = requireEnv('R2_ACCESS_KEY_ID');
     const secretAccessKey = requireEnv('R2_SECRET_ACCESS_KEY');
+    this.publicDomain = requireEnv('R2_PUBLIC_DOMAIN');
 
     this.client = new S3Client({
       region: 'auto',
@@ -74,6 +78,20 @@ export class R2StorageAdapter implements StoragePort {
     });
 
     return getSignedUrl(this.client, command, { expiresIn });
+  }
+
+  /**
+   * Get a permanent public URL for the given key.
+   *
+   * Uses the R2_PUBLIC_DOMAIN env var (e.g. "https://bucket.account.r2.dev"
+   * or a custom domain). The URL is stable and does not expire — safe for
+   * product images, avatars, SEO, social sharing, and CDN caching.
+   */
+  getPublicUrl(key: string): string {
+    const base = this.publicDomain.endsWith('/')
+      ? this.publicDomain.slice(0, -1)
+      : this.publicDomain;
+    return `${base}/${key}`;
   }
 
   /**
