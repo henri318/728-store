@@ -86,5 +86,27 @@
     "hasLetters": "Tiene letras",
     "hasSpecialChars": "Tiene caracteres especiales",
     "strengthLabel": "Fortaleza de la contraseña"
+  },
+  "admin": {
+    "sellersTitle": "Gestión de vendedores",
+    "noSellers": "No se encontraron vendedores",
+    "sellerName": "Nombre",
+    "sellerStatus": "Estado",
+    "sellerCreated": "Creado",
+    "actions": "Acciones",
+    "viewProducts": "Ver productos",
+    "suspend": "Suspender",
+    "activate": "Activar",
+    "ban": "Banear",
+    "status_active": "Activo",
+    "status_suspended": "Suspendido",
+    "status_banned": "Baneado",
+    "backToSellers": "Volver a vendedores",
+    "sellerProductsTitle": "Productos del vendedor",
+    "noProducts": "No se encontraron productos para este vendedor",
+    "productName": "Nombre del producto",
+    "productStatus": "Estado",
+    "productPrice": "Precio",
+    "productUpdated": "Actualizado"
   }
 }
