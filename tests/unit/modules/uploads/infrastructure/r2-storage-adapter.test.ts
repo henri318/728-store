@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
 
 describe('R2StorageAdapter — getPublicUrl', () => {
   const ORIGINAL_ENV = process.env;
@@ -6,6 +6,10 @@ describe('R2StorageAdapter — getPublicUrl', () => {
   beforeEach(() => {
     vi.resetModules();
     process.env = { ...ORIGINAL_ENV };
+  });
+
+  afterAll(() => {
+    process.env = ORIGINAL_ENV;
   });
 
   it('should construct URL from R2_PUBLIC_DOMAIN env var', async () => {

@@ -14,37 +14,34 @@ export class DeleteUploadUseCase {
   ) {}
 
   async execute(id: string, userId: string, isAdmin: boolean): Promise<void> {
-    return this.txRunner.run(async () => {
-      // 1. Find upload
-      const upload = await this.uploadRepo.findById(id);
-      if (!upload) {
-        throw new NotFoundError('Upload not found');
-      }
+    // 1. Find upload (outside tx — read-only, no mutation risk)
+    const upload = await this.uploadRepo.findById(id);
+    if (!upload) {
+      throw new NotFoundError('Upload not found');
+    }
 
-      // 2. Ownership check
-      if (upload.uploadedBy !== userId && !isAdmin) {
-        throw new AppError('Forbidden', 403, 'Forbidden');
-      }
+    // 2. Ownership check
+    if (upload.uploadedBy !== userId && !isAdmin) {
+      throw new AppError('Forbidden', 403, 'Forbidden');
+    }
 
-      // 3. Delete from R2 (best-effort — log error but continue)
-      try {
-        await this.storage.delete(upload.storageKey);
-      } catch (err) {
-        // R2 failure is non-blocking — metadata removal is mandatory
-        console.error(
-          `[DeleteUploadUseCase] R2 delete failed for key ${upload.storageKey}:`,
-          err,
-        );
-      }
-
-      // 4. Remove metadata from DB
+    // 3. DB transaction: remove metadata + emit event
+    await this.txRunner.run(async () => {
       await this.uploadRepo.remove(id);
-
-      // 5. Emit file.deleted event via outbox
       await this.outboxRepo.saveEvent(FILE_DELETED, {
         uploadId: upload.id,
         storageKey: upload.storageKey,
       });
     });
+
+    // 4. Delete from R2 AFTER transaction succeeds (best-effort)
+    try {
+      await this.storage.delete(upload.storageKey);
+    } catch (err) {
+      console.error(
+        `[DeleteUploadUseCase] R2 delete failed for key ${upload.storageKey}:`,
+        err,
+      );
+    }
   }
 }

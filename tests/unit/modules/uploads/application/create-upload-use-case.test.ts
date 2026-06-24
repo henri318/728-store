@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CreateUploadUseCase } from '@/modules/uploads/application/create-upload-use-case';
 import { MemoryUploadRepository } from '@/tests/doubles/memory-upload-repository';
 import { MemoryStorageAdapter } from '@/tests/doubles/memory-storage-adapter';
@@ -146,7 +146,7 @@ describe('CreateUploadUseCase', () => {
       size: 1024,
     });
 
-    expect(result.storageKey).toContain('.JPEG');
+    expect(result.storageKey).toContain('.jpeg');
   });
 
   // ── Size Validation ─────────────────────────────────────────
@@ -276,6 +276,15 @@ describe('CreateUploadUseCase', () => {
     };
     const failingUseCase = new CreateUploadUseCase(uploadRepo, failingStorage);
 
+    const savedUploads: { id: string; status: string; mimeType: string }[] = [];
+    const saveSpy = vi
+      .spyOn(uploadRepo, 'save')
+      .mockImplementation(async (entity) => {
+        savedUploads.push(
+          entity as { id: string; status: string; mimeType: string },
+        );
+      });
+
     let caughtError: Error | null = null;
     try {
       await failingUseCase.execute({
@@ -293,12 +302,8 @@ describe('CreateUploadUseCase', () => {
     expect(caughtError!.message).toBe('R2 connection timeout');
 
     // Upload was saved as PENDING before the storage call failed
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const saved = (uploadRepo as any).store.find(
-      (u: { uploadedBy: string; status: string }) =>
-        u.uploadedBy === 'user-1' && u.status === 'PENDING',
-    );
-    expect(saved).toBeDefined();
-    expect(saved.mimeType).toBe('image/webp');
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(savedUploads[0].status).toBe('PENDING');
+    expect(savedUploads[0].mimeType).toBe('image/webp');
   });
 });

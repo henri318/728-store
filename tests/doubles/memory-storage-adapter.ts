@@ -28,7 +28,7 @@ export class MemoryStorageAdapter implements StoragePort {
   }
 
   getPublicUrl(key: string): string {
-    return `${this.publicDomain}/${key}`;
+    return `${this.publicDomain.replace(/\/+$/, '')}/${key}`;
   }
 
   async delete(key: string): Promise<void> {

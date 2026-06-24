@@ -64,7 +64,7 @@ export class CreateUploadUseCase {
 
     // 4. Generate unique ID and storage key
     const id = randomUUID();
-    const ext = input.fileName.split('.').pop() || 'bin';
+    const ext = input.fileName.split('.').pop()!.toLowerCase();
     const storageKey = `${input.type}/${input.userId}/${id}.${ext}`;
 
     // 5. Save upload as PENDING

@@ -4,11 +4,7 @@ import type { TransactionRunner } from '@/shared/kernel/transaction-runner';
 import { UploadStatus } from '@/modules/uploads/domain/value-objects/upload-status';
 import { FILE_UPLOADED } from '@/modules/uploads/domain/upload-events';
 import { NotFoundError, ConflictError } from '@/shared/kernel/app-error';
-
-export interface ConfirmUploadResult {
-  id: string;
-  storageKey: string;
-}
+import type { ConfirmUploadResult } from './confirm-upload-result';
 
 export class ConfirmUploadUseCase {
   constructor(
