@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { signOut } from 'next-auth/react';
@@ -15,6 +15,7 @@ interface UserMenuDropdownProps {
     image?: string | null;
     role?: string | null;
   };
+  children?: ReactNode;
 }
 
 export function UserMenuDropdown(_props: UserMenuDropdownProps) {
@@ -60,7 +61,7 @@ export function UserMenuDropdown(_props: UserMenuDropdownProps) {
         aria-haspopup="menu"
         className={styles.triggerButton}
       >
-        {isOpen ? <X size={24} /> : <Menu size={24} />}
+        {_props.children ?? (isOpen ? <X size={24} /> : <Menu size={24} />)}
       </button>
 
       {isOpen && (

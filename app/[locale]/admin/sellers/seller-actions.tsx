@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
+import styles from './seller-actions.module.css';
 
 interface SellerActionsProps {
   sellerId: string;
@@ -45,7 +46,7 @@ export function SellerActions({ sellerId, currentStatus }: SellerActionsProps) {
   };
 
   return (
-    <span style={{ marginLeft: '8px' }}>
+    <span className={styles.actions}>
       {status === 'active' && (
         <button
           type="button"
@@ -68,7 +69,6 @@ export function SellerActions({ sellerId, currentStatus }: SellerActionsProps) {
             type="button"
             disabled={loading}
             onClick={() => handleStatusChange('banned')}
-            style={{ marginLeft: '4px' }}
           >
             {loading ? '...' : dict.admin.ban}
           </button>

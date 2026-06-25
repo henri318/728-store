@@ -1,16 +1,16 @@
 .banner {
-  background-color: #fffbe6;
-  border: 1px solid #ffe58f;
+  background-color: var(--color-cream);
+  border: 1px solid var(--color-lila);
   border-radius: 4px;
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
+  padding: 0.75rem var(--spacing-md);
+  margin-bottom: var(--spacing-md);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--spacing-md);
 }
 
 .message {
-  color: #ad6800;
+  color: var(--color-green-dark);
   font-size: 0.9rem;
 }

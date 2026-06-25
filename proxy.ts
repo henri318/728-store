@@ -77,6 +77,11 @@ export async function proxy(request: NextRequest) {
 
   if (pathnameHasLocale) return NextResponse.next();
 
+  // Static assets in /public don't need locale prefix
+  if (pathname.startsWith('/img/') || pathname === '/favicon.ico') {
+    return NextResponse.next();
+  }
+
   // Redirect if there is no locale
   const locale = defaultLocale;
   request.nextUrl.pathname = `/${locale}${pathname}`;
@@ -98,7 +103,7 @@ function unauthorizedResponse(request: NextRequest, pathname: string) {
 
 export const config = {
   matcher: [
-    // Existing — pages and non-api, non-static paths
+    // Pages and non-api paths (including /img/ static assets)
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$).*)',
     // Protected API routes (explicitly added since the regex above excludes /api)
     '/api/admin/:path*',

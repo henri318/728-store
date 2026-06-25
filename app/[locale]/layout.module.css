@@ -1,32 +1,56 @@
 .body {
   margin: 0;
-  font-family: system-ui, sans-serif;
+  padding: 0;
+  font-family: var(--font-family-primary);
+  background-color: var(--color-cream);
+  overflow-x: hidden;
 }
 
+/* HEADER — gemini.html exact */
 .header {
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
+  background-color: var(--color-white);
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
+  padding: 15px 5%;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  height: 150px;
 }
 
-.headerTitle {
-  font-size: 1.2rem;
-  margin: 0;
+.spacer {
+  flex: 1;
 }
 
-.nav {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.navLink {
+.logo {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   text-decoration: none;
-  color: #0070f3;
+}
+
+.logoImg {
+  height: 130px;
+  width: auto;
+}
+
+.userIcons {
+  display: flex;
+  gap: 15px;
+  align-items: center;
 }
 
 .main {
-  padding: 2rem;
+  min-height: 60vh;
+}
+
+@media (max-width: 768px) {
+  .header {
+    height: 100px;
+  }
+
+  .logoImg {
+    height: 80px;
+  }
 }

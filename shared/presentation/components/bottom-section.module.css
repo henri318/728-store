@@ -1,0 +1,14 @@
+.bottomSection {
+  background-color: var(--color-cream);
+  position: relative;
+  padding: 60px 0 150px 0;
+  min-height: 300px;
+  margin-top: -2px;
+}
+
+.decoration {
+  position: absolute;
+  left: 15%;
+  top: 20%;
+  width: 250px;
+}

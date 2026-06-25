@@ -1,0 +1,34 @@
+.banner {
+  background-color: var(--color-green-light);
+  color: var(--color-green-dark);
+  padding: 10px 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.content {
+  display: inline-block;
+  animation: scroll-left 25s linear infinite;
+}
+
+.text {
+  display: inline-block;
+  padding-right: 2rem;
+}
+
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content {
+    animation: none;
+  }
+}
