@@ -21,27 +21,27 @@ describe('Design Tokens (design-tokens.css)', () => {
 
   describe('Color variables', () => {
     it('defines --color-green-dark', () => {
-      expect(cssContent).toMatch(/--color-green-dark:\s*#0D5C46/);
+      expect(cssContent).toMatch(/--color-green-dark:\s*#0d5c46/i);
     });
 
     it('defines --color-cream', () => {
-      expect(cssContent).toMatch(/--color-cream:\s*#F4F2E6/);
+      expect(cssContent).toMatch(/--color-cream:\s*#f4f2e6/i);
     });
 
     it('defines --color-coral', () => {
-      expect(cssContent).toMatch(/--color-coral:\s*#DF8072/);
+      expect(cssContent).toMatch(/--color-coral:\s*#df8072/i);
     });
 
     it('defines --color-green-light', () => {
-      expect(cssContent).toMatch(/--color-green-light:\s*#CBE08C/);
+      expect(cssContent).toMatch(/--color-green-light:\s*#cbe08c/i);
     });
 
     it('defines --color-lila', () => {
-      expect(cssContent).toMatch(/--color-lila:\s*#B1ACCD/);
+      expect(cssContent).toMatch(/--color-lila:\s*#b1accd/i);
     });
 
     it('defines --color-white', () => {
-      expect(cssContent).toMatch(/--color-white:\s*#FFFFFF/);
+      expect(cssContent).toMatch(/--color-white:\s*#ffffff/i);
     });
 
     it('defines --color-black', () => {

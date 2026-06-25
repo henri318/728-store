@@ -27,7 +27,7 @@ describe('Integration: Header and Footer Layout', () => {
 
     it('renders HeaderBanner with promotional text', () => {
       const content = readFile('app/[locale]/layout.tsx');
-      expect(content).toMatch(/<HeaderBanner\s+text="[^"]*"/);
+      expect(content).toMatch(/<HeaderBanner\s+text=\{/);
     });
 
     it('renders SocialFooter', () => {

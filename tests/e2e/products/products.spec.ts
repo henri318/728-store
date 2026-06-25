@@ -19,7 +19,7 @@ test.describe('Products', () => {
     await page.goto('/es');
 
     await page
-      .getByRole('button', { name: /ver detalles/i })
+      .getByRole('link', { name: /ver detalles/i })
       .first()
       .click();
 

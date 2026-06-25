@@ -4,9 +4,9 @@ test.describe('Home Page', () => {
   test('shows the product grid', async ({ page }) => {
     await page.goto('/es');
 
-    await expect(page.getByRole('heading', { level: 2 })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 3 }).first()).toBeVisible();
 
-    const cards = page.locator('button:has-text("Ver detalles")');
+    const cards = page.getByRole('link', { name: /ver detalles/i });
     await expect(cards.first()).toBeVisible();
   });
 
@@ -14,7 +14,7 @@ test.describe('Home Page', () => {
     await page.goto('/es');
 
     await page
-      .getByRole('button', { name: /ver detalles/i })
+      .getByRole('link', { name: /ver detalles/i })
       .first()
       .click();
 
