@@ -25,7 +25,7 @@ describe('WaveTransition', () => {
     const { container } = render(<WaveTransition />);
     const paths = container.querySelectorAll('path');
     const strokePath = Array.from(paths).find(
-      (p) => p.getAttribute('stroke') === '#0d5c46',
+      (p) => p.getAttribute('stroke') === 'var(--color-green-dark)',
     );
     expect(strokePath).toBeTruthy();
   });

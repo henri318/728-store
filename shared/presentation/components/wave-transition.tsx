@@ -25,18 +25,23 @@ export function WaveTransition({
       </defs>
 
       <path
-        fill="#f4f2e6"
+        fill="var(--color-cream)"
         d="M-50,90 C320,180 420,0 840,60 C1140,100 1280,30 1490,90 L1490,180 L-50,180 Z"
       />
 
       <path
         fill="none"
-        stroke="#0d5c46"
+        stroke="var(--color-green-dark)"
         strokeWidth="28"
         d="M-50,90 C320,180 420,0 840,60 C1140,100 1280,30 1490,90"
       />
 
-      <text fill="#ffffff" fontSize="20" fontWeight="bold" letterSpacing="5">
+      <text
+        fill="var(--color-white)"
+        fontSize="20"
+        fontWeight="bold"
+        letterSpacing="5"
+      >
         <textPath href="#curveTextPath" dominantBaseline="middle">
           <animate
             attributeName="startOffset"
