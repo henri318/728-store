@@ -1,2 +1,2 @@
 npm run typecheck
-npm run test:unit
+npx vitest run --changed

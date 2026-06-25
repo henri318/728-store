@@ -10,6 +10,7 @@ export type { CategoryEntity } from './entities/category';
 export interface ProductRepository {
   findAll(locale: string): Promise<ProductEntity[]>;
   findById(id: string, locale: string): Promise<ProductEntity | null>;
+  findBySellerId(sellerId: string, locale: string): Promise<ProductEntity[]>;
   save(entity: ProductEntity): Promise<void>;
   update(entity: ProductEntity): Promise<boolean>;
 }

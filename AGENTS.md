@@ -44,7 +44,12 @@ This document defines the mandatory rules and constraints for the AI agent worki
 
 # Mandatory Requirements
 
-- **One class per file**: Each file must contain exactly one primary export (class, interface, or function). No multiple classes in a single file. Barrel exports (`index.ts`) are the exception — they re-export only.
+- **Component/file splitting guideline**:
+  - **Keep together** if the secondary component is internal (only builds the main component) and not reused elsewhere.
+  - **Split to its own file** when any of these apply:
+    1. **Reusability**: needed in other parts of the application.
+    2. **Size/complexity**: file exceeds ~150-200 lines and becomes hard to read.
+    3. **Stateful logic**: secondary component has its own `useState`, `useEffect`, business logic, or many style lines.
 - Every module must have a clear `domain`, `application`, `infrastructure`, and `presentation` structure.
 - Communication between modules ONLY via:
   - Domain Events.

@@ -23,6 +23,18 @@ export class MemoryProductRepository implements ProductRepository {
     };
   }
 
+  async findBySellerId(
+    sellerId: string,
+    locale: string,
+  ): Promise<ProductEntity[]> {
+    return this.products
+      .filter((p) => p.sellerId === sellerId)
+      .map((p) => ({
+        ...p,
+        translations: p.translations.filter((t) => t.locale === locale),
+      }));
+  }
+
   async save(entity: ProductEntity): Promise<void> {
     const index = this.products.findIndex((p) => p.id === entity.id);
     if (index !== -1) {

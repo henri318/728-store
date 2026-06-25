@@ -173,6 +173,23 @@ async function main() {
   console.log(`    → Email: test@test.com`);
   console.log(`    → Password: Test123!`);
 
+  // 5. Create designer user (DESIGNER role, verified email)
+  const designerPasswordHash = await bcrypt.hash('Designer123!', BCRYPT_COST);
+  const designerUser = await prisma.user.create({
+    data: {
+      firstName: 'Designer',
+      lastName: 'User',
+      email: 'designer@test.com',
+      passwordHash: designerPasswordHash,
+      role: 'DESIGNER',
+      emailVerified: new Date(),
+      preferredLanguage: 'es',
+    },
+  });
+  console.log(
+    `  ✓ Designer user created: ${designerUser.firstName} ${designerUser.lastName} (***@test.com)`,
+  );
+
   console.log('\n✅ Seed complete!');
 }
 

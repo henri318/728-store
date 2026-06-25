@@ -42,6 +42,28 @@ export class PrismaProductRepository implements ProductRepository {
     return toDomainProduct(product);
   }
 
+  async findBySellerId(
+    sellerId: string,
+    locale: string,
+  ): Promise<ProductEntity[]> {
+    const products = await prisma.product.findMany({
+      where: { sellerId },
+      include: {
+        seller: true,
+        translations: {
+          where: { locale },
+        },
+        customizations: true,
+        images: {
+          orderBy: { position: 'asc' },
+        },
+        tags: true,
+      },
+    });
+
+    return products.map((product) => toDomainProduct(product));
+  }
+
   async save(entity: ProductEntity): Promise<void> {
     const data = toPersistenceProduct(entity);
     await prisma.product.create({
