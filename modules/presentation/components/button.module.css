@@ -4,7 +4,7 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .button:disabled {
@@ -13,16 +13,16 @@
 }
 
 .primary {
-  background: #0070f3;
-  color: white;
+  background: var(--color-green-dark);
+  color: var(--color-white);
 }
 
 .secondary {
-  background: #f0f0f0;
-  color: #333;
+  background: var(--color-cream);
+  color: var(--color-green-dark);
 }
 
 .danger {
-  background: #ff4d4f;
-  color: white;
+  background: var(--color-coral);
+  color: var(--color-white);
 }

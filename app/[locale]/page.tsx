@@ -1,6 +1,10 @@
 import Link from 'next/link';
 import { container } from '@/composition-root/container';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
+import { HeroSection } from '@/shared/presentation/components/hero-section';
+import { MiddleSection } from '@/shared/presentation/components/middle-section';
+import { WaveTransition } from '@/shared/presentation/components/wave-transition';
+import { BottomSection } from '@/shared/presentation/components/bottom-section';
 import styles from './page.module.css';
 
 export default async function HomePage({
@@ -11,42 +15,49 @@ export default async function HomePage({
   const { locale } = await params;
   const dict = await getDictionary(locale as 'es' | 'cat');
 
-  // Use the ProductRepository port — no direct prisma in app/
   const products = await container.getProductRepository().findAll(locale);
 
   return (
     <div>
-      <h2 className={styles.productsTitle}>{dict.common.products}</h2>
-      <div className={styles.productGrid}>
-        {products.length === 0 ? (
-          <p>No products found.</p>
-        ) : (
-          products.map((product) => {
-            const translation = product.translations[0] || {
-              name: 'Untranslated',
-              description: '',
-            };
-            return (
-              <div key={product.id} className={styles.productCard}>
-                <h3>{translation.name}</h3>
-                <p>{translation.description}</p>
-                <p className={styles.productPrice}>
-                  {'$'}
-                  {Number(product.basePrice)}
-                </p>
-                <p className={styles.productSeller}>
-                  Seller: {product.sellerName}
-                </p>
-                <Link href={`/${locale}/products/${product.id}`}>
-                  <button className={styles.viewDetailsButton}>
+      <HeroSection imageSrc="/img/hero/Elementos-14.svg" imageAlt="Regalo" />
+
+      <MiddleSection>
+        <div className={styles.productGrid}>
+          {products.length === 0 ? (
+            <p className={styles.emptyMessage}>No products found.</p>
+          ) : (
+            products.map((product) => {
+              const translation = product.translations[0] || {
+                name: 'Untranslated',
+                description: '',
+              };
+              return (
+                <div key={product.id} className={styles.productCard}>
+                  <h3 className={styles.productName}>{translation.name}</h3>
+                  <p className={styles.productDescription}>
+                    {translation.description}
+                  </p>
+                  <p className={styles.productPrice}>
+                    {'$'}
+                    {Number(product.basePrice)}
+                  </p>
+                  <p className={styles.productSeller}>{product.sellerName}</p>
+                  <Link
+                    href={`/${locale}/products/${product.id}`}
+                    className={styles.productLink}
+                  >
                     {dict.common.viewDetails}
-                  </button>
-                </Link>
-              </div>
-            );
-          })
-        )}
-      </div>
+                  </Link>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </MiddleSection>
+
+      <WaveTransition animatedText={dict.common.slogan} />
+
+      <BottomSection />
     </div>
   );
 }

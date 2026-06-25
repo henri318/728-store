@@ -1,16 +1,19 @@
 import { getServerSession } from 'next-auth';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { authOptions } from '@/shared/infrastructure/auth-options';
+import { prisma } from '@/shared/infrastructure/prisma';
 import LanguageSelector from '@/modules/presentation/components/language-selector';
 import { SessionProviderWrapper } from '@/modules/presentation/components/session-provider';
 import { HeaderNav } from '@/modules/presentation/components/header-nav';
 import { VerificationBannerWrapper } from '@/modules/presentation/components/verification-banner-wrapper';
+import { HeaderBanner } from '@/shared/presentation/components/header-banner';
+import { SocialFooter } from '@/shared/presentation/components/social-footer';
 import { outboxWorker } from '@/workers/outbox-worker';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { DictionaryProvider } from '@/shared/i18n/dictionary-context';
+import '../globals.css';
 import styles from './layout.module.css';
 
-// Start the outbox worker when the server starts
 if (
   process.env.NODE_ENV !== 'production' ||
   process.env.ENABLE_OUTBOX_WORKER === 'true'
@@ -68,10 +71,13 @@ export async function generateMetadata({
         'x-default': alternates['es'],
       },
     },
-    viewport: {
-      width: 'device-width',
-      initialScale: 1,
-    },
+  };
+}
+
+export function generateViewport(): Viewport {
+  return {
+    width: 'device-width',
+    initialScale: 1,
   };
 }
 
@@ -86,26 +92,44 @@ export default async function RootLayout({
   const session = await getServerSession(authOptions);
   const dict = await getDictionary(locale as 'es' | 'cat');
 
+  // Show promo banner only for guests or users with no orders
+  let showBanner = true;
+  if (session?.user?.id) {
+    const orderCount = await prisma.order.count({
+      where: { userId: session.user.id },
+    });
+    showBanner = orderCount === 0;
+  }
+
   return (
     <html lang={locale}>
       <body className={styles.body}>
         <SessionProviderWrapper session={session}>
           <header className={styles.header}>
-            <h1 className={styles.headerTitle}>Modular E-commerce</h1>
-            <nav className={styles.nav}>
-              <a href={`/${locale}`} className={styles.navLink}>
-                {dict.common.home}
-              </a>
-              <LanguageSelector currentLocale={locale} />
+            <div className={styles.spacer} />
+            <a href={`/${locale}`} className={styles.logo}>
+              <img
+                src="/img/logo/logo.svg"
+                alt="Siete 28 Logo"
+                className={styles.logoImg}
+              />
+            </a>
+            <div className={styles.userIcons}>
               <HeaderNav loginLabel={dict.common.login} />
-            </nav>
+              <LanguageSelector currentLocale={locale} />
+            </div>
           </header>
+
+          {showBanner && <HeaderBanner text={dict.common.promoBanner} />}
+
           <main className={styles.main}>
             <DictionaryProvider dict={dict}>
               <VerificationBannerWrapper />
               {children}
             </DictionaryProvider>
           </main>
+
+          <SocialFooter />
         </SessionProviderWrapper>
       </body>
     </html>

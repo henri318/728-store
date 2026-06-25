@@ -20,7 +20,9 @@
     "languageEs": "Español",
     "languageCat": "Català",
     "selectLanguage": "Seleccionar idioma",
-    "redirecting": "Redirigiendo..."
+    "redirecting": "Redirigiendo...",
+    "promoBanner": "* 10% DE DSCTO EN TU PRIMERA COMPRA **",
+    "slogan": "DETALLES QUE DEJAN HUELLA"
   },
   "auth": {
     "signInTitle": "Iniciar sesión",

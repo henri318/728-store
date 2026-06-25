@@ -20,7 +20,9 @@
     "languageEs": "Espanyol",
     "languageCat": "Català",
     "selectLanguage": "Seleccionar idioma",
-    "redirecting": "Redirigint..."
+    "redirecting": "Redirigint...",
+    "promoBanner": "* 10% DE DESCOMPTE EN LA TEVA PRIMERA COMPRA **",
+    "slogan": "DETALLS QUE DEIXEN PETJADA"
   },
   "auth": {
     "signInTitle": "Iniciar sessió",

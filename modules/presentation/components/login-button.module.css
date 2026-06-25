@@ -1,9 +1,13 @@
 .button {
   background: none;
   border: none;
-  color: #0070f3;
+  color: var(--color-green-dark);
   cursor: pointer;
   font-size: 1rem;
   text-decoration: none;
   padding: 0;
+}
+
+.button:hover {
+  text-decoration: underline;
 }

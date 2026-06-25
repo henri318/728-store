@@ -1,34 +1,95 @@
-.productsTitle {
-  margin-bottom: 2rem;
-}
-
 .productGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-lg);
+  padding: 0 5%;
+  position: relative;
+  z-index: var(--z-content);
 }
 
 .productCard {
-  border: 1px solid #ddd;
-  padding: 1rem;
-  border-radius: 8px;
+  background: var(--color-white);
+  border-radius: 16px;
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.productCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.productName {
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-semibold);
+  font-size: 1.1rem;
+  color: var(--color-green-dark);
+  margin: 0;
+}
+
+.productDescription {
+  font-size: 0.9rem;
+  color: var(--color-black);
+  opacity: 0.7;
+  line-height: 1.4;
+  flex: 1;
 }
 
 .productPrice {
-  font-weight: bold;
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-bold);
+  font-size: 1.25rem;
+  color: var(--color-coral);
+  margin: 0;
 }
 
 .productSeller {
   font-size: 0.8rem;
-  color: #666;
+  color: var(--color-green-dark);
+  opacity: 0.6;
+  margin: 0;
 }
 
-.viewDetailsButton {
-  width: 100%;
-  padding: 0.5rem;
-  background: #000;
-  color: #fff;
+.productLink {
+  display: inline-block;
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-green-dark);
+  color: var(--color-white);
   border: none;
-  border-radius: 4px;
+  border-radius: 24px;
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-medium);
+  font-size: 0.9rem;
   cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.productLink:hover {
+  background: #0a4a38;
+  transform: scale(1.03);
+}
+
+.emptyMessage {
+  color: var(--color-white);
+  text-align: center;
+  opacity: 0.7;
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0 var(--spacing-md);
+  }
 }

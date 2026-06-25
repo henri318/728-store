@@ -1,27 +1,27 @@
 .wrapper {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: var(--spacing-xs);
 }
 
 .label {
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .input {
-  padding: 0.5rem;
-  border: 1px solid #d9d9d9;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-lila);
   border-radius: 4px;
   font-size: 1rem;
   outline: none;
 }
 
 .inputError {
-  border-color: #ff4d4f;
+  border-color: var(--color-coral);
 }
 
 .errorText {
-  color: #ff4d4f;
+  color: var(--color-coral);
   font-size: 0.8rem;
 }
