@@ -10,9 +10,11 @@ import styles from './header-nav.module.css';
 
 interface HeaderNavProps {
   loginLabel: string;
+  profileAlt: string;
+  cartAlt: string;
 }
 
-export function HeaderNav({ loginLabel }: HeaderNavProps) {
+export function HeaderNav({ loginLabel, profileAlt, cartAlt }: HeaderNavProps) {
   const pathname = usePathname();
   const { data: session, status } = useSession();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -25,13 +27,13 @@ export function HeaderNav({ loginLabel }: HeaderNavProps) {
         <UserMenuDropdown user={session.user}>
           <img
             src="/img/icons/iconos-07.svg"
-            alt="Perfil"
+            alt={profileAlt}
             className={styles.userIcon}
           />
         </UserMenuDropdown>
         <img
           src="/img/icons/iconos-04.svg"
-          alt="Carrito"
+          alt={cartAlt}
           className={styles.userIcon}
         />
         <RoleNavLinks role={session.user.role} locale={locale} />
@@ -53,13 +55,13 @@ export function HeaderNav({ loginLabel }: HeaderNavProps) {
       >
         <img
           src="/img/icons/iconos-07.svg"
-          alt="Perfil"
+          alt={profileAlt}
           className={styles.userIcon}
         />
       </button>
       <img
         src="/img/icons/iconos-04.svg"
-        alt="Carrito"
+        alt={cartAlt}
         className={styles.userIcon}
       />
       <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />

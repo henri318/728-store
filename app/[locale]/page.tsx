@@ -19,12 +19,15 @@ export default async function HomePage({
 
   return (
     <div>
-      <HeroSection imageSrc="/img/hero/Elementos-14.svg" imageAlt="Regalo" />
+      <HeroSection
+        imageSrc="/img/hero/Elementos-14.svg"
+        imageAlt={dict.common.heroImageAlt}
+      />
 
-      <MiddleSection>
+      <MiddleSection ariaLabel={dict.common.products}>
         <div className={styles.productGrid}>
           {products.length === 0 ? (
-            <p className={styles.emptyMessage}>No products found.</p>
+            <p className={styles.emptyMessage}>{dict.common.noProducts}</p>
           ) : (
             products.map((product) => {
               const translation = product.translations[0] || {

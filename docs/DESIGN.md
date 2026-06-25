@@ -31,9 +31,9 @@ _(Nota: Los códigos hexadecimales son aproximaciones precisas basadas en las im
 
 Aunque el logotipo tiene una tipografía personalizada/script, la web utiliza fuentes legibles y modernas para el contenido.
 
-- **Tipografía Principal (Títulos y Destacados):** `Montserrat`, sans-serif.
-  - _Uso específico:_ Se usa en la onda animada (ej. `font-weight="bold"`, `letter-spacing="5"`, en mayúsculas).
-- **Tipografía Secundaria (Cuerpo de texto - Sugerida):** `Montserrat` (Regular/Medium) o similar (como `Inter` o `Open Sans`) para mantener la limpieza visual.
+- **Tipografía Principal:** `Poppins` (Google Fonts), system-ui, sans-serif.
+  - Pesos: Regular (400), Medium (500), Semibold (600), Bold (700).
+  - Se usa en toda la web, incluida la onda animada.
 
 ---
 

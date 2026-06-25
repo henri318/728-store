@@ -15,9 +15,15 @@ export function HeaderBanner({ text, speed = 25 }: HeaderBannerProps) {
         style={{ animationDuration: `${speed}s` }}
       >
         <span className={styles.text}>{text}</span>
-        <span className={styles.text}>{text}</span>
-        <span className={styles.text}>{text}</span>
-        <span className={styles.text}>{text}</span>
+        <span className={styles.text} aria-hidden="true">
+          {text}
+        </span>
+        <span className={styles.text} aria-hidden="true">
+          {text}
+        </span>
+        <span className={styles.text} aria-hidden="true">
+          {text}
+        </span>
       </div>
     </div>
   );

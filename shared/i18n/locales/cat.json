@@ -22,7 +22,11 @@
     "selectLanguage": "Seleccionar idioma",
     "redirecting": "Redirigint...",
     "promoBanner": "* 10% DE DESCOMPTE EN LA TEVA PRIMERA COMPRA **",
-    "slogan": "DETALLS QUE DEIXEN PETJADA"
+    "slogan": "DETALLS QUE DEIXEN PETJADA",
+    "heroImageAlt": "Regal",
+    "noProducts": "No hi ha productes disponibles",
+    "profileIcon": "Perfil",
+    "cartIcon": "Cistella"
   },
   "auth": {
     "signInTitle": "Iniciar sessió",

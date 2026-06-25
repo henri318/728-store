@@ -1,9 +1,12 @@
 /**
- * Optimizes SVGs and generates a CSS sprite sheet with coordinate-based classes.
+ * Optimizes SVGs and generates an SVG sprite with <symbol> definitions.
+ *
+ * Usage pattern:
+ *   <svg width="24" height="24"><use href="/img/sprites.svg#icon-profile"></use></svg>
  *
  * Input:  public/img/icons/iconos-*.svg (individual icon files)
- * Output: public/img/sprites.svg (single SVG with all icons)
- *         shared/presentation/sprites.css (CSS classes with background-position)
+ * Output: public/img/sprites.svg (symbol sprite for <use href> references)
+ *         shared/presentation/sprites.css (utility classes for sizing)
  */
 import { readFileSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
@@ -26,7 +29,6 @@ const ICON_MAP = {
   'iconos-09.svg': 'email',
 };
 
-const ICON_SIZE = 24; // Each icon cell in the sprite
 const files = Object.keys(ICON_MAP);
 
 // Optimize each icon and extract viewBox content
@@ -59,7 +61,7 @@ const icons = files.map((file) => {
   };
 });
 
-// Generate sprite SVG (symbols for <use> reference)
+// Generate sprite SVG with <symbol> definitions for <use href> references
 const spriteSymbols = icons
   .map(
     (icon) =>
@@ -73,33 +75,34 @@ ${spriteSymbols}
 
 writeFileSync(OUTPUT_SVG, spriteSvg, 'utf8');
 
-// Generate CSS sprite sheet with coordinates
-// Layout: icons arranged horizontally, each 24px wide
-const cssClasses = icons
-  .map(
-    (icon, i) =>
-      `.icon-${icon.name} {
-  background-image: url('/img/sprites.svg');
-  background-repeat: no-repeat;
-  background-position: -${i * ICON_SIZE}px 0;
-  width: ${ICON_SIZE}px;
-  height: ${ICON_SIZE}px;
+// Generate CSS utility classes (sizing only — use <use href> for rendering)
+const cssContent = `/* Auto-generated SVG sprite utilities — DO NOT EDIT */
+/*
+ * Usage:
+ *   <svg class="icon-md" aria-hidden="true"><use href="/img/sprites.svg#icon-profile"></use></svg>
+ *
+ * Or inline without class:
+ *   <svg width="24" height="24"><use href="/img/sprites.svg#icon-profile"></use></svg>
+ */
+
+/* Base icon sizing */
+.icon-facebook,
+.icon-instagram,
+.icon-tiktok,
+.icon-cart,
+.icon-profile,
+.icon-whatsapp,
+.icon-email {
   display: inline-block;
-}`,
-  )
-  .join('\n\n');
-
-const cssContent = `/* Auto-generated SVG sprite classes — DO NOT EDIT */
-/* Use: <span class="icon-profile"></span> or apply as CSS background */
-
-${cssClasses}
+  vertical-align: middle;
+  width: 24px;
+  height: 24px;
+}
 
 /* Size variants */
-.icon-sm { width: 16px; height: 16px; background-size: 16px 16px; }
-.icon-md { width: 24px; height: 24px; background-size: 24px 24px; }
-.icon-lg { width: 32px; height: 32px; background-size: 32px 32px; }
+.icon-sm { width: 16px; height: 16px; }
+.icon-md { width: 24px; height: 24px; }
+.icon-lg { width: 32px; height: 32px; }
 `;
 
 writeFileSync(OUTPUT_CSS, cssContent, 'utf8');
-
-// Done — files written above

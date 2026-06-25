@@ -115,7 +115,11 @@ export default async function RootLayout({
               />
             </a>
             <div className={styles.userIcons}>
-              <HeaderNav loginLabel={dict.common.login} />
+              <HeaderNav
+                loginLabel={dict.common.login}
+                profileAlt={dict.common.profileIcon}
+                cartAlt={dict.common.cartIcon}
+              />
               <LanguageSelector currentLocale={locale} />
             </div>
           </header>

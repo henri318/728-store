@@ -1,82 +1,36 @@
-/* Auto-generated SVG sprite classes — DO NOT EDIT */
-/* Use: <span class="icon-profile"></span> or apply as CSS background */
+/* Auto-generated SVG sprite utilities — DO NOT EDIT */
+/*
+ * Usage:
+ *   <svg class="icon-md" aria-hidden="true"><use href="/img/sprites.svg#icon-profile"></use></svg>
+ *
+ * Or inline without class:
+ *   <svg width="24" height="24"><use href="/img/sprites.svg#icon-profile"></use></svg>
+ */
 
-.icon-facebook {
-  background-image: url('/img/sprites.svg');
-  background-repeat: no-repeat;
-  background-position: -0px 0;
-  width: 24px;
-  height: 24px;
-  display: inline-block;
-}
-
-.icon-instagram {
-  background-image: url('/img/sprites.svg');
-  background-repeat: no-repeat;
-  background-position: -24px 0;
-  width: 24px;
-  height: 24px;
-  display: inline-block;
-}
-
-.icon-tiktok {
-  background-image: url('/img/sprites.svg');
-  background-repeat: no-repeat;
-  background-position: -48px 0;
-  width: 24px;
-  height: 24px;
-  display: inline-block;
-}
-
-.icon-cart {
-  background-image: url('/img/sprites.svg');
-  background-repeat: no-repeat;
-  background-position: -72px 0;
-  width: 24px;
-  height: 24px;
-  display: inline-block;
-}
-
-.icon-profile {
-  background-image: url('/img/sprites.svg');
-  background-repeat: no-repeat;
-  background-position: -96px 0;
-  width: 24px;
-  height: 24px;
-  display: inline-block;
-}
-
-.icon-whatsapp {
-  background-image: url('/img/sprites.svg');
-  background-repeat: no-repeat;
-  background-position: -120px 0;
-  width: 24px;
-  height: 24px;
-  display: inline-block;
-}
-
+/* Base icon sizing */
+.icon-facebook,
+.icon-instagram,
+.icon-tiktok,
+.icon-cart,
+.icon-profile,
+.icon-whatsapp,
 .icon-email {
-  background-image: url('/img/sprites.svg');
-  background-repeat: no-repeat;
-  background-position: -144px 0;
+  display: inline-block;
+  vertical-align: middle;
   width: 24px;
   height: 24px;
-  display: inline-block;
 }
 
 /* Size variants */
 .icon-sm {
   width: 16px;
   height: 16px;
-  background-size: 16px 16px;
 }
 .icon-md {
   width: 24px;
   height: 24px;
-  background-size: 24px 24px;
 }
 .icon-lg {
   width: 32px;
   height: 32px;
-  background-size: 32px 32px;
 }

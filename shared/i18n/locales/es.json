@@ -22,7 +22,11 @@
     "selectLanguage": "Seleccionar idioma",
     "redirecting": "Redirigiendo...",
     "promoBanner": "* 10% DE DSCTO EN TU PRIMERA COMPRA **",
-    "slogan": "DETALLES QUE DEJAN HUELLA"
+    "slogan": "DETALLES QUE DEJAN HUELLA",
+    "heroImageAlt": "Regalo",
+    "noProducts": "No hay productos disponibles",
+    "profileIcon": "Perfil",
+    "cartIcon": "Carrito"
   },
   "auth": {
     "signInTitle": "Iniciar sesión",
