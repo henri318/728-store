@@ -6,17 +6,18 @@ import type {
 import type { AuthRole } from '@/modules/auth/domain/entities/user-lookup-result';
 
 /**
- * Maps legacy DB role strings to the new canonical AuthRole type.
- * S4 migration will update DB values; this shim bridges the gap.
+ * DB role string → canonical AuthRole.
+ * The DB stores the role as a plain string; this validates it against the
+ * canonical set and rejects unknown values by defaulting to CUSTOMER.
  */
 function mapDbRole(dbRole: string): AuthRole {
-  const mapping: Record<string, AuthRole> = {
-    admin: 'ADMIN',
-    guest: 'CUSTOMER',
-    client: 'CUSTOMER',
-    shop: 'CUSTOMER',
+  const canonical: Record<string, AuthRole> = {
+    ADMIN: 'ADMIN',
+    SUPPORT: 'SUPPORT',
+    DESIGNER: 'DESIGNER',
+    CUSTOMER: 'CUSTOMER',
   };
-  return mapping[dbRole] ?? 'CUSTOMER';
+  return canonical[dbRole] ?? 'CUSTOMER';
 }
 
 /**
