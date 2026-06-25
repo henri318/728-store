@@ -3,6 +3,7 @@ import { container } from '@/composition-root/container';
 import { ListSellersUseCase } from '@/modules/sellers/application/use-cases/list-sellers-use-case';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { assertRole } from '@/shared/authorization/authorization';
+import { LocalizedDate } from '@/shared/kernel/domain/value-objects/localized-date';
 import { SellerActions } from './seller-actions';
 
 export default async function AdminSellersPage({
@@ -53,7 +54,9 @@ export default async function AdminSellersPage({
                     ] ?? seller.status}
                   </span>
                 </td>
-                <td>{seller.createdAt.toLocaleDateString()}</td>
+                <td>
+                  {LocalizedDate.create(seller.createdAt, locale).toString()}
+                </td>
                 <td>
                   <a
                     href={`/${locale}/admin/sellers/${seller.sellerId.value}/products`}

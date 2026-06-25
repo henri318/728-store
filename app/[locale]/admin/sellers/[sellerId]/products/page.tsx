@@ -3,6 +3,7 @@ import { container } from '@/composition-root/container';
 import { AdminListSellerProductsUseCase } from '@/modules/products/application/admin-list-seller-products-use-case';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { assertRole } from '@/shared/authorization/authorization';
+import { LocalizedDate } from '@/shared/kernel/domain/value-objects/localized-date';
 
 export default async function AdminSellerProductsPage({
   params,
@@ -47,7 +48,9 @@ export default async function AdminSellerProductsPage({
                 <td>{product.translations[0]?.name ?? 'Untranslated'}</td>
                 <td>{product.status}</td>
                 <td>{product.basePrice.toFixed(2)}</td>
-                <td>{product.updatedAt.toLocaleDateString()}</td>
+                <td>
+                  {LocalizedDate.create(product.updatedAt, locale).toString()}
+                </td>
               </tr>
             ))}
           </tbody>

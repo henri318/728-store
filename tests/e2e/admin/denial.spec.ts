@@ -1,4 +1,5 @@
-import { test, expect, loginAs } from './fixtures';
+import { test, expect } from './fixtures';
+import { loginAs } from './auth';
 
 test.describe('Admin Role Denial', () => {
   test('customer is redirected away from /admin/sellers', async ({

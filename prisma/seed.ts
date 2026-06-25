@@ -187,7 +187,7 @@ async function main() {
     },
   });
   console.log(
-    `  ✓ Designer user created: ${designerUser.firstName} ${designerUser.lastName} (${designerUser.email})`,
+    `  ✓ Designer user created: ${designerUser.firstName} ${designerUser.lastName} (***@test.com)`,
   );
 
   console.log('\n✅ Seed complete!');

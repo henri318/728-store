@@ -1,4 +1,5 @@
-import { test, expect, loginAs } from '../admin/fixtures';
+import { test, expect } from '../admin/fixtures';
+import { loginAs } from '../admin/auth';
 
 test.describe('Profile Address Guard', () => {
   test('customer sees address form on profile page', async ({
@@ -36,19 +37,21 @@ test.describe('Profile Address Guard', () => {
     browser,
   }) => {
     const context = await browser.newContext();
-    const page = await context.newPage();
-    await loginAs(page, 'designer');
+    try {
+      const page = await context.newPage();
+      await loginAs(page, 'designer');
 
-    await page.goto('/es/profile');
-    // Designer should see name/email fields
-    await expect(page.getByLabel('Nombre')).toBeVisible();
-    await expect(page.getByLabel('Apellido')).toBeVisible();
-    // Designer should NOT see address section
-    await expect(
-      page.getByRole('heading', { name: /dirección/i }),
-    ).not.toBeVisible();
-    await expect(page.getByLabel('Calle')).not.toBeVisible();
-
-    await context.close();
+      await page.goto('/es/profile');
+      // Designer should see name/email fields
+      await expect(page.getByLabel('Nombre')).toBeVisible();
+      await expect(page.getByLabel('Apellido')).toBeVisible();
+      // Designer should NOT see address section
+      await expect(
+        page.getByRole('heading', { name: /dirección/i }),
+      ).not.toBeVisible();
+      await expect(page.getByLabel('Calle')).not.toBeVisible();
+    } finally {
+      await context.close();
+    }
   });
 });
