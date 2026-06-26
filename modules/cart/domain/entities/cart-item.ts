@@ -1,4 +1,6 @@
 import type { Money } from '@/shared/kernel/domain/value-objects/money';
+import type { ProductId } from '@/shared/kernel/domain/value-objects/product-id';
+import type { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
 
 /**
  * Single line item inside a Cart.
@@ -13,9 +15,9 @@ export interface CartItemEntity {
   /** FK to the parent Cart */
   cartId: string;
   /** FK to the Product */
-  productId: string;
+  productId: ProductId;
   /** Seller FK snapshotted at add time (preserved across product edits) */
-  sellerId: string;
+  sellerId: SellerId;
   /** Units — must be 1..99 (validated via Quantity VO in use cases) */
   quantity: number;
   /** Price at the time the item was added (EUR) */

@@ -1,3 +1,6 @@
+import type { ProductId } from '@/shared/kernel/domain/value-objects/product-id';
+import type { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
+
 /**
  * ProductSnapshot — minimal product view that the cart module needs.
  *
@@ -6,7 +9,7 @@
  * orders) that resolves product ids into these snapshots at runtime.
  */
 export interface ProductSnapshot {
-  id: string;
+  id: ProductId;
   basePrice: number;
-  sellerId: string;
+  sellerId: SellerId;
 }

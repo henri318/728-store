@@ -6,6 +6,8 @@ import { CartStatus } from '@/modules/cart/domain/value-objects/cart-status';
 import { CartId } from '@/modules/cart/domain/value-objects/cart-id';
 import { CartItemId } from '@/modules/cart/domain/value-objects/cart-item-id';
 import { CartAlreadyActiveError } from '@/modules/cart/domain/errors';
+import { ProductId } from '@/shared/kernel/domain/value-objects/product-id';
+import { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
 import type { CartEntity } from '@/modules/cart/domain/entities/cart';
 import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
 
@@ -31,8 +33,8 @@ import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
 const makeItem = (overrides: Partial<CartItemEntity> = {}): CartItemEntity => ({
   id: 'item-default',
   cartId: 'cart-default',
-  productId: 'p1',
-  sellerId: 's1',
+  productId: ProductId.create('p1'),
+  sellerId: SellerId.create('s1'),
   quantity: 1,
   unitPriceSnapshot: Money.create(10, Currency.EUR),
   ...overrides,
@@ -264,9 +266,9 @@ describe('MemoryCartRepository', () => {
       const found = await repo.findItemById(CartItemId.create('i1'));
       expect(found).not.toBeNull();
       // Mutate the returned object and re-read from the store.
-      (found as CartItemEntity).productId = 'tampered';
+      (found as CartItemEntity).productId = ProductId.create('tampered');
       const reread = await repo.findItemById(CartItemId.create('i1'));
-      expect(reread?.productId).toBe('p1');
+      expect(reread?.productId.value).toBe('p1');
     });
   });
 
