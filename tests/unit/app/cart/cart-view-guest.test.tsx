@@ -24,6 +24,7 @@ vi.mock('@/modules/cart/presentation/guest-cart-context', () => ({
     updateQuantity: mockUpdateQuantity,
     removeItem: mockRemoveItem,
     clearCart: vi.fn(),
+    hydrated: true,
   }),
 }));
 

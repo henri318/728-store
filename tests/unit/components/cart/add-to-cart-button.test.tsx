@@ -41,6 +41,7 @@ describe('AddToCartButton', () => {
       updateQuantity: vi.fn(),
       removeItem: vi.fn(),
       clearCart: vi.fn(),
+      hydrated: true,
     });
   });
 

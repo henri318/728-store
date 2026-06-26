@@ -54,6 +54,7 @@ describe('GuestCartBadge', () => {
       updateQuantity: vi.fn(),
       removeItem: vi.fn(),
       clearCart: vi.fn(),
+      hydrated: true,
     });
 
     render(<GuestCartBadge />);
@@ -80,6 +81,7 @@ describe('GuestCartBadge', () => {
       updateQuantity: vi.fn(),
       removeItem: vi.fn(),
       clearCart: vi.fn(),
+      hydrated: true,
     });
 
     render(<GuestCartBadge />);
@@ -107,6 +109,7 @@ describe('GuestCartBadge', () => {
       updateQuantity: vi.fn(),
       removeItem: vi.fn(),
       clearCart: vi.fn(),
+      hydrated: true,
     });
 
     const { container } = render(<GuestCartBadge />);
@@ -126,6 +129,7 @@ describe('GuestCartBadge', () => {
       updateQuantity: vi.fn(),
       removeItem: vi.fn(),
       clearCart: vi.fn(),
+      hydrated: true,
     });
 
     const { container } = render(<GuestCartBadge />);
@@ -152,6 +156,7 @@ describe('GuestCartBadge', () => {
       updateQuantity: vi.fn(),
       removeItem: vi.fn(),
       clearCart: vi.fn(),
+      hydrated: true,
     });
 
     const { container } = render(<GuestCartBadge />);

@@ -147,6 +147,12 @@ export function CartView({
     [isAuthenticated, guestCart],
   );
 
+  // For guest users, wait until localStorage has been hydrated before
+  // rendering the empty state. Otherwise we'd flash "empty" on every load.
+  if (!isAuthenticated && !guestCart.hydrated) {
+    return null;
+  }
+
   if (items.length === 0) {
     return (
       <div className={styles.empty}>

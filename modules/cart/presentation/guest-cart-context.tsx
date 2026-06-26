@@ -7,7 +7,6 @@ import {
   useEffect,
   useCallback,
   useMemo,
-  useRef,
   type ReactNode,
 } from 'react';
 
@@ -42,6 +41,8 @@ export interface GuestCartContextType {
   clearCart: () => void;
   /** Number of distinct line items (not sum of quantities). */
   itemCount: number;
+  /** True once localStorage has been read. False during SSR and initial render. */
+  hydrated: boolean;
 }
 
 // --- Constants ---
@@ -79,28 +80,29 @@ function writeToStorage(items: GuestCartItem[]): void {
 // --- Provider ---
 
 export function GuestCartProvider({ children }: { children: ReactNode }) {
-  // Lazy initializer: reads localStorage on the client, returns [] on the server.
-  // This avoids setState-in-effect and keeps hydration consistent.
-  const [items, setItems] = useState<GuestCartItem[]>(() => {
-    if (typeof window === 'undefined') return [];
-    return readFromStorage();
-  });
+  // Always start with empty array to match server render (avoid hydration mismatch).
+  // Hydrate from localStorage in useEffect after mount.
+  const [items, setItems] = useState<GuestCartItem[]>([]);
+  const [hydrated, setHydrated] = useState(false);
 
-  // Persist to localStorage whenever items change.
-  // A ref tracks whether the initial render has completed so we don't wipe
-  // localStorage on the first render (before the lazy initializer runs).
-  const initializedRef = useRef(false);
+  // Hydrate from localStorage after mount.
+  /* eslint-disable react-hooks/set-state-in-effect, @eslint-react/set-state-in-effect -- intentional hydration from localStorage */
   useEffect(() => {
-    if (!initializedRef.current) {
-      initializedRef.current = true;
-      return;
-    }
+    const stored = readFromStorage();
+    setItems(stored);
+    setHydrated(true);
+  }, []);
+
+  // Persist to localStorage whenever items change (but only after hydration).
+  useEffect(() => {
+    if (!hydrated) return;
     if (items.length === 0) {
       localStorage.removeItem(GUEST_CART_STORAGE_KEY);
     } else {
       writeToStorage(items);
     }
-  }, [items]);
+  }, [items, hydrated]);
+  /* eslint-enable react-hooks/set-state-in-effect, @eslint-react/set-state-in-effect */
 
   const addItem = useCallback((item: GuestCartItem) => {
     setItems((prev) => [...prev, item]);
@@ -128,8 +130,9 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
       removeItem,
       clearCart,
       itemCount: items.length,
+      hydrated,
     }),
-    [items, addItem, updateQuantity, removeItem, clearCart],
+    [items, addItem, updateQuantity, removeItem, clearCart, hydrated],
   );
 
   return <GuestCartContext value={value}>{children}</GuestCartContext>;
