@@ -1,0 +1,48 @@
+.deleteButton {
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--color-coral);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-coral);
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.deleteButton:hover {
+  background: var(--color-coral);
+  color: var(--color-white);
+}
+
+.confirm {
+  padding: var(--spacing-lg);
+  text-align: center;
+}
+
+.confirmTitle {
+  margin: 0 0 var(--spacing-sm);
+  font-size: 1.2rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-green-dark);
+}
+
+.confirmMessage {
+  margin: 0 0 var(--spacing-sm);
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.4;
+}
+
+.confirmSeller {
+  margin: 0 0 var(--spacing-lg);
+  font-size: 1rem;
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
