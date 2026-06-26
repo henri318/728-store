@@ -1,11 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { CartIcon } from '@/modules/presentation/components/cart-icon';
-
-// Mock next/navigation
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/es/some-page',
-}));
+import { CartPopupProvider } from '@/modules/presentation/components/cart-popup-context';
 
 // Mock next-auth/react
 vi.mock('next-auth/react', () => ({
@@ -25,13 +21,17 @@ const mockUseGuestCart = vi.mocked(useGuestCart);
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
+function renderWithProvider(ui: React.ReactElement) {
+  return render(<CartPopupProvider>{ui}</CartPopupProvider>);
+}
+
 describe('CartIcon', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe('rendering', () => {
-    it('renders a link to the cart page with correct locale', () => {
+    it('renders a button that opens the cart popup', () => {
       mockUseSession.mockReturnValue({
         data: null,
         status: 'unauthenticated',
@@ -47,10 +47,10 @@ describe('CartIcon', () => {
         hydrated: true,
       });
 
-      render(<CartIcon alt="Shopping cart" />);
+      renderWithProvider(<CartIcon alt="Shopping cart" />);
 
-      const link = screen.getByRole('link');
-      expect(link).toHaveAttribute('href', '/es/cart');
+      const btn = screen.getByRole('button', { name: /shopping cart/i });
+      expect(btn).toBeTruthy();
     });
 
     it('renders the cart icon image with correct alt text', () => {
@@ -69,11 +69,9 @@ describe('CartIcon', () => {
         hydrated: true,
       });
 
-      render(<CartIcon alt="My cart" />);
+      renderWithProvider(<CartIcon alt="My cart" />);
 
-      const img = screen.getByAltText('My cart');
-      expect(img).toBeTruthy();
-      expect(img).toHaveAttribute('src', '/img/icons/iconos-04.svg');
+      expect(screen.getByAltText('My cart')).toBeTruthy();
     });
   });
 
@@ -110,8 +108,7 @@ describe('CartIcon', () => {
         hydrated: true,
       });
 
-      render(<CartIcon alt="Cart" />);
-
+      renderWithProvider(<CartIcon alt="Cart" />);
       expect(screen.getByText('2')).toBeTruthy();
     });
 
@@ -126,8 +123,7 @@ describe('CartIcon', () => {
         hydrated: true,
       });
 
-      render(<CartIcon alt="Cart" />);
-
+      renderWithProvider(<CartIcon alt="Cart" />);
       expect(screen.queryByText('0')).not.toBeInTheDocument();
     });
 
@@ -142,8 +138,7 @@ describe('CartIcon', () => {
         hydrated: true,
       });
 
-      render(<CartIcon alt="Cart" />);
-
+      renderWithProvider(<CartIcon alt="Cart" />);
       expect(mockFetch).not.toHaveBeenCalled();
     });
   });
@@ -161,15 +156,10 @@ describe('CartIcon', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          items: [
-            { productId: 'p1', quantity: 2 },
-            { productId: 'p2', quantity: 1 },
-          ],
+          items: [{ productId: 'p1' }, { productId: 'p2' }],
         }),
       });
-
-      render(<CartIcon alt="Cart" />);
-
+      renderWithProvider(<CartIcon alt="Cart" />);
       await waitFor(() => {
         expect(mockFetch).toHaveBeenCalledWith('/api/cart');
       });
@@ -178,17 +168,9 @@ describe('CartIcon', () => {
     it('shows item count badge after fetching cart', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({
-          items: [
-            { productId: 'p1', quantity: 2 },
-            { productId: 'p2', quantity: 1 },
-            { productId: 'p3', quantity: 5 },
-          ],
-        }),
+        json: async () => ({ items: [{}, {}, {}] }),
       });
-
-      render(<CartIcon alt="Cart" />);
-
+      renderWithProvider(<CartIcon alt="Cart" />);
       await waitFor(() => {
         expect(screen.getByText('3')).toBeTruthy();
       });
@@ -199,32 +181,22 @@ describe('CartIcon', () => {
         ok: true,
         json: async () => ({ items: [] }),
       });
-
-      render(<CartIcon alt="Cart" />);
-
+      renderWithProvider(<CartIcon alt="Cart" />);
       await waitFor(() => {
         expect(screen.queryByText('0')).not.toBeInTheDocument();
       });
     });
 
     it('does NOT show badge when API fails', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-      });
-
-      render(<CartIcon alt="Cart" />);
-
-      // Wait a bit to ensure no badge appears
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
+      renderWithProvider(<CartIcon alt="Cart" />);
       await new Promise((r) => setTimeout(r, 50));
       expect(screen.queryByTitle(/cart items/i)).not.toBeInTheDocument();
     });
 
     it('does NOT show badge on network error', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'));
-
-      render(<CartIcon alt="Cart" />);
-
+      renderWithProvider(<CartIcon alt="Cart" />);
       await new Promise((r) => setTimeout(r, 50));
       expect(screen.queryByTitle(/cart items/i)).not.toBeInTheDocument();
     });

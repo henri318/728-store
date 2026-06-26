@@ -28,6 +28,13 @@ describe('AddToCartButton', () => {
     sellerId: 'seller-1',
     sellerName: 'Test Seller',
     price: 29.99,
+    labels: {
+      addToCart: 'Add to Cart',
+      removeFromCart: 'Remove',
+      adding: '...',
+      added: '✓',
+      error: 'Error',
+    },
   };
 
   const mockAddItem = vi.fn();
@@ -334,7 +341,7 @@ describe('AddToCartButton', () => {
       expect(mockUpdateQuantity).toHaveBeenCalledWith('prod-1', 2);
     });
 
-    it('calls removeItem on - click when quantity is 1', async () => {
+    it('shows remove button and calls removeItem when quantity is 1', async () => {
       mockUseGuestCart.mockReturnValue({
         items: [
           {
@@ -356,10 +363,10 @@ describe('AddToCartButton', () => {
 
       render(<AddToCartButton {...defaultProps} />);
 
-      fireEvent.click(
+      expect(
         screen.getByRole('button', { name: /decrease quantity/i }),
-      );
-
+      ).toBeDisabled();
+      fireEvent.click(screen.getByRole('button', { name: /remove/i }));
       expect(mockRemoveItem).toHaveBeenCalledWith('prod-1');
     });
 
@@ -462,7 +469,7 @@ describe('AddToCartButton', () => {
       });
     });
 
-    it('DELETEs /api/cart/items/[itemId] on - click at quantity 1', async () => {
+    it('DELETEs /api/cart/items/[itemId] on remove button click at quantity 1', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -476,12 +483,10 @@ describe('AddToCartButton', () => {
       await waitFor(() => {
         expect(
           screen.getByRole('button', { name: /decrease quantity/i }),
-        ).toBeTruthy();
+        ).toBeDisabled();
       });
 
-      fireEvent.click(
-        screen.getByRole('button', { name: /decrease quantity/i }),
-      );
+      fireEvent.click(screen.getByRole('button', { name: /remove/i }));
 
       await waitFor(() => {
         expect(mockFetch).toHaveBeenCalledWith(

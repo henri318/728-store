@@ -59,6 +59,13 @@ export default async function ProductDetailPage({
               sellerName={product.sellerName}
               price={product.basePrice}
               imageUrl={product.images?.[0]?.url ?? null}
+              labels={{
+                addToCart: dict.common.addToCart,
+                removeFromCart: dict.common.removeFromCart,
+                adding: '...',
+                added: '✓',
+                error: 'Error',
+              }}
             />
           </div>
         </div>

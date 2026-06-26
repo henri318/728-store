@@ -26,7 +26,15 @@
     "heroImageAlt": "Regalo",
     "noProducts": "No hay productos disponibles",
     "profileIcon": "Perfil",
-    "cartIcon": "Carrito"
+    "cartIcon": "Carrito",
+    "addToCart": "Añadir al carrito",
+    "removeFromCart": "Eliminar",
+    "cartEmpty": "Tu carrito está vacío",
+    "browseProducts": "Explorar productos",
+    "checkout": "Finalizar compra",
+    "viewFullCart": "Ver carrito completo",
+    "subtotal": "Subtotal",
+    "loadingCart": "Cargando..."
   },
   "auth": {
     "signInTitle": "Iniciar sesión",
