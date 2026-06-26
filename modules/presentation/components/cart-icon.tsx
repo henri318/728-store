@@ -61,13 +61,13 @@ export function CartIcon({ alt }: CartIconProps) {
 
   return (
     <Link href={`/${locale}/cart`} className={styles.cartIconWrapper}>
-        <Image
-          src="/img/icons/iconos-04.svg"
-          alt={alt}
-          width={62}
-          height={62}
-          className={styles.userIcon}
-        />
+      <Image
+        src="/img/icons/iconos-04.svg"
+        alt={alt}
+        width={62}
+        height={62}
+        className={styles.userIcon}
+      />
       {count > 0 && (
         <span className={styles.badge} title="Cart items">
           {count}
