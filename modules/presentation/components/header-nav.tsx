@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { LoginModal } from '@/modules/presentation/components/login-modal';
@@ -26,9 +27,11 @@ export function HeaderNav({ loginLabel, profileAlt, cartAlt }: HeaderNavProps) {
     return (
       <>
         <UserMenuDropdown user={session.user}>
-          <img
+          <Image
             src="/img/icons/iconos-07.svg"
             alt={profileAlt}
+            width={62}
+            height={62}
             className={styles.userIcon}
           />
         </UserMenuDropdown>
@@ -50,9 +53,11 @@ export function HeaderNav({ loginLabel, profileAlt, cartAlt }: HeaderNavProps) {
         className={styles.iconButton}
         aria-label={loginLabel}
       >
-        <img
+        <Image
           src="/img/icons/iconos-07.svg"
           alt={profileAlt}
+          width={62}
+          height={62}
           className={styles.userIcon}
         />
       </button>

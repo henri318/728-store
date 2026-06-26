@@ -1,5 +1,5 @@
 import { getServerSession } from 'next-auth';
-import type { Metadata, Viewport } from 'next';
+import Image from 'next/image';
 import { authOptions } from '@/shared/infrastructure/auth-options';
 import { prisma } from '@/shared/infrastructure/prisma';
 import LanguageSelector from '@/modules/presentation/components/language-selector';
@@ -110,10 +110,13 @@ export default async function RootLayout({
             <header className={styles.header}>
               <div className={styles.spacer} />
               <a href={`/${locale}`} className={styles.logo}>
-                <img
+              <Image
                   src="/img/logo/logo.svg"
                   alt="Siete 28 Logo"
+                  width={130}
+                  height={130}
                   className={styles.logoImg}
+                  priority
                 />
               </a>
               <div className={styles.userIcons}>

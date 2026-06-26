@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -60,11 +61,13 @@ export function CartIcon({ alt }: CartIconProps) {
 
   return (
     <Link href={`/${locale}/cart`} className={styles.cartIconWrapper}>
-      <img
-        src="/img/icons/iconos-04.svg"
-        alt={alt}
-        className={styles.userIcon}
-      />
+        <Image
+          src="/img/icons/iconos-04.svg"
+          alt={alt}
+          width={62}
+          height={62}
+          className={styles.userIcon}
+        />
       {count > 0 && (
         <span className={styles.badge} title="Cart items">
           {count}
