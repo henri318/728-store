@@ -41,4 +41,13 @@ export interface OrderRepository {
    * @throws Error if order not found
    */
   updateStatus(orderId: string, status: OrderStatus): Promise<void>;
+
+  /**
+   * Returns the ids of every order that was created from the given
+   * cart id. Used by HandleCartCheckedOut to dedupe duplicate deliveries
+   * of the same CART_CHECKED_OUT event (spec REQ-ORD-001, idempotency).
+   * Returns an empty array when no order has been created from the
+   * cart.
+   */
+  findIdsByCartId(cartId: string): Promise<string[]>;
 }

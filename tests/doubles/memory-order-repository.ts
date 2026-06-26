@@ -67,8 +67,28 @@ export class MemoryOrderRepository implements OrderRepository {
     };
   }
 
+  async findIdsByCartId(cartId: string): Promise<string[]> {
+    return this.orders.filter((o) => o.cartId === cartId).map((o) => o.id);
+  }
+
   // Add a method to retrieve line items if needed for testing or verification
   async getLineItemsByOrderId(orderId: string): Promise<OrderLineItemEntity[]> {
     return this.orderLineItems.filter((item) => item.orderId === orderId);
+  }
+
+  /**
+   * Test helper — returns a shallow copy of every stored order. Lets
+   * test code enumerate the full set without reaching into private
+   * state. Not part of the production port.
+   */
+  async findAllForTest(): Promise<OrderEntity[]> {
+    return this.orders.map((o) => ({ ...o }));
+  }
+
+  /**
+   * Test helper — returns every line item across all orders.
+   */
+  async getAllLineItemsForTest(): Promise<OrderLineItemEntity[]> {
+    return [...this.orderLineItems];
   }
 }

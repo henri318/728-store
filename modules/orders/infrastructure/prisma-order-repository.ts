@@ -46,6 +46,10 @@ export class PrismaOrderRepository implements OrderRepository {
         sellerId: order.sellerId,
         total: order.total,
         status: order.status,
+        // Persist the source cartId for cart-derived orders so the
+        // HandleCartCheckedOut idempotency check works against the
+        // production adapter (spec REQ-ORD-001). Null for manual orders.
+        cartId: order.cartId ?? null,
         // Prisma will handle createdAt and updatedAt automatically
         // We will save line items in a separate step or transaction
       },
@@ -133,5 +137,20 @@ export class PrismaOrderRepository implements OrderRepository {
       where: { id: orderId },
       data: { status },
     });
+  }
+
+  /**
+   * Returns every order id that was created from the given cart id.
+   *
+   * Used by HandleCartCheckedOut to dedupe duplicate CART_CHECKED_OUT
+   * deliveries (spec REQ-ORD-001, idempotency). The lookup is a
+   * simple equality on the `cartId` column, which is indexed.
+   */
+  async findIdsByCartId(cartId: string): Promise<string[]> {
+    const rows = await prisma.order.findMany({
+      where: { cartId },
+      select: { id: true },
+    });
+    return rows.map((row) => row.id);
   }
 }

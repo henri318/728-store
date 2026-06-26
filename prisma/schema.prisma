@@ -98,9 +98,16 @@ model Order {
   seller    Seller          @relation(fields: [sellerId], references: [id])
   status    String          @default("PENDING")
   total     Decimal
+  // Source cart id when the order was created by HandleCartCheckedOut
+  // (spec REQ-ORD-001). Used for idempotency: the handler dedupes by
+  // cartId so duplicate CART_CHECKED_OUT deliveries do not create a
+  // second set of orders. Null for orders not created from a cart.
+  cartId    String?
   lineItems OrderLineItem[]
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
+
+  @@index([cartId])
 }
 
 model OrderLineItem {

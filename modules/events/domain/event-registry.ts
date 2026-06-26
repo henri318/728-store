@@ -50,6 +50,18 @@ export const GlobalEvents = {
   FILE_UPLOADED: 'file.uploaded',
   /** File deleted from storage */
   FILE_DELETED: 'file.deleted',
+  /** Cart checked out by user — triggers order creation in Orders module */
+  CART_CHECKED_OUT: 'cart.checked-out',
+  /** Guest cart migrated to server cart on login */
+  GUEST_CART_MIGRATED: 'cart.guest-migrated',
+  /** New cart created (initial add or guest migration create path) */
+  CART_CREATED: 'cart.created',
+  /** Item added to a cart */
+  CART_ITEM_ADDED: 'cart.item-added',
+  /** Item quantity updated */
+  CART_ITEM_UPDATED: 'cart.item-updated',
+  /** Item removed from a cart */
+  CART_ITEM_REMOVED: 'cart.item-removed',
 } as const;
 
 /**

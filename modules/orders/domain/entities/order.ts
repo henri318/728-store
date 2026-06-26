@@ -16,6 +16,14 @@ export interface OrderEntity {
   total: number;
   /** Current status in the order lifecycle: pending → paid → ready-for-production → completed */
   status: string;
+  /**
+   * Source cart id when the order was created by HandleCartCheckedOut
+   * (spec REQ-ORD-001). Present for cart-derived orders, used for
+   * idempotency: the handler dedupes by cartId so duplicate CART_CHECKED_OUT
+   * deliveries do not create a second set of orders. Null for orders
+   * that were not created from a cart.
+   */
+  cartId?: string | null;
   /** Optional array of line items in the order */
   lineItems?: OrderLineItemEntity[];
 }

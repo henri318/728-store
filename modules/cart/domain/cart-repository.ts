@@ -34,8 +34,12 @@ export interface CartRepository {
 
   /**
    * Transitions the cart to CHECKED_OUT. No-op if the cart does not exist.
+   * The optional `tx` argument is the Prisma transaction client — only the
+   * Prisma adapter uses it; in-memory implementations ignore it. This lets
+   * `CheckoutCart` wrap the status update + outbox write in a single
+   * atomic unit of work (spec REQ-CART-022).
    */
-  markCheckedOut(cartId: CartId): Promise<void>;
+  markCheckedOut(cartId: CartId, tx?: unknown): Promise<void>;
 
   /**
    * Removes a single item by id. No-op if the item does not exist.
