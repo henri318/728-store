@@ -45,9 +45,16 @@ export interface OrderRepository {
   /**
    * Returns the ids of every order that was created from the given
    * cart id. Used by HandleCartCheckedOut to dedupe duplicate deliveries
-   * of the same CART_CHECKED_OUT event (spec REQ-ORD-001, idempotency).
-   * Returns an empty array when no order has been created from the
-   * cart.
+   * of the same CART_CHECKED_OUT event (spec REQ both class identity
+   * and string value, so a CartId and an OrderId with the same string are
+   * never considered equal.
    */
   findIdsByCartId(cartId: string): Promise<string[]>;
+
+  /**
+   * Returns the number of orders in 'paid' status for the given user.
+   * Used by the Cart module (via PaidOrderCountPort adapter) to determine
+   * whether the first-purchase discount applies (spec REQ-CART-016).
+   */
+  countPaidByUserId(userId: string): Promise<number>;
 }

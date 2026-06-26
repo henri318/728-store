@@ -153,4 +153,15 @@ export class PrismaOrderRepository implements OrderRepository {
     });
     return rows.map((row) => row.id);
   }
+
+  /**
+   * Returns the count of orders in 'paid' status for the given user.
+   * Used by the Cart module (via PaidOrderCountPort adapter) to determine
+   * whether the first-purchase discount applies (spec REQ-CART-016).
+   */
+  async countPaidByUserId(userId: string): Promise<number> {
+    return await prisma.order.count({
+      where: { userId, status: 'paid' },
+    });
+  }
 }

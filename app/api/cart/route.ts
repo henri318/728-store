@@ -1,0 +1,92 @@
+import { NextResponse } from 'next/server';
+import { requireRole } from '@/shared/authorization/authorization';
+import { container } from '@/composition-root/container';
+import { GetCart } from '@/modules/cart/application/get-cart';
+import { handleApiError } from '@/shared/presentation/error-handler';
+import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
+import type { ProductEntity } from '@/modules/products/domain/product-repository';
+
+/**
+ * GET /api/cart — returns the authenticated user's ACTIVE cart.
+ *
+ * Spec REQ-CART-030:
+ *  - 200 with CartDTO (items enriched with productName, productImageUrl, sellerName)
+ *  - 401 if unauthenticated
+ *
+ * The enrichment is a presenter concern: the domain returns CartItemEntity
+ * with value objects (ProductId, SellerId, Money). The route translates
+ * these into a flat DTO with display-friendly fields.
+ */
+export const GET = requireRole('CUSTOMER')(async function GET() {
+  const session = await container.getSession().getSession();
+  const userId = session?.id;
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const cartRepository = container.getCartRepository();
+    const getCart = new GetCart(cartRepository);
+    const cart = await getCart.execute(userId);
+
+    // Enrich items with product name, image URL, and seller name.
+    const productRepository = container.getProductRepository();
+    const productIds = [...new Set(cart.items.map((i) => i.productId.value))];
+    const products = await Promise.all(
+      productIds.map((id) => productRepository.findById(id, 'es')),
+    );
+    const productMap = new Map<string, ProductEntity>();
+    products.forEach((p) => {
+      if (p) productMap.set(p.id, p);
+    });
+
+    const items = cart.items.map((item) =>
+      enrichCartItem(item, productMap.get(item.productId.value)),
+    );
+
+    return NextResponse.json(
+      {
+        id: cart.id,
+        userId: cart.userId,
+        status: cart.status,
+        items,
+        createdAt: cart.createdAt.toISOString(),
+        updatedAt: cart.updatedAt.toISOString(),
+      },
+      { status: 200 },
+    );
+  } catch (error: unknown) {
+    return handleApiError(error);
+  }
+});
+
+// --- Enrichment helper ---
+
+function enrichCartItem(
+  item: CartItemEntity,
+  product: ProductEntity | undefined,
+): Record<string, unknown> {
+  const productName = product?.translations?.[0]?.name ?? 'Unknown Product';
+  const productImageUrl = product?.images?.[0]?.url ?? null;
+  const sellerName = product?.sellerName ?? 'Unknown Seller';
+  const unitPrice = item.unitPriceSnapshot.amount;
+  const lineTotal = unitPrice * item.quantity;
+
+  return {
+    id: item.id,
+    productId: item.productId.value,
+    productName,
+    productImageUrl,
+    sellerId: item.sellerId.value,
+    sellerName,
+    quantity: item.quantity,
+    unitPrice,
+    lineTotal,
+    customization: {
+      text: item.customizationText,
+      color: item.customizationColor,
+      size: item.customizationSize,
+      imageUrl: item.customizationImageUrl,
+    },
+  };
+}
