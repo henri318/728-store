@@ -1,5 +1,7 @@
 import type { CartEntity } from './entities/cart';
 import type { CartItemEntity } from './entities/cart-item';
+import type { CartId } from './value-objects/cart-id';
+import type { CartItemId } from './value-objects/cart-item-id';
 
 export type { CartEntity, CartItemEntity };
 
@@ -8,6 +10,11 @@ export type { CartEntity, CartItemEntity };
  *
  * Implementations are responsible for hydrating `items` when returning a
  * cart so the application layer never has to do an extra round-trip.
+ *
+ * The port boundary uses value objects (CartId, CartItemId) for identifiers
+ * so the application layer can never accidentally pass a raw string where a
+ * typed id is expected. Persistence DTOs (Prisma rows) keep their primitives;
+ * the adapter translates at the seam.
  */
 export interface CartRepository {
   /**
@@ -17,7 +24,7 @@ export interface CartRepository {
   findActiveByUserId(userId: string): Promise<CartEntity | null>;
 
   /** Returns a cart by id (any status) with items hydrated, or null. */
-  findById(cartId: string): Promise<CartEntity | null>;
+  findById(cartId: CartId): Promise<CartEntity | null>;
 
   /**
    * Persists a cart and its items. When a cart with the same id already
@@ -28,16 +35,16 @@ export interface CartRepository {
   /**
    * Transitions the cart to CHECKED_OUT. No-op if the cart does not exist.
    */
-  markCheckedOut(cartId: string): Promise<void>;
+  markCheckedOut(cartId: CartId): Promise<void>;
 
   /**
    * Removes a single item by id. No-op if the item does not exist.
    */
-  deleteItem(itemId: string): Promise<void>;
+  deleteItem(itemId: CartItemId): Promise<void>;
 
   /** Returns the item with the given id, or null. */
-  findItemById(itemId: string): Promise<CartItemEntity | null>;
+  findItemById(itemId: CartItemId): Promise<CartItemEntity | null>;
 
   /** Returns all items for a cart. Empty array when the cart has none. */
-  findItemsByCartId(cartId: string): Promise<CartItemEntity[]>;
+  findItemsByCartId(cartId: CartId): Promise<CartItemEntity[]>;
 }

@@ -4,6 +4,7 @@ import {
   ConflictError,
   ValidationError,
 } from '@/shared/kernel/app-error';
+import type { Money } from '@/shared/kernel/domain/value-objects/money';
 
 /**
  * Cart module domain errors.
@@ -29,6 +30,16 @@ export class CartImmutableError extends ConflictError {
   }
 }
 
+export class CartAlreadyActiveError extends ConflictError {
+  constructor(
+    message: string = 'User already has an active cart',
+    safeMessage: string = 'You already have an active cart',
+  ) {
+    super(message, safeMessage);
+    this.name = 'CartAlreadyActiveError';
+  }
+}
+
 export class InvalidQuantityError extends ValidationError {
   constructor(
     message: string = 'Quantity must be an integer between 1 and 99',
@@ -51,8 +62,8 @@ export class EmptyCartError extends AppError {
 
 export interface PriceChange {
   itemId: string;
-  oldPrice: number;
-  newPrice: number;
+  oldPrice: Money;
+  newPrice: Money;
 }
 
 export class PriceChangedError extends ConflictError {

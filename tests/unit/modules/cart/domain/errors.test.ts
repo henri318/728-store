@@ -5,9 +5,12 @@ import {
   ConflictError,
   ValidationError,
 } from '@/shared/kernel/app-error';
+import { Money } from '@/shared/kernel/domain/value-objects/money';
+import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import {
   CartNotFoundError,
   CartImmutableError,
+  CartAlreadyActiveError,
   InvalidQuantityError,
   EmptyCartError,
   PriceChangedError,
@@ -39,6 +42,7 @@ describe('Cart domain errors', () => {
     it('exposes a safe default message when none is given', () => {
       const e = new CartNotFoundError();
       expect(e.safeMessage).toBeTruthy();
+      expect(typeof e.safeMessage).toBe('string');
     });
   });
 
@@ -50,6 +54,26 @@ describe('Cart domain errors', () => {
       expect(e.statusCode).toBe(409);
       expect(e.name).toBe('CartImmutableError');
     });
+
+    it('exposes a safe default message when none is given', () => {
+      const e = new CartImmutableError();
+      expect(e.safeMessage).toBeTruthy();
+    });
+  });
+
+  describe('CartAlreadyActiveError', () => {
+    it('is an AppError with status 409', () => {
+      const e = new CartAlreadyActiveError('user already active');
+      expect(e).toBeInstanceOf(AppError);
+      expect(e).toBeInstanceOf(ConflictError);
+      expect(e.statusCode).toBe(409);
+      expect(e.name).toBe('CartAlreadyActiveError');
+    });
+
+    it('exposes a safe default message when none is given', () => {
+      const e = new CartAlreadyActiveError();
+      expect(e.safeMessage).toBeTruthy();
+    });
   });
 
   describe('InvalidQuantityError', () => {
@@ -60,6 +84,11 @@ describe('Cart domain errors', () => {
       expect(e.statusCode).toBe(400);
       expect(e.name).toBe('InvalidQuantityError');
     });
+
+    it('exposes a safe default message when none is given', () => {
+      const e = new InvalidQuantityError();
+      expect(e.safeMessage).toBeTruthy();
+    });
   });
 
   describe('EmptyCartError', () => {
@@ -69,12 +98,21 @@ describe('Cart domain errors', () => {
       expect(e.statusCode).toBe(422);
       expect(e.name).toBe('EmptyCartError');
     });
+
+    it('exposes a safe default message when none is given', () => {
+      const e = new EmptyCartError();
+      expect(e.safeMessage).toBeTruthy();
+    });
   });
 
   describe('PriceChangedError', () => {
     it('is an AppError with status 409', () => {
       const e = new PriceChangedError('prices changed', [
-        { itemId: 'i1', oldPrice: 10, newPrice: 12 },
+        {
+          itemId: 'i1',
+          oldPrice: Money.create(10, Currency.EUR),
+          newPrice: Money.create(12, Currency.EUR),
+        },
       ]);
       expect(e).toBeInstanceOf(AppError);
       expect(e).toBeInstanceOf(ConflictError);
@@ -84,8 +122,16 @@ describe('Cart domain errors', () => {
 
     it('exposes the priceChanges array on the error instance', () => {
       const changes = [
-        { itemId: 'i1', oldPrice: 10, newPrice: 12 },
-        { itemId: 'i2', oldPrice: 5, newPrice: 4 },
+        {
+          itemId: 'i1',
+          oldPrice: Money.create(10, Currency.EUR),
+          newPrice: Money.create(12, Currency.EUR),
+        },
+        {
+          itemId: 'i2',
+          oldPrice: Money.create(5, Currency.EUR),
+          newPrice: Money.create(4, Currency.EUR),
+        },
       ];
       const e = new PriceChangedError('prices changed', changes);
       expect(e.priceChanges).toEqual(changes);
@@ -95,6 +141,11 @@ describe('Cart domain errors', () => {
     it('defaults to an empty priceChanges array', () => {
       const e = new PriceChangedError('prices changed');
       expect(e.priceChanges).toEqual([]);
+    });
+
+    it('exposes a safe default message when none is given', () => {
+      const e = new PriceChangedError();
+      expect(e.safeMessage).toBeTruthy();
     });
   });
 
@@ -106,6 +157,11 @@ describe('Cart domain errors', () => {
       expect(e.statusCode).toBe(404);
       expect(e.name).toBe('ItemNotFoundError');
     });
+
+    it('exposes a safe default message when none is given', () => {
+      const e = new ItemNotFoundError();
+      expect(e.safeMessage).toBeTruthy();
+    });
   });
 
   describe('ProductNotFoundError', () => {
@@ -116,6 +172,11 @@ describe('Cart domain errors', () => {
       expect(e.statusCode).toBe(404);
       expect(e.name).toBe('ProductNotFoundError');
     });
+
+    it('exposes a safe default message when none is given', () => {
+      const e = new ProductNotFoundError();
+      expect(e.safeMessage).toBeTruthy();
+    });
   });
 
   describe('ForbiddenError', () => {
@@ -124,6 +185,11 @@ describe('Cart domain errors', () => {
       expect(e).toBeInstanceOf(AppError);
       expect(e.statusCode).toBe(403);
       expect(e.name).toBe('ForbiddenError');
+    });
+
+    it('exposes a safe default message when none is given', () => {
+      const e = new ForbiddenError();
+      expect(e.safeMessage).toBeTruthy();
     });
   });
 
@@ -134,6 +200,11 @@ describe('Cart domain errors', () => {
       expect(e).toBeInstanceOf(ConflictError);
       expect(e.statusCode).toBe(409);
       expect(e.name).toBe('CartMergeError');
+    });
+
+    it('exposes a safe default message when none is given', () => {
+      const e = new CartMergeError();
+      expect(e.safeMessage).toBeTruthy();
     });
   });
 });

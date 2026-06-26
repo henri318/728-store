@@ -51,3 +51,10 @@ ALTER TABLE "Cart" ADD CONSTRAINT "Cart_userId_fkey" FOREIGN KEY ("userId") REFE
 
 -- AddForeignKey
 ALTER TABLE "CartItem" ADD CONSTRAINT "CartItem_cartId_fkey" FOREIGN KEY ("cartId") REFERENCES "Cart"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddCheckConstraint: enforce spec REQ-CART-002 at the DB level
+-- Quantity must be an integer in [1, 99]. Defends against bad writes that
+-- bypass the Quantity value object.
+ALTER TABLE "CartItem"
+  ADD CONSTRAINT "CartItem_quantity_check"
+  CHECK ("quantity" >= 1 AND "quantity" <= 99);
