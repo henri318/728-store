@@ -71,7 +71,11 @@ export class MemoryCartRepository implements CartRepository {
     return this.hydrate({ ...cart });
   }
 
-  async markCheckedOut(cartId: CartId): Promise<void> {
+  async markCheckedOut(cartId: CartId, _tx?: unknown): Promise<void> {
+    // The optional `tx` argument is the Prisma transaction client — the
+    // in-memory double ignores it because the MemoryTransactionRunner
+    // shares a single in-process store across all writes. Mirroring the
+    // port signature keeps use case wiring identical to production.
     const target = cartId.value;
     const index = this.carts.findIndex((c) => c.id === target);
     if (index === -1) return;
