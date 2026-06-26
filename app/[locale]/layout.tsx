@@ -8,11 +8,15 @@ import { HeaderNav } from '@/modules/presentation/components/header-nav';
 import { VerificationBannerWrapper } from '@/modules/presentation/components/verification-banner-wrapper';
 import { HeaderBanner } from '@/shared/presentation/components/header-banner';
 import { SocialFooter } from '@/shared/presentation/components/social-footer';
+import type { Role } from '@/modules/roles/domain/roles';
 import { outboxWorker } from '@/workers/outbox-worker';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { DictionaryProvider } from '@/shared/i18n/dictionary-context';
 import '../globals.css';
 import styles from './layout.module.css';
+
+const ADMIN_ROLE: Role = 'ADMIN';
+const DESIGNER_ROLE: Role = 'DESIGNER';
 
 if (
   process.env.NODE_ENV !== 'production' ||
@@ -92,9 +96,12 @@ export default async function RootLayout({
   const session = await getServerSession(authOptions);
   const dict = await getDictionary(locale as 'es' | 'cat');
 
-  // Show promo banner only for guests or users with no orders
-  let showBanner = true;
-  if (session?.user?.id) {
+  // Show promo banner for guests, and for authenticated users who are not
+  // ADMIN/DESIGNER and have no orders
+  const role = (session?.user as { role?: string } | undefined)?.role;
+  const isInternal = role === ADMIN_ROLE || role === DESIGNER_ROLE;
+  let showBanner = !isInternal;
+  if (showBanner && session?.user?.id) {
     const orderCount = await prisma.order.count({
       where: { userId: session.user.id },
     });

@@ -12,8 +12,10 @@ test.describe('Admin Access', () => {
     adminPage,
   }) => {
     await adminPage.goto('/es/admin/sellers');
-    // The seed creates a seller "728 Store" — table should render
-    await expect(adminPage.getByText('728 Store')).toBeVisible();
+    // Check the table renders a seller row
+    await expect(
+      adminPage.getByRole('cell', { name: '728 Store', exact: true }),
+    ).toBeVisible();
     await expect(
       adminPage.getByRole('link', { name: /ver productos/i }).first(),
     ).toBeVisible();

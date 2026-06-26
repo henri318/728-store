@@ -1,0 +1,36 @@
+.container {
+  max-width: 480px;
+  margin: var(--spacing-xl) auto;
+  padding: var(--spacing-xl);
+  background: var(--color-white);
+  border: 1px solid var(--color-lila);
+  border-radius: 8px;
+}
+
+.title {
+  margin: 0 0 var(--spacing-lg);
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-green-dark);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.footer {
+  margin-top: var(--spacing-md);
+  text-align: center;
+}
+
+.footerLink {
+  color: var(--color-green-dark);
+  font-weight: var(--font-weight-medium);
+  font-size: 0.9rem;
+}
+
+.footerLink:hover {
+  text-decoration: underline;
+}
