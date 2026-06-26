@@ -5,6 +5,7 @@ import { HeroSection } from '@/shared/presentation/components/hero-section';
 import { MiddleSection } from '@/shared/presentation/components/middle-section';
 import { WaveTransition } from '@/shared/presentation/components/wave-transition';
 import { BottomSection } from '@/shared/presentation/components/bottom-section';
+import { AddToCartButton } from '@/components/cart/add-to-cart-button';
 import styles from './page.module.css';
 
 export default async function HomePage({
@@ -45,12 +46,21 @@ export default async function HomePage({
                     {Number(product.basePrice)}
                   </p>
                   <p className={styles.productSeller}>{product.sellerName}</p>
-                  <Link
-                    href={`/${locale}/products/${product.id}`}
-                    className={styles.productLink}
-                  >
-                    {dict.common.viewDetails}
-                  </Link>
+                  <div className={styles.productActions}>
+                    <Link
+                      href={`/${locale}/products/${product.id}`}
+                      className={styles.productLink}
+                    >
+                      {dict.common.viewDetails}
+                    </Link>
+                    <AddToCartButton
+                      productId={product.id}
+                      productName={translation.name}
+                      sellerId={product.sellerId}
+                      sellerName={product.sellerName}
+                      price={Number(product.basePrice)}
+                    />
+                  </div>
                 </div>
               );
             })

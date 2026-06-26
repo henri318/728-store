@@ -13,6 +13,18 @@ vi.mock('next/navigation', () => ({
   usePathname: vi.fn(() => '/es/cart'),
 }));
 
+// Mock guest cart context (CartView now calls useGuestCart unconditionally)
+vi.mock('@/modules/cart/presentation/guest-cart-context', () => ({
+  useGuestCart: () => ({
+    items: [],
+    itemCount: 0,
+    addItem: vi.fn(),
+    updateQuantity: vi.fn(),
+    removeItem: vi.fn(),
+    clearCart: vi.fn(),
+  }),
+}));
+
 describe('CartView', () => {
   const baseItems = [
     {

@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import Image from 'next/image';
+import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
 import styles from './cart-view.module.css';
 
 // --- Types ---
@@ -33,15 +34,42 @@ interface CartViewProps {
 /**
  * Client component for the cart page.
  *
- * Renders cart items with optimistic +/- quantity controls and remove.
+ * - Authenticated users: renders server-provided items with API-backed
+ *   optimistic +/- quantity controls and remove.
+ * - Guest users: reads from GuestCartContext (localStorage) and uses
+ *   context methods for quantity/remove operations.
+ *
  * Falls back to an empty state with a CTA to browse products.
  */
 export function CartView({
-  items: initialItems,
+  items: serverItems,
   locale,
   isAuthenticated,
 }: CartViewProps) {
-  const [items, setItems] = useState(initialItems);
+  // Hooks must be called unconditionally (Rules of Hooks).
+  const guestCart = useGuestCart();
+  const [localItems, setLocalItems] = useState(serverItems);
+
+  // Derive display items: server cart for authenticated, guest cart for guests.
+  const items: CartItemDTO[] = isAuthenticated
+    ? localItems
+    : guestCart.items.map((gi) => ({
+        id: gi.productId,
+        productId: gi.productId,
+        productName: gi.productName ?? 'Unknown Product',
+        productImageUrl: gi.productImageUrl ?? null,
+        sellerId: gi.sellerId,
+        sellerName: gi.sellerName ?? 'Unknown Seller',
+        quantity: gi.quantity,
+        unitPrice: gi.unitPriceSnapshot,
+        lineTotal: +(gi.unitPriceSnapshot * gi.quantity).toFixed(2),
+        customization: {
+          text: gi.customizationText ?? null,
+          color: gi.customizationColor ?? null,
+          size: gi.customizationSize ?? null,
+          imageUrl: gi.customizationImageUrl ?? null,
+        },
+      }));
 
   const subtotal = items.reduce((acc, i) => acc + i.lineTotal, 0);
 
@@ -50,8 +78,14 @@ export function CartView({
       const newQty = Math.max(1, Math.min(99, item.quantity + delta));
       if (newQty === item.quantity) return;
 
-      // Optimistic update
-      setItems((prev) =>
+      // Guest: update via context (localStorage)
+      if (!isAuthenticated) {
+        guestCart.updateQuantity(item.productId, newQty);
+        return;
+      }
+
+      // Authenticated: optimistic update + API call
+      setLocalItems((prev) =>
         prev.map((i) =>
           i.id === item.id
             ? {
@@ -70,8 +104,7 @@ export function CartView({
           body: JSON.stringify({ quantity: newQty }),
         });
         if (!res.ok) {
-          // Revert on failure
-          setItems((prev) =>
+          setLocalItems((prev) =>
             prev.map((i) =>
               i.id === item.id
                 ? { ...i, quantity: item.quantity, lineTotal: item.lineTotal }
@@ -80,8 +113,7 @@ export function CartView({
           );
         }
       } catch {
-        // Revert on network error
-        setItems((prev) =>
+        setLocalItems((prev) =>
           prev.map((i) =>
             i.id === item.id
               ? { ...i, quantity: item.quantity, lineTotal: item.lineTotal }
@@ -90,26 +122,30 @@ export function CartView({
         );
       }
     },
-    [],
+    [isAuthenticated, guestCart],
   );
 
-  const handleRemove = useCallback(async (itemId: string) => {
-    // Optimistic removal
-    setItems((prev) => prev.filter((i) => i.id !== itemId));
-
-    try {
-      const res = await fetch(`/api/cart/items/${itemId}`, {
-        method: 'DELETE',
-      });
-      if (!res.ok) {
-        // We can't easily revert without keeping the old items, so just
-        // let the user re-fetch. In practice the server rarely rejects
-        // a valid DELETE.
+  const handleRemove = useCallback(
+    async (item: CartItemDTO) => {
+      // Guest: remove via context
+      if (!isAuthenticated) {
+        guestCart.removeItem(item.productId);
+        return;
       }
-    } catch {
-      // Network error — item already removed from UI.
-    }
-  }, []);
+
+      // Authenticated: optimistic removal + API call
+      setLocalItems((prev) => prev.filter((i) => i.id !== item.id));
+
+      try {
+        await fetch(`/api/cart/items/${item.id}`, {
+          method: 'DELETE',
+        });
+      } catch {
+        // Network error — item already removed from UI.
+      }
+    },
+    [isAuthenticated, guestCart],
+  );
 
   if (items.length === 0) {
     return (
@@ -192,7 +228,7 @@ export function CartView({
               <button
                 aria-label="Remove"
                 className={styles.removeButton}
-                onClick={() => handleRemove(item.id)}
+                onClick={() => handleRemove(item)}
               >
                 ✕
               </button>

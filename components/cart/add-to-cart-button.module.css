@@ -1,0 +1,37 @@
+.button {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  background: var(--color-green-dark, #2e7d32);
+  color: var(--color-white, #fff);
+  border: none;
+  border-radius: 24px;
+  font-family: var(--font-family-primary, inherit);
+  font-weight: var(--font-weight-medium, 500);
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+  white-space: nowrap;
+}
+
+.button:hover:not(:disabled) {
+  background: #0a4a38;
+  transform: scale(1.03);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.success {
+  background: #1b5e20;
+}
+
+.error {
+  background: var(--color-coral, #e8614d);
+}

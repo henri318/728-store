@@ -23,6 +23,10 @@ export interface GuestCartItem {
   customizationColor?: string | null;
   customizationSize?: string | null;
   customizationImageUrl?: string | null;
+  /** Display metadata — populated by the Add to Cart flow. */
+  productName?: string;
+  productImageUrl?: string | null;
+  sellerName?: string;
 }
 
 interface GuestCartShape {

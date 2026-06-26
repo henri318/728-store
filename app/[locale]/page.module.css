@@ -80,6 +80,14 @@
   transform: scale(1.03);
 }
 
+.productActions {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: var(--spacing-sm);
+}
+
 .emptyMessage {
   color: var(--color-white);
   text-align: center;
