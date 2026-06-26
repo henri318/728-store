@@ -258,15 +258,60 @@ User uploaded files.
 
 ---
 
+# Cart
+
+Represents a user's shopping cart. A user has at most one ACTIVE cart at a time.
+
+## Fields
+
+- id
+- userId
+- status (ACTIVE | CHECKED_OUT)
+- createdAt
+- updatedAt
+
+## Relations
+
+- user
+- cartItems
+
+---
+
+# CartItem
+
+A single line item inside a Cart. Each unique customization variant is a separate row.
+
+## Fields
+
+- id
+- cartId
+- productId
+- sellerId
+- quantity (1..99)
+- unitPriceSnapshot (Decimal, EUR)
+- customizationText (optional, max 500 chars)
+- customizationColor (optional, max 50 chars)
+- customizationSize (optional, max 50 chars)
+- customizationImageUrl (optional, https only)
+
+## Relations
+
+- cart
+- product
+- seller
+
+---
+
 # Key Relations Summary
 
 ```plaintext
 User -> Orders -> OrderItems -> Products -> Seller
 User -> Tickets -> TicketMessages -> AIInteraction
+User -> Cart -> CartItems -> Products -> Seller
 Order -> Payment
 Order -> Ticket
 Product -> ProductCustomization -> OrderItem
 User -> Uploads
 Role -> User
-Seller -> Product / Order
+Seller -> Product / Order / CartItem
 ```

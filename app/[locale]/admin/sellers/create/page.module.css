@@ -1,0 +1,25 @@
+.container {
+  max-width: 480px;
+  margin: 4rem auto;
+  padding: 2rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.title {
+  margin-top: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.footer {
+  margin-top: 1rem;
+}
+
+.footerLink {
+  color: #0070f3;
+}

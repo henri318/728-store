@@ -8,6 +8,7 @@ import { HeaderNav } from '@/modules/presentation/components/header-nav';
 import { VerificationBannerWrapper } from '@/modules/presentation/components/verification-banner-wrapper';
 import { HeaderBanner } from '@/shared/presentation/components/header-banner';
 import { SocialFooter } from '@/shared/presentation/components/social-footer';
+import { GuestCartProvider } from '@/modules/cart/presentation/guest-cart-context';
 import { outboxWorker } from '@/workers/outbox-worker';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { DictionaryProvider } from '@/shared/i18n/dictionary-context';
@@ -105,35 +106,37 @@ export default async function RootLayout({
     <html lang={locale}>
       <body className={styles.body}>
         <SessionProviderWrapper session={session}>
-          <header className={styles.header}>
-            <div className={styles.spacer} />
-            <a href={`/${locale}`} className={styles.logo}>
-              <img
-                src="/img/logo/logo.svg"
-                alt="Siete 28 Logo"
-                className={styles.logoImg}
-              />
-            </a>
-            <div className={styles.userIcons}>
-              <HeaderNav
-                loginLabel={dict.common.login}
-                profileAlt={dict.common.profileIcon}
-                cartAlt={dict.common.cartIcon}
-              />
-              <LanguageSelector currentLocale={locale} />
-            </div>
-          </header>
+          <GuestCartProvider>
+            <header className={styles.header}>
+              <div className={styles.spacer} />
+              <a href={`/${locale}`} className={styles.logo}>
+                <img
+                  src="/img/logo/logo.svg"
+                  alt="Siete 28 Logo"
+                  className={styles.logoImg}
+                />
+              </a>
+              <div className={styles.userIcons}>
+                <HeaderNav
+                  loginLabel={dict.common.login}
+                  profileAlt={dict.common.profileIcon}
+                  cartAlt={dict.common.cartIcon}
+                />
+                <LanguageSelector currentLocale={locale} />
+              </div>
+            </header>
 
-          {showBanner && <HeaderBanner text={dict.common.promoBanner} />}
+            {showBanner && <HeaderBanner text={dict.common.promoBanner} />}
 
-          <main className={styles.main}>
-            <DictionaryProvider dict={dict}>
-              <VerificationBannerWrapper />
-              {children}
-            </DictionaryProvider>
-          </main>
+            <main className={styles.main}>
+              <DictionaryProvider dict={dict}>
+                <VerificationBannerWrapper />
+                {children}
+              </DictionaryProvider>
+            </main>
 
-          <SocialFooter />
+            <SocialFooter />
+          </GuestCartProvider>
         </SessionProviderWrapper>
       </body>
     </html>
