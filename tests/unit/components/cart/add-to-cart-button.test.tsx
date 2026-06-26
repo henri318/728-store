@@ -142,6 +142,12 @@ describe('AddToCartButton', () => {
     });
 
     it('POSTs to /api/cart/items on click', async () => {
+      // First mock: useEffect cart fetch on mount (empty cart).
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ items: [] }),
+      });
+      // Second mock: POST on click.
       mockFetch.mockResolvedValueOnce({ ok: true });
 
       render(<AddToCartButton {...defaultProps} />);
@@ -160,6 +166,10 @@ describe('AddToCartButton', () => {
     });
 
     it('sends correct body in POST request', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ items: [] }),
+      });
       mockFetch.mockResolvedValueOnce({ ok: true });
 
       render(<AddToCartButton {...defaultProps} />);
@@ -180,6 +190,12 @@ describe('AddToCartButton', () => {
     });
 
     it('shows success feedback after API responds ok', async () => {
+      // Cart fetch on mount (empty cart).
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ items: [] }),
+      });
+      // POST on click.
       mockFetch.mockResolvedValueOnce({ ok: true });
 
       render(<AddToCartButton {...defaultProps} />);
@@ -192,6 +208,10 @@ describe('AddToCartButton', () => {
     });
 
     it('does NOT call guest cart addItem', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ items: [] }),
+      });
       mockFetch.mockResolvedValueOnce({ ok: true });
 
       render(<AddToCartButton {...defaultProps} />);
@@ -205,6 +225,12 @@ describe('AddToCartButton', () => {
     });
 
     it('shows error feedback when API fails', async () => {
+      // Cart fetch on mount (empty cart).
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ items: [] }),
+      });
+      // POST on click fails.
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 500,
@@ -220,6 +246,12 @@ describe('AddToCartButton', () => {
     });
 
     it('shows error feedback on network failure', async () => {
+      // Cart fetch on mount (empty cart).
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ items: [] }),
+      });
+      // POST on click fails with network error.
       mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
       render(<AddToCartButton {...defaultProps} />);
@@ -228,6 +260,251 @@ describe('AddToCartButton', () => {
 
       await waitFor(() => {
         expect(screen.getByText(/error|try again/i)).toBeTruthy();
+      });
+    });
+  });
+
+  describe('quantity controls — guest user', () => {
+    const mockUpdateQuantity = vi.fn();
+    const mockRemoveItem = vi.fn();
+
+    beforeEach(() => {
+      mockUseSession.mockReturnValue({
+        data: null,
+        status: 'unauthenticated',
+        update: vi.fn(),
+      } as never);
+      mockUseGuestCart.mockReturnValue({
+        items: [
+          {
+            productId: 'prod-1',
+            sellerId: 'seller-1',
+            quantity: 3,
+            unitPriceSnapshot: 29.99,
+            productName: 'Test Product',
+            sellerName: 'Test Seller',
+          },
+        ],
+        itemCount: 1,
+        addItem: mockAddItem,
+        updateQuantity: mockUpdateQuantity,
+        removeItem: mockRemoveItem,
+        clearCart: vi.fn(),
+        hydrated: true,
+      });
+    });
+
+    it('shows quantity controls when product is in guest cart', () => {
+      render(<AddToCartButton {...defaultProps} />);
+
+      expect(screen.getByText('3')).toBeTruthy();
+      expect(
+        screen.getByRole('button', { name: /decrease quantity/i }),
+      ).toBeTruthy();
+      expect(
+        screen.getByRole('button', { name: /increase quantity/i }),
+      ).toBeTruthy();
+    });
+
+    it('does NOT show "Add to Cart" button when product is in cart', () => {
+      render(<AddToCartButton {...defaultProps} />);
+
+      expect(
+        screen.queryByRole('button', { name: /add to cart/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('calls updateQuantity on + click', async () => {
+      render(<AddToCartButton {...defaultProps} />);
+
+      fireEvent.click(
+        screen.getByRole('button', { name: /increase quantity/i }),
+      );
+
+      expect(mockUpdateQuantity).toHaveBeenCalledWith('prod-1', 4);
+    });
+
+    it('calls updateQuantity on - click when quantity > 1', async () => {
+      render(<AddToCartButton {...defaultProps} />);
+
+      fireEvent.click(
+        screen.getByRole('button', { name: /decrease quantity/i }),
+      );
+
+      expect(mockUpdateQuantity).toHaveBeenCalledWith('prod-1', 2);
+    });
+
+    it('calls removeItem on - click when quantity is 1', async () => {
+      mockUseGuestCart.mockReturnValue({
+        items: [
+          {
+            productId: 'prod-1',
+            sellerId: 'seller-1',
+            quantity: 1,
+            unitPriceSnapshot: 29.99,
+            productName: 'Test Product',
+            sellerName: 'Test Seller',
+          },
+        ],
+        itemCount: 1,
+        addItem: mockAddItem,
+        updateQuantity: mockUpdateQuantity,
+        removeItem: mockRemoveItem,
+        clearCart: vi.fn(),
+        hydrated: true,
+      });
+
+      render(<AddToCartButton {...defaultProps} />);
+
+      fireEvent.click(
+        screen.getByRole('button', { name: /decrease quantity/i }),
+      );
+
+      expect(mockRemoveItem).toHaveBeenCalledWith('prod-1');
+    });
+
+    it('does not increment past 99', async () => {
+      mockUseGuestCart.mockReturnValue({
+        items: [
+          {
+            productId: 'prod-1',
+            sellerId: 'seller-1',
+            quantity: 99,
+            unitPriceSnapshot: 29.99,
+            productName: 'Test Product',
+            sellerName: 'Test Seller',
+          },
+        ],
+        itemCount: 1,
+        addItem: mockAddItem,
+        updateQuantity: mockUpdateQuantity,
+        removeItem: mockRemoveItem,
+        clearCart: vi.fn(),
+        hydrated: true,
+      });
+
+      render(<AddToCartButton {...defaultProps} />);
+
+      const plusBtn = screen.getByRole('button', {
+        name: /increase quantity/i,
+      });
+      expect(plusBtn).toBeDisabled();
+    });
+  });
+
+  describe('quantity controls — authenticated user', () => {
+    beforeEach(() => {
+      mockUseSession.mockReturnValue({
+        data: { user: { id: 'user-1', name: 'Test' } } as never,
+        status: 'authenticated',
+        update: vi.fn(),
+      } as never);
+    });
+
+    it('fetches cart and shows quantity controls when product is in cart', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          items: [
+            {
+              id: 'cart-item-1',
+              productId: 'prod-1',
+              quantity: 2,
+            },
+          ],
+        }),
+      });
+
+      render(<AddToCartButton {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('2')).toBeTruthy();
+        expect(
+          screen.getByRole('button', { name: /decrease quantity/i }),
+        ).toBeTruthy();
+        expect(
+          screen.getByRole('button', { name: /increase quantity/i }),
+        ).toBeTruthy();
+      });
+    });
+
+    it('PATCHes to /api/cart/items/[itemId] on + click', async () => {
+      // First fetch: cart GET on mount
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          items: [{ id: 'cart-item-1', productId: 'prod-1', quantity: 2 }],
+        }),
+      });
+      // Second fetch: PATCH for increment
+      mockFetch.mockResolvedValueOnce({ ok: true });
+
+      render(<AddToCartButton {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole('button', { name: /increase quantity/i }),
+        ).toBeTruthy();
+      });
+
+      fireEvent.click(
+        screen.getByRole('button', { name: /increase quantity/i }),
+      );
+
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledWith(
+          '/api/cart/items/cart-item-1',
+          expect.objectContaining({
+            method: 'PATCH',
+            body: JSON.stringify({ quantity: 3 }),
+          }),
+        );
+      });
+    });
+
+    it('DELETEs /api/cart/items/[itemId] on - click at quantity 1', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          items: [{ id: 'cart-item-1', productId: 'prod-1', quantity: 1 }],
+        }),
+      });
+      mockFetch.mockResolvedValueOnce({ ok: true, status: 204 });
+
+      render(<AddToCartButton {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole('button', { name: /decrease quantity/i }),
+        ).toBeTruthy();
+      });
+
+      fireEvent.click(
+        screen.getByRole('button', { name: /decrease quantity/i }),
+      );
+
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledWith(
+          '/api/cart/items/cart-item-1',
+          expect.objectContaining({ method: 'DELETE' }),
+        );
+      });
+    });
+
+    it('shows "Add to Cart" when authenticated cart does not contain product', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          items: [{ id: 'other-item', productId: 'prod-999', quantity: 1 }],
+        }),
+      });
+
+      render(<AddToCartButton {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole('button', { name: /add to cart/i }),
+        ).toBeTruthy();
       });
     });
   });
