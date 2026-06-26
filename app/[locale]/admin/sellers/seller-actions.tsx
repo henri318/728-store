@@ -9,17 +9,11 @@ interface SellerActionsProps {
   currentStatus: string;
 }
 
-/**
- * Client component for seller status management actions.
- * Renders action buttons based on current status and handles
- * the PATCH request to change seller status.
- */
 export function SellerActions({ sellerId, currentStatus }: SellerActionsProps) {
   const dict = useDictionary();
   const [status, setStatus] = useState(currentStatus);
   const [loading, setLoading] = useState(false);
 
-  // Banned is terminal — no actions available
   if (status === 'banned') {
     return null;
   }
@@ -38,7 +32,6 @@ export function SellerActions({ sellerId, currentStatus }: SellerActionsProps) {
       const data = await res.json();
       setStatus(data.status);
     } catch {
-      // In a real app, show an error toast
       console.error('Failed to change seller status');
     } finally {
       setLoading(false);
@@ -50,6 +43,7 @@ export function SellerActions({ sellerId, currentStatus }: SellerActionsProps) {
       {status === 'active' && (
         <button
           type="button"
+          className={`${styles.button} ${styles.suspend}`}
           disabled={loading}
           onClick={() => handleStatusChange('suspended')}
         >
@@ -60,6 +54,7 @@ export function SellerActions({ sellerId, currentStatus }: SellerActionsProps) {
         <>
           <button
             type="button"
+            className={`${styles.button} ${styles.activate}`}
             disabled={loading}
             onClick={() => handleStatusChange('active')}
           >
@@ -67,6 +62,7 @@ export function SellerActions({ sellerId, currentStatus }: SellerActionsProps) {
           </button>
           <button
             type="button"
+            className={`${styles.button} ${styles.ban}`}
             disabled={loading}
             onClick={() => handleStatusChange('banned')}
           >

@@ -1,25 +1,36 @@
 .container {
   max-width: 480px;
-  margin: 4rem auto;
-  padding: 2rem;
-  border: 1px solid #ddd;
+  margin: var(--spacing-xl) auto;
+  padding: var(--spacing-xl);
+  background: var(--color-white);
+  border: 1px solid var(--color-lila);
   border-radius: 8px;
 }
 
 .title {
-  margin-top: 0;
+  margin: 0 0 var(--spacing-lg);
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-green-dark);
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--spacing-md);
 }
 
 .footer {
-  margin-top: 1rem;
+  margin-top: var(--spacing-md);
+  text-align: center;
 }
 
 .footerLink {
-  color: #0070f3;
+  color: var(--color-green-dark);
+  font-weight: var(--font-weight-medium);
+  font-size: 0.9rem;
+}
+
+.footerLink:hover {
+  text-decoration: underline;
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import Link from 'next/link';
 import { type ZodError } from 'zod';
 import { Input } from '@/modules/presentation/components/input';
 import { Button } from '@/modules/presentation/components/button';
@@ -31,6 +32,17 @@ interface FormErrors {
   description?: string;
 }
 
+function normalizePayload(form: FormState) {
+  return {
+    email: form.email.trim(),
+    password: form.password,
+    firstName: form.firstName.trim(),
+    lastName: form.lastName.trim(),
+    name: form.name.trim(),
+    description: form.description.trim() || undefined,
+  };
+}
+
 function validateForm(
   form: FormState,
   passwordsDoNotMatch: string,
@@ -39,16 +51,8 @@ function validateForm(
     return { confirmPassword: passwordsDoNotMatch };
   }
 
-  const formToValidate = {
-    email: form.email,
-    password: form.password,
-    firstName: form.firstName,
-    lastName: form.lastName,
-    name: form.name,
-    description: form.description || undefined,
-  };
-
-  const result = createSellerSchema.safeParse(formToValidate);
+  const payload = normalizePayload(form);
+  const result = createSellerSchema.safeParse(payload);
   if (result.success) return null;
 
   const errors: FormErrors = {};
@@ -70,7 +74,7 @@ function validateForm(
 export default function CreateSellerPage() {
   const router = useRouter();
   const params = useParams();
-  const locale = (params.locale as string) || 'es';
+  const locale = params.locale as string;
   const dict = useDictionary();
   const [form, setForm] = useState<FormState>({
     email: '',
@@ -109,29 +113,23 @@ export default function CreateSellerPage() {
     setLoading(true);
 
     try {
+      const payload = normalizePayload(form);
       const res = await fetch('/api/sellers', {
         method: 'POST',
-        body: JSON.stringify({
-          email: form.email,
-          password: form.password,
-          firstName: form.firstName,
-          lastName: form.lastName,
-          name: form.name,
-          description: form.description || undefined,
-        }),
+        body: JSON.stringify(payload),
         headers: { 'Content-Type': 'application/json' },
       });
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || 'Error al crear el vendedor');
+        throw new Error(data.error || dict.admin.createSellerError);
       }
 
       router.push(`/${locale}/admin/sellers`);
       router.refresh();
     } catch (err: unknown) {
       setServerError(
-        err instanceof Error ? err.message : 'An unexpected error occurred',
+        err instanceof Error ? err.message : dict.admin.createSellerError,
       );
     } finally {
       setLoading(false);
@@ -199,9 +197,9 @@ export default function CreateSellerPage() {
         </Button>
       </form>
       <p className={styles.footer}>
-        <a href={`/${locale}/admin/sellers`} className={styles.footerLink}>
+        <Link href={`/${locale}/admin/sellers`} className={styles.footerLink}>
           {dict.admin.backToSellers}
-        </a>
+        </Link>
       </p>
     </div>
   );
