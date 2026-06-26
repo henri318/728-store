@@ -108,9 +108,7 @@ describe('Integration: Header and Footer Layout', () => {
     });
 
     it('uses iconos-04.svg for cart', () => {
-      const content = readFile(
-        'modules/presentation/components/header-nav.tsx',
-      );
+      const content = readFile('modules/presentation/components/cart-icon.tsx');
       expect(content).toContain('iconos-04.svg');
     });
 
