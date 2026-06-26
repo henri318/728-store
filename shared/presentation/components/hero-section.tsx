@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import styles from './hero-section.module.css';
 
 interface HeroSectionProps {
@@ -8,7 +9,13 @@ interface HeroSectionProps {
 export function HeroSection({ imageSrc, imageAlt }: HeroSectionProps) {
   return (
     <section className={styles.hero}>
-      <img src={imageSrc} alt={imageAlt} className={styles.heroImage} />
+      <Image
+        src={imageSrc}
+        alt={imageAlt}
+        fill
+        sizes="100vw"
+        className={styles.heroImage}
+      />
       <svg
         className={styles.waveTop}
         viewBox="0 0 1440 150"

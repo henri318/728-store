@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import styles from './icon-circle.module.css';
 
 type IconName =
@@ -18,11 +19,15 @@ interface IconCircleProps {
   alt?: string;
 }
 
+const SIZE_MAP: Record<IconSize, number> = { sm: 40, md: 62, lg: 80 };
+
 export function IconCircle({ icon, color, size = 'md', alt }: IconCircleProps) {
   return (
-    <img
+    <Image
       src={`/img/icons/iconos-${getIconFile(icon)}.svg`}
       alt={alt ?? icon}
+      width={SIZE_MAP[size]}
+      height={SIZE_MAP[size]}
       className={`${styles.circle} ${styles[size]} ${styles[color]}`}
     />
   );

@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { LoginModal } from '@/modules/presentation/components/login-modal';
 import { UserMenuDropdown } from '@/modules/presentation/components/user-menu-dropdown';
 import { RoleNavLinks } from '@/modules/presentation/components/role-nav-links';
+import { CartIcon } from '@/modules/presentation/components/cart-icon';
 import styles from './header-nav.module.css';
 
 interface HeaderNavProps {
@@ -25,17 +27,15 @@ export function HeaderNav({ loginLabel, profileAlt, cartAlt }: HeaderNavProps) {
     return (
       <>
         <UserMenuDropdown user={session.user}>
-          <img
+          <Image
             src="/img/icons/iconos-07.svg"
             alt={profileAlt}
+            width={62}
+            height={62}
             className={styles.userIcon}
           />
         </UserMenuDropdown>
-        <img
-          src="/img/icons/iconos-04.svg"
-          alt={cartAlt}
-          className={styles.userIcon}
-        />
+        <CartIcon alt={cartAlt} />
         <RoleNavLinks role={session.user.role} locale={locale} />
       </>
     );
@@ -53,17 +53,15 @@ export function HeaderNav({ loginLabel, profileAlt, cartAlt }: HeaderNavProps) {
         className={styles.iconButton}
         aria-label={loginLabel}
       >
-        <img
+        <Image
           src="/img/icons/iconos-07.svg"
           alt={profileAlt}
+          width={62}
+          height={62}
           className={styles.userIcon}
         />
       </button>
-      <img
-        src="/img/icons/iconos-04.svg"
-        alt={cartAlt}
-        className={styles.userIcon}
-      />
+      <CartIcon alt={cartAlt} />
       <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </>
   );

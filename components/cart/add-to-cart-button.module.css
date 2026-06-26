@@ -1,0 +1,87 @@
+.button {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  background: var(--color-green-dark, #2e7d32);
+  color: var(--color-white, #fff);
+  border: none;
+  border-radius: 24px;
+  font-family: var(--font-family-primary, inherit);
+  font-weight: var(--font-weight-medium, 500);
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+  white-space: nowrap;
+}
+
+.button:hover:not(:disabled) {
+  background: #0a4a38;
+  transform: scale(1.03);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.success {
+  background: #1b5e20;
+}
+
+.error {
+  background: var(--color-coral, #e8614d);
+}
+
+/* ─── Quantity controls ─────────────────────────────────────────── */
+
+.quantityControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--color-bg-secondary, #f5f5f5);
+  border-radius: 24px;
+  padding: 0.2rem;
+}
+
+.quantityButton {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-green-dark, #2e7d32);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
+  line-height: 1;
+  padding: 0;
+}
+
+.quantityButton:hover:not(:disabled) {
+  background: #0a4a38;
+  transform: scale(1.1);
+}
+
+.quantityButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.quantityDisplay {
+  min-width: 1.5rem;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text-primary, #333);
+}

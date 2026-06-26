@@ -2,6 +2,7 @@ import { container } from '@/composition-root/container';
 import { GetProductByIdUseCase } from '@/modules/products/application/get-product-by-id-use-case';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import Link from 'next/link';
+import { AddToCartButton } from '@/components/cart/add-to-cart-button';
 import styles from './page.module.css';
 
 export default async function ProductDetailPage({
@@ -50,70 +51,16 @@ export default async function ProductDetailPage({
           </p>
           <p className={styles.seller}>Seller: {product.sellerName}</p>
 
-          <form action="/api/orders" method="POST" className={styles.form}>
-            <input type="hidden" name="productId" value={product.id} />
-
-            <div className={styles.formGroup}>
-              <label htmlFor="customizationText" className={styles.label}>
-                Custom Text:
-              </label>
-              <input
-                type="text"
-                id="customizationText"
-                name="customizationText"
-                className={styles.textInput}
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="customizationColor" className={styles.label}>
-                Color:
-              </label>
-              <input
-                type="color"
-                id="customizationColor"
-                name="customizationColor"
-                defaultValue="#ffffff"
-                className={styles.colorInput}
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="customizationSize" className={styles.label}>
-                Size:
-              </label>
-              <select
-                id="customizationSize"
-                name="customizationSize"
-                className={styles.selectInput}
-              >
-                <option value="S">S</option>
-                <option value="M">M</option>
-                <option value="L">L</option>
-                <option value="XL">XL</option>
-              </select>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="customizationImage" className={styles.label}>
-                Image:
-              </label>
-              <input
-                type="file"
-                id="customizationImage"
-                name="customizationImage"
-                accept="image/*"
-                className={styles.fileInput}
-              />
-              <small className={styles.fileHint}>
-                Image upload functionality not fully implemented.
-              </small>
-            </div>
-
-            <button type="submit" className={styles.submitButton}>
-              Add to Cart / Buy Now
-            </button>
-          </form>
+          <div className={styles.addToCart}>
+            <AddToCartButton
+              productId={product.id}
+              productName={product.displayName}
+              sellerId={product.sellerId}
+              sellerName={product.sellerName}
+              price={product.basePrice}
+              imageUrl={product.images?.[0]?.url ?? null}
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -26,6 +26,25 @@ on(eventName, handler);
 - TicketCreated
 - MessageAdded
 - AISuggestionGenerated
+- CartCreated
+- CartItemAdded
+- CartItemUpdated
+- CartItemRemoved
+- CartCheckedOut
+- GuestCartMigrated
+
+# CartCheckedOut Flow
+
+1. User confirms checkout → `CheckoutCart.confirm()` runs.
+2. In a single atomic transaction:
+   - Cart status transitions from ACTIVE → CHECKED_OUT.
+   - `CART_CHECKED_OUT` event is written to the Outbox.
+3. OutboxWorker publishes `CART_CHECKED_OUT` to the event bus.
+4. `HandleCartCheckedOut` (Orders module) receives the event:
+   - Groups items by `sellerId`.
+   - Creates one Order per seller with matching OrderLineItems.
+   - Emits `OrderCreated` per order (in the same transaction).
+   - Deduplicates by `cartId` for idempotency.
 
 # Execution Flow
 

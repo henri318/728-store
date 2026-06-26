@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import styles from './social-footer.module.css';
 
 interface SocialLink {
@@ -41,7 +42,13 @@ export function SocialFooter() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <img src={link.src} alt={link.alt} className={styles.icon} />
+          <Image
+            src={link.src}
+            alt={link.alt}
+            width={50}
+            height={50}
+            className={styles.icon}
+          />
         </a>
       ))}
     </footer>
