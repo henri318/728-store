@@ -115,6 +115,8 @@
     "delete": "Eliminar",
     "deleteConfirm": "¿Eliminar vendedor?",
     "deleteConfirmMessage": "Esta acción es irreversible. El vendedor y su usuario asociado serán desactivados.",
+    "createSellerError": "Error al crear el vendedor",
+    "deleteSellerError": "Error al eliminar el vendedor",
     "deletedSuccess": "Vendedor eliminado correctamente",
     "pagePrev": "← Anterior",
     "pageNext": "Siguiente →",

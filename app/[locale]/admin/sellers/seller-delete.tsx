@@ -33,7 +33,7 @@ export function SellerDelete({ sellerId, sellerName }: SellerDeleteProps) {
       setOpen(false);
       router.refresh();
     } catch {
-      setError('Error al eliminar el vendedor');
+      setError(dict.admin.deleteSellerError);
     } finally {
       setLoading(false);
     }

@@ -115,6 +115,8 @@
     "delete": "Eliminar",
     "deleteConfirm": "Eliminar venedor?",
     "deleteConfirmMessage": "Aquesta acció és irreversible. El venedor i el seu usuari associat seran desactivats.",
+    "createSellerError": "Error en crear el venedor",
+    "deleteSellerError": "Error en eliminar el venedor",
     "deletedSuccess": "Venedor eliminat correctament",
     "pagePrev": "← Anterior",
     "pageNext": "Següent →",

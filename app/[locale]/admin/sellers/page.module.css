@@ -41,7 +41,7 @@
   background: var(--color-white);
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.08);
 }
 
 .table th {
@@ -68,7 +68,7 @@
 }
 
 .table tbody tr:hover {
-  background: rgba(193, 224, 140, 0.15);
+  background: rgb(193 224 140 / 0.15);
 }
 
 .nameCell {

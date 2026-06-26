@@ -106,25 +106,39 @@ export default async function AdminSellersPage({
             </tbody>
           </table>
           <div className={styles.pagination}>
-            <a
-              href={`/${locale}/admin/sellers?page=${safePage - 1}`}
-              className={`${styles.pageButton} ${safePage <= 1 ? styles.pageButtonDisabled : ''}`}
-              aria-disabled={safePage <= 1}
-            >
-              {dict.admin.pagePrev}
-            </a>
+            {safePage <= 1 ? (
+              <span
+                className={`${styles.pageButton} ${styles.pageButtonDisabled}`}
+              >
+                {dict.admin.pagePrev}
+              </span>
+            ) : (
+              <a
+                href={`/${locale}/admin/sellers?page=${safePage - 1}`}
+                className={styles.pageButton}
+              >
+                {dict.admin.pagePrev}
+              </a>
+            )}
             <span className={styles.pageInfo}>
               {dict.admin.pageXofY
                 .replace('{current}', String(safePage))
                 .replace('{total}', String(totalPages))}
             </span>
-            <a
-              href={`/${locale}/admin/sellers?page=${safePage + 1}`}
-              className={`${styles.pageButton} ${safePage >= totalPages ? styles.pageButtonDisabled : ''}`}
-              aria-disabled={safePage >= totalPages}
-            >
-              {dict.admin.pageNext}
-            </a>
+            {safePage >= totalPages ? (
+              <span
+                className={`${styles.pageButton} ${styles.pageButtonDisabled}`}
+              >
+                {dict.admin.pageNext}
+              </span>
+            ) : (
+              <a
+                href={`/${locale}/admin/sellers?page=${safePage + 1}`}
+                className={styles.pageButton}
+              >
+                {dict.admin.pageNext}
+              </a>
+            )}
           </div>
         </>
       )}
