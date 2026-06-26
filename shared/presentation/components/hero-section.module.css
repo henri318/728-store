@@ -1,5 +1,8 @@
 .hero {
   width: 100%;
+  height: 35vw;
+  min-height: 200px;
+  max-height: 65vh;
   background-color: #eabcce;
   position: relative;
 }

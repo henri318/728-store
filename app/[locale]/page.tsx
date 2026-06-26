@@ -59,6 +59,13 @@ export default async function HomePage({
                       sellerId={product.sellerId}
                       sellerName={product.sellerName}
                       price={Number(product.basePrice)}
+                      labels={{
+                        addToCart: dict.common.addToCart,
+                        removeFromCart: dict.common.removeFromCart,
+                        adding: '...',
+                        added: '✓',
+                        error: 'Error',
+                      }}
                     />
                   </div>
                 </div>

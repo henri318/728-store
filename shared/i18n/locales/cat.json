@@ -26,7 +26,15 @@
     "heroImageAlt": "Regal",
     "noProducts": "No hi ha productes disponibles",
     "profileIcon": "Perfil",
-    "cartIcon": "Cistella"
+    "cartIcon": "Cistella",
+    "addToCart": "Afegir a la cistella",
+    "removeFromCart": "Eliminar",
+    "cartEmpty": "La teva cistella està buida",
+    "browseProducts": "Explorar productes",
+    "checkout": "Finalitzar compra",
+    "viewFullCart": "Veure cistella completa",
+    "subtotal": "Subtotal",
+    "loadingCart": "Carregant..."
   },
   "auth": {
     "signInTitle": "Iniciar sessió",

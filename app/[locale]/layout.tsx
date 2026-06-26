@@ -1,4 +1,5 @@
 import { getServerSession } from 'next-auth';
+import type { Metadata, Viewport } from 'next';
 import Image from 'next/image';
 import { authOptions } from '@/shared/infrastructure/auth-options';
 import { prisma } from '@/shared/infrastructure/prisma';
@@ -10,6 +11,8 @@ import { HeaderBanner } from '@/shared/presentation/components/header-banner';
 import { SocialFooter } from '@/shared/presentation/components/social-footer';
 import type { Role } from '@/modules/roles/domain/roles';
 import { GuestCartProvider } from '@/modules/cart/presentation/guest-cart-context';
+import { CartPopupProvider } from '@/modules/presentation/components/cart-popup-context';
+import { CartPopup } from '@/modules/presentation/components/cart-popup';
 import { outboxWorker } from '@/workers/outbox-worker';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { DictionaryProvider } from '@/shared/i18n/dictionary-context';
@@ -114,38 +117,51 @@ export default async function RootLayout({
       <body className={styles.body}>
         <SessionProviderWrapper session={session}>
           <GuestCartProvider>
-            <header className={styles.header}>
-              <div className={styles.spacer} />
-              <a href={`/${locale}`} className={styles.logo}>
-              <Image
-                  src="/img/logo/logo.svg"
-                  alt="Siete 28 Logo"
-                  width={130}
-                  height={130}
-                  className={styles.logoImg}
-                  priority
-                />
-              </a>
-              <div className={styles.userIcons}>
-                <HeaderNav
-                  loginLabel={dict.common.login}
-                  profileAlt={dict.common.profileIcon}
-                  cartAlt={dict.common.cartIcon}
-                />
-                <LanguageSelector currentLocale={locale} />
-              </div>
-            </header>
+            <CartPopupProvider>
+              <header className={styles.header}>
+                <div className={styles.spacer} />
+                <a href={`/${locale}`} className={styles.logo}>
+                  <Image
+                    src="/img/logo/logo.svg"
+                    alt="Siete 28 Logo"
+                    width={130}
+                    height={130}
+                    className={styles.logoImg}
+                    priority
+                  />
+                </a>
+                <div className={styles.userIcons}>
+                  <HeaderNav
+                    loginLabel={dict.common.login}
+                    profileAlt={dict.common.profileIcon}
+                    cartAlt={dict.common.cartIcon}
+                  />
+                  <LanguageSelector currentLocale={locale} />
+                </div>
+              </header>
 
-            {showBanner && <HeaderBanner text={dict.common.promoBanner} />}
+              {showBanner && <HeaderBanner text={dict.common.promoBanner} />}
 
-            <main className={styles.main}>
-              <DictionaryProvider dict={dict}>
-                <VerificationBannerWrapper />
-                {children}
-              </DictionaryProvider>
-            </main>
+              <main className={styles.main}>
+                <DictionaryProvider dict={dict}>
+                  <VerificationBannerWrapper />
+                  {children}
+                </DictionaryProvider>
+              </main>
 
-            <SocialFooter />
+              <SocialFooter />
+              <CartPopup
+                labels={{
+                  title: dict.common.cartIcon,
+                  empty: dict.common.cartEmpty,
+                  browseProducts: dict.common.browseProducts,
+                  checkout: dict.common.checkout,
+                  viewFullCart: dict.common.viewFullCart,
+                  subtotal: dict.common.subtotal,
+                  loading: dict.common.loadingCart,
+                }}
+              />
+            </CartPopupProvider>
           </GuestCartProvider>
         </SessionProviderWrapper>
       </body>
