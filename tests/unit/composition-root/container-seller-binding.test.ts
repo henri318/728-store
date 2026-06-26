@@ -25,7 +25,7 @@ vi.mock('@/modules/email/infrastructure/console-email-sender', () => ({
   ConsoleEmailSender: class {},
 }));
 vi.mock('@/modules/events/infrastructure/in-memory-event-bus', () => ({
-  eventBus: { emit: vi.fn(), subscribe: vi.fn() },
+  eventBus: { emit: vi.fn(), on: vi.fn(), subscribe: vi.fn() },
 }));
 vi.mock('@/shared/infrastructure/prisma-outbox-repository', () => ({
   PrismaOutboxRepository: class {
@@ -93,6 +93,27 @@ vi.mock('@/modules/users/infrastructure/user-verification-adapter', () => ({
 }));
 vi.mock('@/modules/roles/infrastructure/role-validator-adapter', () => ({
   RoleValidatorAdapter: class {},
+}));
+
+vi.mock('@/modules/cart/infrastructure/prisma-cart-repository', () => ({
+  PrismaCartRepository: class {},
+}));
+vi.mock(
+  '@/modules/cart/infrastructure/cart-product-repository-adapter',
+  () => ({
+    CartProductRepositoryAdapter: class {},
+  }),
+);
+vi.mock(
+  '@/modules/orders/infrastructure/prisma-paid-order-count-adapter',
+  () => ({
+    PrismaPaidOrderCountAdapter: class {},
+  }),
+);
+vi.mock('@/modules/orders/application/handle-cart-checked-out', () => ({
+  HandleCartCheckedOut: class {
+    static subscribe = vi.fn();
+  },
 }));
 
 vi.mock('@/modules/sellers/infrastructure/prisma-seller-repository', () => ({

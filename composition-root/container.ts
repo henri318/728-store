@@ -47,6 +47,9 @@ import type { UserVerificationPort } from '@/modules/auth/domain/ports/user-veri
 import type { RoleValidatorPort } from '@/modules/users/domain/ports/role-validator-port';
 import type { StoragePort } from '@/modules/uploads/domain/storage-port';
 import type { UploadRepository } from '@/modules/uploads/domain/upload-repository';
+import type { CartRepository } from '@/modules/cart/domain/cart-repository';
+import type { ProductRepository as CartProductRepository } from '@/modules/cart/domain/product-repository';
+import type { PaidOrderCountPort } from '@/modules/cart/domain/paid-order-count-port';
 
 import { BrevoEmailSender } from '@/modules/email/infrastructure/brevo-email-sender';
 import { ConsoleEmailSender } from '@/modules/email/infrastructure/console-email-sender';
@@ -75,6 +78,10 @@ import { UserVerificationAdapter } from '@/modules/users/infrastructure/user-ver
 import { RoleValidatorAdapter } from '@/modules/roles/infrastructure/role-validator-adapter';
 import { R2StorageAdapter } from '@/modules/uploads/infrastructure/r2-storage-adapter';
 import { PrismaUploadRepository } from '@/modules/uploads/infrastructure/prisma-upload-repository';
+import { PrismaCartRepository } from '@/modules/cart/infrastructure/prisma-cart-repository';
+import { CartProductRepositoryAdapter } from '@/modules/cart/infrastructure/cart-product-repository-adapter';
+import { PrismaPaidOrderCountAdapter } from '@/modules/orders/infrastructure/prisma-paid-order-count-adapter';
+import { HandleCartCheckedOut } from '@/modules/orders/application/handle-cart-checked-out';
 
 // ---------------------------------------------------------------------------
 // State
@@ -102,6 +109,13 @@ let _userVerification: UserVerificationPort | null = null;
 let _roleValidator: RoleValidatorPort | null = null;
 let _storagePort: StoragePort | null = null;
 let _uploadRepository: UploadRepository | null = null;
+let _cartRepository: CartRepository | null = null;
+let _cartProductRepository: CartProductRepository | null = null;
+let _paidOrderCountPort: PaidOrderCountPort | null = null;
+
+// Idempotency flag for event subscriptions — prevents double registration
+// during HMR in development.
+let _cartEventsSubscribed = false;
 
 // ---------------------------------------------------------------------------
 // Initialization
@@ -228,6 +242,33 @@ export function initContainer(): void {
   // --- UploadRepository: Prisma adapter ---
   if (!_uploadRepository) {
     _uploadRepository = new PrismaUploadRepository();
+  }
+
+  // --- CartRepository: Prisma adapter ---
+  if (!_cartRepository) {
+    _cartRepository = new PrismaCartRepository();
+  }
+
+  // --- CartProductRepository: adapter bridging cart's port to the products module ---
+  if (!_cartProductRepository) {
+    _cartProductRepository = new CartProductRepositoryAdapter(
+      _productRepository!,
+    );
+  }
+
+  // --- PaidOrderCountPort: adapter bridging cart's port to the orders module ---
+  if (!_paidOrderCountPort) {
+    _paidOrderCountPort = new PrismaPaidOrderCountAdapter(_orderRepository!);
+  }
+
+  // --- Cart event subscriptions (idempotent for HMR) ---
+  if (!_cartEventsSubscribed) {
+    const handler = new HandleCartCheckedOut(
+      _orderRepository!,
+      _outboxRepository!,
+    );
+    HandleCartCheckedOut.subscribe(_eventBus!, handler);
+    _cartEventsSubscribed = true;
   }
 }
 
@@ -442,6 +483,33 @@ export function getUploadRepository(): UploadRepository {
   return _uploadRepository!;
 }
 
+/**
+ * Returns the CartRepository bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ */
+export function getCartRepository(): CartRepository {
+  if (!_cartRepository) initContainer();
+  return _cartRepository!;
+}
+
+/**
+ * Returns the CartProductRepository bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ */
+export function getCartProductRepository(): CartProductRepository {
+  if (!_cartProductRepository) initContainer();
+  return _cartProductRepository!;
+}
+
+/**
+ * Returns the PaidOrderCountPort bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ */
+export function getPaidOrderCountPort(): PaidOrderCountPort {
+  if (!_paidOrderCountPort) initContainer();
+  return _paidOrderCountPort!;
+}
+
 // ---------------------------------------------------------------------------
 // Testing helpers
 // ---------------------------------------------------------------------------
@@ -476,6 +544,9 @@ export const container = {
   getRoleValidator,
   getStoragePort,
   getUploadRepository,
+  getCartRepository,
+  getCartProductRepository,
+  getPaidOrderCountPort,
   /** Override — useful in tests to inject a mock without touching env vars. */
   setEmailSender(sender: EmailSender): void {
     _emailSender = sender;
@@ -563,5 +634,21 @@ export const container = {
   /** Override — useful in tests to inject an in-memory upload repository. */
   setUploadRepository(repo: UploadRepository): void {
     _uploadRepository = repo;
+  },
+  /** Override — useful in tests to inject an in-memory cart repository. */
+  setCartRepository(repo: CartRepository): void {
+    _cartRepository = repo;
+  },
+  /** Override — useful in tests to inject a mock cart product repository. */
+  setCartProductRepository(repo: CartProductRepository): void {
+    _cartProductRepository = repo;
+  },
+  /** Override — useful in tests to inject a mock paid order count port. */
+  setPaidOrderCountPort(port: PaidOrderCountPort): void {
+    _paidOrderCountPort = port;
+  },
+  /** Reset the event subscription flag — useful in tests to allow re-subscription. */
+  resetCartEventSubscriptions(): void {
+    _cartEventsSubscribed = false;
   },
 };
