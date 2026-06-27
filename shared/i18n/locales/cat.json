@@ -73,6 +73,7 @@
     "canLoginAfterVerification": "Ja pots iniciar sessió.",
     "tokenExpired": "L'enllaç ha caducat. Sol·licita'n un de nou.",
     "invalidToken": "L'enllaç de verificació no és vàlid.",
+    "googleLogin": "Continuar amb Google",
     "invalidCredentials": "Credencials incorrectes",
     "passwordsDoNotMatch": "Les contrasenyes no coincideixen",
     "wrongCurrentPassword": "La contrasenya actual és incorrecta",

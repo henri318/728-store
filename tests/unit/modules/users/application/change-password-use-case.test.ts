@@ -69,8 +69,10 @@ describe('ChangePasswordUseCase', () => {
     // Verify the user's password hash was updated in the repository
     const updatedUser = await userRepository.findById('user-cp-1');
     expect(updatedUser).not.toBeNull();
-    expect(updatedUser!.passwordHash.value).not.toBe(`mem:${originalPassword}`);
-    expect(updatedUser!.passwordHash.value).toBe(`mem:${newPassword}`);
+    expect(updatedUser!.passwordHash!.value).not.toBe(
+      `mem:${originalPassword}`,
+    );
+    expect(updatedUser!.passwordHash!.value).toBe(`mem:${newPassword}`);
 
     // Verify event was emitted
     expect(outboxRepository.events.length).toBe(1);
@@ -102,7 +104,7 @@ describe('ChangePasswordUseCase', () => {
     // Verify password was NOT changed
     const user = await userRepository.findById('user-cp-1');
     expect(user).not.toBeNull();
-    expect(user!.passwordHash.value).toBe(`mem:${originalPassword}`);
+    expect(user!.passwordHash!.value).toBe(`mem:${originalPassword}`);
 
     // No event emitted
     expect(outboxRepository.events.length).toBe(0);
@@ -155,7 +157,7 @@ describe('ChangePasswordUseCase', () => {
 
     // Verify password was NOT changed
     const updatedUser = await userRepository.findById('user-cp-1');
-    expect(updatedUser!.passwordHash.value).toBe(`mem:${originalPassword}`);
+    expect(updatedUser!.passwordHash!.value).toBe(`mem:${originalPassword}`);
 
     // No event emitted
     expect(outboxRepository.events.length).toBe(0);

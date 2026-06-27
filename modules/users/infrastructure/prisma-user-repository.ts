@@ -25,7 +25,6 @@ export function toDomain(user: {
   updatedAt: Date;
 }): UserEntity {
   if (!user.email) throw new Error('User email is required');
-  if (!user.passwordHash) throw new Error('User password hash is required');
 
   let address: Address | null = null;
   if (
@@ -49,7 +48,9 @@ export function toDomain(user: {
     lastName: user.lastName ?? '',
     address,
     roleId: RoleId.create(user.role ?? 'CUSTOMER'),
-    passwordHash: PasswordHash.create(user.passwordHash),
+    passwordHash: user.passwordHash
+      ? PasswordHash.create(user.passwordHash)
+      : null,
     emailVerified: user.emailVerified ?? null,
     deletedAt: user.deletedAt ?? null,
     createdAt: user.createdAt,
@@ -65,7 +66,7 @@ export class PrismaUserRepository implements UserRepository {
         email: user.email.value,
         firstName: user.firstName,
         lastName: user.lastName,
-        passwordHash: user.passwordHash.value,
+        passwordHash: user.passwordHash?.value ?? null,
         role: user.roleId.value,
         addressStreet: user.address?.street ?? null,
         addressCity: user.address?.city ?? null,
@@ -78,7 +79,7 @@ export class PrismaUserRepository implements UserRepository {
         email: user.email.value,
         firstName: user.firstName,
         lastName: user.lastName,
-        passwordHash: user.passwordHash.value,
+        passwordHash: user.passwordHash?.value ?? null,
         role: user.roleId.value,
         addressStreet: user.address?.street ?? null,
         addressCity: user.address?.city ?? null,
@@ -126,7 +127,7 @@ export class PrismaUserRepository implements UserRepository {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email.value,
-        passwordHash: user.passwordHash.value,
+        passwordHash: user.passwordHash?.value ?? null,
         role: user.roleId.value,
         addressStreet: user.address?.street ?? null,
         addressCity: user.address?.city ?? null,
