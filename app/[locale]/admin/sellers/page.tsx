@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { container } from '@/composition-root/container';
 import { ListSellersUseCase } from '@/modules/sellers/application/use-cases/list-sellers-use-case';
+import { listSellersQuerySchema } from '@/modules/sellers/presentation/schemas/seller-schemas';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { assertRole } from '@/shared/authorization/authorization';
 import { LocalizedDate } from '@/shared/kernel/domain/value-objects/localized-date';
@@ -38,31 +39,48 @@ export default async function AdminSellersPage({
     redirect(`/${locale}`);
   }
 
-  const page = Math.max(1, Number(pageStr) || 1);
-  const pageSize = Math.max(1, Number(pageSizeStr) || PAGE_SIZE);
+  const filter = listSellersQuerySchema.parse({
+    page: pageStr,
+    pageSize: pageSizeStr,
+    q,
+    sortBy,
+    sortDir,
+  });
+
+  function buildPageUrl(
+    targetPage: number,
+    size: number,
+    query?: string,
+    sort?: string,
+    direction?: string,
+  ): string {
+    const search = new URLSearchParams();
+    if (targetPage > 1) search.set('page', String(targetPage));
+    if (size !== PAGE_SIZE) search.set('pageSize', String(size));
+    if (query) search.set('q', query);
+    if (sort) search.set('sortBy', sort);
+    if (direction) search.set('sortDir', direction);
+    const params = search.toString();
+    return `/${locale}/admin/sellers${params ? `?${params}` : ''}`;
+  }
 
   const dict = await getDictionary(locale as 'es' | 'cat');
   const sellerRepository = container.getSellerRepository();
   const useCase = new ListSellersUseCase(sellerRepository);
-  const result = await useCase.execute({
-    page,
-    pageSize,
-    q,
-    sortBy: sortBy === 'name' || sortBy === 'createdAt' ? sortBy : 'createdAt',
-    sortDir: sortDir === 'asc' || sortDir === 'desc' ? sortDir : 'desc',
-  });
-  const { items: sellers, totalPages } = result;
-  const safePage = Math.min(page, totalPages || 1);
+  const result = await useCase.execute(filter);
+  const { items: sellers, page: currentPage, pageSize, totalPages } = result;
 
-  function buildPageUrl(targetPage: number): string {
-    const search = new URLSearchParams();
-    if (targetPage > 1) search.set('page', String(targetPage));
-    if (pageSize !== PAGE_SIZE) search.set('pageSize', String(pageSize));
-    if (q) search.set('q', q);
-    if (sortBy) search.set('sortBy', sortBy);
-    if (sortDir) search.set('sortDir', sortDir);
-    const query = search.toString();
-    return `/${locale}/admin/sellers${query ? `?${query}` : ''}`;
+  // Redirect to valid page if current page is out of range
+  if (currentPage > totalPages && totalPages > 0) {
+    redirect(
+      buildPageUrl(
+        totalPages,
+        pageSize,
+        filter.q,
+        filter.sortBy,
+        filter.sortDir,
+      ),
+    );
   }
 
   return (
@@ -134,7 +152,7 @@ export default async function AdminSellersPage({
             </tbody>
           </table>
           <div className={styles.pagination}>
-            {safePage <= 1 ? (
+            {currentPage <= 1 ? (
               <span
                 className={`${styles.pageButton} ${styles.pageButtonDisabled}`}
               >
@@ -142,7 +160,13 @@ export default async function AdminSellersPage({
               </span>
             ) : (
               <a
-                href={buildPageUrl(safePage - 1)}
+                href={buildPageUrl(
+                  currentPage - 1,
+                  pageSize,
+                  filter.q,
+                  filter.sortBy,
+                  filter.sortDir,
+                )}
                 className={styles.pageButton}
               >
                 {dict.admin.pagePrev}
@@ -150,10 +174,10 @@ export default async function AdminSellersPage({
             )}
             <span className={styles.pageInfo}>
               {dict.admin.pageXofY
-                .replace('{current}', String(safePage))
+                .replace('{current}', String(currentPage))
                 .replace('{total}', String(totalPages))}
             </span>
-            {safePage >= totalPages ? (
+            {currentPage >= totalPages ? (
               <span
                 className={`${styles.pageButton} ${styles.pageButtonDisabled}`}
               >
@@ -161,7 +185,13 @@ export default async function AdminSellersPage({
               </span>
             ) : (
               <a
-                href={buildPageUrl(safePage + 1)}
+                href={buildPageUrl(
+                  currentPage + 1,
+                  pageSize,
+                  filter.q,
+                  filter.sortBy,
+                  filter.sortDir,
+                )}
                 className={styles.pageButton}
               >
                 {dict.admin.pageNext}
