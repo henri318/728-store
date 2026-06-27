@@ -12,7 +12,7 @@ test.describe('Products', () => {
   test('shows product price', async ({ page }) => {
     await page.goto('/es');
 
-    await expect(page.getByText('$25')).toBeVisible();
+    await expect(page.getByText('25.00 €')).toBeVisible();
   });
 
   test('product detail page shows product info', async ({ page }) => {
