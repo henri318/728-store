@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => {
       findUnique: vi.fn(),
       findFirst: vi.fn(),
       findMany: vi.fn(),
+      count: vi.fn(),
       update: vi.fn(),
     },
   };
@@ -19,11 +20,18 @@ const mocks = vi.hoisted(() => {
       findUnique: vi.fn(),
       findFirst: vi.fn(),
       findMany: vi.fn(),
+      count: vi.fn(),
       update: vi.fn(),
     },
     $transaction: vi.fn(
-      async (callback: (tx: typeof txMock) => Promise<void>) =>
-        callback(txMock),
+      async <T>(
+        input: ((tx: typeof txMock) => Promise<T>) | Promise<T>[],
+      ): Promise<T> => {
+        if (typeof input === 'function') {
+          return (input as (tx: typeof txMock) => Promise<T>)(txMock);
+        }
+        return Promise.all(input) as Promise<T>;
+      },
     ),
   };
 
@@ -332,6 +340,131 @@ describe('PrismaSellerRepository', () => {
 
       expect(result).not.toBeNull();
       expect(result!.userId).toBe('user-42');
+    });
+  });
+
+  describe('findPaginated', () => {
+    it('should query with deletedAt null and return paginated envelope', async () => {
+      mocks.prismaMock.$transaction.mockResolvedValue([[makePrismaRow()], 1]);
+
+      const result = await repo.findPaginated({ page: 1, pageSize: 10 });
+
+      expect(mocks.prismaMock.seller.findMany).toHaveBeenCalledWith({
+        where: { deletedAt: null },
+        orderBy: { createdAt: 'desc' },
+        skip: 0,
+        take: 10,
+      });
+      expect(mocks.prismaMock.seller.count).toHaveBeenCalledWith({
+        where: { deletedAt: null },
+      });
+      expect(result.items).toHaveLength(1);
+      expect(result.total).toBe(1);
+      expect(result.page).toBe(1);
+      expect(result.pageSize).toBe(10);
+      expect(result.totalPages).toBe(1);
+    });
+
+    it('should filter by status', async () => {
+      mocks.prismaMock.$transaction.mockResolvedValue([
+        [makePrismaRow({ status: 'active' })],
+        1,
+      ]);
+
+      await repo.findPaginated({ status: SellerStatus.ACTIVE });
+
+      expect(mocks.prismaMock.seller.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { deletedAt: null, status: 'active' },
+        }),
+      );
+    });
+
+    it('should filter by q across name and description', async () => {
+      mocks.prismaMock.$transaction.mockResolvedValue([[], 0]);
+
+      await repo.findPaginated({ q: 'camisa' });
+
+      expect(mocks.prismaMock.seller.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            deletedAt: null,
+            OR: [
+              { name: { contains: 'camisa', mode: 'insensitive' } },
+              { description: { contains: 'camisa', mode: 'insensitive' } },
+            ],
+          },
+        }),
+      );
+    });
+
+    it('should compose status and q filters', async () => {
+      mocks.prismaMock.$transaction.mockResolvedValue([[], 0]);
+
+      await repo.findPaginated({
+        status: SellerStatus.ACTIVE,
+        q: 'camisa',
+      });
+
+      expect(mocks.prismaMock.seller.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            deletedAt: null,
+            status: 'active',
+            OR: [
+              { name: { contains: 'camisa', mode: 'insensitive' } },
+              { description: { contains: 'camisa', mode: 'insensitive' } },
+            ],
+          },
+        }),
+      );
+    });
+
+    it('should sort by name ascending', async () => {
+      mocks.prismaMock.$transaction.mockResolvedValue([[], 0]);
+
+      await repo.findPaginated({ sortBy: 'name', sortDir: 'asc' });
+
+      expect(mocks.prismaMock.seller.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: { name: 'asc' },
+        }),
+      );
+    });
+
+    it('should sort by createdAt descending by default', async () => {
+      mocks.prismaMock.$transaction.mockResolvedValue([[], 0]);
+
+      await repo.findPaginated({});
+
+      expect(mocks.prismaMock.seller.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: { createdAt: 'desc' },
+        }),
+      );
+    });
+
+    it('should calculate skip and take from page and pageSize', async () => {
+      mocks.prismaMock.$transaction.mockResolvedValue([[], 0]);
+
+      await repo.findPaginated({ page: 3, pageSize: 5 });
+
+      expect(mocks.prismaMock.seller.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skip: 10,
+          take: 5,
+        }),
+      );
+    });
+
+    it('should count with the same where clause', async () => {
+      mocks.prismaMock.$transaction.mockResolvedValue([[], 0]);
+
+      await repo.findPaginated({ status: SellerStatus.SUSPENDED, q: 'test' });
+
+      const findManyCall = mocks.prismaMock.seller.findMany.mock.calls[0][0];
+      const countCall = mocks.prismaMock.seller.count.mock.calls[0][0];
+      expect(countCall.where).toEqual(findManyCall.where);
     });
   });
 

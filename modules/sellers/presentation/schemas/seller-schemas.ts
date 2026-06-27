@@ -8,9 +8,14 @@ import { SellerStatus } from '../../domain/seller-status';
  * (uniqueness, state transitions, etc.) live in the application layer.
  */
 
-/** GET /api/sellers?status=active|suspended|banned */
+/** GET /api/sellers?status=active|suspended|banned&page=1&pageSize=20&q=&sortBy=name|createdAt&sortDir=asc|desc */
 export const listSellersQuerySchema = z.object({
   status: z.nativeEnum(SellerStatus).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  q: z.string().trim().optional(),
+  sortBy: z.enum(['name', 'createdAt']).default('createdAt'),
+  sortDir: z.enum(['asc', 'desc']).default('desc'),
 });
 
 /**

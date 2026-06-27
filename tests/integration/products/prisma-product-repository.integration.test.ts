@@ -71,7 +71,7 @@ describe('PrismaProductRepository — Integration', () => {
       skipDuplicates: true,
     });
 
-    await prisma.productCustomization.create({
+    await prisma.customization.create({
       data: {
         id: 'cust-int-1',
         productId: 'prod-int-1',

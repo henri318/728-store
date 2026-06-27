@@ -1,5 +1,15 @@
+import type { PaginatedResult } from '@/shared/kernel/domain/value-objects/pagination';
 import type { SellerEntity } from './seller';
 import type { SellerStatus } from './seller-status';
+
+export interface SellersListFilter {
+  status?: SellerStatus;
+  q?: string;
+  sortBy?: 'name' | 'createdAt';
+  sortDir?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+}
 
 /**
  * SellerRepository — the port for persisting and querying sellers.
@@ -37,6 +47,15 @@ export interface SellerRepository {
    * Filtering happens in the persistence layer, not in memory.
    */
   findAllByStatus(status: SellerStatus): Promise<SellerEntity[]>;
+
+  /**
+   * Return a paginated, filtered list of non-deleted sellers.
+   * Supports status filtering, text search (q) across name and description,
+   * sorting, and pagination.
+   */
+  findPaginated(
+    filter: SellersListFilter,
+  ): Promise<PaginatedResult<SellerEntity>>;
 
   /** Update an existing seller. Returns the updated entity. */
   update(seller: SellerEntity, tx?: unknown): Promise<SellerEntity>;

@@ -1,5 +1,9 @@
 import type { PrismaClient } from '@prisma/client';
-import type { SellerRepository } from '../domain/seller-repository';
+import type { PaginatedResult } from '@/shared/kernel/domain/value-objects/pagination';
+import type {
+  SellerRepository,
+  SellersListFilter,
+} from '../domain/seller-repository';
 import type { SellerEntity } from '../domain/seller';
 import type { SellerStatus } from '../domain/seller-status';
 import { toDomain } from './prisma-seller-mapper';
@@ -68,6 +72,56 @@ export class PrismaSellerRepository implements SellerRepository {
       where: { status, deletedAt: null },
     });
     return rows.map(toDomain);
+  }
+
+  async findPaginated(
+    filter: SellersListFilter,
+  ): Promise<PaginatedResult<SellerEntity>> {
+    const page = filter.page ?? 1;
+    const pageSize = filter.pageSize ?? 20;
+    const sortBy = filter.sortBy ?? 'createdAt';
+    const sortDir = filter.sortDir ?? 'desc';
+
+    const where = this.buildWhere(filter);
+
+    const [rows, total] = await prisma.$transaction([
+      prisma.seller.findMany({
+        where,
+        orderBy: { [sortBy]: sortDir },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.seller.count({ where }),
+    ]);
+
+    return {
+      items: rows.map(toDomain),
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
+  }
+
+  private buildWhere(
+    filter: SellersListFilter,
+  ): import('@prisma/client').Prisma.SellerWhereInput {
+    const where: import('@prisma/client').Prisma.SellerWhereInput = {
+      deletedAt: null,
+    };
+
+    if (filter.status !== undefined) {
+      where.status = filter.status;
+    }
+
+    if (filter.q !== undefined && filter.q.trim() !== '') {
+      where.OR = [
+        { name: { contains: filter.q.trim(), mode: 'insensitive' } },
+        { description: { contains: filter.q.trim(), mode: 'insensitive' } },
+      ];
+    }
+
+    return where;
   }
 
   async update(
