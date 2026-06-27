@@ -138,15 +138,16 @@ describe('PrismaOrderRepository — Integration', () => {
           orderId: 'order-int-2',
           productId: 'prod-order-2',
           quantity: 2,
-          customizationText: 'Hello World',
-          customizationColor: 'red',
+          customizationIdList: [],
+          customizationSnapshot: { text: 'Hello World', color: 'red' },
         },
         {
           id: 'item-int-2',
           orderId: 'order-int-2',
           productId: 'prod-order-2',
           quantity: 1,
-          customizationSize: 'XL',
+          customizationIdList: [],
+          customizationSnapshot: { size: 'XL' },
         },
       ];
 
@@ -167,13 +168,65 @@ describe('PrismaOrderRepository — Integration', () => {
       const item1 = found!.lineItems!.find((i) => i.id === 'item-int-1');
       expect(item1).toBeDefined();
       expect(item1!.quantity).toBe(2);
-      expect(item1!.customizationText).toBe('Hello World');
-      expect(item1!.customizationColor).toBe('red');
+      expect(item1!.customizationSnapshot).toEqual({
+        text: 'Hello World',
+        color: 'red',
+      });
 
       const item2 = found!.lineItems!.find((i) => i.id === 'item-int-2');
       expect(item2).toBeDefined();
       expect(item2!.quantity).toBe(1);
-      expect(item2!.customizationSize).toBe('XL');
+      expect(item2!.customizationSnapshot).toEqual({ size: 'XL' });
+    });
+
+    it('should persist line items with non-empty customizationIdList', async () => {
+      await ensurePrerequisites({
+        userId: 'user-order-2b',
+        sellerId: 'seller-order-2b',
+        productId: 'prod-order-2b',
+      });
+
+      // Create a customization for the product
+      await prisma.customization.create({
+        data: {
+          id: 'cust-order-1',
+          productId: 'prod-order-2b',
+          text: 'Custom text',
+          color: 'blue',
+        },
+      });
+
+      const lineItems: OrderLineItemEntity[] = [
+        {
+          id: 'item-cust-1',
+          orderId: 'order-int-2b',
+          productId: 'prod-order-2b',
+          quantity: 1,
+          customizationIdList: ['cust-order-1'],
+          customizationSnapshot: { text: 'Custom text', color: 'blue' },
+        },
+      ];
+
+      const order = makeOrder({
+        id: 'order-int-2b',
+        userId: 'user-order-2b',
+        sellerId: 'seller-order-2b',
+        total: 50,
+        lineItems,
+      });
+
+      await repo.save(order);
+
+      const found = await repo.findById('order-int-2b');
+      expect(found).not.toBeNull();
+      expect(found!.lineItems).toHaveLength(1);
+      expect(found!.lineItems![0].customizationIdList).toEqual([
+        'cust-order-1',
+      ]);
+      expect(found!.lineItems![0].customizationSnapshot).toEqual({
+        text: 'Custom text',
+        color: 'blue',
+      });
     });
   });
 
@@ -229,6 +282,8 @@ describe('PrismaOrderRepository — Integration', () => {
           orderId: 'order-int-4',
           productId: 'prod-order-4',
           quantity: 3,
+          customizationIdList: [],
+          customizationSnapshot: null,
         },
       ];
 

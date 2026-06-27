@@ -80,10 +80,7 @@ export class PrismaCartRepository implements CartRepository {
             unitPriceSnapshot: new Prisma.Decimal(
               item.unitPriceSnapshot.amount,
             ),
-            customizationText: item.customizationText ?? null,
-            customizationColor: item.customizationColor ?? null,
-            customizationSize: item.customizationSize ?? null,
-            customizationImageUrl: item.customizationImageUrl ?? null,
+            customizationIdList: item.customizationIdList,
             createdAt: new Date(),
             updatedAt: new Date(),
           })),
@@ -164,10 +161,7 @@ type PrismaCartItemRow = {
   sellerId: string;
   quantity: number;
   unitPriceSnapshot: Prisma.Decimal | number;
-  customizationText: string | null;
-  customizationColor: string | null;
-  customizationSize: string | null;
-  customizationImageUrl: string | null;
+  customizationIdList: string[];
   createdAt: Date;
   updatedAt: Date;
 };
@@ -195,9 +189,6 @@ function toItemDomain(row: PrismaCartItemRow): CartItemEntity {
     sellerId: SellerId.create(row.sellerId),
     quantity: row.quantity,
     unitPriceSnapshot: Money.create(amount, Currency.EUR),
-    customizationText: row.customizationText,
-    customizationColor: row.customizationColor,
-    customizationSize: row.customizationSize,
-    customizationImageUrl: row.customizationImageUrl,
+    customizationIdList: row.customizationIdList,
   };
 }

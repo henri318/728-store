@@ -11,10 +11,7 @@ export interface CartLineSnapshot {
   sellerId: string;
   quantity: number;
   unitPrice: number;
-  customizationText?: string | null;
-  customizationColor?: string | null;
-  customizationSize?: string | null;
-  customizationImageUrl?: string | null;
+  customizationIdList?: string[];
 }
 
 export interface CartCheckedOutPayload {
@@ -72,10 +69,8 @@ export class HandleCartCheckedOut {
         orderId,
         productId: it.productId,
         quantity: it.quantity,
-        customizationText: it.customizationText ?? null,
-        customizationColor: it.customizationColor ?? null,
-        customizationSize: it.customizationSize ?? null,
-        customizationImageUrl: it.customizationImageUrl ?? null,
+        customizationIdList: it.customizationIdList ?? [],
+        customizationSnapshot: null,
       }));
 
       const total = items.reduce(

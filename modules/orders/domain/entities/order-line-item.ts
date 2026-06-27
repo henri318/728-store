@@ -1,6 +1,6 @@
 /**
  * Represents a single line item within an order.
- * Contains product information and customization options.
+ * Contains product information and customization references + immutable snapshot.
  */
 export interface OrderLineItemEntity {
   /** Unique identifier for the line item */
@@ -11,12 +11,13 @@ export interface OrderLineItemEntity {
   productId: string;
   /** Quantity of this product */
   quantity: number;
-  /** Optional text customization for the product */
-  customizationText?: string | null;
-  /** Optional color customization for the product */
-  customizationColor?: string | null;
-  /** Optional size customization for the product */
-  customizationSize?: string | null;
-  /** Optional URL to customized product image */
-  customizationImageUrl?: string | null;
+  /** References to Customization entities (historical) */
+  customizationIdList: string[];
+  /** Immutable snapshot frozen at checkout time */
+  customizationSnapshot: {
+    text?: string;
+    color?: string;
+    size?: string;
+    imageUrl?: string;
+  } | null;
 }

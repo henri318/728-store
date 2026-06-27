@@ -1,4 +1,5 @@
 import type { PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import {
   OrderEntity,
   OrderRepository,
@@ -86,10 +87,8 @@ export class PrismaOrderRepository implements OrderRepository {
         orderId: orderId,
         productId: item.productId,
         quantity: item.quantity,
-        customizationText: item.customizationText,
-        customizationColor: item.customizationColor,
-        customizationSize: item.customizationSize,
-        customizationImageUrl: item.customizationImageUrl,
+        customizationIdList: item.customizationIdList,
+        customizationSnapshot: item.customizationSnapshot ?? Prisma.JsonNull,
       })),
     });
   }
@@ -116,10 +115,13 @@ export class PrismaOrderRepository implements OrderRepository {
         orderId: item.orderId,
         productId: item.productId,
         quantity: item.quantity,
-        customizationText: item.customizationText,
-        customizationColor: item.customizationColor,
-        customizationSize: item.customizationSize,
-        customizationImageUrl: item.customizationImageUrl,
+        customizationIdList: item.customizationIdList,
+        customizationSnapshot: item.customizationSnapshot as {
+          text?: string;
+          color?: string;
+          size?: string;
+          imageUrl?: string;
+        } | null,
       })),
     };
   }
