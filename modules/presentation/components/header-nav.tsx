@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { LoginModal } from '@/modules/presentation/components/login-modal';
@@ -16,7 +15,7 @@ interface HeaderNavProps {
   cartAlt: string;
 }
 
-export function HeaderNav({ loginLabel, profileAlt, cartAlt }: HeaderNavProps) {
+export function HeaderNav({ loginLabel, cartAlt }: HeaderNavProps) {
   const pathname = usePathname();
   const { data: session, status } = useSession();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -27,13 +26,14 @@ export function HeaderNav({ loginLabel, profileAlt, cartAlt }: HeaderNavProps) {
     return (
       <>
         <UserMenuDropdown user={session.user}>
-          <Image
-            src="/img/icons/iconos-07.svg"
-            alt={profileAlt}
-            width={62}
-            height={62}
+          <svg
             className={styles.userIcon}
-          />
+            aria-hidden="true"
+            width="62"
+            height="62"
+          >
+            <use href="/img/sprites.svg#icon-profile" />
+          </svg>
         </UserMenuDropdown>
         <CartIcon alt={cartAlt} />
         <RoleNavLinks role={session.user.role} locale={locale} />
@@ -53,13 +53,14 @@ export function HeaderNav({ loginLabel, profileAlt, cartAlt }: HeaderNavProps) {
         className={styles.iconButton}
         aria-label={loginLabel}
       >
-        <Image
-          src="/img/icons/iconos-07.svg"
-          alt={profileAlt}
-          width={62}
-          height={62}
+        <svg
           className={styles.userIcon}
-        />
+          aria-hidden="true"
+          width="62"
+          height="62"
+        >
+          <use href="/img/sprites.svg#icon-profile" />
+        </svg>
       </button>
       <CartIcon alt={cartAlt} />
       <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />

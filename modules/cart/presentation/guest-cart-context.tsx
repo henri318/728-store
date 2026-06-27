@@ -39,7 +39,7 @@ export interface GuestCartContextType {
   updateQuantity: (productId: string, quantity: number) => void;
   removeItem: (productId: string) => void;
   clearCart: () => void;
-  /** Number of distinct line items (not sum of quantities). */
+  /** Sum of all item quantities. */
   itemCount: number;
   /** True once localStorage has been read. False during SSR and initial render. */
   hydrated: boolean;
@@ -129,7 +129,7 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
       updateQuantity,
       removeItem,
       clearCart,
-      itemCount: items.length,
+      itemCount: items.reduce((sum, i) => sum + i.quantity, 0),
       hydrated,
     }),
     [items, addItem, updateQuantity, removeItem, clearCart, hydrated],

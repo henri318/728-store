@@ -15,6 +15,11 @@ describe('Integration: Header and Footer Layout', () => {
       expect(content).toContain("import '../globals.css'");
     });
 
+    it('imports sprites.css', () => {
+      const content = readFile('app/globals.css');
+      expect(content).toContain("import '../shared/presentation/sprites.css'");
+    });
+
     it('imports HeaderBanner', () => {
       const content = readFile('app/[locale]/layout.tsx');
       expect(content).toContain('HeaderBanner');
@@ -100,16 +105,16 @@ describe('Integration: Header and Footer Layout', () => {
       expect(content).not.toMatch(/style=\{\{/);
     });
 
-    it('uses iconos-07.svg for profile', () => {
+    it('uses sprites.svg#icon-profile for profile', () => {
       const content = readFile(
         'modules/presentation/components/header-nav.tsx',
       );
-      expect(content).toContain('iconos-07.svg');
+      expect(content).toContain('sprites.svg#icon-profile');
     });
 
-    it('uses iconos-04.svg for cart', () => {
+    it('uses sprites.svg#icon-cart for cart', () => {
       const content = readFile('modules/presentation/components/cart-icon.tsx');
-      expect(content).toContain('iconos-04.svg');
+      expect(content).toContain('sprites.svg#icon-cart');
     });
 
     it('has userIcon class for sizing', () => {
