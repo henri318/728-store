@@ -2,6 +2,7 @@ import type { ProductTranslationEntity } from './product-translation';
 import type { ProductCustomizationEntity } from './product-customization';
 import type { ProductImageEntity } from './product-image';
 import type { TagEntity } from './tag';
+import type { CategoryEntity } from './category';
 import type { ProductStatus } from '../value-objects/product-status';
 
 /**
@@ -17,6 +18,8 @@ import type { ProductStatus } from '../value-objects/product-status';
  *  - sellerName: denormalized seller display name
  *  - status: lifecycle state (DRAFT | ACTIVE | ARCHIVED)
  *  - categoryId: optional FK to Category
+ *  - category: eager-loaded category value object (null when uncategorized)
+ *  - createdAt: creation timestamp
  *  - updatedAt: last modification timestamp
  *  - translations: i18n name/description per locale
  *  - customizations: product customization options
@@ -30,6 +33,8 @@ export interface ProductEntity {
   readonly sellerName: string;
   readonly status: ProductStatus;
   readonly categoryId: string | null;
+  readonly category: CategoryEntity | null;
+  readonly createdAt: Date;
   readonly updatedAt: Date;
   readonly translations: ProductTranslationEntity[];
   readonly customizations: ProductCustomizationEntity[];

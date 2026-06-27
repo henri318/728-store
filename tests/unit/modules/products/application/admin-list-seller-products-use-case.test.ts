@@ -19,6 +19,8 @@ describe('AdminListSellerProductsUseCase', () => {
         sellerName: 'Store 1',
         status: ProductStatus.ACTIVE,
         categoryId: null,
+        category: null,
+        createdAt: new Date('2025-01-01'),
         updatedAt: new Date('2025-01-01'),
         translations: [
           { locale: 'es', name: 'Taza', description: 'Una taza' },
@@ -35,6 +37,8 @@ describe('AdminListSellerProductsUseCase', () => {
         sellerName: 'Store 1',
         status: ProductStatus.DRAFT,
         categoryId: null,
+        category: null,
+        createdAt: new Date('2025-01-02'),
         updatedAt: new Date('2025-01-02'),
         translations: [
           { locale: 'es', name: 'Plato', description: 'Un plato' },
@@ -50,6 +54,8 @@ describe('AdminListSellerProductsUseCase', () => {
         sellerName: 'Store 2',
         status: ProductStatus.ACTIVE,
         categoryId: null,
+        category: null,
+        createdAt: new Date('2025-01-03'),
         updatedAt: new Date('2025-01-03'),
         translations: [{ locale: 'es', name: 'Vaso', description: 'Un vaso' }],
         customizations: [],

@@ -34,6 +34,13 @@ function makePrismaProductRow(overrides: Record<string, unknown> = {}) {
     seller: { name: 'Test Shop' },
     status: 'ACTIVE',
     categoryId: 'cat-1',
+    category: {
+      id: 'cat-1',
+      name: 'Clothing',
+      slug: 'clothing',
+      parentId: null,
+      createdAt: new Date('2025-01-01T10:00:00Z'),
+    },
     createdAt: new Date('2025-01-01T10:00:00Z'),
     updatedAt: new Date('2025-01-02T10:00:00Z'),
     translations: [
@@ -84,6 +91,10 @@ describe('mapper.toDomainProduct', () => {
     expect(result.sellerName).toBe('Test Shop');
     expect(result.status).toBe(ProductStatus.ACTIVE);
     expect(result.categoryId).toBe('cat-1');
+    expect(result.category).not.toBeNull();
+    expect(result.category?.id).toBe('cat-1');
+    expect(result.category?.slug).toBe('clothing');
+    expect(result.category?.name).toBe('Clothing');
     expect(result.updatedAt).toEqual(new Date('2025-01-02T10:00:00Z'));
     expect(result.translations).toHaveLength(1);
     expect(result.translations[0].locale).toBe('es');
@@ -108,11 +119,12 @@ describe('mapper.toDomainProduct', () => {
     expect(result.status).toBe(ProductStatus.ARCHIVED);
   });
 
-  it('should handle null categoryId', () => {
-    const row = makePrismaProductRow({ categoryId: null });
+  it('should handle null categoryId and category', () => {
+    const row = makePrismaProductRow({ categoryId: null, category: null });
     const result = toDomainProduct(row);
 
     expect(result.categoryId).toBeNull();
+    expect(result.category).toBeNull();
   });
 
   it('should handle empty arrays for images, tags, translations, customizations', () => {
@@ -147,6 +159,7 @@ describe('mapper.toDomainProduct', () => {
     });
     const result = toDomainProduct(row);
 
+    expect(result.createdAt).toBe(created);
     expect(result.updatedAt).toBe(updated);
   });
 
@@ -241,6 +254,14 @@ describe('mapper.toPersistenceProduct', () => {
       sellerName: 'Test Shop',
       status: ProductStatus.ACTIVE,
       categoryId: 'cat-1',
+      category: {
+        id: 'cat-1',
+        name: 'Clothing',
+        slug: 'clothing',
+        parentId: null,
+        createdAt: new Date('2025-01-01T10:00:00Z'),
+      },
+      createdAt: new Date('2025-01-01T10:00:00Z'),
       updatedAt: new Date('2025-01-02T10:00:00Z'),
       translations: [
         { locale: 'es', name: 'Producto Test', description: 'Descripción' },
@@ -516,6 +537,14 @@ describe('mapper — product round trip', () => {
       sellerName: 'RT Shop',
       status: ProductStatus.ACTIVE,
       categoryId: 'cat-rt',
+      category: {
+        id: 'cat-rt',
+        name: 'RT Category',
+        slug: 'rt-category',
+        parentId: null,
+        createdAt: new Date('2025-01-01T10:00:00Z'),
+      },
+      createdAt: new Date('2025-01-01T10:00:00Z'),
       updatedAt: new Date('2025-01-02T10:00:00Z'),
       translations: [
         { locale: 'es', name: 'Producto RT', description: 'Desc RT' },
@@ -560,6 +589,8 @@ describe('mapper — product round trip', () => {
       sellerName: 'Shop',
       status: ProductStatus.DRAFT,
       categoryId: null,
+      category: null,
+      createdAt: new Date('2025-01-01'),
       updatedAt: new Date('2025-01-01'),
       translations: [],
       customizations: [],

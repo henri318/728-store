@@ -19,6 +19,8 @@ describe('GetProductsUseCase with i18n', () => {
         sellerName: 'Store 1',
         status: ProductStatus.ACTIVE,
         categoryId: null,
+        category: null,
+        createdAt: new Date(),
         updatedAt: new Date(),
         translations: [
           { locale: 'es', name: 'Taza', description: 'Una taza' },
