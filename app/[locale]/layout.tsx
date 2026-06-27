@@ -16,6 +16,7 @@ import { CartPopup } from '@/modules/presentation/components/cart-popup';
 import { outboxWorker } from '@/workers/outbox-worker';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { DictionaryProvider } from '@/shared/i18n/dictionary-context';
+import { APP_BASE_URL } from '@/shared/kernel/config';
 import '../globals.css';
 import styles from './layout.module.css';
 
@@ -35,18 +36,9 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const dict = await getDictionary(locale as 'es' | 'cat');
 
-  const titleMap: Record<string, string> = {
-    es: 'Plataforma de Comercio Electrónico Modular',
-    cat: 'Plataforma de Comerç Electrònic Modular',
-  };
-
-  const descriptionMap: Record<string, string> = {
-    es: 'Descubre la mejor plataforma de comercio electrónico modular. Diseñada para vendedores y compradores con tecnología moderna y fácil uso.',
-    cat: 'Descobreix la millor plataforma de comerç electrònic modular. Dissenyada per a venedors i compradors amb tecnologia moderna i fàcil ús.',
-  };
-
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  const baseUrl = APP_BASE_URL;
   const alternates: Record<string, string> = {};
 
   ['es', 'cat'].forEach((lang) => {
@@ -54,22 +46,19 @@ export async function generateMetadata({
   });
 
   return {
+    metadataBase: new URL(baseUrl),
     title: {
       template: '%s | 728store',
-      default: `${titleMap[locale]} | 728store`,
+      default: dict.common.homeTitle,
     },
-    description: descriptionMap[locale],
-    keywords: [
-      'ecommerce',
-      'modular',
-      'tienda online',
-      'plataforma',
-      'venta online',
-      locale === 'cat' ? 'compra online' : 'comprar online',
-    ],
+    description: dict.common.homeDescription,
+    keywords: dict.common.keywords.split(', '),
     robots: {
       index: true,
       follow: true,
+    },
+    icons: {
+      icon: '/icon.svg',
     },
     alternates: {
       canonical: `${baseUrl}/${locale}`,
