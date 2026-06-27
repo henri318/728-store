@@ -21,6 +21,7 @@ export interface PrismaProductRow {
   seller: { name: string };
   status: string;
   categoryId: string | null;
+  category: PrismaCategoryRow | null;
   createdAt: Date;
   updatedAt: Date;
   translations: PrismaTranslationRow[];
@@ -119,6 +120,10 @@ export function toDomainProduct(
     sellerName: prismaProduct.seller.name,
     status: prismaProduct.status as ProductStatus,
     categoryId: prismaProduct.categoryId,
+    category: prismaProduct.category
+      ? toDomainCategory(prismaProduct.category)
+      : null,
+    createdAt: prismaProduct.createdAt,
     updatedAt: prismaProduct.updatedAt,
     translations: prismaProduct.translations.map((t) => ({
       locale: t.locale,

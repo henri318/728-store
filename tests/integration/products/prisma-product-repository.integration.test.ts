@@ -142,4 +142,309 @@ describe('PrismaProductRepository — Integration', () => {
       expect(product!.translations).toHaveLength(0);
     });
   });
+
+  describe('findPaginated', () => {
+    beforeAll(async () => {
+      // Seed prerequisite user/seller for pagination products
+      await prisma.user.upsert({
+        where: { id: 'user-pag' },
+        create: {
+          id: 'user-pag',
+          email: 'pag@test.com',
+          firstName: 'Pag',
+          lastName: 'Seller',
+          role: 'DESIGNER',
+          passwordHash: 'hashed-pw',
+        },
+        update: {},
+      });
+
+      await prisma.seller.upsert({
+        where: { id: 'seller-pag' },
+        create: {
+          id: 'seller-pag',
+          name: 'Pagination Seller',
+          userId: 'user-pag',
+          status: 'active',
+        },
+        update: {},
+      });
+
+      await prisma.category.upsert({
+        where: { id: 'cat-pag-clothing' },
+        create: {
+          id: 'cat-pag-clothing',
+          name: 'Clothing',
+          slug: 'clothing',
+        },
+        update: {},
+      });
+
+      await prisma.category.upsert({
+        where: { id: 'cat-pag-shoes' },
+        create: {
+          id: 'cat-pag-shoes',
+          name: 'Shoes',
+          slug: 'shoes',
+        },
+        update: {},
+      });
+
+      await prisma.tag.upsert({
+        where: { id: 'tag-cotton' },
+        create: { id: 'tag-cotton', name: 'Cotton', slug: 'cotton' },
+        update: {},
+      });
+
+      await prisma.tag.upsert({
+        where: { id: 'tag-blue' },
+        create: { id: 'tag-blue', name: 'Blue', slug: 'blue' },
+        update: {},
+      });
+
+      const products = [
+        {
+          id: 'prod-pag-1',
+          basePrice: 10,
+          sellerId: 'seller-pag',
+          categoryId: 'cat-pag-clothing',
+          createdAt: new Date('2025-01-03'),
+        },
+        {
+          id: 'prod-pag-2',
+          basePrice: 20,
+          sellerId: 'seller-pag',
+          categoryId: 'cat-pag-clothing',
+          createdAt: new Date('2025-01-01'),
+        },
+        {
+          id: 'prod-pag-3',
+          basePrice: 30,
+          sellerId: 'seller-pag',
+          categoryId: 'cat-pag-shoes',
+          createdAt: new Date('2025-01-02'),
+        },
+      ];
+
+      for (const product of products) {
+        await prisma.product.upsert({
+          where: { id: product.id },
+          create: product,
+          update: {},
+        });
+      }
+
+      await prisma.productTranslation.createMany({
+        data: [
+          {
+            productId: 'prod-pag-1',
+            locale: 'es',
+            name: 'Camiseta',
+            description: 'Una camiseta de algodón',
+          },
+          {
+            productId: 'prod-pag-2',
+            locale: 'es',
+            name: 'Pantalón',
+            description: 'Pantalón de algodón',
+          },
+          {
+            productId: 'prod-pag-3',
+            locale: 'es',
+            name: 'Zapatos',
+            description: 'Zapatos azules',
+          },
+        ],
+        skipDuplicates: true,
+      });
+
+      await prisma.product.update({
+        where: { id: 'prod-pag-1' },
+        data: {
+          tags: { connect: [{ id: 'tag-cotton' }, { id: 'tag-blue' }] },
+        },
+      });
+
+      await prisma.product.update({
+        where: { id: 'prod-pag-2' },
+        data: {
+          tags: { connect: [{ id: 'tag-cotton' }] },
+        },
+      });
+
+      await prisma.product.update({
+        where: { id: 'prod-pag-3' },
+        data: {
+          tags: { connect: [{ id: 'tag-blue' }] },
+        },
+      });
+    });
+
+    it('returns paginated products with default sort by createdAt desc', async () => {
+      const result = await repo.findPaginated({
+        sellerId: 'seller-pag',
+        page: 1,
+        pageSize: 2,
+      });
+
+      expect(result.items).toHaveLength(2);
+      expect(result.total).toBe(3);
+      expect(result.page).toBe(1);
+      expect(result.pageSize).toBe(2);
+      expect(result.totalPages).toBe(2);
+      expect(result.items[0].id).toBe('prod-pag-1');
+      expect(result.items[1].id).toBe('prod-pag-3');
+    });
+
+    it('returns empty items when page is beyond range', async () => {
+      const result = await repo.findPaginated({
+        sellerId: 'seller-pag',
+        page: 99,
+        pageSize: 10,
+      });
+
+      expect(result.items).toEqual([]);
+      expect(result.total).toBe(3);
+      expect(result.totalPages).toBe(1);
+    });
+
+    it('filters by q across name and description scoped to locale', async () => {
+      const result = await repo.findPaginated({
+        sellerId: 'seller-pag',
+        q: 'algodón',
+      });
+
+      expect(result.items).toHaveLength(2);
+      expect(result.items.map((p) => p.id).sort()).toEqual([
+        'prod-pag-1',
+        'prod-pag-2',
+      ]);
+    });
+
+    it('filters by category slug', async () => {
+      const result = await repo.findPaginated({
+        sellerId: 'seller-pag',
+        category: 'clothing',
+      });
+
+      expect(result.items).toHaveLength(2);
+      expect(result.items.map((p) => p.id).sort()).toEqual([
+        'prod-pag-1',
+        'prod-pag-2',
+      ]);
+    });
+
+    it('returns empty result for unknown category slug', async () => {
+      const result = await repo.findPaginated({ category: 'does-not-exist' });
+
+      expect(result.items).toEqual([]);
+      expect(result.total).toBe(0);
+    });
+
+    it('filters by tags with ANY-match semantics', async () => {
+      const result = await repo.findPaginated({
+        sellerId: 'seller-pag',
+        tags: ['cotton', 'blue'],
+      });
+
+      expect(result.items).toHaveLength(3);
+      expect(result.items.map((p) => p.id).sort()).toEqual([
+        'prod-pag-1',
+        'prod-pag-2',
+        'prod-pag-3',
+      ]);
+    });
+
+    it('filters by q, category and tags AND-composed', async () => {
+      const result = await repo.findPaginated({
+        sellerId: 'seller-pag',
+        q: 'algodón',
+        category: 'clothing',
+        tags: ['cotton'],
+      });
+
+      expect(result.items).toHaveLength(2);
+      expect(result.items.map((p) => p.id).sort()).toEqual([
+        'prod-pag-1',
+        'prod-pag-2',
+      ]);
+    });
+
+    it('filters by sellerId', async () => {
+      const result = await repo.findPaginated({ sellerId: 'seller-pag' });
+
+      expect(result.total).toBe(3);
+    });
+
+    it('returns empty result for non-existent sellerId', async () => {
+      const result = await repo.findPaginated({ sellerId: 'ghost' });
+
+      expect(result.items).toEqual([]);
+      expect(result.total).toBe(0);
+    });
+
+    it('includes category, tags and translations eagerly', async () => {
+      const result = await repo.findPaginated({
+        sellerId: 'seller-pag',
+        page: 1,
+        pageSize: 1,
+      });
+
+      expect(result.items[0].categoryId).toBe('cat-pag-clothing');
+      expect(result.items[0].category).not.toBeNull();
+      expect(result.items[0].category?.id).toBe('cat-pag-clothing');
+      expect(result.items[0].category?.slug).toBe('clothing');
+      expect(result.items[0].tags.length).toBeGreaterThan(0);
+      expect(result.items[0].translations.length).toBeGreaterThan(0);
+    });
+
+    it('falls back to es translation when querying unsupported locale', async () => {
+      await prisma.productTranslation.createMany({
+        data: [
+          {
+            productId: 'prod-pag-1',
+            locale: 'fr',
+            name: 'T-shirt',
+            description: 'Un t-shirt en coton',
+          },
+        ],
+        skipDuplicates: true,
+      });
+
+      const result = await repo.findPaginated({
+        sellerId: 'seller-pag',
+        q: 'zapatos',
+        lang: 'fr',
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].id).toBe('prod-pag-3');
+      expect(result.items[0].translations.map((t) => t.locale)).toContain('es');
+    });
+
+    it('prefers requested locale match when both requested locale and es exist', async () => {
+      const result = await repo.findPaginated({
+        sellerId: 'seller-pag',
+        q: 't-shirt',
+        lang: 'fr',
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].id).toBe('prod-pag-1');
+    });
+
+    it('sorts by createdAt ascending', async () => {
+      const result = await repo.findPaginated({
+        sellerId: 'seller-pag',
+        sortBy: 'createdAt',
+        sortDir: 'asc',
+      });
+
+      expect(result.items.map((p) => p.id)).toEqual([
+        'prod-pag-2',
+        'prod-pag-3',
+        'prod-pag-1',
+      ]);
+    });
+  });
 });
