@@ -83,7 +83,7 @@ describe('GuestCartContext', () => {
     act(() => {
       fireEvent.click(screen.getByTestId('add-btn'));
     });
-    expect(screen.getByTestId('item-count').textContent).toBe('1');
+    expect(screen.getByTestId('item-count').textContent).toBe('2');
     const items = JSON.parse(screen.getByTestId('items').textContent!);
     expect(items).toHaveLength(1);
     expect(items[0].productId).toBe('prod-1');
@@ -116,7 +116,7 @@ describe('GuestCartContext', () => {
     localStorage.setItem(GUEST_CART_STORAGE_KEY, JSON.stringify(existing));
 
     renderWithProvider();
-    expect(screen.getByTestId('item-count').textContent).toBe('1');
+    expect(screen.getByTestId('item-count').textContent).toBe('3');
     const items = JSON.parse(screen.getByTestId('items').textContent!);
     expect(items[0].productId).toBe('prod-x');
   });
@@ -138,7 +138,7 @@ describe('GuestCartContext', () => {
     act(() => {
       fireEvent.click(screen.getByTestId('add-btn'));
     });
-    expect(screen.getByTestId('item-count').textContent).toBe('1');
+    expect(screen.getByTestId('item-count').textContent).toBe('2');
     act(() => {
       fireEvent.click(screen.getByTestId('remove-btn'));
     });
@@ -153,7 +153,7 @@ describe('GuestCartContext', () => {
     act(() => {
       fireEvent.click(screen.getByTestId('add-btn-2'));
     });
-    expect(screen.getByTestId('item-count').textContent).toBe('2');
+    expect(screen.getByTestId('item-count').textContent).toBe('3');
     act(() => {
       fireEvent.click(screen.getByTestId('clear-btn'));
     });
@@ -161,7 +161,7 @@ describe('GuestCartContext', () => {
     expect(localStorage.getItem(GUEST_CART_STORAGE_KEY)).toBeNull();
   });
 
-  it('itemCount is the number of distinct line items (not sum of quantities)', () => {
+  it('itemCount is the sum of all item quantities', () => {
     renderWithProvider();
     act(() => {
       fireEvent.click(screen.getByTestId('add-btn'));
@@ -169,8 +169,8 @@ describe('GuestCartContext', () => {
     act(() => {
       fireEvent.click(screen.getByTestId('add-btn-2'));
     });
-    // 2 distinct products, even though quantities are 2 + 1 = 3
-    expect(screen.getByTestId('item-count').textContent).toBe('2');
+    // quantities are 2 + 1 = 3
+    expect(screen.getByTestId('item-count').textContent).toBe('3');
   });
 
   it('handles invalid localStorage data gracefully', () => {

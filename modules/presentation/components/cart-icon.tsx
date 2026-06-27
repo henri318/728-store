@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
 import { useCartPopup } from './cart-popup-context';
@@ -27,7 +26,15 @@ export function CartIcon({ alt }: CartIconProps) {
         if (cancelled || !res.ok) return;
         const data = await res.json();
         if (!cancelled)
-          setAuthCount(Array.isArray(data.items) ? data.items.length : 0);
+          setAuthCount(
+            Array.isArray(data.items)
+              ? data.items.reduce(
+                  (sum: number, item: { quantity?: number }) =>
+                    sum + (item.quantity ?? 1),
+                  0,
+                )
+              : 0,
+          );
       } catch {
         /* ignore */
       }
@@ -47,13 +54,14 @@ export function CartIcon({ alt }: CartIconProps) {
       className={styles.cartIconWrapper}
       aria-label={`${alt}${count > 0 ? ` (${count})` : ''}`}
     >
-      <Image
-        src="/img/icons/iconos-04.svg"
-        alt={alt}
-        width={62}
-        height={62}
+      <svg
         className={styles.userIcon}
-      />
+        aria-hidden="true"
+        width="62"
+        height="62"
+      >
+        <use href="/img/sprites.svg#icon-cart" />
+      </svg>
       {count > 0 && <span className={styles.badge}>{count}</span>}
     </button>
   );

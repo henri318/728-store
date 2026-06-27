@@ -39,7 +39,7 @@ export interface GuestCartContextType {
   updateQuantity: (productId: string, quantity: number) => void;
   removeItem: (productId: string) => void;
   clearCart: () => void;
-  /** Number of distinct line items (not sum of quantities). */
+  /** Sum of all item quantities. */
   itemCount: number;
   /** True once localStorage has been read. False during SSR and initial render. */
   hydrated: boolean;
@@ -109,8 +109,11 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateQuantity = useCallback((productId: string, quantity: number) => {
+    const clamped = Math.max(1, Math.min(99, Math.floor(quantity)));
     setItems((prev) =>
-      prev.map((i) => (i.productId === productId ? { ...i, quantity } : i)),
+      prev.map((i) =>
+        i.productId === productId ? { ...i, quantity: clamped } : i,
+      ),
     );
   }, []);
 
@@ -129,7 +132,9 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
       updateQuantity,
       removeItem,
       clearCart,
-      itemCount: items.length,
+      itemCount: items
+        .filter((i) => i.quantity > 0)
+        .reduce((sum, i) => sum + i.quantity, 0),
       hydrated,
     }),
     [items, addItem, updateQuantity, removeItem, clearCart, hydrated],

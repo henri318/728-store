@@ -53,7 +53,7 @@ describe('CartIcon', () => {
       expect(btn).toBeTruthy();
     });
 
-    it('renders the cart icon image with correct alt text', () => {
+    it('renders the cart icon as an svg with correct sprite href', () => {
       mockUseSession.mockReturnValue({
         data: null,
         status: 'unauthenticated',
@@ -71,7 +71,9 @@ describe('CartIcon', () => {
 
       renderWithProvider(<CartIcon alt="My cart" />);
 
-      expect(screen.getByAltText('My cart')).toBeTruthy();
+      const use = document.querySelector('use');
+      expect(use).toBeTruthy();
+      expect(use?.getAttribute('href')).toBe('/img/sprites.svg#icon-cart');
     });
   });
 
@@ -100,7 +102,7 @@ describe('CartIcon', () => {
             unitPriceSnapshot: 20,
           },
         ],
-        itemCount: 2,
+        itemCount: 3,
         addItem: vi.fn(),
         updateQuantity: vi.fn(),
         removeItem: vi.fn(),
@@ -109,7 +111,7 @@ describe('CartIcon', () => {
       });
 
       renderWithProvider(<CartIcon alt="Cart" />);
-      expect(screen.getByText('2')).toBeTruthy();
+      expect(screen.getByText('3')).toBeTruthy();
     });
 
     it('does NOT show badge when guest cart is empty', () => {

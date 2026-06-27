@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import styles from './icon-circle.module.css';
 
 type IconName =
@@ -19,29 +18,16 @@ interface IconCircleProps {
   alt?: string;
 }
 
-const SIZE_MAP: Record<IconSize, number> = { sm: 40, md: 62, lg: 80 };
-
 export function IconCircle({ icon, color, size = 'md', alt }: IconCircleProps) {
   return (
-    <Image
-      src={`/img/icons/iconos-${getIconFile(icon)}.svg`}
-      alt={alt ?? icon}
-      width={SIZE_MAP[size]}
-      height={SIZE_MAP[size]}
+    <span
       className={`${styles.circle} ${styles[size]} ${styles[color]}`}
-    />
+      role="img"
+      aria-label={alt ?? icon}
+    >
+      <svg className={styles.iconSvg} aria-hidden="true">
+        <use href={`/img/sprites.svg#icon-${icon}`} />
+      </svg>
+    </span>
   );
-}
-
-function getIconFile(icon: IconName): string {
-  const map: Record<IconName, string> = {
-    profile: '07',
-    cart: '04',
-    facebook: '01',
-    instagram: '02',
-    tiktok: '03',
-    whatsapp: '08',
-    email: '09',
-  };
-  return map[icon];
 }

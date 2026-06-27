@@ -1,34 +1,17 @@
-import Image from 'next/image';
 import styles from './social-footer.module.css';
 
 interface SocialLink {
-  src: string;
+  icon: string;
   alt: string;
   href: string;
 }
 
 const SOCIAL_LINKS: SocialLink[] = [
-  {
-    src: '/img/icons/iconos-01.svg',
-    alt: 'Facebook',
-    href: 'https://facebook.com',
-  },
-  {
-    src: '/img/icons/iconos-02.svg',
-    alt: 'Instagram',
-    href: 'https://instagram.com',
-  },
-  {
-    src: '/img/icons/iconos-03.svg',
-    alt: 'TikTok',
-    href: 'https://tiktok.com',
-  },
-  { src: '/img/icons/iconos-08.svg', alt: 'WhatsApp', href: 'https://wa.me' },
-  {
-    src: '/img/icons/iconos-09.svg',
-    alt: 'Email',
-    href: 'mailto:info@728store.com',
-  },
+  { icon: 'facebook', alt: 'Facebook', href: 'https://facebook.com' },
+  { icon: 'instagram', alt: 'Instagram', href: 'https://instagram.com' },
+  { icon: 'tiktok', alt: 'TikTok', href: 'https://tiktok.com' },
+  { icon: 'whatsapp', alt: 'WhatsApp', href: 'https://wa.me' },
+  { icon: 'email', alt: 'Email', href: 'mailto:info@728store.com' },
 ];
 
 export function SocialFooter() {
@@ -42,13 +25,9 @@ export function SocialFooter() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <Image
-            src={link.src}
-            alt={link.alt}
-            width={50}
-            height={50}
-            className={styles.icon}
-          />
+          <svg className={styles.icon} aria-hidden="true">
+            <use href={`/img/sprites.svg#icon-${link.icon}`} />
+          </svg>
         </a>
       ))}
     </footer>

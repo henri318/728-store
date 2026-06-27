@@ -31,22 +31,53 @@ const ICON_MAP = {
 
 const files = Object.keys(ICON_MAP);
 
+/**
+ * Converts class-based fills (.cls-n { fill: #xxx }) to inline fill attributes.
+ * CSS classes inside <symbol> don't reliably apply in the shadow DOM created
+ * by <use href="...">, so we inline them at build time.
+ */
+function resolveClassFills(svgContent) {
+  const styleRegex = /<defs>\s*<style>([\s\S]*?)<\/style>\s*<\/defs>/;
+  const match = svgContent.match(styleRegex);
+  if (!match) return svgContent;
+
+  const cssText = match[1];
+  const classMap = {};
+  const ruleRegex = /\.(\S+)\s*\{[^}]*?fill:\s*([^;}]+)[^}]*?\}/g;
+  let m;
+  while ((m = ruleRegex.exec(cssText)) !== null) {
+    classMap[m[1]] = m[2].trim();
+  }
+
+  if (Object.keys(classMap).length === 0) return svgContent;
+
+  let result = svgContent;
+  for (const [cls, fill] of Object.entries(classMap)) {
+    const classAttr = new RegExp(`class="${cls}"`, 'g');
+    result = result.replace(classAttr, `fill="${fill}"`);
+  }
+
+  result = result.replace(styleRegex, '');
+  return result;
+}
+
 // Optimize each icon and extract viewBox content
 const icons = files.map((file) => {
   const raw = readFileSync(join(ICONS_DIR, file), 'utf8');
-  const result = optimize(raw, {
-    plugins: [
-      'preset-default',
-      'removeDimensions',
-      { name: 'removeAttrs', params: { attrs: '(fill|stroke)' } },
-    ],
+  // Resolve class-based fills to inline fills BEFORE optimization,
+  // so SVGO doesn't strip the <defs><style> block before we can process it.
+  let preprocessed = resolveClassFills(raw);
+  const result = optimize(preprocessed, {
+    plugins: ['preset-default', 'removeDimensions'],
   });
 
-  const viewBoxMatch = result.data.match(/viewBox="([^"]+)"/);
+  let svgContent = result.data;
+
+  const viewBoxMatch = svgContent.match(/viewBox="([^"]+)"/);
   const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 24 24';
 
   // Extract inner content (paths, circles, etc.)
-  const inner = result.data
+  const inner = svgContent
     .replace(/<svg[^>]*>/, '')
     .replace(/<\/svg>/, '')
     .trim();

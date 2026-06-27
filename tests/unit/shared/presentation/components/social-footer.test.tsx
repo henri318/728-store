@@ -9,18 +9,18 @@ describe('SocialFooter', () => {
     expect(links.length).toBe(5);
   });
 
-  it('renders facebook link with correct image', () => {
+  it('renders facebook link with correct sprite href', () => {
     render(<SocialFooter />);
     const fbLink = screen.getByLabelText('Facebook');
-    const img = fbLink.querySelector('img');
-    expect(img).toHaveAttribute('src', '/img/icons/iconos-01.svg');
+    const use = fbLink.querySelector('use');
+    expect(use).toHaveAttribute('href', '/img/sprites.svg#icon-facebook');
   });
 
-  it('renders instagram link with correct image', () => {
+  it('renders instagram link with correct sprite href', () => {
     render(<SocialFooter />);
     const igLink = screen.getByLabelText('Instagram');
-    const img = igLink.querySelector('img');
-    expect(img).toHaveAttribute('src', '/img/icons/iconos-02.svg');
+    const use = igLink.querySelector('use');
+    expect(use).toHaveAttribute('href', '/img/sprites.svg#icon-instagram');
   });
 
   it('renders tiktok link', () => {
