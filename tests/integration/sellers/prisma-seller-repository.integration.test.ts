@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { cleanupDb } from '@/tests/helpers/test-db';
 import { PrismaSellerRepository } from '@/modules/sellers/infrastructure/prisma-seller-repository';
 import { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
@@ -245,6 +245,180 @@ describe('PrismaSellerRepository — Integration', () => {
       expect(byStatus.some((s) => s.sellerId.value === 'seller-int-9')).toBe(
         false,
       );
+
+      // findPaginated filters deletedAt: null
+      const paginated = await repo.findPaginated({ q: 'Deleted Seller' });
+      expect(paginated.items).toHaveLength(0);
+      expect(paginated.total).toBe(0);
+    });
+  });
+
+  describe('findPaginated', () => {
+    beforeEach(async () => {
+      // Isolate pagination assertions from sellers seeded by earlier tests.
+      await cleanupDb();
+    });
+
+    it('returns paginated sellers with default sort by createdAt desc', async () => {
+      await ensureUser('user-seller-pag-1', 'seller-pag-1@test.com');
+      await ensureUser('user-seller-pag-2', 'seller-pag-2@test.com');
+      await repo.save(
+        makeSeller({
+          sellerId: SellerId.create('seller-pag-1'),
+          name: 'Alpha Pag',
+          userId: 'user-seller-pag-1',
+          createdAt: new Date('2025-01-02'),
+        }),
+      );
+      await repo.save(
+        makeSeller({
+          sellerId: SellerId.create('seller-pag-2'),
+          name: 'Beta Pag',
+          userId: 'user-seller-pag-2',
+          createdAt: new Date('2025-01-01'),
+        }),
+      );
+
+      const result = await repo.findPaginated({ page: 1, pageSize: 1 });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.total).toBe(2);
+      expect(result.page).toBe(1);
+      expect(result.pageSize).toBe(1);
+      expect(result.totalPages).toBe(2);
+      expect(result.items[0].name).toBe('Alpha Pag');
+    });
+
+    it('returns empty items when page is beyond range', async () => {
+      await ensureUser('user-seller-pag-3', 'seller-pag-3@test.com');
+      await repo.save(
+        makeSeller({
+          sellerId: SellerId.create('seller-pag-3'),
+          name: 'Lonely Pag',
+          userId: 'user-seller-pag-3',
+        }),
+      );
+
+      const result = await repo.findPaginated({ page: 99, pageSize: 10 });
+
+      expect(result.items).toEqual([]);
+      expect(result.total).toBe(1);
+      expect(result.totalPages).toBe(1);
+    });
+
+    it('filters by q across name and description', async () => {
+      await ensureUser('user-seller-pag-4', 'seller-pag-4@test.com');
+      await ensureUser('user-seller-pag-5', 'seller-pag-5@test.com');
+      await repo.save(
+        makeSeller({
+          sellerId: SellerId.create('seller-pag-4'),
+          name: 'Camisas SA',
+          description: 'Ropa',
+          userId: 'user-seller-pag-4',
+        }),
+      );
+      await repo.save(
+        makeSeller({
+          sellerId: SellerId.create('seller-pag-5'),
+          name: 'Zapatos SA',
+          description: 'Camisas info',
+          userId: 'user-seller-pag-5',
+        }),
+      );
+
+      const result = await repo.findPaginated({ q: 'camisa' });
+
+      expect(result.items).toHaveLength(2);
+      expect(result.items.map((s) => s.name).sort()).toEqual([
+        'Camisas SA',
+        'Zapatos SA',
+      ]);
+    });
+
+    it('filters by status', async () => {
+      await ensureUser('user-seller-pag-6', 'seller-pag-6@test.com');
+      await ensureUser('user-seller-pag-7', 'seller-pag-7@test.com');
+      await repo.save(
+        makeSeller({
+          sellerId: SellerId.create('seller-pag-6'),
+          name: 'Active Pag',
+          status: SellerStatus.ACTIVE,
+          userId: 'user-seller-pag-6',
+        }),
+      );
+      await repo.save(
+        makeSeller({
+          sellerId: SellerId.create('seller-pag-7'),
+          name: 'Suspended Pag',
+          status: SellerStatus.SUSPENDED,
+          userId: 'user-seller-pag-7',
+        }),
+      );
+
+      const result = await repo.findPaginated({
+        status: SellerStatus.SUSPENDED,
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].name).toBe('Suspended Pag');
+    });
+
+    it('sorts by name ascending', async () => {
+      await ensureUser('user-seller-pag-8', 'seller-pag-8@test.com');
+      await ensureUser('user-seller-pag-9', 'seller-pag-9@test.com');
+      await repo.save(
+        makeSeller({
+          sellerId: SellerId.create('seller-pag-8'),
+          name: 'Beta Name',
+          userId: 'user-seller-pag-8',
+        }),
+      );
+      await repo.save(
+        makeSeller({
+          sellerId: SellerId.create('seller-pag-9'),
+          name: 'Alpha Name',
+          userId: 'user-seller-pag-9',
+        }),
+      );
+
+      const result = await repo.findPaginated({
+        sortBy: 'name',
+        sortDir: 'asc',
+      });
+
+      expect(result.items.map((s) => s.name)).toEqual([
+        'Alpha Name',
+        'Beta Name',
+      ]);
+    });
+
+    it('composes status and q filters', async () => {
+      await ensureUser('user-seller-pag-10', 'seller-pag-10@test.com');
+      await ensureUser('user-seller-pag-11', 'seller-pag-11@test.com');
+      await repo.save(
+        makeSeller({
+          sellerId: SellerId.create('seller-pag-10'),
+          name: 'Active Camisa',
+          status: SellerStatus.ACTIVE,
+          userId: 'user-seller-pag-10',
+        }),
+      );
+      await repo.save(
+        makeSeller({
+          sellerId: SellerId.create('seller-pag-11'),
+          name: 'Suspended Camisa',
+          status: SellerStatus.SUSPENDED,
+          userId: 'user-seller-pag-11',
+        }),
+      );
+
+      const result = await repo.findPaginated({
+        status: SellerStatus.ACTIVE,
+        q: 'camisa',
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].name).toBe('Active Camisa');
     });
   });
 });

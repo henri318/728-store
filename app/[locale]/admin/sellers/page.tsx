@@ -8,18 +8,29 @@ import { SellerActions } from './seller-actions';
 import { SellerDelete } from './seller-delete';
 import styles from './page.module.css';
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 20;
 
 export default async function AdminSellersPage({
   params,
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{
+    page?: string;
+    pageSize?: string;
+    q?: string;
+    sortBy?: string;
+    sortDir?: string;
+  }>;
 }) {
   const { locale } = await params;
-  const { page: pageStr } = await searchParams;
-  const currentPage = Math.max(1, Number(pageStr) || 1);
+  const {
+    page: pageStr,
+    pageSize: pageSizeStr,
+    q,
+    sortBy,
+    sortDir,
+  } = await searchParams;
 
   try {
     await assertRole('ADMIN');
@@ -27,15 +38,32 @@ export default async function AdminSellersPage({
     redirect(`/${locale}`);
   }
 
+  const page = Math.max(1, Number(pageStr) || 1);
+  const pageSize = Math.max(1, Number(pageSizeStr) || PAGE_SIZE);
+
   const dict = await getDictionary(locale as 'es' | 'cat');
   const sellerRepository = container.getSellerRepository();
   const useCase = new ListSellersUseCase(sellerRepository);
-  const allSellers = await useCase.execute({});
-  const total = allSellers.length;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const safePage = Math.min(currentPage, totalPages);
-  const start = (safePage - 1) * PAGE_SIZE;
-  const sellers = allSellers.slice(start, start + PAGE_SIZE);
+  const result = await useCase.execute({
+    page,
+    pageSize,
+    q,
+    sortBy: sortBy === 'name' || sortBy === 'createdAt' ? sortBy : 'createdAt',
+    sortDir: sortDir === 'asc' || sortDir === 'desc' ? sortDir : 'desc',
+  });
+  const { items: sellers, totalPages } = result;
+  const safePage = Math.min(page, totalPages || 1);
+
+  function buildPageUrl(targetPage: number): string {
+    const search = new URLSearchParams();
+    if (targetPage > 1) search.set('page', String(targetPage));
+    if (pageSize !== PAGE_SIZE) search.set('pageSize', String(pageSize));
+    if (q) search.set('q', q);
+    if (sortBy) search.set('sortBy', sortBy);
+    if (sortDir) search.set('sortDir', sortDir);
+    const query = search.toString();
+    return `/${locale}/admin/sellers${query ? `?${query}` : ''}`;
+  }
 
   return (
     <div className={styles.container}>
@@ -114,7 +142,7 @@ export default async function AdminSellersPage({
               </span>
             ) : (
               <a
-                href={`/${locale}/admin/sellers?page=${safePage - 1}`}
+                href={buildPageUrl(safePage - 1)}
                 className={styles.pageButton}
               >
                 {dict.admin.pagePrev}
@@ -133,7 +161,7 @@ export default async function AdminSellersPage({
               </span>
             ) : (
               <a
-                href={`/${locale}/admin/sellers?page=${safePage + 1}`}
+                href={buildPageUrl(safePage + 1)}
                 className={styles.pageButton}
               >
                 {dict.admin.pageNext}
