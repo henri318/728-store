@@ -13,6 +13,7 @@ import type { Role } from '@/modules/roles/domain/roles';
 import { GuestCartProvider } from '@/modules/cart/presentation/guest-cart-context';
 import { CartPopupProvider } from '@/modules/presentation/components/cart-popup-context';
 import { CartPopup } from '@/modules/presentation/components/cart-popup';
+import { CartMergeDetector } from '@/components/cart/cart-merge-detector';
 import { outboxWorker } from '@/workers/outbox-worker';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { DictionaryProvider } from '@/shared/i18n/dictionary-context';
@@ -107,6 +108,7 @@ export default async function RootLayout({
         <SessionProviderWrapper session={session}>
           <GuestCartProvider>
             <CartPopupProvider>
+              <CartMergeDetector />
               <header className={styles.header}>
                 <div className={styles.spacer} />
                 <a href={`/${locale}`} className={styles.logo}>
