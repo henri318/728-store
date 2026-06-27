@@ -5,6 +5,7 @@ import { MemoryCartProductRepository } from '@/tests/doubles/memory-cart-product
 import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
 import { MemoryTransactionRunner } from '@/tests/doubles/memory-transaction-runner';
 import { MemoryPaidOrderCount } from '@/tests/doubles/memory-paid-order-count';
+import { MemoryCustomizationLookup } from '@/tests/doubles/memory-customization-lookup';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import { CartStatus } from '@/modules/cart/domain/value-objects/cart-status';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
@@ -43,6 +44,7 @@ import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
  *  - Cart not found: CartNotFoundError
  *  - Checked-out cart: CartImmutableError
  *  - Atomicity: status update + outbox row in same logical unit
+ *  - Customization snapshot inclusion in CART_CHECKED_OUT event
  */
 describe('CheckoutCart', () => {
   let cartRepo: MemoryCartRepository;
@@ -50,6 +52,7 @@ describe('CheckoutCart', () => {
   let outboxRepo: MemoryOutboxRepository;
   let paidOrderPort: MemoryPaidOrderCount;
   let txRunner: MemoryTransactionRunner;
+  let customizationLookup: MemoryCustomizationLookup;
   let useCase: CheckoutCart;
 
   const makeItem = (
@@ -81,12 +84,14 @@ describe('CheckoutCart', () => {
     outboxRepo = new MemoryOutboxRepository();
     paidOrderPort = new MemoryPaidOrderCount();
     txRunner = new MemoryTransactionRunner();
+    customizationLookup = new MemoryCustomizationLookup();
     useCase = new CheckoutCart(
       cartRepo,
       productRepo,
       outboxRepo,
       paidOrderPort,
       txRunner,
+      customizationLookup,
     );
   });
 
@@ -323,6 +328,107 @@ describe('CheckoutCart', () => {
     expect(payload.totalAmount).toBe(21.99);
     expect(payload.currency).toBe('EUR');
     expect(payload.isFirstPurchase).toBe(true);
+  });
+
+  // -------------------------------------------------------------------------
+  // Customization snapshot in event payload
+  // -------------------------------------------------------------------------
+
+  it('includes customizationSnapshot in CART_CHECKED_OUT event items', async () => {
+    productRepo.seed([{ id: 'p1', basePrice: 10, sellerId: 's1' }]);
+    customizationLookup.seed([
+      { id: 'c1', productId: 'p1', text: 'Hello', color: 'red', size: 'M' },
+    ]);
+    paidOrderPort.setCount(1);
+    await cartRepo.save(
+      makeCart({
+        id: 'c1',
+        userId: 'u1',
+        items: [
+          makeItem({
+            id: 'i1',
+            cartId: 'c1',
+            customizationIdList: ['c1'],
+          }),
+        ],
+      }),
+    );
+
+    await useCase.confirm('u1', false);
+
+    const payload = outboxRepo.events[0].payload as {
+      items: Array<{
+        customizationIdList: string[];
+        customizationSnapshot: Array<{
+          id: string;
+          text: string | null;
+          color: string | null;
+          size: string | null;
+          imageUrl: string | null;
+        }> | null;
+      }>;
+    };
+    expect(payload.items[0].customizationIdList).toEqual(['c1']);
+    expect(payload.items[0].customizationSnapshot).toEqual([
+      { id: 'c1', text: 'Hello', color: 'red', size: 'M', imageUrl: null },
+    ]);
+  });
+
+  it('customizationSnapshot is null when item has no customizations', async () => {
+    productRepo.seed([{ id: 'p1', basePrice: 10, sellerId: 's1' }]);
+    paidOrderPort.setCount(1);
+    await cartRepo.save(
+      makeCart({
+        id: 'c1',
+        userId: 'u1',
+        items: [makeItem({ id: 'i1', cartId: 'c1' })],
+      }),
+    );
+
+    await useCase.confirm('u1', false);
+
+    const payload = outboxRepo.events[0].payload as {
+      items: Array<{
+        customizationSnapshot: unknown;
+      }>;
+    };
+    expect(payload.items[0].customizationSnapshot).toBeNull();
+  });
+
+  it('omits missing customizations from snapshot (deleted after add)', async () => {
+    productRepo.seed([{ id: 'p1', basePrice: 10, sellerId: 's1' }]);
+    // Only seed c1, not c-deleted
+    customizationLookup.seed([
+      { id: 'c1', productId: 'p1', text: 'Hello', color: 'red', size: 'M' },
+    ]);
+    paidOrderPort.setCount(1);
+    await cartRepo.save(
+      makeCart({
+        id: 'c1',
+        userId: 'u1',
+        items: [
+          makeItem({
+            id: 'i1',
+            cartId: 'c1',
+            customizationIdList: ['c1', 'c-deleted'],
+          }),
+        ],
+      }),
+    );
+
+    await useCase.confirm('u1', false);
+
+    const payload = outboxRepo.events[0].payload as {
+      items: Array<{
+        customizationIdList: string[];
+        customizationSnapshot: Array<{ id: string }> | null;
+      }>;
+    };
+    expect(payload.items[0].customizationIdList).toEqual(['c1', 'c-deleted']);
+    // Only c1 is in the snapshot — c-deleted was silently omitted
+    expect(payload.items[0].customizationSnapshot).toEqual([
+      { id: 'c1', text: 'Hello', color: 'red', size: 'M', imageUrl: null },
+    ]);
   });
 
   // -------------------------------------------------------------------------
@@ -574,6 +680,7 @@ describe('CheckoutCart', () => {
       outboxRepo,
       paidOrderPort,
       trackedRunner,
+      customizationLookup,
     );
 
     await trackedUseCase.confirm('u1', false);
@@ -621,6 +728,7 @@ describe('CheckoutCart', () => {
       outboxRepo,
       paidOrderPort,
       abortingRunner,
+      customizationLookup,
     );
 
     await expect(abortedUseCase.confirm('u1', false)).rejects.toThrow(

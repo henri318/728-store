@@ -5,6 +5,7 @@ import { GetCart } from '@/modules/cart/application/get-cart';
 import { redirect } from 'next/navigation';
 import { CheckoutConfirmButton } from './checkout-confirm-button';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
+import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
 import styles from './page.module.css';
 
 interface CheckoutItem {
@@ -17,12 +18,14 @@ interface CheckoutItem {
   quantity: number;
   unitPrice: number;
   lineTotal: number;
-  customization: {
+  customizationIdList: string[];
+  customizations: Array<{
+    id: string;
     text: string | null;
     color: string | null;
     size: string | null;
     imageUrl: string | null;
-  };
+  }>;
 }
 
 interface SellerGroup {
@@ -39,6 +42,8 @@ interface SellerGroup {
  * - If cart is empty → redirect to /{locale}/cart.
  * - Groups items by sellerId (one section per seller).
  * - Shows subtotal / discount (10% first-purchase) / shipping (€3.99) / total.
+ * - Resolves customizationIdList → displays customization details.
+ * - Handles missing customizations gracefully (shows "Customization removed").
  * - Client <CheckoutConfirmButton /> handles the checkout flow.
  *
  * Spec REQ-CART-032.
@@ -56,6 +61,7 @@ export default async function CheckoutPage({
   }
 
   const cartRepository = container.getCartRepository();
+  const customizationLookup = container.getCustomizationLookup();
   const getCart = new GetCart(cartRepository);
   const cart = await getCart.execute(session.user.id);
 
@@ -74,8 +80,29 @@ export default async function CheckoutPage({
     if (p) productMap.set(p.id, p);
   });
 
+  // Resolve all customizations in a single batch.
+  const allCustomizationIds = [
+    ...new Set(cart.items.flatMap((i) => i.customizationIdList)),
+  ];
+  const allCustomizations =
+    allCustomizationIds.length > 0
+      ? await customizationLookup.findByIds(allCustomizationIds)
+      : [];
+  const customizationMap = new Map(allCustomizations.map((c) => [c.id, c]));
+
   const items: CheckoutItem[] = cart.items.map((item) => {
     const product = productMap.get(item.productId.value);
+    const resolvedCustomizations = item.customizationIdList
+      .map((id) => customizationMap.get(id))
+      .filter((c): c is CustomizationSnapshot => c != null)
+      .map((c) => ({
+        id: c.id,
+        text: c.text,
+        color: c.color,
+        size: c.size,
+        imageUrl: c.imageUrl,
+      }));
+
     return {
       id: item.id,
       productId: item.productId.value,
@@ -86,14 +113,15 @@ export default async function CheckoutPage({
       quantity: item.quantity,
       unitPrice: item.unitPriceSnapshot.amount,
       lineTotal: +(item.unitPriceSnapshot.amount * item.quantity).toFixed(2),
-      customization: {
-        text: null,
-        color: null,
-        size: null,
-        imageUrl: null,
-      },
+      customizationIdList: item.customizationIdList,
+      customizations: resolvedCustomizations,
     };
   });
+
+  // Detect missing customizations (deleted after being added to cart).
+  const hasMissingCustomizations = items.some(
+    (item) => item.customizationIdList.length > item.customizations.length,
+  );
 
   // Group by sellerId.
   const sellerMap = new Map<string, SellerGroup>();
@@ -130,6 +158,13 @@ export default async function CheckoutPage({
     <div className={styles.container}>
       <h2 className={styles.title}>Checkout</h2>
 
+      {hasMissingCustomizations && (
+        <div className={styles.warning} role="alert">
+          Some customizations are no longer available and will not be included
+          in your order.
+        </div>
+      )}
+
       {sellerGroups.map((group) => (
         <div key={group.sellerId} className={styles.sellerSection}>
           <h3 className={styles.sellerName}>{group.sellerName}</h3>
@@ -137,22 +172,25 @@ export default async function CheckoutPage({
             <div key={item.id} className={styles.itemRow}>
               <div className={styles.itemInfo}>
                 <span className={styles.itemName}>{item.productName}</span>
-                {(item.customization.size ||
-                  item.customization.color ||
-                  item.customization.text) && (
+                {item.customizations.length > 0 && (
                   <span className={styles.itemCustomization}>
                     {[
-                      item.customization.size &&
-                        `Size: ${item.customization.size}`,
-                      item.customization.color &&
-                        `Color: ${item.customization.color}`,
-                      item.customization.text &&
-                        `Text: ${item.customization.text}`,
+                      ...item.customizations.flatMap((c) => [
+                        c.size && `Size: ${c.size}`,
+                        c.color && `Color: ${c.color}`,
+                        c.text && `Text: ${c.text}`,
+                      ]),
                     ]
                       .filter(Boolean)
                       .join(' · ')}
                   </span>
                 )}
+                {item.customizationIdList.length > 0 &&
+                  item.customizations.length === 0 && (
+                    <span className={styles.itemCustomizationRemoved}>
+                      Customization removed
+                    </span>
+                  )}
               </div>
               <div className={styles.itemRight}>
                 <span className={styles.itemQty}>×{item.quantity}</span>

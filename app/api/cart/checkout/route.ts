@@ -30,6 +30,7 @@ export const POST = requireRole('CUSTOMER')(async function POST() {
     const outboxRepository = container.getOutboxRepository();
     const paidOrderCountPort = container.getPaidOrderCountPort();
     const transactionRunner = container.getTransactionRunner();
+    const customizationLookup = container.getCustomizationLookup();
 
     const checkoutCart = new CheckoutCart(
       cartRepository,
@@ -37,6 +38,7 @@ export const POST = requireRole('CUSTOMER')(async function POST() {
       outboxRepository,
       paidOrderCountPort,
       transactionRunner,
+      customizationLookup,
     );
 
     const preview = await checkoutCart.preview(userId);

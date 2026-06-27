@@ -1,6 +1,7 @@
 import type { CartRepository } from '../domain/cart-repository';
 import type { ProductRepository } from '../domain/product-repository';
 import type { PaidOrderCountPort } from '../domain/paid-order-count-port';
+import type { CustomizationLookupPort } from '../domain/customization-lookup-port';
 import { CartId } from '../domain/value-objects/cart-id';
 import { CartStatus } from '../domain/value-objects/cart-status';
 import { ProductId } from '@/shared/kernel/domain/value-objects/product-id';
@@ -90,6 +91,7 @@ export class CheckoutCart {
     private outboxRepository: OutboxRepository,
     private paidOrderCountPort: PaidOrderCountPort,
     private transactionRunner: TransactionRunner,
+    private customizationLookup: CustomizationLookupPort,
   ) {}
 
   async preview(userId: string): Promise<CheckoutPreview> {
@@ -110,14 +112,36 @@ export class CheckoutCart {
       acceptPriceChanges,
     );
 
+    // Resolve customization snapshots for all items. We collect all
+    // unique customization IDs, fetch them in one batch, then build a
+    // per-item snapshot map. Missing customizations (deleted after
+    // being added to cart) get a null snapshot — the order module
+    // will handle the missing data gracefully.
+    const allCustomizationIds = cart.items.flatMap(
+      (item) => item.customizationIdList,
+    );
+    const uniqueCustomizationIds = [...new Set(allCustomizationIds)];
+    const customizationSnapshots =
+      uniqueCustomizationIds.length > 0
+        ? await this.customizationLookup.findByIds(uniqueCustomizationIds)
+        : [];
+    const customizationMap = new Map(
+      customizationSnapshots.map((s) => [s.id, s]),
+    );
+
     // Build the event payload. Each item carries the live snapshot
-    // (already updated if `acceptPriceChanges` was true).
+    // (already updated if `acceptPriceChanges` was true) plus a
+    // frozen customization snapshot for the order module.
     const itemsPayload = cart.items.map((item) => ({
       productId: item.productId.value,
       sellerId: item.sellerId.value,
       quantity: item.quantity,
       unitPrice: item.unitPriceSnapshot.amount,
       customizationIdList: item.customizationIdList,
+      customizationSnapshot: buildCustomizationSnapshot(
+        item.customizationIdList,
+        customizationMap,
+      ),
     }));
 
     const eventPayload: Record<string, unknown> = {
@@ -297,4 +321,42 @@ function uniqueProductIds(items: CartItemEntity[]): ProductId[] {
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
+}
+
+/**
+ * Builds a frozen customization snapshot for a single line item.
+ * Returns null when the item has no customizations. Missing IDs
+ * (deleted after add) are silently omitted — the order module
+ * decides how to handle incomplete snapshots.
+ */
+function buildCustomizationSnapshot(
+  customizationIdList: string[],
+  customizationMap: Map<
+    string,
+    {
+      id: string;
+      text: string | null;
+      color: string | null;
+      size: string | null;
+      imageUrl: string | null;
+    }
+  >,
+): Array<{
+  id: string;
+  text: string | null;
+  color: string | null;
+  size: string | null;
+  imageUrl: string | null;
+}> | null {
+  if (customizationIdList.length === 0) return null;
+  return customizationIdList
+    .map((id) => customizationMap.get(id))
+    .filter((s): s is NonNullable<typeof s> => s != null)
+    .map((s) => ({
+      id: s.id,
+      text: s.text,
+      color: s.color,
+      size: s.size,
+      imageUrl: s.imageUrl,
+    }));
 }
