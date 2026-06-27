@@ -157,7 +157,7 @@ export default async function CheckoutPage({
               <div className={styles.itemRight}>
                 <span className={styles.itemQty}>×{item.quantity}</span>
                 <span className={styles.itemLineTotal}>
-                  €{item.lineTotal.toFixed(2)}
+                  {item.lineTotal.toFixed(2)} €
                 </span>
               </div>
             </div>

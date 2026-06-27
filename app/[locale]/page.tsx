@@ -42,8 +42,7 @@ export default async function HomePage({
                     {translation.description}
                   </p>
                   <p className={styles.productPrice}>
-                    {'$'}
-                    {Number(product.basePrice)}
+                    {Number(product.basePrice).toFixed(2)} €
                   </p>
                   <p className={styles.productSeller}>{product.sellerName}</p>
                   <div className={styles.productActions}>

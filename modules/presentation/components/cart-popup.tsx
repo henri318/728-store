@@ -240,7 +240,7 @@ export function CartPopup({ labels }: CartPopupProps) {
                         </button>
                       </div>
                       <span className={styles.lineTotal}>
-                        €{item.lineTotal.toFixed(2)}
+                        {item.lineTotal.toFixed(2)} €
                       </span>
                       <button
                         type="button"
