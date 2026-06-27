@@ -292,6 +292,29 @@ describe('AddItemToCart', () => {
     expect(item.customizationIdList).toEqual(['c1', 'c2']);
   });
 
+  it('deduplicates repeated customization IDs before validation', async () => {
+    // Sending ['c1', 'c1'] should NOT throw — the duplicate is removed
+    // before the lookup + length check. The stored list is ['c1'].
+    const item = await useCase.execute({
+      userId: 'u1',
+      productId: 'p1',
+      quantity: 1,
+      customizationIdList: ['c1', 'c1'],
+    });
+
+    expect(item.customizationIdList).toEqual(['c1']);
+
+    const cart = await findCart('u1');
+    expect(cart?.items).toHaveLength(1);
+
+    // The outbox event also carries the deduplicated list.
+    const addedEvent = outboxRepo.events.find(
+      (e) => e.eventType === GlobalEvents.CART_ITEM_ADDED,
+    );
+    const payload = addedEvent!.payload as { customizationIdList: string[] };
+    expect(payload.customizationIdList).toEqual(['c1']);
+  });
+
   // -------------------------------------------------------------------------
   // Validation
   // -------------------------------------------------------------------------

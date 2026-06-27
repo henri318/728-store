@@ -69,8 +69,10 @@ export class AddItemToCart {
       );
     }
 
-    // 3. Validate customizations (if any)
-    const customizationIdList = dto.customizationIdList ?? [];
+    // 3. Validate customizations (if any). Deduplicate first — duplicate
+    //    IDs would cause the length check in validateCustomizations to
+    //    falsely reject a valid list.
+    const customizationIdList = [...new Set(dto.customizationIdList ?? [])];
     if (customizationIdList.length > 0) {
       await this.validateCustomizations(
         customizationIdList,

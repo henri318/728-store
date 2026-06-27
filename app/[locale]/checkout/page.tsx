@@ -185,12 +185,12 @@ export default async function CheckoutPage({
                       .join(' · ')}
                   </span>
                 )}
-                {item.customizationIdList.length > 0 &&
-                  item.customizations.length === 0 && (
-                    <span className={styles.itemCustomizationRemoved}>
-                      Customization removed
-                    </span>
-                  )}
+                {item.customizationIdList.length >
+                  item.customizations.length && (
+                  <span className={styles.itemCustomizationRemoved}>
+                    Customization removed
+                  </span>
+                )}
               </div>
               <div className={styles.itemRight}>
                 <span className={styles.itemQty}>×{item.quantity}</span>

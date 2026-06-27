@@ -58,10 +58,15 @@ export const PATCH = requireRole('CUSTOMER')(async function PATCH(
       'es',
     );
 
-    const customizations =
+    const rawCustomizations =
       item.customizationIdList.length > 0
         ? await customizationLookup.findByIds(item.customizationIdList)
         : [];
+    // Reorder to match customizationIdList (findByIds may return any order).
+    const customizationMap = new Map(rawCustomizations.map((c) => [c.id, c]));
+    const customizations = item.customizationIdList
+      .map((id) => customizationMap.get(id))
+      .filter((c): c is NonNullable<typeof c> => c != null);
 
     const enriched = enrichCartItem(item, product ?? undefined, customizations);
 

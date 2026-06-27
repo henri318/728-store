@@ -114,8 +114,8 @@ export class CheckoutCart {
 
     // Resolve customization snapshots for all items. We collect all
     // unique customization IDs, fetch them in one batch, then build a
-    // per-item snapshot map. Missing customizations (deleted after
-    // being added to cart) get a null snapshot — the order module
+    // per-item snapshot map. Deleted customization IDs are filtered out;
+    // null snapshot only when original list is empty — the order module
     // will handle the missing data gracefully.
     const allCustomizationIds = cart.items.flatMap(
       (item) => item.customizationIdList,

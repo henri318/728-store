@@ -431,6 +431,43 @@ describe('CheckoutCart', () => {
     ]);
   });
 
+  it('returns empty snapshot array when ALL customizations are deleted', async () => {
+    productRepo.seed([{ id: 'p1', basePrice: 10, sellerId: 's1' }]);
+    // Seed nothing — both customizations were deleted after add
+    customizationLookup.seed([]);
+    paidOrderPort.setCount(1);
+    await cartRepo.save(
+      makeCart({
+        id: 'c1',
+        userId: 'u1',
+        items: [
+          makeItem({
+            id: 'i1',
+            cartId: 'c1',
+            customizationIdList: ['c-deleted-1', 'c-deleted-2'],
+          }),
+        ],
+      }),
+    );
+
+    await useCase.confirm('u1', false);
+
+    const payload = outboxRepo.events[0].payload as {
+      items: Array<{
+        customizationIdList: string[];
+        customizationSnapshot: Array<{ id: string }> | null;
+      }>;
+    };
+    // customizationIdList is preserved as-is (the original IDs)
+    expect(payload.items[0].customizationIdList).toEqual([
+      'c-deleted-1',
+      'c-deleted-2',
+    ]);
+    // All IDs were deleted → snapshot is an empty array (not null).
+    // null is only returned when customizationIdList itself is empty.
+    expect(payload.items[0].customizationSnapshot).toEqual([]);
+  });
+
   // -------------------------------------------------------------------------
   // Price change detection
   // -------------------------------------------------------------------------
