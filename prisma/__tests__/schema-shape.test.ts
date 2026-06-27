@@ -21,21 +21,19 @@ describe('Prisma schema shape — Customizations module', () => {
       expect(schema).not.toMatch(/model\s+ProductCustomization\s*\{/);
     });
 
-    it('should have sellerId field on Customization', () => {
-      expect(schema).toMatch(
-        /model\s+Customization\s*\{[^}]*sellerId\s+String/,
-      );
+    it('should NOT have sellerId field on Customization (derived from Product)', () => {
+      const custBlock = extractModelBlock(schema, 'Customization');
+      expect(custBlock).not.toMatch(/sellerId/);
     });
 
-    it('should have seller relation on Customization', () => {
-      expect(schema).toMatch(
-        /model\s+Customization\s*\{[^}]*seller\s+Seller\s+@relation/,
-      );
+    it('should NOT have seller relation on Customization', () => {
+      const custBlock = extractModelBlock(schema, 'Customization');
+      expect(custBlock).not.toMatch(/seller\s+Seller/);
     });
 
-    it('should have indexes on sellerId and productId', () => {
-      expect(schema).toMatch(/@@index\(\[sellerId\]\)/);
-      expect(schema).toMatch(/@@index\(\[productId\]\)/);
+    it('should have index on productId', () => {
+      const custBlock = extractModelBlock(schema, 'Customization');
+      expect(custBlock).toMatch(/@@index\(\[productId\]\)/);
     });
   });
 

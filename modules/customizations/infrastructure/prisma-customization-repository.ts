@@ -13,7 +13,6 @@ export class PrismaCustomizationRepository implements CustomizationRepository {
       where: { id: entity.id },
       create: {
         id: entity.id,
-        sellerId: entity.sellerId,
         productId: entity.productId,
         text: entity.text,
         color: entity.color,
@@ -55,7 +54,7 @@ export class PrismaCustomizationRepository implements CustomizationRepository {
 
   async findBySellerId(sellerId: string): Promise<CustomizationEntity[]> {
     const results = await prisma.customization.findMany({
-      where: { sellerId },
+      where: { product: { sellerId } },
     });
     return results.map((r) => this.toDomain(r));
   }
@@ -78,7 +77,6 @@ export class PrismaCustomizationRepository implements CustomizationRepository {
 
   private toDomain(row: {
     id: string;
-    sellerId: string;
     productId: string;
     text: string | null;
     color: string | null;
@@ -88,7 +86,6 @@ export class PrismaCustomizationRepository implements CustomizationRepository {
   }): CustomizationEntity {
     return {
       id: row.id,
-      sellerId: row.sellerId,
       productId: row.productId,
       text: row.text,
       color: row.color,

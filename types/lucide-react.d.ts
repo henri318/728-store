@@ -3,10 +3,6 @@ declare module 'lucide-react' {
 
   export type Icon = FC<SVGProps<SVGSVGElement> & { size?: number | string }>;
 
-  // Wildcard: every named export is an icon component
-  const proxy: Record<string, Icon>;
-  export default proxy;
-
   // Commonly used icons — add more as needed
   export const Eye: Icon;
   export const EyeOff: Icon;

@@ -44,7 +44,6 @@ model Seller {
   status      String    @default("active")
   deletedAt   DateTime?
   products      Product[]
-  customizations Customization[]
   orders        Order[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -82,17 +81,14 @@ model ProductTranslation {
 
 model Customization {
   id        String   @id @default(cuid())
-  sellerId  String
-  seller    Seller   @relation(fields: [sellerId], references: [id])
   productId String
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   text      String?
   color     String?
   size      String?
   imageUrl  String?
   createdAt DateTime @default(now())
 
-  @@index([sellerId])
   @@index([productId])
 }
 

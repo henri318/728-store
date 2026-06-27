@@ -6,16 +6,15 @@ import { CustomizationOptions } from '../value-objects/customization-options';
  * T04 RED — Domain layer tests for CustomizationEntity + CustomizationOptions VO.
  *
  * Covers:
- *  - Entity shape (all fields including sellerId)
+ *  - Entity shape (all fields — sellerId derived from Product, not stored)
  *  - VO validation: text ≤ 500, color ≤ 50 + non-empty, size ≤ 50 + non-empty,
  *    imageUrl must match ^https?://.+
  *  - VO equals()
  */
 describe('CustomizationEntity', () => {
-  it('should have the correct shape with sellerId', () => {
+  it('should have the correct shape without sellerId', () => {
     const entity: CustomizationEntity = {
       id: 'cust-1',
-      sellerId: 'seller-1',
       productId: 'prod-1',
       text: 'Hello',
       color: 'red',
@@ -25,7 +24,6 @@ describe('CustomizationEntity', () => {
     };
 
     expect(entity.id).toBe('cust-1');
-    expect(entity.sellerId).toBe('seller-1');
     expect(entity.productId).toBe('prod-1');
     expect(entity.text).toBe('Hello');
     expect(entity.color).toBe('red');
@@ -37,7 +35,6 @@ describe('CustomizationEntity', () => {
   it('should allow null optional fields', () => {
     const entity: CustomizationEntity = {
       id: 'cust-2',
-      sellerId: 'seller-1',
       productId: 'prod-1',
       text: null,
       color: null,

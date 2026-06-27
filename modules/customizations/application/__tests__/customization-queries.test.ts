@@ -34,8 +34,9 @@ class FakeCustomizationRepository implements CustomizationRepository {
     return [...this.store.values()].filter((e) => e.productId === productId);
   }
 
-  async findBySellerId(sellerId: string): Promise<CustomizationEntity[]> {
-    return [...this.store.values()].filter((e) => e.sellerId === sellerId);
+  async findBySellerId(_sellerId: string): Promise<CustomizationEntity[]> {
+    // sellerId is derived from Product — not testable in this unit-level fake
+    return [];
   }
 
   async delete(id: string): Promise<void> {
@@ -59,7 +60,6 @@ describe('GetCustomizationById', () => {
 
     await repo.save({
       id: 'cust-1',
-      sellerId: 'seller-1',
       productId: 'prod-1',
       text: 'Hello',
       color: 'red',
@@ -92,7 +92,6 @@ describe('GetCustomizationByIds', () => {
 
     await repo.save({
       id: 'C1',
-      sellerId: 'seller-1',
       productId: 'prod-1',
       text: 'Hi',
       color: 'red',
@@ -102,7 +101,6 @@ describe('GetCustomizationByIds', () => {
     });
     await repo.save({
       id: 'C2',
-      sellerId: 'seller-1',
       productId: 'prod-1',
       text: null,
       color: null,
@@ -112,7 +110,6 @@ describe('GetCustomizationByIds', () => {
     });
     await repo.save({
       id: 'C3',
-      sellerId: 'seller-2',
       productId: 'prod-2',
       text: 'Bye',
       color: null,

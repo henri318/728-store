@@ -75,7 +75,6 @@ describe('PrismaProductRepository — Integration', () => {
       data: {
         id: 'cust-int-1',
         productId: 'prod-int-1',
-        sellerId: 'seller-int-1',
         text: 'Custom text',
         color: 'red',
         size: 'M',

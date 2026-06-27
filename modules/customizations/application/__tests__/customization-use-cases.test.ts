@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CreateCustomization } from '../create-customization';
+import type { ProductExistsPort } from '../create-customization';
 import { UpdateCustomization } from '../update-customization';
+import type { ProductOwnershipPort } from '../update-customization';
 import { DeleteCustomization } from '../delete-customization';
+import type { ProductOwnershipPort as DeleteOwnershipPort } from '../delete-customization';
 import type { CustomizationRepository } from '../../domain/customization-repository';
 import type { CustomizationEntity } from '../../domain/entities/customization';
 import { CustomizationForbiddenError } from '../../domain/errors';
@@ -10,7 +13,7 @@ import { CustomizationInUseError } from '../../domain/errors';
 /**
  * T08 RED — Use case tests for Create/Update/Delete Customization.
  *
- * Uses a Fake CustomizationRepository (no Prisma, no DB).
+ * Uses a Fake CustomizationRepository and fake port implementations.
  */
 
 // --- Fake Repository ---
@@ -38,8 +41,8 @@ class FakeCustomizationRepository implements CustomizationRepository {
     return [...this.store.values()].filter((e) => e.productId === productId);
   }
 
-  async findBySellerId(sellerId: string): Promise<CustomizationEntity[]> {
-    return [...this.store.values()].filter((e) => e.sellerId === sellerId);
+  async findBySellerId(_sellerId: string): Promise<CustomizationEntity[]> {
+    return [];
   }
 
   async delete(id: string): Promise<void> {
@@ -51,20 +54,43 @@ class FakeCustomizationRepository implements CustomizationRepository {
   }
 }
 
+// --- Fake Ports ---
+
+class FakeProductExistsPort implements ProductExistsPort {
+  public existingProductIds = new Set<string>(['prod-1', 'prod-2']);
+
+  async exists(productId: string): Promise<boolean> {
+    return this.existingProductIds.has(productId);
+  }
+}
+
+class FakeProductOwnershipPort
+  implements ProductOwnershipPort, DeleteOwnershipPort
+{
+  public ownershipMap = new Map<string, string>(); // customizationId → sellerId
+
+  async getSellerIdForCustomization(
+    customizationId: string,
+  ): Promise<string | null> {
+    return this.ownershipMap.get(customizationId) ?? null;
+  }
+}
+
 // --- Tests ---
 
 describe('CreateCustomization', () => {
   let repo: FakeCustomizationRepository;
+  let productExists: FakeProductExistsPort;
   let useCase: CreateCustomization;
 
   beforeEach(() => {
     repo = new FakeCustomizationRepository();
-    useCase = new CreateCustomization(repo);
+    productExists = new FakeProductExistsPort();
+    useCase = new CreateCustomization(repo, productExists);
   });
 
   it('should create with all fields', async () => {
     const result = await useCase.execute({
-      sellerId: 'seller-1',
       productId: 'prod-1',
       text: 'Hello',
       color: 'red',
@@ -72,7 +98,6 @@ describe('CreateCustomization', () => {
       imageUrl: 'https://x.com/y.png',
     });
 
-    expect(result.sellerId).toBe('seller-1');
     expect(result.productId).toBe('prod-1');
     expect(result.text).toBe('Hello');
     expect(result.color).toBe('red');
@@ -84,7 +109,6 @@ describe('CreateCustomization', () => {
 
   it('should create with no optional fields', async () => {
     const result = await useCase.execute({
-      sellerId: 'seller-1',
       productId: 'prod-1',
     });
 
@@ -97,7 +121,6 @@ describe('CreateCustomization', () => {
   it('should reject text > 500 chars', async () => {
     await expect(
       useCase.execute({
-        sellerId: 'seller-1',
         productId: 'prod-1',
         text: 'a'.repeat(501),
       }),
@@ -107,7 +130,6 @@ describe('CreateCustomization', () => {
   it('should reject blank color', async () => {
     await expect(
       useCase.execute({
-        sellerId: 'seller-1',
         productId: 'prod-1',
         color: '  ',
       }),
@@ -117,7 +139,6 @@ describe('CreateCustomization', () => {
   it('should reject invalid imageUrl', async () => {
     await expect(
       useCase.execute({
-        sellerId: 'seller-1',
         productId: 'prod-1',
         imageUrl: 'ftp://x.com/y.png',
       }),
@@ -126,7 +147,6 @@ describe('CreateCustomization', () => {
 
   it('should persist the entity in the repository', async () => {
     const result = await useCase.execute({
-      sellerId: 'seller-1',
       productId: 'prod-1',
       text: 'Test',
     });
@@ -135,20 +155,30 @@ describe('CreateCustomization', () => {
     expect(found).not.toBeNull();
     expect(found!.text).toBe('Test');
   });
+
+  it('should reject when product does not exist', async () => {
+    await expect(
+      useCase.execute({
+        productId: 'non-existent-product',
+        text: 'Test',
+      }),
+    ).rejects.toThrow();
+  });
 });
 
 describe('UpdateCustomization', () => {
   let repo: FakeCustomizationRepository;
+  let productOwnership: FakeProductOwnershipPort;
   let useCase: UpdateCustomization;
 
   beforeEach(async () => {
     repo = new FakeCustomizationRepository();
-    useCase = new UpdateCustomization(repo);
+    productOwnership = new FakeProductOwnershipPort();
+    useCase = new UpdateCustomization(repo, productOwnership);
 
     // Seed a customization
     await repo.save({
       id: 'cust-1',
-      sellerId: 'seller-1',
       productId: 'prod-1',
       text: 'Original',
       color: 'red',
@@ -156,6 +186,9 @@ describe('UpdateCustomization', () => {
       imageUrl: null,
       createdAt: new Date(),
     });
+
+    // Set ownership: cust-1 belongs to seller-1 via product
+    productOwnership.ownershipMap.set('cust-1', 'seller-1');
   });
 
   it('should update by owner', async () => {
@@ -166,7 +199,6 @@ describe('UpdateCustomization', () => {
     });
 
     expect(result.text).toBe('Updated');
-    expect(result.sellerId).toBe('seller-1'); // unchanged
   });
 
   it('should reject update by non-owner', async () => {
@@ -218,15 +250,16 @@ describe('UpdateCustomization', () => {
 
 describe('DeleteCustomization', () => {
   let repo: FakeCustomizationRepository;
+  let productOwnership: FakeProductOwnershipPort;
   let useCase: DeleteCustomization;
 
   beforeEach(async () => {
     repo = new FakeCustomizationRepository();
-    useCase = new DeleteCustomization(repo);
+    productOwnership = new FakeProductOwnershipPort();
+    useCase = new DeleteCustomization(repo, productOwnership);
 
     await repo.save({
       id: 'cust-1',
-      sellerId: 'seller-1',
       productId: 'prod-1',
       text: 'To delete',
       color: null,
@@ -234,21 +267,34 @@ describe('DeleteCustomization', () => {
       imageUrl: null,
       createdAt: new Date(),
     });
+
+    // Set ownership: cust-1 belongs to seller-1 via product
+    productOwnership.ownershipMap.set('cust-1', 'seller-1');
   });
 
   it('should delete when not referenced by orders', async () => {
-    await useCase.execute({ id: 'cust-1' });
+    await useCase.execute({ id: 'cust-1', sellerId: 'seller-1' });
 
     const found = await repo.findById('cust-1');
     expect(found).toBeNull();
   });
 
+  it('should reject delete by non-owner', async () => {
+    await expect(
+      useCase.execute({ id: 'cust-1', sellerId: 'seller-OTHER' }),
+    ).rejects.toThrow(CustomizationForbiddenError);
+
+    // Verify row preserved
+    const found = await repo.findById('cust-1');
+    expect(found).not.toBeNull();
+  });
+
   it('should reject delete when referenced by orders', async () => {
     repo.orderReferences.add('cust-1');
 
-    await expect(useCase.execute({ id: 'cust-1' })).rejects.toThrow(
-      CustomizationInUseError,
-    );
+    await expect(
+      useCase.execute({ id: 'cust-1', sellerId: 'seller-1' }),
+    ).rejects.toThrow(CustomizationInUseError);
 
     // Verify row preserved
     const found = await repo.findById('cust-1');
@@ -256,6 +302,8 @@ describe('DeleteCustomization', () => {
   });
 
   it('should reject delete of non-existent customization', async () => {
-    await expect(useCase.execute({ id: 'non-existent' })).rejects.toThrow();
+    await expect(
+      useCase.execute({ id: 'non-existent', sellerId: 'seller-1' }),
+    ).rejects.toThrow();
   });
 });

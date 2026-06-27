@@ -8,7 +8,7 @@ import { prisma } from '@/shared/infrastructure/prisma';
  *
  * Verifies:
  *  - findByIds partial result (missing IDs silently absent)
- *  - findBySellerId scopes correctly
+ *  - findBySellerId scopes correctly (via Product relation)
  *  - isReferencedByOrders detects OrderLineItem references
  *  - delete removes the row
  *
@@ -90,26 +90,23 @@ describe('PrismaCustomizationRepository — Integration', () => {
       update: {},
     });
 
-    // Seed customizations
+    // Seed customizations (no sellerId — derived from Product)
     await prisma.customization.createMany({
       data: [
         {
           id: 'C1',
-          sellerId: 'seller-cust-1',
           productId: 'prod-cust-1',
           text: 'Hello',
           color: 'red',
         },
         {
           id: 'C2',
-          sellerId: 'seller-cust-1',
           productId: 'prod-cust-1',
           text: 'World',
           size: 'M',
         },
         {
           id: 'C3',
-          sellerId: 'seller-cust-2',
           productId: 'prod-cust-2',
           text: 'Other seller',
         },
@@ -128,7 +125,7 @@ describe('PrismaCustomizationRepository — Integration', () => {
       expect(result!.id).toBe('C1');
       expect(result!.text).toBe('Hello');
       expect(result!.color).toBe('red');
-      expect(result!.sellerId).toBe('seller-cust-1');
+      expect(result!.productId).toBe('prod-cust-1');
     });
 
     it('should return null for non-existent id', async () => {
@@ -157,7 +154,7 @@ describe('PrismaCustomizationRepository — Integration', () => {
   });
 
   describe('findBySellerId', () => {
-    it('should scope by seller', async () => {
+    it('should scope by seller via Product relation', async () => {
       const results = await repo.findBySellerId('seller-cust-1');
       expect(results).toHaveLength(2);
       const ids = results.map((r) => r.id).sort();
@@ -181,7 +178,6 @@ describe('PrismaCustomizationRepository — Integration', () => {
     it('should persist a new customization', async () => {
       const entity = await repo.save({
         id: 'C-NEW',
-        sellerId: 'seller-cust-1',
         productId: 'prod-cust-1',
         text: 'New one',
         color: null,
@@ -199,7 +195,6 @@ describe('PrismaCustomizationRepository — Integration', () => {
     it('should update an existing customization', async () => {
       await repo.save({
         id: 'C-NEW',
-        sellerId: 'seller-cust-1',
         productId: 'prod-cust-1',
         text: 'Updated',
         color: 'blue',
