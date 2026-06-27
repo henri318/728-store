@@ -250,7 +250,7 @@ export function CartView({
       <div className={styles.summary}>
         <div className={styles.subtotalRow}>
           <span>Subtotal</span>
-          <span>{subtotal.toFixed(2)} €</span>
+          <span>€{subtotal.toFixed(2)}</span>
         </div>
 
         {isAuthenticated && (
