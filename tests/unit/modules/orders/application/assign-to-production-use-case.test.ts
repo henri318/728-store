@@ -67,12 +67,16 @@ describe('AssignToProductionUseCase', () => {
           orderId: 'order-multi',
           productId: 'prod-1',
           quantity: 2,
+          customizationIdList: [],
+          customizationSnapshot: null,
         },
         {
           id: 'item-2',
           orderId: 'order-multi',
           productId: 'prod-2',
           quantity: 1,
+          customizationIdList: [],
+          customizationSnapshot: null,
         },
       ],
     };

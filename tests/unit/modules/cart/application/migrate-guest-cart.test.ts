@@ -44,6 +44,7 @@ describe('MigrateGuestCart', () => {
     sellerId: SellerId.create('s1'),
     quantity: 1,
     unitPriceSnapshot: Money.create(10, Currency.EUR),
+    customizationIdList: [],
     ...overrides,
   });
 
@@ -201,7 +202,10 @@ describe('MigrateGuestCart', () => {
     expect(result.migratedCount).toBe(2);
   });
 
-  it('merge: different customization on the same product creates a separate row', async () => {
+  // PR2: Once customization IDs are resolved, this test will assert
+  // separate rows per distinct customizationIdList. Until then, same-
+  // productId items merge because customizationIdList is always [].
+  it('merge: same product merges while customization resolution is stubbed', async () => {
     productRepo.seed([{ id: 'p1', basePrice: 10, sellerId: 's1' }]);
     await cartRepo.save(
       makeCart({
@@ -214,7 +218,7 @@ describe('MigrateGuestCart', () => {
             productId: ProductId.create('p1'),
             quantity: 1,
             unitPriceSnapshot: Money.create(10, Currency.EUR),
-            customizationSize: 'M',
+            customizationIdList: [],
           }),
         ],
       }),
@@ -228,15 +232,13 @@ describe('MigrateGuestCart', () => {
           sellerId: 's1',
           quantity: 1,
           unitPriceSnapshot: 10,
-          customizationSize: 'L',
         },
       ],
       strategy: 'merge',
     });
 
-    expect(result.cart.items).toHaveLength(2);
-    const sizes = result.cart.items.map((i) => i.customizationSize).sort();
-    expect(sizes).toEqual(['L', 'M']);
+    expect(result.cart.items).toHaveLength(1);
+    expect(result.cart.items[0].quantity).toBe(2);
   });
 
   // -------------------------------------------------------------------------

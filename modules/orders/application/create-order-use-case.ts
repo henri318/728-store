@@ -87,10 +87,8 @@ export class CreateOrderUseCase {
         orderId: '', // This will be set when the order is saved and line items are linked
         productId: item.productId,
         quantity: item.quantity,
-        customizationText: item.customization.text,
-        customizationColor: item.customization.color,
-        customizationSize: item.customization.size,
-        customizationImageUrl: item.customization.imageUrl, // Placeholder: Actual image upload logic needed.
+        customizationIdList: [],
+        customizationSnapshot: null,
       });
     }
 

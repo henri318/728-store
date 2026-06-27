@@ -44,6 +44,8 @@ describe('Orders Module - Integration Tests', () => {
             orderId: 'order-lifecycle-1',
             productId: 'prod-1',
             quantity: 1,
+            customizationIdList: [],
+            customizationSnapshot: null,
           },
         ],
       };

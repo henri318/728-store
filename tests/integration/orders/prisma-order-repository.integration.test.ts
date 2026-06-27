@@ -138,15 +138,16 @@ describe('PrismaOrderRepository — Integration', () => {
           orderId: 'order-int-2',
           productId: 'prod-order-2',
           quantity: 2,
-          customizationText: 'Hello World',
-          customizationColor: 'red',
+          customizationIdList: [],
+          customizationSnapshot: { text: 'Hello World', color: 'red' },
         },
         {
           id: 'item-int-2',
           orderId: 'order-int-2',
           productId: 'prod-order-2',
           quantity: 1,
-          customizationSize: 'XL',
+          customizationIdList: [],
+          customizationSnapshot: { size: 'XL' },
         },
       ];
 
@@ -167,13 +168,15 @@ describe('PrismaOrderRepository — Integration', () => {
       const item1 = found!.lineItems!.find((i) => i.id === 'item-int-1');
       expect(item1).toBeDefined();
       expect(item1!.quantity).toBe(2);
-      expect(item1!.customizationText).toBe('Hello World');
-      expect(item1!.customizationColor).toBe('red');
+      expect(item1!.customizationSnapshot).toEqual({
+        text: 'Hello World',
+        color: 'red',
+      });
 
       const item2 = found!.lineItems!.find((i) => i.id === 'item-int-2');
       expect(item2).toBeDefined();
       expect(item2!.quantity).toBe(1);
-      expect(item2!.customizationSize).toBe('XL');
+      expect(item2!.customizationSnapshot).toEqual({ size: 'XL' });
     });
   });
 
@@ -229,6 +232,8 @@ describe('PrismaOrderRepository — Integration', () => {
           orderId: 'order-int-4',
           productId: 'prod-order-4',
           quantity: 3,
+          customizationIdList: [],
+          customizationSnapshot: null,
         },
       ];
 
