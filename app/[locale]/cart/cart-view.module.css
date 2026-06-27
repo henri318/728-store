@@ -140,6 +140,13 @@
   text-align: right;
 }
 
+.unitPrice {
+  font-size: 0.85rem;
+  color: #666;
+  min-width: 5rem;
+  text-align: right;
+}
+
 .removeButton {
   background: none;
   border: none;

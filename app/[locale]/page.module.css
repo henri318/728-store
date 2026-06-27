@@ -57,8 +57,9 @@
 }
 
 .productLink {
-  display: inline-block;
-  margin-top: var(--spacing-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: var(--spacing-sm) var(--spacing-md);
   background: var(--color-green-dark);
   color: var(--color-white);
@@ -73,6 +74,7 @@
   transition:
     background 0.2s ease,
     transform 0.2s ease;
+  min-height: 2.25rem;
 }
 
 .productLink:hover {

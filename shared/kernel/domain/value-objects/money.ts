@@ -67,6 +67,33 @@ export class Money {
     );
   }
 
+  format(): string {
+    return `${this.amount.toFixed(2)} ${Money.getSymbol(this.currency)}`;
+  }
+
+  static format(amount: number, currency: Currency): string {
+    if (!Number.isFinite(amount)) {
+      throw new Error('Money.format amount must be a finite number');
+    }
+    if (!currency) {
+      throw new Error('Money.format currency is required');
+    }
+    return `${amount.toFixed(2)} ${Money.getSymbol(currency)}`;
+  }
+
+  private static getSymbol(currency: Currency): string {
+    switch (currency) {
+      case Currency.EUR:
+        return '€';
+      case Currency.USD:
+        return '$';
+      case Currency.GBP:
+        return '£';
+      default:
+        return currency;
+    }
+  }
+
   private assertSameCurrency(other: Money): void {
     if (this.currency !== other.currency) {
       throw new Error(

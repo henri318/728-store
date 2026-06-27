@@ -7,6 +7,7 @@ import { updateQuantitySchema } from '@/modules/cart/presentation/schemas/cart-s
 import { handleApiError } from '@/shared/presentation/error-handler';
 import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
+import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
 
 /**
  * PATCH /api/cart/items/[itemId] — updates an item's quantity.
@@ -37,6 +38,7 @@ export const PATCH = requireRole('CUSTOMER')(async function PATCH(
 
     const cartRepository = container.getCartRepository();
     const outboxRepository = container.getOutboxRepository();
+    const customizationLookup = container.getCustomizationLookup();
 
     const updateCartItem = new UpdateCartItemQuantity(
       cartRepository,
@@ -49,14 +51,24 @@ export const PATCH = requireRole('CUSTOMER')(async function PATCH(
       quantity: validated.quantity,
     });
 
-    // Enrich the item with product display data.
+    // Enrich the item with product display data + resolved customizations.
     const productsModuleRepo = container.getProductRepository();
     const product = await productsModuleRepo.findById(
       item.productId.value,
       'es',
     );
 
-    const enriched = enrichCartItem(item, product ?? undefined);
+    const rawCustomizations =
+      item.customizationIdList.length > 0
+        ? await customizationLookup.findByIds(item.customizationIdList)
+        : [];
+    // Reorder to match customizationIdList (findByIds may return any order).
+    const customizationMap = new Map(rawCustomizations.map((c) => [c.id, c]));
+    const customizations = item.customizationIdList
+      .map((id) => customizationMap.get(id))
+      .filter((c): c is NonNullable<typeof c> => c != null);
+
+    const enriched = enrichCartItem(item, product ?? undefined, customizations);
 
     return NextResponse.json(enriched, { status: 200 });
   } catch (error: unknown) {
@@ -106,6 +118,7 @@ export const DELETE = requireRole('CUSTOMER')(async function DELETE(
 function enrichCartItem(
   item: CartItemEntity,
   product: ProductEntity | undefined,
+  customizations: CustomizationSnapshot[],
 ): Record<string, unknown> {
   const productName = product?.translations?.[0]?.name ?? 'Unknown Product';
   const productImageUrl = product?.images?.[0]?.url ?? null;
@@ -123,11 +136,13 @@ function enrichCartItem(
     quantity: item.quantity,
     unitPrice,
     lineTotal,
-    customization: {
-      text: null,
-      color: null,
-      size: null,
-      imageUrl: null,
-    },
+    customizationIdList: item.customizationIdList,
+    customizations: customizations.map((c) => ({
+      id: c.id,
+      text: c.text,
+      color: c.color,
+      size: c.size,
+      imageUrl: c.imageUrl,
+    })),
   };
 }

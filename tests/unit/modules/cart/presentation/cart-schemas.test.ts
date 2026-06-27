@@ -17,18 +17,31 @@ describe('cart-schemas', () => {
       if (result.success) {
         expect(result.data.productId).toBe('prod_123');
         expect(result.data.quantity).toBe(2);
+        expect(result.data.customizationIdList).toEqual([]);
       }
     });
 
-    it('accepts valid input with customization fields', () => {
+    it('accepts valid input with customizationIdList', () => {
       const result = addItemSchema.safeParse({
         productId: 'prod_123',
         quantity: 1,
-        customizationText: 'Hello World',
-        customizationColor: 'red',
-        customizationSize: 'M',
+        customizationIdList: ['cust-1', 'cust-2'],
       });
       expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.customizationIdList).toEqual(['cust-1', 'cust-2']);
+      }
+    });
+
+    it('defaults customizationIdList to empty array when omitted', () => {
+      const result = addItemSchema.safeParse({
+        productId: 'prod_123',
+        quantity: 1,
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.customizationIdList).toEqual([]);
+      }
     });
 
     it('rejects missing productId', () => {
@@ -79,29 +92,20 @@ describe('cart-schemas', () => {
       }
     });
 
-    it('rejects customizationText longer than 500 chars', () => {
+    it('rejects customizationIdList with empty string IDs', () => {
       const result = addItemSchema.safeParse({
         productId: 'prod_123',
         quantity: 1,
-        customizationText: 'a'.repeat(501),
+        customizationIdList: [''],
       });
       expect(result.success).toBe(false);
     });
 
-    it('rejects customizationColor longer than 50 chars', () => {
+    it('rejects non-array customizationIdList', () => {
       const result = addItemSchema.safeParse({
         productId: 'prod_123',
         quantity: 1,
-        customizationColor: 'a'.repeat(51),
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('rejects customizationSize longer than 50 chars', () => {
-      const result = addItemSchema.safeParse({
-        productId: 'prod_123',
-        quantity: 1,
-        customizationSize: 'a'.repeat(51),
+        customizationIdList: 'not-an-array',
       });
       expect(result.success).toBe(false);
     });

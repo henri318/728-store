@@ -46,8 +46,7 @@ export default async function ProductDetailPage({
           <h1>{product.displayName}</h1>
           <p className={styles.description}>{product.displayDescription}</p>
           <p className={styles.price}>
-            {'$'}
-            {product.basePrice}
+            {Number(product.basePrice).toFixed(2)} €
           </p>
           <p className={styles.seller}>Seller: {product.sellerName}</p>
 

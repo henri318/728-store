@@ -73,8 +73,8 @@ describe('CartView', () => {
     expect(screen.getByText('Test Product')).toBeTruthy();
     expect(screen.getByText('Another Product')).toBeTruthy();
     expect(screen.getByText('2')).toBeTruthy(); // quantity of first item
-    expect(screen.getByText('€20.00')).toBeTruthy(); // lineTotal of first item
-    expect(screen.getByText('€25.00')).toBeTruthy(); // lineTotal of second item
+    expect(screen.getByText('20.00 €')).toBeTruthy(); // lineTotal of first item
+    expect(screen.getAllByText('25.00 €').length).toBe(2); // unitPrice and lineTotal of second item
   });
 
   it('renders empty state with CTA when no items', () => {
@@ -88,7 +88,7 @@ describe('CartView', () => {
   it('renders subtotal', () => {
     render(<CartView items={baseItems} locale="es" isAuthenticated={true} />);
     // subtotal = 20 + 25 = 45
-    expect(screen.getByText('€45.00')).toBeTruthy();
+    expect(screen.getByText('45.00 €')).toBeTruthy();
   });
 
   it('renders checkout CTA linking to /{locale}/checkout', () => {

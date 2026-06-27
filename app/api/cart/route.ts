@@ -5,6 +5,7 @@ import { GetCart } from '@/modules/cart/application/get-cart';
 import { handleApiError } from '@/shared/presentation/error-handler';
 import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
+import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
 
 /**
  * GET /api/cart — returns the authenticated user's ACTIVE cart.
@@ -26,6 +27,7 @@ export const GET = requireRole('CUSTOMER')(async function GET() {
 
   try {
     const cartRepository = container.getCartRepository();
+    const customizationLookup = container.getCustomizationLookup();
     const getCart = new GetCart(cartRepository);
     const cart = await getCart.execute(userId);
 
@@ -40,9 +42,26 @@ export const GET = requireRole('CUSTOMER')(async function GET() {
       if (p) productMap.set(p.id, p);
     });
 
-    const items = cart.items.map((item) =>
-      enrichCartItem(item, productMap.get(item.productId.value)),
-    );
+    // Resolve all customizations in a single batch.
+    const allCustomizationIds = [
+      ...new Set(cart.items.flatMap((i) => i.customizationIdList)),
+    ];
+    const allCustomizations =
+      allCustomizationIds.length > 0
+        ? await customizationLookup.findByIds(allCustomizationIds)
+        : [];
+    const customizationMap = new Map(allCustomizations.map((c) => [c.id, c]));
+
+    const items = cart.items.map((item) => {
+      const customizations = item.customizationIdList
+        .map((id) => customizationMap.get(id))
+        .filter((c): c is CustomizationSnapshot => c != null);
+      return enrichCartItem(
+        item,
+        productMap.get(item.productId.value),
+        customizations,
+      );
+    });
 
     return NextResponse.json(
       {
@@ -65,6 +84,7 @@ export const GET = requireRole('CUSTOMER')(async function GET() {
 function enrichCartItem(
   item: CartItemEntity,
   product: ProductEntity | undefined,
+  customizations: CustomizationSnapshot[],
 ): Record<string, unknown> {
   const productName = product?.translations?.[0]?.name ?? 'Unknown Product';
   const productImageUrl = product?.images?.[0]?.url ?? null;
@@ -82,11 +102,13 @@ function enrichCartItem(
     quantity: item.quantity,
     unitPrice,
     lineTotal,
-    customization: {
-      text: null,
-      color: null,
-      size: null,
-      imageUrl: null,
-    },
+    customizationIdList: item.customizationIdList,
+    customizations: customizations.map((c) => ({
+      id: c.id,
+      text: c.text,
+      color: c.color,
+      size: c.size,
+      imageUrl: c.imageUrl,
+    })),
   };
 }

@@ -23,10 +23,7 @@ const { cartStore, itemStore, prismaMock } = vi.hoisted(() => {
     sellerId: string;
     quantity: number;
     unitPriceSnapshot: { toNumber: () => number } | number;
-    customizationText: string | null;
-    customizationColor: string | null;
-    customizationSize: string | null;
-    customizationImageUrl: string | null;
+    customizationIdList: string[];
     createdAt: Date;
     updatedAt: Date;
   }> = [];
@@ -151,12 +148,7 @@ const { cartStore, itemStore, prismaMock } = vi.hoisted(() => {
               unitPriceSnapshot: d.unitPriceSnapshot as {
                 toNumber: () => number;
               },
-              customizationText: (d.customizationText as string | null) ?? null,
-              customizationColor:
-                (d.customizationColor as string | null) ?? null,
-              customizationSize: (d.customizationSize as string | null) ?? null,
-              customizationImageUrl:
-                (d.customizationImageUrl as string | null) ?? null,
+              customizationIdList: (d.customizationIdList as string[]) ?? [],
               createdAt: new Date(),
               updatedAt: new Date(),
             });
@@ -423,5 +415,61 @@ describe('PrismaCartRepository', () => {
 
     const items = await repo.findItemsByCartId(CartId.create('c1'));
     expect(items).toHaveLength(2);
+  });
+
+  // -------------------------------------------------------------------------
+  // customizationIdList persistence
+  // -------------------------------------------------------------------------
+
+  it('save persists customizationIdList on items', async () => {
+    await repo.save(
+      makeCart({
+        id: 'c1',
+        userId: 'u1',
+        items: [
+          makeItem({
+            id: 'i1',
+            cartId: 'c1',
+            customizationIdList: ['cust-1', 'cust-2'],
+          }),
+        ],
+      }),
+    );
+
+    const found = await repo.findById(CartId.create('c1'));
+    expect(found?.items).toHaveLength(1);
+    expect(found?.items[0].customizationIdList).toEqual(['cust-1', 'cust-2']);
+  });
+
+  it('findItemById returns the item with customizationIdList', async () => {
+    await repo.save(
+      makeCart({
+        id: 'c1',
+        userId: 'u1',
+        items: [
+          makeItem({
+            id: 'i1',
+            cartId: 'c1',
+            customizationIdList: ['cust-1'],
+          }),
+        ],
+      }),
+    );
+
+    const item = await repo.findItemById(CartItemId.create('i1'));
+    expect(item?.customizationIdList).toEqual(['cust-1']);
+  });
+
+  it('save persists empty customizationIdList by default', async () => {
+    await repo.save(
+      makeCart({
+        id: 'c1',
+        userId: 'u1',
+        items: [makeItem({ id: 'i1', cartId: 'c1' })],
+      }),
+    );
+
+    const found = await repo.findById(CartId.create('c1'));
+    expect(found?.items[0].customizationIdList).toEqual([]);
   });
 });

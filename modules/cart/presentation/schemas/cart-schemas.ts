@@ -17,10 +17,7 @@ export const addItemSchema = z.object({
     .int('Quantity must be an integer')
     .min(1, 'Quantity must be at least 1')
     .max(99, 'Quantity must be at most 99'),
-  customizationText: z.string().max(500).nullable().optional(),
-  customizationColor: z.string().max(50).nullable().optional(),
-  customizationSize: z.string().max(50).nullable().optional(),
-  customizationImageUrl: z.string().url().nullable().optional(),
+  customizationIdList: z.array(z.string().min(1)).optional().default([]),
 });
 
 export type AddItemInput = z.infer<typeof addItemSchema>;
