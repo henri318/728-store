@@ -3,8 +3,7 @@ import { NextRequest } from 'next/server';
 
 // Hoist all mocks so they can be accessed by vi.mock factories
 const mocks = vi.hoisted(() => {
-  const findAllMock = vi.fn();
-  const findAllByStatusMock = vi.fn();
+  const findPaginatedMock = vi.fn();
   const findByNameMock = vi.fn();
   const findByEmailMock = vi.fn();
   const saveUserMock = vi.fn();
@@ -21,8 +20,7 @@ const mocks = vi.hoisted(() => {
   );
 
   return {
-    findAllMock,
-    findAllByStatusMock,
+    findPaginatedMock,
     findByNameMock,
     findByEmailMock,
     saveUserMock,
@@ -40,8 +38,7 @@ vi.mock('@/shared/authorization/authorization', () => ({
 vi.mock('@/composition-root/container', () => ({
   container: {
     getSellerRepository: () => ({
-      findAll: mocks.findAllMock,
-      findAllByStatus: mocks.findAllByStatusMock,
+      findPaginated: mocks.findPaginatedMock,
       findByName: mocks.findByNameMock,
       save: mocks.saveSellerMock,
     }),
@@ -71,6 +68,44 @@ vi.mock('@/composition-root/container', () => ({
 import { GET, POST } from '@/app/api/sellers/route';
 import { SellerStatus } from '@/modules/sellers/domain/seller-status';
 import { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
+
+function makeSellerEntity(
+  id: string,
+  overrides: Partial<{
+    name: string;
+    description: string | null;
+    userId: string;
+    status: SellerStatus;
+    createdAt: Date;
+    updatedAt: Date;
+  }> = {},
+) {
+  return {
+    sellerId: SellerId.create(id),
+    name: overrides.name ?? 'Shop',
+    description: overrides.description ?? null,
+    userId: overrides.userId ?? 'u1',
+    status: overrides.status ?? SellerStatus.ACTIVE,
+    deletedAt: null,
+    createdAt: overrides.createdAt ?? new Date('2025-01-01'),
+    updatedAt: overrides.updatedAt ?? new Date('2025-01-01'),
+  };
+}
+
+function makePaginatedResult(
+  items: ReturnType<typeof makeSellerEntity>[],
+  page = 1,
+  pageSize = 20,
+  total = items.length,
+) {
+  return {
+    items,
+    total,
+    page,
+    pageSize,
+    totalPages: Math.ceil(total / pageSize),
+  };
+}
 
 function makeGetRequest(
   url = 'http://localhost:3000/api/sellers',
@@ -106,55 +141,98 @@ describe('GET /api/sellers', () => {
     vi.clearAllMocks();
   });
 
-  it('returns 200 with all sellers', async () => {
-    mocks.findAllMock.mockResolvedValue([
-      {
-        sellerId: SellerId.create('s1'),
-        name: 'Shop 1',
-        description: null,
-        userId: 'u1',
-        status: SellerStatus.ACTIVE,
-        deletedAt: null,
-        createdAt: new Date('2025-01-01'),
-        updatedAt: new Date('2025-01-01'),
-      },
-      {
-        sellerId: SellerId.create('s2'),
-        name: 'Shop 2',
-        description: 'desc',
-        userId: 'u2',
-        status: SellerStatus.SUSPENDED,
-        deletedAt: null,
-        createdAt: new Date('2025-01-02'),
-        updatedAt: new Date('2025-01-02'),
-      },
-    ]);
+  it('returns 400 when page is 0', async () => {
+    mocks.findPaginatedMock.mockResolvedValue(makePaginatedResult([]));
+
+    const res = await GET(
+      makeGetRequest('http://localhost:3000/api/sellers?page=0'),
+    );
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toBe('Validation failed');
+  });
+
+  it('returns 400 when pageSize is 0', async () => {
+    mocks.findPaginatedMock.mockResolvedValue(makePaginatedResult([]));
+
+    const res = await GET(
+      makeGetRequest('http://localhost:3000/api/sellers?pageSize=0'),
+    );
+
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 when sortBy is invalid', async () => {
+    mocks.findPaginatedMock.mockResolvedValue(makePaginatedResult([]));
+
+    const res = await GET(
+      makeGetRequest('http://localhost:3000/api/sellers?sortBy=email'),
+    );
+
+    expect(res.status).toBe(400);
+  });
+
+  it('returns paginated sellers with defaults', async () => {
+    mocks.findPaginatedMock.mockResolvedValue(
+      makePaginatedResult(
+        [
+          makeSellerEntity('s1', { name: 'Shop 1' }),
+          makeSellerEntity('s2', {
+            name: 'Shop 2',
+            status: SellerStatus.SUSPENDED,
+          }),
+        ],
+        1,
+        20,
+        2,
+      ),
+    );
 
     const res = await GET(makeGetRequest());
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toHaveLength(2);
-    expect(body[0].id).toBe('s1');
-    expect(body[0].name).toBe('Shop 1');
-    expect(body[0].status).toBe('active');
-    expect(body[1].id).toBe('s2');
-    expect(body[1].status).toBe('suspended');
+    expect(body.items).toHaveLength(2);
+    expect(body.total).toBe(2);
+    expect(body.page).toBe(1);
+    expect(body.pageSize).toBe(20);
+    expect(body.totalPages).toBe(1);
+    expect(body.items[0].id).toBe('s1');
+    expect(body.items[0].name).toBe('Shop 1');
+    expect(body.items[0].status).toBe('active');
+    expect(body.items[1].id).toBe('s2');
+    expect(body.items[1].status).toBe('suspended');
   });
 
-  it('delegates to findAllByStatus when status is provided', async () => {
-    mocks.findAllByStatusMock.mockResolvedValue([
-      {
-        sellerId: SellerId.create('s2'),
-        name: 'Suspended Shop',
-        description: null,
-        userId: 'u2',
-        status: SellerStatus.SUSPENDED,
-        deletedAt: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ]);
+  it('delegates query params to the use case', async () => {
+    mocks.findPaginatedMock.mockResolvedValue(makePaginatedResult([]));
+
+    const req = makeGetRequest(
+      'http://localhost:3000/api/sellers?page=2&pageSize=15&q=camisa&sortBy=name&sortDir=asc&status=active',
+    );
+    const res = await GET(req);
+
+    expect(res.status).toBe(200);
+    expect(mocks.findPaginatedMock).toHaveBeenCalledWith({
+      page: 2,
+      pageSize: 15,
+      q: 'camisa',
+      sortBy: 'name',
+      sortDir: 'asc',
+      status: SellerStatus.ACTIVE,
+    });
+  });
+
+  it('filters by status', async () => {
+    mocks.findPaginatedMock.mockResolvedValue(
+      makePaginatedResult([
+        makeSellerEntity('s2', {
+          name: 'Suspended Shop',
+          status: SellerStatus.SUSPENDED,
+        }),
+      ]),
+    );
 
     const req = makeGetRequest(
       'http://localhost:3000/api/sellers?status=suspended',
@@ -163,19 +241,34 @@ describe('GET /api/sellers', () => {
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toHaveLength(1);
-    expect(body[0].name).toBe('Suspended Shop');
-    expect(body[0].status).toBe('suspended');
+    expect(body.items).toHaveLength(1);
+    expect(body.items[0].name).toBe('Suspended Shop');
+    expect(body.items[0].status).toBe('suspended');
   });
 
-  it('returns empty array when no sellers exist', async () => {
-    mocks.findAllMock.mockResolvedValue([]);
+  it('filters by q', async () => {
+    mocks.findPaginatedMock.mockResolvedValue(
+      makePaginatedResult([makeSellerEntity('s1', { name: 'Camisa Shop' })]),
+    );
+
+    const req = makeGetRequest('http://localhost:3000/api/sellers?q=camisa');
+    const res = await GET(req);
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.items).toHaveLength(1);
+    expect(body.items[0].name).toBe('Camisa Shop');
+  });
+
+  it('returns empty paginated result when no sellers exist', async () => {
+    mocks.findPaginatedMock.mockResolvedValue(makePaginatedResult([]));
 
     const res = await GET(makeGetRequest());
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toEqual([]);
+    expect(body.items).toEqual([]);
+    expect(body.total).toBe(0);
   });
 });
 
