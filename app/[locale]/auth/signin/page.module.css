@@ -12,23 +12,6 @@
   gap: 1rem;
 }
 
-.separator {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin: 1rem 0;
-  color: #888;
-  font-size: 0.85rem;
-}
-
-.separator::before,
-.separator::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: #ddd;
-}
-
 .googleButton {
   display: flex;
   align-items: center;

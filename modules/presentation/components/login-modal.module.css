@@ -38,22 +38,6 @@
   font-size: 0.85rem;
 }
 
-.separator {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  color: #888;
-  font-size: 0.85rem;
-}
-
-.separator::before,
-.separator::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: #ddd;
-}
-
 .googleButton {
   display: flex;
   align-items: center;

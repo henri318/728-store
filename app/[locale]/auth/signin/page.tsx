@@ -26,28 +26,6 @@ export default function SignInPage() {
   return (
     <div className={styles.container}>
       <h2>{dict.auth.signInTitle}</h2>
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <Input
-          label={dict.auth.email}
-          type="email"
-          value={email}
-          onChange={setEmail}
-          required
-        />
-        <EyeToggleWrapper
-          label={dict.auth.password}
-          value={password}
-          onChange={setPassword}
-          required
-        />
-        <Button type="submit" loading={loading}>
-          {dict.auth.loginButton}
-        </Button>
-      </form>
-
-      <div className={styles.separator}>
-        <span>{dict.auth.orContinueWith}</span>
-      </div>
 
       <button
         type="button"
@@ -74,6 +52,25 @@ export default function SignInPage() {
         </svg>
         {dict.auth.googleLogin}
       </button>
+
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <Input
+          label={dict.auth.email}
+          type="email"
+          value={email}
+          onChange={setEmail}
+          required
+        />
+        <EyeToggleWrapper
+          label={dict.auth.password}
+          value={password}
+          onChange={setPassword}
+          required
+        />
+        <Button type="submit" loading={loading}>
+          {dict.auth.loginButton}
+        </Button>
+      </form>
 
       <p className={styles.footer}>
         {dict.auth.dontHaveAccount}{' '}

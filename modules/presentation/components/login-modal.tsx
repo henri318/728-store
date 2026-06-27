@@ -69,34 +69,6 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <Input
-            label={dict.auth.email}
-            type="email"
-            value={email}
-            onChange={setEmail}
-            required
-          />
-          <EyeToggleWrapper
-            label={dict.auth.password}
-            value={password}
-            onChange={setPassword}
-            required
-          />
-          {error && (
-            <span role="alert" className={styles.errorText}>
-              {error}
-            </span>
-          )}
-          <Button type="submit" loading={loading}>
-            {dict.auth.loginButton}
-          </Button>
-        </form>
-
-        <div className={styles.separator}>
-          <span>{dict.auth.orContinueWith}</span>
-        </div>
-
         <button
           type="button"
           onClick={() => signIn('google', { callbackUrl: '/' })}
@@ -122,6 +94,30 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           </svg>
           {dict.auth.googleLogin}
         </button>
+
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <Input
+            label={dict.auth.email}
+            type="email"
+            value={email}
+            onChange={setEmail}
+            required
+          />
+          <EyeToggleWrapper
+            label={dict.auth.password}
+            value={password}
+            onChange={setPassword}
+            required
+          />
+          {error && (
+            <span role="alert" className={styles.errorText}>
+              {error}
+            </span>
+          )}
+          <Button type="submit" loading={loading}>
+            {dict.auth.loginButton}
+          </Button>
+        </form>
 
         <div className={styles.footer}>
           <Link
