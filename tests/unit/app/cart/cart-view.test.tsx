@@ -73,8 +73,8 @@ describe('CartView', () => {
     expect(screen.getByText('Test Product')).toBeTruthy();
     expect(screen.getByText('Another Product')).toBeTruthy();
     expect(screen.getByText('2')).toBeTruthy(); // quantity of first item
-    expect(screen.getByText('€20.00')).toBeTruthy(); // lineTotal of first item
-    expect(screen.getByText('€25.00')).toBeTruthy(); // lineTotal of second item
+    expect(screen.getByText('20.00 €')).toBeTruthy(); // lineTotal of first item
+    expect(screen.getByText('25.00 €')).toBeTruthy(); // lineTotal of second item
   });
 
   it('renders empty state with CTA when no items', () => {

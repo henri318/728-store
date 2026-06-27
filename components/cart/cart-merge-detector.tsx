@@ -6,8 +6,9 @@ import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
 import { MergeDialog } from '@/components/cart/merge-dialog';
 
 /**
- * Detects when a guest with items logs in and the server also has items.
- * Shows the MergeDialog to let the user choose how to combine carts.
+ * Detects when a guest with items logs in.
+ * If the server also has items, shows the MergeDialog to let the user choose.
+ * If the server is empty, auto-merges the guest cart without asking.
  */
 export function CartMergeDetector() {
   const { status } = useSession();
@@ -21,22 +22,43 @@ export function CartMergeDetector() {
 
     hasCheckedRef.current = true;
 
-    async function checkServerCart() {
+    async function checkAndMerge() {
       try {
         const res = await fetch('/api/cart');
         if (!res.ok) return;
         const data = await res.json();
 
         if (data.items && data.items.length > 0) {
+          // Server has items too - show merge dialog
           setShowMerge(true);
+        } else {
+          // Server is empty - auto-merge silently
+          try {
+            await fetch('/api/cart/migrate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                items: guestItems.map((gi) => ({
+                  productId: gi.productId,
+                  sellerId: gi.sellerId,
+                  quantity: gi.quantity,
+                  unitPriceSnapshot: gi.unitPriceSnapshot,
+                })),
+                strategy: 'merge',
+              }),
+            });
+            window.location.reload();
+          } catch {
+            // Ignore - let user retry manually
+          }
         }
       } catch {
         // Ignore — don't show dialog on network error
       }
     }
 
-    checkServerCart();
-  }, [status, guestItems.length]);
+    checkAndMerge();
+  }, [status, guestItems]);
 
   return <MergeDialog isOpen={showMerge} onClose={() => setShowMerge(false)} />;
 }
