@@ -73,6 +73,8 @@
     "canLoginAfterVerification": "Ya puedes iniciar sesión.",
     "tokenExpired": "El enlace ha expirado. Solicita uno nuevo.",
     "invalidToken": "El enlace de verificación no es válido.",
+    "orContinueWith": "o continuar con",
+    "googleLogin": "Iniciar sesión con Google",
     "invalidCredentials": "Credenciales incorrectas",
     "passwordsDoNotMatch": "Las contraseñas no coinciden",
     "wrongCurrentPassword": "La contraseña actual es incorrecta",

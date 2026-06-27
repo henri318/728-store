@@ -120,7 +120,7 @@ describe('CreateSellerWithUserUseCase', () => {
 
     const user = await userRepository.findByEmail('owner@shop.com');
     expect(user).not.toBeNull();
-    expect(user!.passwordHash.value).toBe('mem:password1');
+    expect(user!.passwordHash!.value).toBe('mem:password1');
   });
 
   it('should execute the work inside a transaction', async () => {

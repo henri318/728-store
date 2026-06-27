@@ -88,7 +88,7 @@ describe('ResetPasswordUseCase', () => {
     // User password should have been updated
     const user = await userRepository.findById('user-rp-1');
     expect(user).not.toBeNull();
-    expect(user!.passwordHash.value).toBe(`mem:${newPassword}`);
+    expect(user!.passwordHash!.value).toBe(`mem:${newPassword}`);
 
     // Token should be marked as used
     // The original token's jti should now be marked used

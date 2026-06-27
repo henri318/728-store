@@ -21,7 +21,7 @@ export interface UserEntity {
   readonly lastName: string;
   readonly address: Address | null;
   readonly roleId: RoleId;
-  readonly passwordHash: PasswordHash;
+  readonly passwordHash: PasswordHash | null;
   readonly emailVerified: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;

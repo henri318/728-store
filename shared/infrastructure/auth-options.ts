@@ -57,6 +57,12 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        // OAuth users without a password cannot login via credentials
+        if (!user.passwordHash) {
+          await rateLimiter.recordLoginAttempt(credentials.email, ip, false);
+          return null;
+        }
+
         const isValid = await passwordHasher.verify(
           credentials.password,
           user.passwordHash.value,
@@ -98,17 +104,59 @@ export const authOptions: NextAuthOptions = {
       : []),
   ],
   callbacks: {
-    async signIn({ user }) {
+    async signIn({ user, account }) {
+      if (!user.email) return false;
+
+      const userRepo = container.getUserRepository();
+      const existing = await userRepo.findByEmail(user.email);
+
       // Reject login if account has been soft-deleted
-      // For credentials provider, this is also checked in authorize(),
-      // but this signIn callback covers OAuth providers (Google) as well.
-      if (user.email) {
-        const userRepo = container.getUserRepository();
-        const existing = await userRepo.findByEmail(user.email);
-        if (existing?.deletedAt) {
-          return false; // Reject sign-in
-        }
+      if (existing?.deletedAt) {
+        return false;
       }
+
+      // OAuth provider: auto-create user on first login
+      if (
+        account?.provider &&
+        account.provider !== 'credentials' &&
+        !existing
+      ) {
+        const { UserId } =
+          await import('@/shared/kernel/domain/value-objects/user-id');
+        const { Email } =
+          await import('@/shared/kernel/domain/value-objects/email');
+        const { RoleId } =
+          await import('@/shared/kernel/domain/identifiers/role-id');
+
+        const names = (user.name ?? '').split(' ');
+        const firstName = names[0] || '';
+        const lastName = names.slice(1).join(' ') || '';
+
+        const newUser = await userRepo.save({
+          userId: UserId.create(user.id),
+          email: Email.create(user.email),
+          firstName,
+          lastName,
+          address: null,
+          roleId: RoleId.create('CUSTOMER'),
+          passwordHash: null,
+          emailVerified: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+
+        // Patch the NextAuth user object so jwt callback picks up DB id + role
+        user.id = newUser.userId.value;
+        user.role = newUser.roleId.value;
+        return true;
+      }
+
+      // Existing user: propagate DB id + role to jwt
+      if (existing) {
+        user.id = existing.userId.value;
+        user.role = existing.roleId.value;
+      }
+
       return true;
     },
     async jwt({ token, user, account }) {

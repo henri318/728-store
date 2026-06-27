@@ -30,7 +30,12 @@ export class ChangePasswordUseCase {
       throw new UnauthorizedError('Account is deactivated');
     }
 
-    // 3. Verify current password
+    // 3. OAuth users without a password cannot change password
+    if (!user.passwordHash) {
+      throw new UnauthorizedError('OAuth users cannot change password');
+    }
+
+    // 4. Verify current password
     const isValid = await this.passwordHasher.verify(
       dto.currentPassword,
       user.passwordHash.value,
