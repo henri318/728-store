@@ -2,6 +2,7 @@ import type { ProductRepository } from '@/modules/cart/domain/product-repository
 import type { ProductSnapshot } from '@/modules/cart/domain/product-snapshot';
 import { ProductId } from '@/shared/kernel/domain/value-objects/product-id';
 import { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
+import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 
 /**
  * In-memory ProductRepository test double for the cart module.
@@ -42,12 +43,14 @@ export class MemoryCartProductRepository implements ProductRepository {
       id: string;
       basePrice: number;
       sellerId: string;
+      currency?: Currency;
     }>,
   ): void {
     for (const p of products) {
       this.products.set(p.id, {
         id: ProductId.create(p.id),
         basePrice: p.basePrice,
+        currency: p.currency ?? Currency.EUR,
         sellerId: SellerId.create(p.sellerId),
       });
     }

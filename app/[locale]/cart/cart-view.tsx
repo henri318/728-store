@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useReducer, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
+import { Money } from '@/shared/kernel/domain/value-objects/money';
+import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import styles from './cart-view.module.css';
 
 // --- Types ---
@@ -25,10 +27,36 @@ export interface CartItemDTO {
   };
 }
 
+type LocalItemsAction =
+  | { type: 'reset'; items: CartItemDTO[] }
+  | { type: 'replace'; items: CartItemDTO[] };
+
+function localItemsReducer(
+  _state: CartItemDTO[],
+  action: LocalItemsAction,
+): CartItemDTO[] {
+  return action.items;
+}
+
 interface CartViewProps {
   items: CartItemDTO[];
   locale: string;
   isAuthenticated: boolean;
+  labels: {
+    title: string;
+    emptyTitle: string;
+    emptyDescription: string;
+    browseProducts: string;
+    soldBy: string;
+    remove: string;
+    subtotal: string;
+    checkout: string;
+    unknownProduct: string;
+    unknownSeller: string;
+    customizationSize: string;
+    customizationColor: string;
+    customizationText: string;
+  };
 }
 
 /**
@@ -45,10 +73,20 @@ export function CartView({
   items: serverItems,
   locale,
   isAuthenticated,
+  labels,
 }: CartViewProps) {
   // Hooks must be called unconditionally (Rules of Hooks).
   const guestCart = useGuestCart();
-  const [localItems, setLocalItems] = useState(serverItems);
+  const [localItems, dispatchLocalItems] = useReducer(
+    localItemsReducer,
+    serverItems,
+  );
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatchLocalItems({ type: 'reset', items: serverItems });
+    }
+  }, [isAuthenticated, serverItems]);
 
   // Derive display items: server cart for authenticated, guest cart for guests.
   const items: CartItemDTO[] = isAuthenticated
@@ -56,10 +94,10 @@ export function CartView({
     : guestCart.items.map((gi) => ({
         id: gi.productId,
         productId: gi.productId,
-        productName: gi.productName ?? 'Unknown Product',
+        productName: gi.productName ?? labels.unknownProduct,
         productImageUrl: gi.productImageUrl ?? null,
         sellerId: gi.sellerId,
-        sellerName: gi.sellerName ?? 'Unknown Seller',
+        sellerName: gi.sellerName ?? labels.unknownSeller,
         quantity: gi.quantity,
         unitPrice: gi.unitPriceSnapshot,
         lineTotal: +(gi.unitPriceSnapshot * gi.quantity).toFixed(2),
@@ -85,8 +123,9 @@ export function CartView({
       }
 
       // Authenticated: optimistic update + API call
-      setLocalItems((prev) =>
-        prev.map((i) =>
+      dispatchLocalItems({
+        type: 'replace',
+        items: localItems.map((i) =>
           i.id === item.id
             ? {
                 ...i,
@@ -95,7 +134,7 @@ export function CartView({
               }
             : i,
         ),
-      );
+      });
 
       try {
         const res = await fetch(`/api/cart/items/${item.id}`, {
@@ -104,25 +143,27 @@ export function CartView({
           body: JSON.stringify({ quantity: newQty }),
         });
         if (!res.ok) {
-          setLocalItems((prev) =>
-            prev.map((i) =>
+          dispatchLocalItems({
+            type: 'replace',
+            items: localItems.map((i) =>
               i.id === item.id
                 ? { ...i, quantity: item.quantity, lineTotal: item.lineTotal }
                 : i,
             ),
-          );
+          });
         }
       } catch {
-        setLocalItems((prev) =>
-          prev.map((i) =>
+        dispatchLocalItems({
+          type: 'replace',
+          items: localItems.map((i) =>
             i.id === item.id
               ? { ...i, quantity: item.quantity, lineTotal: item.lineTotal }
               : i,
           ),
-        );
+        });
       }
     },
-    [isAuthenticated, guestCart],
+    [isAuthenticated, guestCart, localItems],
   );
 
   const handleRemove = useCallback(
@@ -134,7 +175,10 @@ export function CartView({
       }
 
       // Authenticated: optimistic removal + API call
-      setLocalItems((prev) => prev.filter((i) => i.id !== item.id));
+      dispatchLocalItems({
+        type: 'replace',
+        items: localItems.filter((i) => i.id !== item.id),
+      });
 
       try {
         await fetch(`/api/cart/items/${item.id}`, {
@@ -144,7 +188,7 @@ export function CartView({
         // Network error — item already removed from UI.
       }
     },
-    [isAuthenticated, guestCart],
+    [isAuthenticated, guestCart, localItems],
   );
 
   // For guest users, wait until localStorage has been hydrated before
@@ -156,10 +200,10 @@ export function CartView({
   if (items.length === 0) {
     return (
       <div className={styles.empty}>
-        <h2>Your cart is empty</h2>
-        <p>Browse our products and add something you love!</p>
+        <h2>{labels.emptyTitle}</h2>
+        <p>{labels.emptyDescription}</p>
         <a href={`/${locale}/products`} className={styles.ctaButton}>
-          Browse Products
+          {labels.browseProducts}
         </a>
       </div>
     );
@@ -167,7 +211,7 @@ export function CartView({
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>Your Cart</h2>
+      <h2 className={styles.title}>{labels.title}</h2>
 
       <div className={styles.items}>
         {items.map((item) => (
@@ -185,7 +229,7 @@ export function CartView({
               <div className={styles.itemDetails}>
                 <span className={styles.productName}>{item.productName}</span>
                 <span className={styles.sellerName}>
-                  Sold by {item.sellerName}
+                  {labels.soldBy} {item.sellerName}
                 </span>
                 {(item.customization.text ||
                   item.customization.color ||
@@ -193,11 +237,11 @@ export function CartView({
                   <span className={styles.customization}>
                     {[
                       item.customization.size &&
-                        `Size: ${item.customization.size}`,
+                        `${labels.customizationSize}: ${item.customization.size}`,
                       item.customization.color &&
-                        `Color: ${item.customization.color}`,
+                        `${labels.customizationColor}: ${item.customization.color}`,
                       item.customization.text &&
-                        `Text: ${item.customization.text}`,
+                        `${labels.customizationText}: ${item.customization.text}`,
                     ]
                       .filter(Boolean)
                       .join(' · ')}
@@ -228,15 +272,15 @@ export function CartView({
               </div>
 
               <span className={styles.unitPrice}>
-                {item.unitPrice.toFixed(2)} €
+                {Money.format(item.unitPrice, Currency.EUR)}
               </span>
 
               <span className={styles.lineTotal}>
-                {item.lineTotal.toFixed(2)} €
+                {Money.format(item.lineTotal, Currency.EUR)}
               </span>
 
               <button
-                aria-label="Remove"
+                aria-label={labels.remove}
                 className={styles.removeButton}
                 onClick={() => handleRemove(item)}
               >
@@ -249,13 +293,13 @@ export function CartView({
 
       <div className={styles.summary}>
         <div className={styles.subtotalRow}>
-          <span>Subtotal</span>
-          <span>{subtotal.toFixed(2)} €</span>
+          <span>{labels.subtotal}</span>
+          <span>{Money.format(subtotal, Currency.EUR)}</span>
         </div>
 
         {isAuthenticated && (
           <a href={`/${locale}/checkout`} className={styles.checkoutButton}>
-            Proceed to Checkout
+            {labels.checkout}
           </a>
         )}
       </div>

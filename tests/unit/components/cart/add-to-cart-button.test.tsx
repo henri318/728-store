@@ -214,6 +214,25 @@ describe('AddToCartButton', () => {
       });
     });
 
+    it('dispatches cart:updated after authenticated add succeeds', async () => {
+      const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ items: [] }),
+      });
+      mockFetch.mockResolvedValueOnce({ ok: true });
+
+      render(<AddToCartButton {...defaultProps} />);
+
+      fireEvent.click(screen.getByRole('button', { name: /add to cart/i }));
+
+      await waitFor(() => {
+        expect(dispatchSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'cart:updated' }),
+        );
+      });
+    });
+
     it('does NOT call guest cart addItem', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -469,6 +488,35 @@ describe('AddToCartButton', () => {
       });
     });
 
+    it('dispatches cart:updated after authenticated quantity update succeeds', async () => {
+      const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          items: [{ id: 'cart-item-1', productId: 'prod-1', quantity: 2 }],
+        }),
+      });
+      mockFetch.mockResolvedValueOnce({ ok: true });
+
+      render(<AddToCartButton {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole('button', { name: /increase quantity/i }),
+        ).toBeTruthy();
+      });
+
+      fireEvent.click(
+        screen.getByRole('button', { name: /increase quantity/i }),
+      );
+
+      await waitFor(() => {
+        expect(dispatchSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'cart:updated' }),
+        );
+      });
+    });
+
     it('DELETEs /api/cart/items/[itemId] on remove button click at quantity 1', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -492,6 +540,31 @@ describe('AddToCartButton', () => {
         expect(mockFetch).toHaveBeenCalledWith(
           '/api/cart/items/cart-item-1',
           expect.objectContaining({ method: 'DELETE' }),
+        );
+      });
+    });
+
+    it('dispatches cart:updated after authenticated remove succeeds', async () => {
+      const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          items: [{ id: 'cart-item-1', productId: 'prod-1', quantity: 1 }],
+        }),
+      });
+      mockFetch.mockResolvedValueOnce({ ok: true, status: 204 });
+
+      render(<AddToCartButton {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /remove/i })).toBeTruthy();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /remove/i }));
+
+      await waitFor(() => {
+        expect(dispatchSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'cart:updated' }),
         );
       });
     });

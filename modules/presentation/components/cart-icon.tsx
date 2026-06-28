@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
 import { useCartPopup } from './cart-popup-context';
 import styles from './header-nav.module.css';
+
+const CART_UPDATED_EVENT = 'cart:updated';
 
 interface CartIconProps {
   alt: string;
@@ -16,34 +18,48 @@ export function CartIcon({ alt }: CartIconProps) {
   const { itemCount: guestCount } = useGuestCart();
   const { open } = useCartPopup();
   const [authCount, setAuthCount] = useState(0);
+  const requestIdRef = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const fetchCount = useCallback(async () => {
+    abortRef.current?.abort();
+    const requestId = ++requestIdRef.current;
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    try {
+      const res = await fetch('/api/cart', { signal: controller.signal });
+      if (!res.ok || requestId !== requestIdRef.current) return;
+      const data = await res.json();
+      if (requestId !== requestIdRef.current) return;
+      setAuthCount(
+        Array.isArray(data.items)
+          ? data.items.reduce(
+              (sum: number, item: { quantity?: number }) =>
+                sum + (item.quantity ?? 1),
+              0,
+            )
+          : 0,
+      );
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const handleCartUpdated = useCallback(() => {
+    void fetchCount();
+  }, [fetchCount]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    let cancelled = false;
-    async function fetchCount() {
-      try {
-        const res = await fetch('/api/cart');
-        if (cancelled || !res.ok) return;
-        const data = await res.json();
-        if (!cancelled)
-          setAuthCount(
-            Array.isArray(data.items)
-              ? data.items.reduce(
-                  (sum: number, item: { quantity?: number }) =>
-                    sum + (item.quantity ?? 1),
-                  0,
-                )
-              : 0,
-          );
-      } catch {
-        /* ignore */
-      }
-    }
-    fetchCount();
+    window.addEventListener(CART_UPDATED_EVENT, handleCartUpdated);
+    void Promise.resolve().then(fetchCount);
+
     return () => {
-      cancelled = true;
+      abortRef.current?.abort();
+      window.removeEventListener(CART_UPDATED_EVENT, handleCartUpdated);
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, fetchCount, handleCartUpdated]);
 
   const count = isAuthenticated ? authCount : guestCount;
 

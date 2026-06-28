@@ -27,7 +27,10 @@ async function getHandler(
           id: p.id,
           name: p.translations[0]?.name ?? 'Untranslated',
           status: p.status,
-          basePrice: p.basePrice,
+          basePrice: {
+            amount: p.basePrice.amount,
+            currency: p.basePrice.currency,
+          },
           updatedAt: p.updatedAt.toISOString(),
         })),
       },

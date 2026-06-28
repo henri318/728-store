@@ -2,21 +2,14 @@ import type { ProductEntity } from '../domain/entities/product';
 import type { ProductImageEntity } from '../domain/entities/product-image';
 import type { TagEntity } from '../domain/entities/tag';
 import type { CategoryEntity } from '../domain/entities/category';
+import { ProductPrice } from '../domain/value-objects/product-price';
 import { ProductStatus } from '../domain/value-objects/product-status';
+import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 
-/**
- * Shape of a Prisma `Product` row as returned from the database.
- *
- * Kept as a structural type (no Prisma import) so the mapper stays
- * decoupled from the Prisma client and can be unit-tested without
- * any database dependency.
- *
- * `basePrice` accepts both `number` and Prisma `Decimal` (which has
- * a `toString()` method). The mapper converts via `Number()`.
- */
 export interface PrismaProductRow {
   id: string;
   basePrice: number | { toString(): string };
+  currency: string;
   sellerId: string;
   seller: { name: string };
   status: string;
@@ -74,6 +67,7 @@ export interface PrismaCategoryRow {
 export interface PrismaProductCreateInput {
   id: string;
   basePrice: number;
+  currency: string;
   sellerId: string;
   status: string;
   categoryId: string | null;
@@ -115,7 +109,10 @@ export function toDomainProduct(
 ): ProductEntity {
   return {
     id: prismaProduct.id,
-    basePrice: Number(String(prismaProduct.basePrice)),
+    basePrice: ProductPrice.create(
+      Number(String(prismaProduct.basePrice)),
+      prismaProduct.currency as Currency,
+    ),
     sellerId: prismaProduct.sellerId,
     sellerName: prismaProduct.seller.name,
     status: prismaProduct.status as ProductStatus,
@@ -156,7 +153,8 @@ export function toPersistenceProduct(
 ): PrismaProductCreateInput {
   return {
     id: product.id,
-    basePrice: product.basePrice,
+    basePrice: product.basePrice.amount,
+    currency: product.basePrice.currency,
     sellerId: product.sellerId,
     status: product.status,
     categoryId: product.categoryId,

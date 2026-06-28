@@ -75,6 +75,9 @@ export class Money {
     if (!Number.isFinite(amount)) {
       throw new Error('Money.format amount must be a finite number');
     }
+    if (amount < 0) {
+      throw new Error('Money amount cannot be negative');
+    }
     if (!currency) {
       throw new Error('Money.format currency is required');
     }

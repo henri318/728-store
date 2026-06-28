@@ -95,6 +95,7 @@ async function main() {
   const productsData = [
     {
       basePrice: 25.0,
+      currency: 'EUR',
       sellerId: seller.id,
       translations: {
         create: [
@@ -113,6 +114,7 @@ async function main() {
     },
     {
       basePrice: 15.0,
+      currency: 'EUR',
       sellerId: seller.id,
       translations: {
         create: [
@@ -131,6 +133,7 @@ async function main() {
     },
     {
       basePrice: 45.0,
+      currency: 'EUR',
       sellerId: seller.id,
       translations: {
         create: [

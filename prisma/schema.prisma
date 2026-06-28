@@ -54,6 +54,7 @@ model Seller {
 model Product {
   id             String                 @id @default(cuid())
   basePrice      Decimal
+  currency       String                 @default("EUR")
   sellerId       String
   seller         Seller                 @relation(fields: [sellerId], references: [id])
   status         String                 @default("ACTIVE") // DRAFT | ACTIVE | ARCHIVED

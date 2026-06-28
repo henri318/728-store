@@ -5,6 +5,8 @@ import { GetCart } from '@/modules/cart/application/get-cart';
 import { redirect } from 'next/navigation';
 import { CheckoutConfirmButton } from './checkout-confirm-button';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
+import { Money } from '@/shared/kernel/domain/value-objects/money';
+import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
 import styles from './page.module.css';
 
@@ -18,6 +20,7 @@ interface CheckoutItem {
   quantity: number;
   unitPrice: number;
   lineTotal: number;
+  currency: Currency;
   customizationIdList: string[];
   customizations: Array<{
     id: string;
@@ -80,6 +83,14 @@ export default async function CheckoutPage({
     if (p) productMap.set(p.id, p);
   });
 
+  const currency = cart.items[0].unitPriceSnapshot.currency;
+  const hasMixedCurrencies = cart.items.some(
+    (item) => item.unitPriceSnapshot.currency !== currency,
+  );
+  if (hasMixedCurrencies) {
+    throw new Error('Checkout does not support mixed currencies');
+  }
+
   // Resolve all customizations in a single batch.
   const allCustomizationIds = [
     ...new Set(cart.items.flatMap((i) => i.customizationIdList)),
@@ -113,6 +124,7 @@ export default async function CheckoutPage({
       quantity: item.quantity,
       unitPrice: item.unitPriceSnapshot.amount,
       lineTotal: +(item.unitPriceSnapshot.amount * item.quantity).toFixed(2),
+      currency: item.unitPriceSnapshot.currency,
       customizationIdList: item.customizationIdList,
       customizations: resolvedCustomizations,
     };
@@ -195,14 +207,14 @@ export default async function CheckoutPage({
               <div className={styles.itemRight}>
                 <span className={styles.itemQty}>×{item.quantity}</span>
                 <span className={styles.itemLineTotal}>
-                  €{item.lineTotal.toFixed(2)}
+                  {Money.format(item.lineTotal, item.currency)}
                 </span>
               </div>
             </div>
           ))}
           <div className={styles.sellerSubtotal}>
             <span>Subtotal</span>
-            <span>€{group.subtotal.toFixed(2)}</span>
+            <span>{Money.format(group.subtotal, currency)}</span>
           </div>
         </div>
       ))}
@@ -210,21 +222,23 @@ export default async function CheckoutPage({
       <div className={styles.totals}>
         <div className={styles.totalRow}>
           <span>Subtotal</span>
-          <span>€{subtotal.toFixed(2)}</span>
+          <span>{Money.format(subtotal, currency)}</span>
         </div>
         {isFirstPurchase && (
           <div className={styles.totalRow}>
             <span>10% first-purchase discount</span>
-            <span className={styles.discount}>−€{discount.toFixed(2)}</span>
+            <span className={styles.discount}>
+              −{Money.format(discount, currency)}
+            </span>
           </div>
         )}
         <div className={styles.totalRow}>
           <span>Shipping</span>
-          <span>€{shipping.toFixed(2)}</span>
+          <span>{Money.format(shipping, currency)}</span>
         </div>
         <div className={`${styles.totalRow} ${styles.grandTotal}`}>
           <span>Total</span>
-          <span>€{total.toFixed(2)}</span>
+          <span>{Money.format(total, currency)}</span>
         </div>
       </div>
 

@@ -2,18 +2,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { CartView } from '@/app/[locale]/cart/cart-view';
 
-// Mock fetch globally
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
-// Mock next/navigation
 const mockRefresh = vi.fn();
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: mockRefresh }),
   usePathname: vi.fn(() => '/es/cart'),
 }));
 
-// Mock guest cart context (CartView now calls useGuestCart unconditionally)
 vi.mock('@/modules/cart/presentation/guest-cart-context', () => ({
   useGuestCart: () => ({
     items: [],
@@ -22,10 +19,28 @@ vi.mock('@/modules/cart/presentation/guest-cart-context', () => ({
     updateQuantity: vi.fn(),
     removeItem: vi.fn(),
     clearCart: vi.fn(),
+    hydrated: true,
   }),
 }));
 
 describe('CartView', () => {
+  const labels = {
+    title: 'Tu carrito',
+    emptyTitle: 'Tu carrito está vacío',
+    emptyDescription:
+      'Explora nuestros productos y encuentra algo que te encante.',
+    browseProducts: 'Explorar productos',
+    soldBy: 'Vendido por',
+    remove: 'Eliminar',
+    subtotal: 'Subtotal',
+    checkout: 'Finalizar compra',
+    unknownProduct: 'Producto desconocido',
+    unknownSeller: 'Vendedor desconocido',
+    customizationSize: 'Talla',
+    customizationColor: 'Color',
+    customizationText: 'Texto',
+  };
+
   const baseItems = [
     {
       id: 'item-1',
@@ -68,33 +83,102 @@ describe('CartView', () => {
   });
 
   it('renders cart items with name, quantity, and line total', () => {
-    render(<CartView items={baseItems} locale="es" isAuthenticated={true} />);
+    render(
+      <CartView
+        items={baseItems}
+        locale="es"
+        isAuthenticated={true}
+        labels={labels}
+      />,
+    );
 
     expect(screen.getByText('Test Product')).toBeTruthy();
     expect(screen.getByText('Another Product')).toBeTruthy();
-    expect(screen.getByText('2')).toBeTruthy(); // quantity of first item
-    expect(screen.getByText('20.00 €')).toBeTruthy(); // lineTotal of first item
-    expect(screen.getAllByText('25.00 €').length).toBe(2); // unitPrice and lineTotal of second item
+    expect(screen.getByText('2')).toBeTruthy();
+    expect(screen.getByText('20.00 €')).toBeTruthy();
+    expect(screen.getAllByText('25.00 €').length).toBe(2);
   });
 
   it('renders empty state with CTA when no items', () => {
-    render(<CartView items={[]} locale="es" isAuthenticated={true} />);
+    render(
+      <CartView
+        items={[]}
+        locale="es"
+        isAuthenticated={true}
+        labels={labels}
+      />,
+    );
 
-    expect(screen.getByText(/your cart is empty/i)).toBeTruthy();
+    expect(screen.getByText(labels.emptyTitle)).toBeTruthy();
     const link = screen.getByRole('link');
     expect(link.getAttribute('href')).toBe('/es/products');
   });
 
   it('renders subtotal', () => {
-    render(<CartView items={baseItems} locale="es" isAuthenticated={true} />);
-    // subtotal = 20 + 25 = 45
+    render(
+      <CartView
+        items={baseItems}
+        locale="es"
+        isAuthenticated={true}
+        labels={labels}
+      />,
+    );
     expect(screen.getByText('45.00 €')).toBeTruthy();
   });
 
   it('renders checkout CTA linking to /{locale}/checkout', () => {
-    render(<CartView items={baseItems} locale="es" isAuthenticated={true} />);
-    const checkoutLink = screen.getByRole('link', { name: /checkout/i });
+    render(
+      <CartView
+        items={baseItems}
+        locale="es"
+        isAuthenticated={true}
+        labels={labels}
+      />,
+    );
+    const checkoutLink = screen.getByRole('link', { name: labels.checkout });
     expect(checkoutLink.getAttribute('href')).toBe('/es/checkout');
+  });
+
+  it('syncs authenticated cart items when server props change after refresh', () => {
+    const { rerender } = render(
+      <CartView
+        items={baseItems}
+        locale="es"
+        isAuthenticated={true}
+        labels={labels}
+      />,
+    );
+
+    rerender(
+      <CartView
+        items={[
+          ...baseItems,
+          {
+            id: 'item-3',
+            productId: 'prod-3',
+            productName: 'Merged Product',
+            productImageUrl: null,
+            sellerId: 'seller-3',
+            sellerName: 'Merged Seller',
+            quantity: 1,
+            unitPrice: 15,
+            lineTotal: 15,
+            customization: {
+              text: null,
+              color: null,
+              size: null,
+              imageUrl: null,
+            },
+          },
+        ]}
+        locale="es"
+        isAuthenticated={true}
+        labels={labels}
+      />,
+    );
+
+    expect(screen.getByText('Merged Product')).toBeTruthy();
+    expect(screen.getByText('60.00 €')).toBeTruthy();
   });
 
   it('clicking "+" sends PATCH with quantity+1 and updates UI optimistically', async () => {
@@ -103,18 +187,22 @@ describe('CartView', () => {
       json: async () => ({ ...baseItems[0], quantity: 3, lineTotal: 30 }),
     });
 
-    render(<CartView items={baseItems} locale="es" isAuthenticated={true} />);
+    render(
+      <CartView
+        items={baseItems}
+        locale="es"
+        isAuthenticated={true}
+        labels={labels}
+      />,
+    );
 
-    // Find the + button for the first item
     const plusButtons = screen.getAllByRole('button', { name: '+' });
     fireEvent.click(plusButtons[0]);
 
-    // Optimistic update: quantity should show 3 immediately
     await waitFor(() => {
       expect(screen.getByText('3')).toBeTruthy();
     });
 
-    // PATCH should have been called
     expect(mockFetch).toHaveBeenCalledWith(
       '/api/cart/items/item-1',
       expect.objectContaining({
@@ -129,7 +217,14 @@ describe('CartView', () => {
       json: async () => ({ ...baseItems[0], quantity: 1, lineTotal: 10 }),
     });
 
-    render(<CartView items={baseItems} locale="es" isAuthenticated={true} />);
+    render(
+      <CartView
+        items={baseItems}
+        locale="es"
+        isAuthenticated={true}
+        labels={labels}
+      />,
+    );
 
     const minusButtons = screen.getAllByRole('button', { name: '−' });
     fireEvent.click(minusButtons[0]);
@@ -147,16 +242,24 @@ describe('CartView', () => {
   it('clicking remove sends DELETE and removes the row', async () => {
     mockFetch.mockResolvedValueOnce({ ok: true });
 
-    render(<CartView items={baseItems} locale="es" isAuthenticated={true} />);
+    render(
+      <CartView
+        items={baseItems}
+        locale="es"
+        isAuthenticated={true}
+        labels={labels}
+      />,
+    );
 
-    const removeButtons = screen.getAllByRole('button', { name: /remove/i });
+    const removeButtons = screen.getAllByRole('button', {
+      name: labels.remove,
+    });
     fireEvent.click(removeButtons[0]);
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith('/api/cart/items/item-1', {
         method: 'DELETE',
       });
-      // After removal, only the second item should remain
       expect(screen.queryByText('Test Product')).toBeNull();
       expect(screen.getByText('Another Product')).toBeTruthy();
     });
@@ -168,21 +271,37 @@ describe('CartView', () => {
       json: async () => ({ error: 'Server error' }),
     });
 
-    render(<CartView items={baseItems} locale="es" isAuthenticated={true} />);
+    render(
+      <CartView
+        items={baseItems}
+        locale="es"
+        isAuthenticated={true}
+        labels={labels}
+      />,
+    );
 
     const plusButtons = screen.getAllByRole('button', { name: '+' });
     fireEvent.click(plusButtons[0]);
 
-    // After failure, quantity should revert to 2
     await waitFor(() => {
-      // The optimistic update shows 3 briefly, then reverts to 2
-      const qtyDisplay = screen.getAllByText('2');
-      expect(qtyDisplay.length).toBeGreaterThan(0);
+      expect(screen.getByText('3')).toBeTruthy();
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText('3')).toBeNull();
+      expect(screen.getAllByText('2').length).toBeGreaterThan(0);
     });
   });
 
   it('shows customization details when present', () => {
-    render(<CartView items={baseItems} locale="es" isAuthenticated={true} />);
+    render(
+      <CartView
+        items={baseItems}
+        locale="es"
+        isAuthenticated={true}
+        labels={labels}
+      />,
+    );
     expect(screen.getByText(/Hello/i)).toBeTruthy();
     expect(screen.getByText(/Red/i)).toBeTruthy();
     expect(screen.getByText(/M/)).toBeTruthy();

@@ -45,9 +45,7 @@ export default async function ProductDetailPage({
         <div>
           <h1>{product.displayName}</h1>
           <p className={styles.description}>{product.displayDescription}</p>
-          <p className={styles.price}>
-            {Number(product.basePrice).toFixed(2)} €
-          </p>
+          <p className={styles.price}>{product.basePrice.format()}</p>
           <p className={styles.seller}>Seller: {product.sellerName}</p>
 
           <div className={styles.addToCart}>
@@ -56,7 +54,7 @@ export default async function ProductDetailPage({
               productName={product.displayName}
               sellerId={product.sellerId}
               sellerName={product.sellerName}
-              price={product.basePrice}
+              price={product.basePrice.amount}
               imageUrl={product.images?.[0]?.url ?? null}
               labels={{
                 addToCart: dict.common.addToCart,

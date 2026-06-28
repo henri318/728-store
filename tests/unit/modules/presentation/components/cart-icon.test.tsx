@@ -163,8 +163,70 @@ describe('CartIcon', () => {
       });
       renderWithProvider(<CartIcon alt="Cart" />);
       await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalledWith('/api/cart');
+        expect(mockFetch).toHaveBeenCalledWith(
+          '/api/cart',
+          expect.objectContaining({ signal: expect.any(Object) }),
+        );
       });
+    });
+
+    it('refetches cart count after cart:updated', async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ items: [{ productId: 'p1' }] }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            items: [{ productId: 'p1' }, { productId: 'p2' }],
+          }),
+        });
+
+      renderWithProvider(<CartIcon alt="Cart" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('1')).toBeTruthy();
+      });
+
+      window.dispatchEvent(new Event('cart:updated'));
+
+      await waitFor(() => {
+        expect(screen.getByText('2')).toBeTruthy();
+      });
+    });
+
+    it('applies only the latest in-flight cart count response', async () => {
+      let resolveFirst: (value: unknown) => void;
+      let resolveSecond: (value: unknown) => void;
+      const first = new Promise((resolve) => {
+        resolveFirst = resolve;
+      });
+      const second = new Promise((resolve) => {
+        resolveSecond = resolve;
+      });
+
+      mockFetch.mockReturnValueOnce(first).mockReturnValueOnce(second);
+
+      renderWithProvider(<CartIcon alt="Cart" />);
+
+      window.dispatchEvent(new Event('cart:updated'));
+
+      resolveSecond!({
+        ok: true,
+        json: async () => ({ items: [{}, {}] }),
+      });
+      await waitFor(() => {
+        expect(screen.getByText('2')).toBeTruthy();
+      });
+
+      resolveFirst!({
+        ok: true,
+        json: async () => ({ items: [{}, {}, {}] }),
+      });
+
+      await new Promise((r) => setTimeout(r, 0));
+      expect(screen.getByText('2')).toBeTruthy();
     });
 
     it('shows item count badge after fetching cart', async () => {

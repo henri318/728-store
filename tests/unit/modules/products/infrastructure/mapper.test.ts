@@ -14,6 +14,8 @@ import type { ProductEntity } from '@/modules/products/domain/entities/product';
 import type { ProductImageEntity } from '@/modules/products/domain/entities/product-image';
 import type { TagEntity } from '@/modules/products/domain/entities/tag';
 import type { CategoryEntity } from '@/modules/products/domain/entities/category';
+import { ProductPrice } from '@/modules/products/domain/value-objects/product-price';
+import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 
 /**
  * PR3-02 — Product mapper pure functions.
@@ -30,6 +32,7 @@ function makePrismaProductRow(overrides: Record<string, unknown> = {}) {
   return {
     id: 'product-1',
     basePrice: 25.5,
+    currency: 'EUR',
     sellerId: 'seller-1',
     seller: { name: 'Test Shop' },
     status: 'ACTIVE',
@@ -86,7 +89,8 @@ describe('mapper.toDomainProduct', () => {
     const result = toDomainProduct(row);
 
     expect(result.id).toBe('product-1');
-    expect(result.basePrice).toBe(25.5);
+    expect(result.basePrice.amount).toBe(25.5);
+    expect(result.basePrice.currency).toBe(Currency.EUR);
     expect(result.sellerId).toBe('seller-1');
     expect(result.sellerName).toBe('Test Shop');
     expect(result.status).toBe(ProductStatus.ACTIVE);
@@ -146,8 +150,8 @@ describe('mapper.toDomainProduct', () => {
     const row = makePrismaProductRow({ basePrice: 19.99 });
     const result = toDomainProduct(row);
 
-    expect(result.basePrice).toBe(19.99);
-    expect(typeof result.basePrice).toBe('number');
+    expect(result.basePrice.amount).toBe(19.99);
+    expect(result.basePrice.currency).toBe(Currency.EUR);
   });
 
   it('should preserve dates correctly', () => {
@@ -167,7 +171,7 @@ describe('mapper.toDomainProduct', () => {
     const row = makePrismaProductRow({ basePrice: 1234.56 });
     const result = toDomainProduct(row);
 
-    expect(result.basePrice).toBe(1234.56);
+    expect(result.basePrice.amount).toBe(1234.56);
   });
 
   it('should convert Prisma Decimal-like object to number', () => {
@@ -176,15 +180,15 @@ describe('mapper.toDomainProduct', () => {
     const row = makePrismaProductRow({ basePrice: decimalLike });
     const result = toDomainProduct(row);
 
-    expect(result.basePrice).toBe(29.99);
-    expect(typeof result.basePrice).toBe('number');
+    expect(result.basePrice.amount).toBe(29.99);
+    expect(result.basePrice.currency).toBe(Currency.EUR);
   });
 
-  it('should handle basePrice of zero', () => {
+  it('should reject basePrice of zero', () => {
     const row = makePrismaProductRow({ basePrice: 0 });
-    const result = toDomainProduct(row);
-
-    expect(result.basePrice).toBe(0);
+    expect(() => toDomainProduct(row)).toThrow(
+      'ProductPrice amount must be greater than zero',
+    );
   });
 
   it('should map multiple translations correctly', () => {
@@ -249,7 +253,7 @@ describe('mapper.toPersistenceProduct', () => {
   function makeEntity(overrides: Partial<ProductEntity> = {}): ProductEntity {
     return {
       id: 'product-1',
-      basePrice: 25.5,
+      basePrice: ProductPrice.create(25.5, Currency.EUR),
       sellerId: 'seller-1',
       sellerName: 'Test Shop',
       status: ProductStatus.ACTIVE,
@@ -305,6 +309,7 @@ describe('mapper.toPersistenceProduct', () => {
 
     expect(result.id).toBe('product-1');
     expect(result.basePrice).toBe(25.5);
+    expect(result.currency).toBe('EUR');
     expect(result.sellerId).toBe('seller-1');
     expect(result.status).toBe('ACTIVE');
     expect(result.categoryId).toBe('cat-1');
@@ -532,7 +537,7 @@ describe('mapper — product round trip', () => {
   it('toPersistenceProduct then toDomainProduct should preserve the entity shape', () => {
     const original: ProductEntity = {
       id: 'product-rt',
-      basePrice: 99.99,
+      basePrice: ProductPrice.create(99.99, Currency.EUR),
       sellerId: 'seller-rt',
       sellerName: 'RT Shop',
       status: ProductStatus.ACTIVE,
@@ -574,7 +579,7 @@ describe('mapper — product round trip', () => {
     // Note: round-trip for full product requires a Prisma row shape with nested relations
     // We test the structural mapping of scalar fields
     expect(persistence.id).toBe(original.id);
-    expect(persistence.basePrice).toBe(original.basePrice);
+    expect(persistence.basePrice).toBe(original.basePrice.amount);
     expect(persistence.sellerId).toBe(original.sellerId);
     expect(persistence.status).toBe('ACTIVE');
     expect(persistence.categoryId).toBe(original.categoryId);
@@ -584,7 +589,7 @@ describe('mapper — product round trip', () => {
   it('should handle product with null categoryId in round trip', () => {
     const entity: ProductEntity = {
       id: 'product-null',
-      basePrice: 10,
+      basePrice: ProductPrice.create(10, Currency.EUR),
       sellerId: 'seller-1',
       sellerName: 'Shop',
       status: ProductStatus.DRAFT,
