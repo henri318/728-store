@@ -9,7 +9,7 @@ import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 export interface PrismaProductRow {
   id: string;
   basePrice: number | { toString(): string };
-  currency: string;
+  currency?: string;
   sellerId: string;
   seller: { name: string };
   status: string;
@@ -107,11 +107,14 @@ export interface PrismaCategoryCreateInput {
 export function toDomainProduct(
   prismaProduct: PrismaProductRow,
 ): ProductEntity {
+  // Legacy rows may omit currency; EUR is the explicit persisted fallback.
+  const currency = prismaProduct.currency ?? Currency.EUR;
+
   return {
     id: prismaProduct.id,
     basePrice: ProductPrice.create(
       Number(String(prismaProduct.basePrice)),
-      prismaProduct.currency as Currency,
+      currency as Currency,
     ),
     sellerId: prismaProduct.sellerId,
     sellerName: prismaProduct.seller.name,

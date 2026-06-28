@@ -9,7 +9,7 @@ export class MemoryOrderRepository implements OrderRepository {
   private orders: OrderEntity[] = [];
   private orderLineItems: OrderLineItemEntity[] = []; // In-memory store for line items
 
-  async save(order: OrderEntity): Promise<OrderEntity> {
+  async save(order: OrderEntity, _tx?: unknown): Promise<OrderEntity> {
     // Store the order
     this.orders.push(order);
 
@@ -34,6 +34,7 @@ export class MemoryOrderRepository implements OrderRepository {
   async saveOrderLineItems(
     orderId: string,
     lineItems: OrderLineItemEntity[],
+    _tx?: unknown,
   ): Promise<void> {
     if (!lineItems || lineItems.length === 0) {
       return;
@@ -67,7 +68,7 @@ export class MemoryOrderRepository implements OrderRepository {
     };
   }
 
-  async findIdsByCartId(cartId: string): Promise<string[]> {
+  async findIdsByCartId(cartId: string, _tx?: unknown): Promise<string[]> {
     return this.orders.filter((o) => o.cartId === cartId).map((o) => o.id);
   }
 

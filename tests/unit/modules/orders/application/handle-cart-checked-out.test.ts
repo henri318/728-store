@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { HandleCartCheckedOut } from '@/modules/orders/application/handle-cart-checked-out';
 import { MemoryOrderRepository } from '@/tests/doubles/memory-order-repository';
 import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
+import { MemoryTransactionRunner } from '@/tests/doubles/memory-transaction-runner';
+import { MemoryOrderCustomizationLookup } from '@/tests/doubles/memory-order-customization-lookup';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 
 /**
@@ -22,12 +24,28 @@ import { GlobalEvents } from '@/modules/events/domain/event-registry';
 describe('HandleCartCheckedOut', () => {
   let orderRepo: MemoryOrderRepository;
   let outboxRepo: MemoryOutboxRepository;
+  let txRunner: MemoryTransactionRunner;
+  let customizationLookup: MemoryOrderCustomizationLookup;
   let useCase: HandleCartCheckedOut;
 
   beforeEach(() => {
     orderRepo = new MemoryOrderRepository();
     outboxRepo = new MemoryOutboxRepository();
-    useCase = new HandleCartCheckedOut(orderRepo, outboxRepo);
+    txRunner = new MemoryTransactionRunner();
+    customizationLookup = new MemoryOrderCustomizationLookup();
+    useCase = new HandleCartCheckedOut(
+      orderRepo,
+      outboxRepo,
+      txRunner,
+      customizationLookup,
+    );
+  });
+
+  it('empty cart items produce no orders and no outbox events', async () => {
+    await useCase.execute(buildPayload());
+
+    expect(await orderRepo.findAllForTest()).toHaveLength(0);
+    expect(outboxRepo.events).toHaveLength(0);
   });
 
   const buildPayload = (
@@ -40,6 +58,13 @@ describe('HandleCartCheckedOut', () => {
         quantity: number;
         unitPrice: number;
         customizationIdList?: string[];
+        customizationSnapshot?: Array<{
+          id: string;
+          text: string | null;
+          color: string | null;
+          size: string | null;
+          imageUrl: string | null;
+        }> | null;
       }>;
       subtotal: number;
       discountApplied: number;
@@ -269,6 +294,15 @@ describe('HandleCartCheckedOut', () => {
           quantity: 1,
           unitPrice: 10,
           customizationIdList: ['cust-1'],
+          customizationSnapshot: [
+            {
+              id: 'cust-1',
+              text: 'Hello',
+              color: 'red',
+              size: 'M',
+              imageUrl: null,
+            },
+          ],
         },
       ],
     });
@@ -280,7 +314,199 @@ describe('HandleCartCheckedOut', () => {
     const lineItems = await orderRepo.getLineItemsByOrderId(order.id);
     const li = lineItems[0];
     expect(li.customizationIdList).toEqual(['cust-1']);
-    expect(li.customizationSnapshot).toBeNull();
+    expect(li.customizationSnapshot).toEqual([
+      {
+        id: 'cust-1',
+        text: 'Hello',
+        color: 'red',
+        size: 'M',
+        imageUrl: null,
+      },
+    ]);
+  });
+
+  it('resolves customization snapshots from the lookup when the payload omits them', async () => {
+    customizationLookup.seed([
+      {
+        id: 'cust-lookup-1',
+        productId: 'p-A',
+        text: 'Resolved',
+        color: 'blue',
+        size: 'L',
+      },
+    ]);
+
+    const payload = buildPayload({
+      items: [
+        {
+          productId: 'p-A',
+          sellerId: 's1',
+          quantity: 1,
+          unitPrice: 10,
+          customizationIdList: ['cust-lookup-1'],
+        },
+      ],
+    });
+
+    await useCase.execute(payload);
+
+    const order = (await orderRepo.findAllForTest())[0];
+    const [lineItem] = await orderRepo.getLineItemsByOrderId(order.id);
+    expect(lineItem.customizationSnapshot).toEqual([
+      {
+        id: 'cust-lookup-1',
+        text: 'Resolved',
+        color: 'blue',
+        size: 'L',
+        imageUrl: null,
+      },
+    ]);
+  });
+
+  it('keeps explicit null customization snapshots as null', async () => {
+    customizationLookup.seed([
+      {
+        id: 'cust-null-1',
+        productId: 'p-A',
+        text: 'Should not be used',
+        color: 'red',
+      },
+    ]);
+
+    const payload = buildPayload({
+      items: [
+        {
+          productId: 'p-A',
+          sellerId: 's1',
+          quantity: 1,
+          unitPrice: 10,
+          customizationIdList: ['cust-null-1'],
+          customizationSnapshot: null,
+        },
+      ],
+    });
+
+    await useCase.execute(payload);
+
+    const order = (await orderRepo.findAllForTest())[0];
+    const [lineItem] = await orderRepo.getLineItemsByOrderId(order.id);
+    expect(lineItem.customizationSnapshot).toBeNull();
+  });
+
+  it('drops missing customizations from lookup results without failing', async () => {
+    customizationLookup.seed([
+      {
+        id: 'cust-found',
+        productId: 'p-A',
+        text: 'Found',
+        color: 'blue',
+      },
+    ]);
+
+    const payload = buildPayload({
+      items: [
+        {
+          productId: 'p-A',
+          sellerId: 's1',
+          quantity: 1,
+          unitPrice: 10,
+          customizationIdList: ['cust-found', 'cust-missing'],
+        },
+      ],
+    });
+
+    await useCase.execute(payload);
+
+    const order = (await orderRepo.findAllForTest())[0];
+    const [lineItem] = await orderRepo.getLineItemsByOrderId(order.id);
+    expect(lineItem.customizationSnapshot).toEqual([
+      {
+        id: 'cust-found',
+        text: 'Found',
+        color: 'blue',
+        size: null,
+        imageUrl: null,
+      },
+    ]);
+  });
+
+  it('uses the same transaction object for order, line items, and outbox writes', async () => {
+    const txToken = { tx: 'sentinel' };
+    const seenTxs: unknown[] = [];
+
+    class TxAwareOrderRepository extends MemoryOrderRepository {
+      override async save(
+        order: Parameters<MemoryOrderRepository['save']>[0],
+        tx?: unknown,
+      ) {
+        seenTxs.push(tx);
+        return super.save(order, tx);
+      }
+
+      override async saveOrderLineItems(
+        orderId: string,
+        lineItems: Parameters<MemoryOrderRepository['saveOrderLineItems']>[1],
+        tx?: unknown,
+      ) {
+        seenTxs.push(tx);
+        return super.saveOrderLineItems(orderId, lineItems, tx);
+      }
+
+      override async findIdsByCartId(cartId: string, tx?: unknown) {
+        seenTxs.push(tx);
+        return super.findIdsByCartId(cartId, tx);
+      }
+    }
+
+    class TxAwareOutboxRepository extends MemoryOutboxRepository {
+      override async saveEvent(
+        eventType: string,
+        payload: unknown,
+        tx?: unknown,
+      ) {
+        seenTxs.push(tx);
+        return super.saveEvent(eventType, payload, tx);
+      }
+    }
+
+    const txAwareOrderRepo = new TxAwareOrderRepository();
+    const txAwareOutboxRepo = new TxAwareOutboxRepository();
+    const transactionRunner = {
+      run: async <T>(work: (tx: unknown) => Promise<T>) => work(txToken),
+    };
+    const useCaseWithSentinel = new HandleCartCheckedOut(
+      txAwareOrderRepo,
+      txAwareOutboxRepo,
+      transactionRunner,
+      customizationLookup,
+    );
+
+    const payload = buildPayload({
+      cartId: 'cart-tx',
+      items: [
+        {
+          productId: 'p-A',
+          sellerId: 's1',
+          quantity: 1,
+          unitPrice: 10,
+          customizationIdList: ['cust-1'],
+          customizationSnapshot: [
+            {
+              id: 'cust-1',
+              text: 'Hello',
+              color: 'red',
+              size: 'M',
+              imageUrl: null,
+            },
+          ],
+        },
+      ],
+    });
+
+    await useCaseWithSentinel.execute(payload);
+
+    expect(seenTxs.length).toBeGreaterThan(0);
+    expect(seenTxs.every((tx) => tx === txToken)).toBe(true);
   });
 
   // -------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
 import { Prisma } from '@prisma/client';
+import type { CustomizationSnapshot } from '../domain/customization-lookup-port';
 import {
   OrderEntity,
   OrderRepository,
@@ -8,16 +9,18 @@ import {
 } from '../domain/order-repository';
 import { prisma } from '@/shared/infrastructure/prisma';
 
+type PrismaTx = Omit<
+  PrismaClient,
+  '$extends' | '$transaction' | '$connect' | '$disconnect' | '$use'
+>;
+
 export class PrismaOrderRepository implements OrderRepository {
   /**
    * Update order status within a transaction
    * This method is designed to be used with Prisma's transaction client
    */
   async updateStatusWithTransaction(
-    tx: Omit<
-      PrismaClient,
-      '$extends' | '$transaction' | '$connect' | '$disconnect' | '$use'
-    >,
+    tx: PrismaTx,
     orderId: string,
     status: OrderStatus,
   ): Promise<void> {
@@ -34,13 +37,13 @@ export class PrismaOrderRepository implements OrderRepository {
       data: { status },
     });
   }
-  async save(order: OrderEntity): Promise<OrderEntity> {
+  async save(order: OrderEntity, tx: PrismaTx = prisma): Promise<OrderEntity> {
     // If order.id is already set, it means we are updating an existing order (though save often implies create)
     // For simplicity, assuming save is for creating a new order or replacing existing data.
     // In a real app, you might differentiate between create and update.
 
     // First, save the order itself.
-    const savedOrder = await prisma.order.create({
+    const savedOrder = await tx.order.create({
       data: {
         id: order.id,
         userId: order.userId,
@@ -59,7 +62,7 @@ export class PrismaOrderRepository implements OrderRepository {
     // Now, save the associated line items.
     // We need to ensure that order.lineItems is populated when passed to this method.
     if (order.lineItems && order.lineItems.length > 0) {
-      await this.saveOrderLineItems(savedOrder.id, order.lineItems);
+      await this.saveOrderLineItems(savedOrder.id, order.lineItems, tx);
     }
 
     // Return the saved order, potentially re-fetched to include line items if needed by caller.
@@ -75,20 +78,22 @@ export class PrismaOrderRepository implements OrderRepository {
   async saveOrderLineItems(
     orderId: string,
     lineItems: OrderLineItemEntity[],
+    tx: PrismaTx = prisma,
   ): Promise<void> {
     if (!lineItems || lineItems.length === 0) {
       return; // No line items to save
     }
 
     // Create OrderLineItem records associated with the orderId
-    await prisma.orderLineItem.createMany({
+    await tx.orderLineItem.createMany({
       data: lineItems.map((item) => ({
         id: item.id, // Assuming IDs are generated or passed correctly
         orderId: orderId,
         productId: item.productId,
         quantity: item.quantity,
         customizationIdList: item.customizationIdList,
-        customizationSnapshot: item.customizationSnapshot ?? Prisma.JsonNull,
+        customizationSnapshot: (item.customizationSnapshot ??
+          Prisma.JsonNull) as unknown as Prisma.InputJsonValue,
       })),
     });
   }
@@ -116,12 +121,9 @@ export class PrismaOrderRepository implements OrderRepository {
         productId: item.productId,
         quantity: item.quantity,
         customizationIdList: item.customizationIdList,
-        customizationSnapshot: item.customizationSnapshot as {
-          text?: string;
-          color?: string;
-          size?: string;
-          imageUrl?: string;
-        } | null,
+        customizationSnapshot: coerceCustomizationSnapshot(
+          item.customizationSnapshot,
+        ),
       })),
     };
   }
@@ -148,8 +150,11 @@ export class PrismaOrderRepository implements OrderRepository {
    * deliveries (spec REQ-ORD-001, idempotency). The lookup is a
    * simple equality on the `cartId` column, which is indexed.
    */
-  async findIdsByCartId(cartId: string): Promise<string[]> {
-    const rows = await prisma.order.findMany({
+  async findIdsByCartId(
+    cartId: string,
+    tx: PrismaTx = prisma,
+  ): Promise<string[]> {
+    const rows = await tx.order.findMany({
       where: { cartId },
       select: { id: true },
     });
@@ -166,4 +171,45 @@ export class PrismaOrderRepository implements OrderRepository {
       where: { userId, status: 'paid' },
     });
   }
+}
+
+function coerceCustomizationSnapshot(
+  value: unknown,
+): CustomizationSnapshot[] | null {
+  if (value === null || value === Prisma.JsonNull) {
+    return null;
+  }
+
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => coerceCustomizationSnapshotItem(entry))
+      .filter((entry): entry is CustomizationSnapshot => entry !== null);
+  }
+
+  const snapshot = coerceCustomizationSnapshotItem(value);
+  return snapshot ? [snapshot] : null;
+}
+
+function coerceCustomizationSnapshotItem(
+  value: unknown,
+): CustomizationSnapshot | null {
+  if (!isRecord(value) || typeof value.id !== 'string') {
+    return null;
+  }
+
+  return {
+    id: value.id,
+    text: normalizeNullableString(value.text),
+    color: normalizeNullableString(value.color),
+    size: normalizeNullableString(value.size),
+    imageUrl: normalizeNullableString(value.imageUrl),
+  };
+}
+
+function normalizeNullableString(value: unknown): string | null {
+  return typeof value === 'string' ? value : null;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
 }

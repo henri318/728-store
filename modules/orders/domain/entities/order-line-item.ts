@@ -1,3 +1,5 @@
+import type { CustomizationSnapshot } from '../customization-lookup-port';
+
 /**
  * Represents a single line item within an order.
  * Contains product information and customization references + immutable snapshot.
@@ -14,10 +16,5 @@ export interface OrderLineItemEntity {
   /** References to Customization entities (historical) */
   customizationIdList: string[];
   /** Immutable snapshot frozen at checkout time */
-  customizationSnapshot: {
-    text?: string;
-    color?: string;
-    size?: string;
-    imageUrl?: string;
-  } | null;
+  customizationSnapshot: CustomizationSnapshot[] | null;
 }
