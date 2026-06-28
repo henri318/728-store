@@ -46,22 +46,21 @@ export function CartIcon({ alt }: CartIconProps) {
     }
   }, []);
 
-  /* eslint-disable react-hooks/set-state-in-effect -- intentional auth cart sync */
+  const handleCartUpdated = useCallback(() => {
+    void fetchCount();
+  }, [fetchCount]);
+
   useEffect(() => {
     if (!isAuthenticated) return;
-    fetchCount();
+    void Promise.resolve().then(fetchCount);
 
-    const handleCartUpdated = () => {
-      fetchCount();
-    };
     window.addEventListener(CART_UPDATED_EVENT, handleCartUpdated);
 
     return () => {
       abortRef.current?.abort();
       window.removeEventListener(CART_UPDATED_EVENT, handleCartUpdated);
     };
-  }, [isAuthenticated, fetchCount]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+  }, [isAuthenticated, fetchCount, handleCartUpdated]);
 
   const count = isAuthenticated ? authCount : guestCount;
 
