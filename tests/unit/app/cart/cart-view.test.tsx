@@ -284,8 +284,12 @@ describe('CartView', () => {
     fireEvent.click(plusButtons[0]);
 
     await waitFor(() => {
-      const qtyDisplay = screen.getAllByText('2');
-      expect(qtyDisplay.length).toBeGreaterThan(0);
+      expect(screen.getByText('3')).toBeTruthy();
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText('3')).toBeNull();
+      expect(screen.getAllByText('2').length).toBeGreaterThan(0);
     });
   });
 

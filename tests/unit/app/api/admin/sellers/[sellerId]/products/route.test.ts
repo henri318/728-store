@@ -86,7 +86,10 @@ describe('GET /api/admin/sellers/[sellerId]/products', () => {
     expect(body.products[0].id).toBe('p1');
     expect(body.products[0].name).toBe('Taza');
     expect(body.products[0].status).toBe('ACTIVE');
-    expect(body.products[0].basePrice).toBe(10);
+    expect(body.products[0].basePrice).toEqual({
+      amount: 10,
+      currency: 'EUR',
+    });
   });
 
   it('returns empty array when seller has no products', async () => {

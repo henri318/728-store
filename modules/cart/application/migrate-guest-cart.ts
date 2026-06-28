@@ -214,7 +214,7 @@ export class MigrateGuestCart {
     cartId: string,
     productMap: Map<
       string,
-      { basePrice: number; currency: string; sellerId: SellerId }
+      { basePrice: number; currency: Currency; sellerId: SellerId }
     >,
   ): CartItemEntity {
     const product = productMap.get(g.productId)!;
@@ -224,7 +224,7 @@ export class MigrateGuestCart {
       productId: ProductId.create(g.productId),
       sellerId: product.sellerId,
       quantity: g.quantity,
-      unitPriceSnapshot: Money.create(product.basePrice, Currency.EUR),
+      unitPriceSnapshot: Money.create(product.basePrice, product.currency),
       customizationIdList: [],
     };
   }
@@ -247,10 +247,12 @@ export class MigrateGuestCart {
 function isSameVariant(
   item: CartItemEntity,
   g: GuestCartItem,
-  productSnap: { basePrice: number; currency: string; sellerId: SellerId },
+  productSnap: { basePrice: number; currency: Currency; sellerId: SellerId },
 ): boolean {
   if (item.productId.value !== g.productId) return false;
   if (!item.sellerId.equals(productSnap.sellerId)) return false;
+  if (item.unitPriceSnapshot.amount !== g.unitPriceSnapshot) return false;
+  if (item.unitPriceSnapshot.currency !== productSnap.currency) return false;
   // PR2 will resolve customization IDs; for now compare sorted lists.
   return (
     JSON.stringify([...item.customizationIdList].sort()) === JSON.stringify([])

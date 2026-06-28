@@ -6,7 +6,6 @@ import { CartStatus } from '../domain/value-objects/cart-status';
 import { Quantity } from '../domain/value-objects/quantity';
 import { ProductId } from '@/shared/kernel/domain/value-objects/product-id';
 import { Money } from '@/shared/kernel/domain/value-objects/money';
-import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import {
   ProductNotFoundError,
   InvalidCustomizationError,
@@ -128,7 +127,7 @@ export class AddItemToCart {
         productId,
         sellerId: product.sellerId,
         quantity: quantity.value,
-        unitPriceSnapshot: Money.create(product.basePrice, Currency.EUR),
+        unitPriceSnapshot: Money.create(product.basePrice, product.currency),
         customizationIdList: [...customizationIdList].sort(),
       };
       updatedItems = [...cart!.items, updatedItem];

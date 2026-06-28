@@ -186,7 +186,7 @@ describe('CartView — guest cart', () => {
       />,
     );
 
-    expect(screen.queryByRole('link', { name: /checkout/i })).toBeNull();
+    expect(screen.queryByRole('link', { name: labels.checkout })).toBeNull();
   });
 
   it('computes subtotal from guest cart items', () => {
