@@ -1,8 +1,16 @@
+import json from '@eslint/json';
 import eslintJs from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import eslintReact from '@eslint-react/eslint-plugin';
 import reactHooks from 'eslint-plugin-react-hooks';
 import nextPlugin from '@next/eslint-plugin-next';
+
+const CODE_FILES = ['**/*.{js,jsx,mjs,cjs,ts,tsx}'];
+
+const scopeToCodeFiles = (config) => ({
+  ...config,
+  files: CODE_FILES,
+});
 
 const MODULES = [
   'auth',
@@ -74,24 +82,26 @@ const moduleBoundaryRules = MODULES.flatMap((mod) => [
   },
 ]);
 
-export default tseslint.config(
+export default [
   // Base ESLint recommended
-  eslintJs.configs.recommended,
+  scopeToCodeFiles(eslintJs.configs.recommended),
 
   // TypeScript recommended + type-checked rules
-  ...tseslint.configs.recommended,
+  ...tseslint.configs.recommended.map(scopeToCodeFiles),
 
   // ESLint React for TypeScript (replaces eslint-plugin-react)
-  eslintReact.configs['recommended-typescript'],
+  scopeToCodeFiles(eslintReact.configs['recommended-typescript']),
 
   // React Hooks
   {
+    files: CODE_FILES,
     plugins: { 'react-hooks': reactHooks },
     rules: reactHooks.configs.recommended.rules,
   },
 
   // Next.js
   {
+    files: CODE_FILES,
     plugins: { '@next/next': nextPlugin },
     rules: {
       ...nextPlugin.configs.recommended.rules,
@@ -99,8 +109,27 @@ export default tseslint.config(
     },
   },
 
+  // JSON / JSONC / JSON5
+  {
+    files: ['**/*.json'],
+    ignores: ['package-lock.json'],
+    language: 'json/json',
+    ...json.configs.recommended,
+  },
+  {
+    files: ['**/*.jsonc'],
+    language: 'json/jsonc',
+    ...json.configs.recommended,
+  },
+  {
+    files: ['**/*.json5'],
+    language: 'json/json5',
+    ...json.configs.recommended,
+  },
+
   // TypeScript rules override - ignore underscore-prefixed variables
   {
+    files: CODE_FILES,
     rules: {
       '@typescript-eslint/no-unused-vars': [
         'error',
@@ -120,4 +149,4 @@ export default tseslint.config(
   {
     ignores: ['node_modules/', '.next/', 'workers/'],
   },
-);
+];
