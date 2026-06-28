@@ -24,7 +24,7 @@ export async function cleanupDb(): Promise<void> {
     const tables = [
       'OrderLineItem',
       'Order',
-      'ProductCustomization',
+      'Customization',
       'ProductTranslation',
       'Product',
       'Seller',

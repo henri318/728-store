@@ -42,6 +42,7 @@ describe('UpdateCartItemQuantity', () => {
     sellerId: SellerId.create('s1'),
     quantity: 1,
     unitPriceSnapshot: Money.create(10, Currency.EUR),
+    customizationIdList: [],
     ...overrides,
   });
 

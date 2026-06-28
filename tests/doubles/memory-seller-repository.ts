@@ -1,5 +1,10 @@
+import type { PaginatedResult } from '@/shared/kernel/domain/value-objects/pagination';
+import { PaginationDefaults } from '@/shared/kernel/domain/value-objects/pagination';
 import type { SellerEntity } from '@/modules/sellers/domain/seller';
-import type { SellerRepository } from '@/modules/sellers/domain/seller-repository';
+import type {
+  SellerRepository,
+  SellersListFilter,
+} from '@/modules/sellers/domain/seller-repository';
 import type { SellerStatus } from '@/modules/sellers/domain/seller-status';
 
 /**
@@ -47,6 +52,45 @@ export class MemorySellerRepository implements SellerRepository {
     return this.sellers.filter(
       (s) => s.status === status && s.deletedAt === null,
     );
+  }
+
+  async findPaginated(
+    filter: SellersListFilter,
+  ): Promise<PaginatedResult<SellerEntity>> {
+    const page = filter.page ?? PaginationDefaults.page;
+    const pageSize = filter.pageSize ?? PaginationDefaults.pageSize;
+    const sortBy = filter.sortBy ?? (PaginationDefaults.sortBy as 'createdAt');
+    const sortDir = filter.sortDir ?? PaginationDefaults.sortDir;
+
+    let filtered = this.sellers.filter((s) => s.deletedAt === null);
+
+    if (filter.status !== undefined) {
+      filtered = filtered.filter((s) => s.status === filter.status);
+    }
+
+    if (filter.q !== undefined && filter.q.trim() !== '') {
+      const q = filter.q.trim().toLowerCase();
+      filtered = filtered.filter((s) => {
+        const name = s.name.toLowerCase();
+        const description = (s.description ?? '').toLowerCase();
+        return name.includes(q) || description.includes(q);
+      });
+    }
+
+    const sorted = [...filtered].sort((a, b) => {
+      const dir = sortDir === 'asc' ? 1 : -1;
+      if (sortBy === 'name') {
+        return a.name.localeCompare(b.name) * dir;
+      }
+      return (a.createdAt.getTime() - b.createdAt.getTime()) * dir;
+    });
+
+    const total = sorted.length;
+    const start = (page - 1) * pageSize;
+    const items = sorted.slice(start, start + pageSize);
+    const totalPages = Math.ceil(total / pageSize);
+
+    return { items, total, page, pageSize, totalPages };
   }
 
   async update(seller: SellerEntity, _tx?: unknown): Promise<SellerEntity> {

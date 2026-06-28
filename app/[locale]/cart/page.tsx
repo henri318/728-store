@@ -61,10 +61,10 @@ export default async function CartPage({
             2,
           ),
           customization: {
-            text: item.customizationText ?? null,
-            color: item.customizationColor ?? null,
-            size: item.customizationSize ?? null,
-            imageUrl: item.customizationImageUrl ?? null,
+            text: null,
+            color: null,
+            size: null,
+            imageUrl: null,
           },
         };
       });

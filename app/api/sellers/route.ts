@@ -22,15 +22,30 @@ import { requireRole } from '@/shared/authorization/authorization';
  */
 export const GET = requireRole('ADMIN')(async function GET(req: NextRequest) {
   try {
-    const { status } = listSellersQuerySchema.parse({
-      status: req.nextUrl.searchParams.get('status') ?? undefined,
+    const params = req.nextUrl.searchParams;
+    const filter = listSellersQuerySchema.parse({
+      status: params.get('status') ?? undefined,
+      page: params.get('page') ?? undefined,
+      pageSize: params.get('pageSize') ?? undefined,
+      q: params.get('q') ?? undefined,
+      sortBy: params.get('sortBy') ?? undefined,
+      sortDir: params.get('sortDir') ?? undefined,
     });
 
     const sellerRepository = container.getSellerRepository();
     const useCase = new ListSellersUseCase(sellerRepository);
-    const sellers = await useCase.execute({ status: status as SellerStatus });
+    const result = await useCase.execute(filter);
 
-    return NextResponse.json(sellers.map(toSellerResponse), { status: 200 });
+    return NextResponse.json(
+      {
+        items: result.items.map(toSellerResponse),
+        total: result.total,
+        page: result.page,
+        pageSize: result.pageSize,
+        totalPages: result.totalPages,
+      },
+      { status: 200 },
+    );
   } catch (error: unknown) {
     return handleApiError(error);
   }

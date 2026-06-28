@@ -89,10 +89,10 @@ export default async function CheckoutPage({
       unitPrice: item.unitPriceSnapshot.amount,
       lineTotal: +(item.unitPriceSnapshot.amount * item.quantity).toFixed(2),
       customization: {
-        text: item.customizationText ?? null,
-        color: item.customizationColor ?? null,
-        size: item.customizationSize ?? null,
-        imageUrl: item.customizationImageUrl ?? null,
+        text: null,
+        color: null,
+        size: null,
+        imageUrl: null,
       },
     };
   });

@@ -116,14 +116,8 @@ export class AddItemToCart {
         productId,
         sellerId: product.sellerId,
         quantity: quantity.value,
-        unitPriceSnapshot: Money.create(
-          product.basePrice,
-          (product.currency as Currency) ?? Currency.EUR,
-        ),
-        customizationText: customization.text,
-        customizationColor: customization.color,
-        customizationSize: customization.size,
-        customizationImageUrl: customization.imageUrl,
+        unitPriceSnapshot: Money.create(product.basePrice, Currency.EUR),
+        customizationIdList: [],
       };
       updatedItems = [...cart!.items, updatedItem];
     }
@@ -179,14 +173,13 @@ function normalizeCustomization(
 function isSameVariant(
   item: CartItemEntity,
   productId: ProductId,
-  customization: NormalizedCustomization,
+  _customization: NormalizedCustomization,
 ): boolean {
   if (!item.productId.equals(productId)) return false;
+  // PR2 will resolve customization IDs before add; for now all items
+  // are created with customizationIdList=[] so we compare sorted lists.
   return (
-    (item.customizationText ?? null) === customization.text &&
-    (item.customizationColor ?? null) === customization.color &&
-    (item.customizationSize ?? null) === customization.size &&
-    (item.customizationImageUrl ?? null) === customization.imageUrl
+    JSON.stringify([...item.customizationIdList].sort()) === JSON.stringify([])
   );
 }
 

@@ -39,10 +39,7 @@ describe('HandleCartCheckedOut', () => {
         sellerId: string;
         quantity: number;
         unitPrice: number;
-        customizationText?: string | null;
-        customizationColor?: string | null;
-        customizationSize?: string | null;
-        customizationImageUrl?: string | null;
+        customizationIdList?: string[];
       }>;
       subtotal: number;
       discountApplied: number;
@@ -271,10 +268,7 @@ describe('HandleCartCheckedOut', () => {
           sellerId: 's1',
           quantity: 1,
           unitPrice: 10,
-          customizationText: 'Hello',
-          customizationColor: 'red',
-          customizationSize: 'M',
-          customizationImageUrl: 'https://example.com/x.png',
+          customizationIdList: ['cust-1'],
         },
       ],
     });
@@ -285,10 +279,8 @@ describe('HandleCartCheckedOut', () => {
     const order = allOrders[0];
     const lineItems = await orderRepo.getLineItemsByOrderId(order.id);
     const li = lineItems[0];
-    expect(li.customizationText).toBe('Hello');
-    expect(li.customizationColor).toBe('red');
-    expect(li.customizationSize).toBe('M');
-    expect(li.customizationImageUrl).toBe('https://example.com/x.png');
+    expect(li.customizationIdList).toEqual(['cust-1']);
+    expect(li.customizationSnapshot).toBeNull();
   });
 
   // -------------------------------------------------------------------------

@@ -117,10 +117,7 @@ export class CheckoutCart {
       sellerId: item.sellerId.value,
       quantity: item.quantity,
       unitPrice: item.unitPriceSnapshot.amount,
-      customizationText: item.customizationText ?? null,
-      customizationColor: item.customizationColor ?? null,
-      customizationSize: item.customizationSize ?? null,
-      customizationImageUrl: item.customizationImageUrl ?? null,
+      customizationIdList: item.customizationIdList,
     }));
 
     const eventPayload: Record<string, unknown> = {

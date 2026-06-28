@@ -43,8 +43,8 @@ model Seller {
   user        User      @relation(fields: [userId], references: [id])
   status      String    @default("active")
   deletedAt   DateTime?
-  products    Product[]
-  orders      Order[]
+  products      Product[]
+  orders        Order[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -63,7 +63,7 @@ model Product {
   images         ProductImage[]
   tags           Tag[]                  @relation("ProductTags")
   translations   ProductTranslation[]
-  customizations ProductCustomization[]
+  customizations Customization[]
   lineItems      OrderLineItem[]
   createdAt      DateTime               @default(now())
   updatedAt      DateTime               @default(now()) @updatedAt
@@ -80,15 +80,17 @@ model ProductTranslation {
   @@unique([productId, locale])
 }
 
-model ProductCustomization {
+model Customization {
   id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   text      String?
   color     String?
   size      String?
   imageUrl  String?
-  productId String
   createdAt DateTime @default(now())
-  product   Product  @relation(fields: [productId], references: [id])
+
+  @@index([productId])
 }
 
 model Order {
@@ -118,10 +120,8 @@ model OrderLineItem {
   productId             String
   product               Product  @relation(fields: [productId], references: [id])
   quantity              Int
-  customizationText     String?
-  customizationColor    String?
-  customizationSize     String?
-  customizationImageUrl String?
+  customizationIdList   String[] @default([])
+  customizationSnapshot Json?
   createdAt             DateTime @default(now())
 }
 
@@ -217,19 +217,16 @@ model Cart {
 }
 
 model CartItem {
-  id                    String   @id @default(cuid())
-  cartId                String
-  cart                  Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  productId             String
-  sellerId              String
-  quantity              Int
-  unitPriceSnapshot     Decimal
-  customizationText     String?
-  customizationColor    String?
-  customizationSize     String?
-  customizationImageUrl String?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  cartId              String
+  cart                Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId           String
+  sellerId            String
+  quantity            Int
+  unitPriceSnapshot   Decimal
+  customizationIdList String[] @default([])
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   @@index([cartId])
   @@index([productId])

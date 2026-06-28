@@ -109,10 +109,10 @@ function enrichCartItem(
     unitPrice,
     lineTotal,
     customization: {
-      text: item.customizationText,
-      color: item.customizationColor,
-      size: item.customizationSize,
-      imageUrl: item.customizationImageUrl,
+      text: null,
+      color: null,
+      size: null,
+      imageUrl: null,
     },
   };
 }

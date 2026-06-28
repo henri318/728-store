@@ -224,14 +224,8 @@ export class MigrateGuestCart {
       productId: ProductId.create(g.productId),
       sellerId: product.sellerId,
       quantity: g.quantity,
-      unitPriceSnapshot: Money.create(
-        product.basePrice,
-        product.currency as Currency,
-      ),
-      customizationText: g.customizationText ?? null,
-      customizationColor: g.customizationColor ?? null,
-      customizationSize: g.customizationSize ?? null,
-      customizationImageUrl: g.customizationImageUrl ?? null,
+      unitPriceSnapshot: Money.create(product.basePrice, Currency.EUR),
+      customizationIdList: [],
     };
   }
 
@@ -257,11 +251,9 @@ function isSameVariant(
 ): boolean {
   if (item.productId.value !== g.productId) return false;
   if (!item.sellerId.equals(productSnap.sellerId)) return false;
+  // PR2 will resolve customization IDs; for now compare sorted lists.
   return (
-    (item.customizationText ?? null) === (g.customizationText ?? null) &&
-    (item.customizationColor ?? null) === (g.customizationColor ?? null) &&
-    (item.customizationSize ?? null) === (g.customizationSize ?? null) &&
-    (item.customizationImageUrl ?? null) === (g.customizationImageUrl ?? null)
+    JSON.stringify([...item.customizationIdList].sort()) === JSON.stringify([])
   );
 }
 

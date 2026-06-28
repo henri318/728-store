@@ -237,10 +237,7 @@ describe('PrismaCartRepository', () => {
       sellerId: string;
       quantity: number;
       unitPriceSnapshot: Money;
-      customizationText: string | null;
-      customizationColor: string | null;
-      customizationSize: string | null;
-      customizationImageUrl: string | null;
+      customizationIdList: string[];
     }> = {},
   ): import('@/modules/cart/domain/entities/cart-item').CartItemEntity => ({
     id: overrides.id ?? 'i1',
@@ -250,10 +247,7 @@ describe('PrismaCartRepository', () => {
     quantity: overrides.quantity ?? 1,
     unitPriceSnapshot:
       overrides.unitPriceSnapshot ?? Money.create(10, Currency.EUR),
-    customizationText: overrides.customizationText ?? null,
-    customizationColor: overrides.customizationColor ?? null,
-    customizationSize: overrides.customizationSize ?? null,
-    customizationImageUrl: overrides.customizationImageUrl ?? null,
+    customizationIdList: overrides.customizationIdList ?? [],
   });
 
   const makeCart = (overrides: Partial<CartEntity> = {}): CartEntity => {

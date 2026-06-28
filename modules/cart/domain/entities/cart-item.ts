@@ -22,12 +22,6 @@ export interface CartItemEntity {
   quantity: number;
   /** Price at the time the item was added (EUR) */
   unitPriceSnapshot: Money;
-  /** Optional inline text customization (max 500 chars) */
-  customizationText?: string | null;
-  /** Optional color customization (max 50 chars) */
-  customizationColor?: string | null;
-  /** Optional size customization (max 50 chars) */
-  customizationSize?: string | null;
-  /** Optional image URL (https only) */
-  customizationImageUrl?: string | null;
+  /** References to Customization entities (resolved at checkout) */
+  customizationIdList: string[];
 }
