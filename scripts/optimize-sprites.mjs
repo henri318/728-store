@@ -66,12 +66,12 @@ const icons = files.map((file) => {
   const raw = readFileSync(join(ICONS_DIR, file), 'utf8');
   // Resolve class-based fills to inline fills BEFORE optimization,
   // so SVGO doesn't strip the <defs><style> block before we can process it.
-  let preprocessed = resolveClassFills(raw);
+  const preprocessed = resolveClassFills(raw);
   const result = optimize(preprocessed, {
     plugins: ['preset-default', 'removeDimensions'],
   });
 
-  let svgContent = result.data;
+  const svgContent = result.data;
 
   const viewBoxMatch = svgContent.match(/viewBox="([^"]+)"/);
   const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 24 24';

@@ -1,7 +1,8 @@
 #!/usr/bin/env sh
-FILES=$(git diff --cached --name-only --diff-filter=ACMR)
-[ -z "$FILES" ] && exit 0
+npx lint-staged
 
-echo "$FILES" | xargs npx prettier --write --ignore-unknown
-echo "$FILES" | xargs npx eslint --fix
-git add $FILES
+FILES=$(git diff --cached --name-only --diff-filter=ACMR)
+PRISMA_SCHEMA=$(printf '%s\n' "$FILES" | grep -Fx 'prisma/schema.prisma' || true)
+if [ -n "$PRISMA_SCHEMA" ]; then
+  npx prisma validate
+fi
