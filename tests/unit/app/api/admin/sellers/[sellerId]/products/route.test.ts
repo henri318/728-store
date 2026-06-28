@@ -32,6 +32,8 @@ vi.mock('@/composition-root/container', () => ({
 // Import after mocks
 import { GET } from '@/app/api/admin/sellers/[sellerId]/products/route';
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
+import { ProductPrice } from '@/modules/products/domain/value-objects/product-price';
+import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 
 const PARAMS = { params: Promise.resolve({ sellerId: 's-1' }) };
 
@@ -62,7 +64,7 @@ describe('GET /api/admin/sellers/[sellerId]/products', () => {
     mocks.findBySellerIdMock.mockResolvedValue([
       {
         id: 'p1',
-        basePrice: 10,
+        basePrice: ProductPrice.create(10, Currency.EUR),
         sellerId: 's-1',
         sellerName: 'Test Shop',
         status: ProductStatus.ACTIVE,
@@ -124,7 +126,7 @@ describe('GET /api/admin/sellers/[sellerId]/products', () => {
     mocks.findBySellerIdMock.mockResolvedValue([
       {
         id: 'p2',
-        basePrice: 20,
+        basePrice: ProductPrice.create(20, Currency.EUR),
         sellerId: 's-1',
         sellerName: 'Test Shop',
         status: ProductStatus.DRAFT,

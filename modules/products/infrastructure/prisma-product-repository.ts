@@ -175,6 +175,7 @@ export class PrismaProductRepository implements ProductRepository {
       where: { id: entity.id },
       data: {
         basePrice: data.basePrice,
+        currency: data.currency,
         status: data.status,
         categoryId: data.categoryId,
         updatedAt: data.updatedAt,

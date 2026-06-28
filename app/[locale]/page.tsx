@@ -42,7 +42,7 @@ export default async function HomePage({
                     {translation.description}
                   </p>
                   <p className={styles.productPrice}>
-                    {Number(product.basePrice).toFixed(2)} €
+                    {product.basePrice.format()}
                   </p>
                   <p className={styles.productSeller}>{product.sellerName}</p>
                   <div className={styles.productActions}>
@@ -57,7 +57,7 @@ export default async function HomePage({
                       productName={translation.name}
                       sellerId={product.sellerId}
                       sellerName={product.sellerName}
-                      price={Number(product.basePrice)}
+                      price={product.basePrice.amount}
                       labels={{
                         addToCart: dict.common.addToCart,
                         removeFromCart: dict.common.removeFromCart,

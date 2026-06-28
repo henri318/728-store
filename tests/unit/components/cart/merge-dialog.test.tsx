@@ -34,21 +34,34 @@ const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
 describe('MergeDialog', () => {
+  const labels = {
+    title: '¿Unir tu carrito?',
+    description:
+      'Tienes artículos en tu carrito de invitado y ya existe otro carrito. ¿Qué quieres hacer?',
+    mergeBoth: 'Unir ambos',
+    mergeBothHint: 'Combina los artículos de ambos carritos',
+    keepServerCart: 'Conservar el carrito de la cuenta',
+    keepServerHint: 'Descarta los artículos del carrito de invitado',
+    keepGuestCart: 'Conservar el carrito de invitado',
+    keepGuestHint:
+      'Reemplaza el carrito de la cuenta con los artículos de invitado',
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('renders the dialog with three strategy options', () => {
-    render(<MergeDialog isOpen={true} onClose={vi.fn()} />);
+    render(<MergeDialog isOpen={true} onClose={vi.fn()} labels={labels} />);
 
-    expect(screen.getByText(/merge both/i)).toBeTruthy();
-    expect(screen.getByText(/keep server cart/i)).toBeTruthy();
-    expect(screen.getByText(/keep guest cart/i)).toBeTruthy();
+    expect(screen.getByText(labels.mergeBoth)).toBeTruthy();
+    expect(screen.getByText(labels.keepServerCart)).toBeTruthy();
+    expect(screen.getByText(labels.keepGuestCart)).toBeTruthy();
   });
 
   it('does not render when isOpen is false', () => {
     const { container } = render(
-      <MergeDialog isOpen={false} onClose={vi.fn()} />,
+      <MergeDialog isOpen={false} onClose={vi.fn()} labels={labels} />,
     );
     expect(container.innerHTML).toBe('');
   });
@@ -56,9 +69,9 @@ describe('MergeDialog', () => {
   it('calls POST /api/cart/migrate with "merge" strategy when "Merge both" is clicked', async () => {
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
 
-    render(<MergeDialog isOpen={true} onClose={vi.fn()} />);
+    render(<MergeDialog isOpen={true} onClose={vi.fn()} labels={labels} />);
 
-    fireEvent.click(screen.getByText(/merge both/i));
+    fireEvent.click(screen.getByText(labels.mergeBoth));
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith('/api/cart/migrate', {
@@ -72,9 +85,9 @@ describe('MergeDialog', () => {
   it('calls POST /api/cart/migrate with "keep-server" strategy', async () => {
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
 
-    render(<MergeDialog isOpen={true} onClose={vi.fn()} />);
+    render(<MergeDialog isOpen={true} onClose={vi.fn()} labels={labels} />);
 
-    fireEvent.click(screen.getByText(/keep server cart/i));
+    fireEvent.click(screen.getByText(labels.keepServerCart));
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith('/api/cart/migrate', {
@@ -88,9 +101,9 @@ describe('MergeDialog', () => {
   it('calls POST /api/cart/migrate with "keep-guest" strategy', async () => {
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
 
-    render(<MergeDialog isOpen={true} onClose={vi.fn()} />);
+    render(<MergeDialog isOpen={true} onClose={vi.fn()} labels={labels} />);
 
-    fireEvent.click(screen.getByText(/keep guest cart/i));
+    fireEvent.click(screen.getByText(labels.keepGuestCart));
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith('/api/cart/migrate', {
@@ -105,9 +118,9 @@ describe('MergeDialog', () => {
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
 
     const onClose = vi.fn();
-    render(<MergeDialog isOpen={true} onClose={onClose} />);
+    render(<MergeDialog isOpen={true} onClose={onClose} labels={labels} />);
 
-    fireEvent.click(screen.getByText(/merge both/i));
+    fireEvent.click(screen.getByText(labels.mergeBoth));
 
     await waitFor(() => {
       expect(mockClearCart).toHaveBeenCalled();
@@ -119,9 +132,9 @@ describe('MergeDialog', () => {
   it('sends guest items from context in the request body', async () => {
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
 
-    render(<MergeDialog isOpen={true} onClose={vi.fn()} />);
+    render(<MergeDialog isOpen={true} onClose={vi.fn()} labels={labels} />);
 
-    fireEvent.click(screen.getByText(/merge both/i));
+    fireEvent.click(screen.getByText(labels.mergeBoth));
 
     await waitFor(() => {
       const call = mockFetch.mock.calls[0];

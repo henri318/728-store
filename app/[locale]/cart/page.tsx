@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/shared/infrastructure/auth-options';
 import { container } from '@/composition-root/container';
 import { GetCart } from '@/modules/cart/application/get-cart';
+import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { CartView, type CartItemDTO } from './cart-view';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
 
@@ -22,6 +23,7 @@ export default async function CartPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  const dict = await getDictionary(locale as 'es' | 'cat');
   const session = await getServerSession(authOptions);
   const isAuthenticated = !!session?.user?.id;
 
@@ -70,6 +72,25 @@ export default async function CartPage({
   }
 
   return (
-    <CartView items={items} locale={locale} isAuthenticated={isAuthenticated} />
+    <CartView
+      items={items}
+      locale={locale}
+      isAuthenticated={isAuthenticated}
+      labels={{
+        title: dict.common.cartTitle,
+        emptyTitle: dict.common.cartEmptyTitle,
+        emptyDescription: dict.common.cartEmptyDescription,
+        browseProducts: dict.common.browseProducts,
+        soldBy: dict.common.soldBy,
+        remove: dict.common.removeFromCart,
+        subtotal: dict.common.subtotal,
+        checkout: dict.common.checkout,
+        unknownProduct: dict.common.unknownProduct,
+        unknownSeller: dict.common.unknownSeller,
+        customizationSize: dict.common.customizationSize,
+        customizationColor: dict.common.customizationColor,
+        customizationText: dict.common.customizationText,
+      }}
+    />
   );
 }

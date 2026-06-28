@@ -1,16 +1,6 @@
 import { Money } from '@/shared/kernel/domain/value-objects/money';
 import type { Currency } from '@/shared/kernel/domain/value-objects/currency';
 
-/**
- * ProductPrice — a value object wrapping Money with product-specific validation.
- *
- * Follows the project's VO pattern: private constructor, static create(),
- * readonly fields, equals() by value.
- *
- * Rules:
- *  - Delegates to Money.create() for base validation
- *  - Additional constraint: amount must be strictly > 0 (no zero prices)
- */
 export class ProductPrice {
   readonly money: Money;
 
@@ -34,6 +24,10 @@ export class ProductPrice {
     }
 
     return new ProductPrice(money);
+  }
+
+  format(): string {
+    return Money.format(this.amount, this.currency);
   }
 
   equals(other: ProductPrice): boolean {

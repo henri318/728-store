@@ -17,6 +17,8 @@ vi.mock('@/composition-root/container', () => ({
 import { GET } from '@/app/api/products/route';
 import { MemoryProductRepository } from '@/tests/doubles/memory-product-repository';
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
+import { ProductPrice } from '@/modules/products/domain/value-objects/product-price';
+import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 
 function makeProduct(
   id: string,
@@ -29,7 +31,7 @@ function makeProduct(
 ): import('@/modules/products/domain/product-repository').ProductEntity {
   return {
     id,
-    basePrice: 10,
+    basePrice: ProductPrice.create(10, Currency.EUR),
     sellerId: 'seller-1',
     sellerName: 'Test Shop',
     status: ProductStatus.ACTIVE,

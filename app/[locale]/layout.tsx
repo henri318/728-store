@@ -108,7 +108,18 @@ export default async function RootLayout({
         <SessionProviderWrapper session={session}>
           <GuestCartProvider>
             <CartPopupProvider>
-              <CartMergeDetector />
+              <CartMergeDetector
+                labels={{
+                  mergeTitle: dict.common.cartMergeTitle,
+                  mergeDescription: dict.common.cartMergeDescription,
+                  mergeBoth: dict.common.cartMergeBoth,
+                  mergeBothHint: dict.common.cartMergeBothHint,
+                  keepServerCart: dict.common.cartMergeKeepServer,
+                  keepServerHint: dict.common.cartMergeKeepServerHint,
+                  keepGuestCart: dict.common.cartMergeKeepGuest,
+                  keepGuestHint: dict.common.cartMergeKeepGuestHint,
+                }}
+              />
               <header className={styles.header}>
                 <div className={styles.spacer} />
                 <a href={`/${locale}`} className={styles.logo}>
@@ -150,6 +161,10 @@ export default async function RootLayout({
                   viewFullCart: dict.common.viewFullCart,
                   subtotal: dict.common.subtotal,
                   loading: dict.common.loadingCart,
+                  soldBy: dict.common.soldBy,
+                  remove: dict.common.removeFromCart,
+                  unknownProduct: dict.common.unknownProduct,
+                  unknownSeller: dict.common.unknownSeller,
                 }}
               />
             </CartPopupProvider>

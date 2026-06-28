@@ -167,6 +167,32 @@ describe('CartIcon', () => {
       });
     });
 
+    it('refetches cart count after cart:updated', async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ items: [{ productId: 'p1' }] }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            items: [{ productId: 'p1' }, { productId: 'p2' }],
+          }),
+        });
+
+      renderWithProvider(<CartIcon alt="Cart" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('1')).toBeTruthy();
+      });
+
+      window.dispatchEvent(new Event('cart:updated'));
+
+      await waitFor(() => {
+        expect(screen.getByText('2')).toBeTruthy();
+      });
+    });
+
     it('shows item count badge after fetching cart', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,

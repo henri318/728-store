@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
 import { Modal } from '@/modules/presentation/components/modal';
+import { Money } from '@/shared/kernel/domain/value-objects/money';
+import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import styles from './checkout-confirm-button.module.css';
 
 interface PriceChange {
@@ -95,7 +97,8 @@ export function CheckoutConfirmButton({ locale }: CheckoutConfirmButtonProps) {
             <ul className={styles.priceList}>
               {priceChanges.map((pc) => (
                 <li key={pc.itemId}>
-                  €{pc.oldPrice.toFixed(2)} → €{pc.newPrice.toFixed(2)}
+                  {Money.format(pc.oldPrice, Currency.EUR)} →{' '}
+                  {Money.format(pc.newPrice, Currency.EUR)}
                 </li>
               ))}
             </ul>

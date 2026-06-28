@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { GetProductsUseCase } from '@/modules/products/application/get-products-use-case';
 import { MemoryProductRepository } from '@/tests/doubles/memory-product-repository';
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
+import { ProductPrice } from '@/modules/products/domain/value-objects/product-price';
+import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 
 describe('GetProductsUseCase with i18n', () => {
   let productRepository: MemoryProductRepository;
@@ -14,7 +16,7 @@ describe('GetProductsUseCase with i18n', () => {
     productRepository.seed([
       {
         id: '1',
-        basePrice: 10,
+        basePrice: ProductPrice.create(10, Currency.EUR),
         sellerId: 's1',
         sellerName: 'Store 1',
         status: ProductStatus.ACTIVE,

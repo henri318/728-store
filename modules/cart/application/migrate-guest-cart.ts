@@ -212,7 +212,10 @@ export class MigrateGuestCart {
   private buildItem(
     g: GuestCartItem,
     cartId: string,
-    productMap: Map<string, { basePrice: number; sellerId: SellerId }>,
+    productMap: Map<
+      string,
+      { basePrice: number; currency: string; sellerId: SellerId }
+    >,
   ): CartItemEntity {
     const product = productMap.get(g.productId)!;
     return {
@@ -221,7 +224,10 @@ export class MigrateGuestCart {
       productId: ProductId.create(g.productId),
       sellerId: product.sellerId,
       quantity: g.quantity,
-      unitPriceSnapshot: Money.create(product.basePrice, Currency.EUR),
+      unitPriceSnapshot: Money.create(
+        product.basePrice,
+        product.currency as Currency,
+      ),
       customizationText: g.customizationText ?? null,
       customizationColor: g.customizationColor ?? null,
       customizationSize: g.customizationSize ?? null,
@@ -247,7 +253,7 @@ export class MigrateGuestCart {
 function isSameVariant(
   item: CartItemEntity,
   g: GuestCartItem,
-  productSnap: { basePrice: number; sellerId: SellerId },
+  productSnap: { basePrice: number; currency: string; sellerId: SellerId },
 ): boolean {
   if (item.productId.value !== g.productId) return false;
   if (!item.sellerId.equals(productSnap.sellerId)) return false;

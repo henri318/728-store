@@ -220,14 +220,19 @@ export class CheckoutCart {
         const change: PriceChange = {
           itemId: item.id,
           oldPrice: item.unitPriceSnapshot,
-          newPrice: Money.create(snap.basePrice, Currency.EUR),
+          newPrice: Money.create(
+            snap.basePrice,
+            item.unitPriceSnapshot.currency,
+          ),
         };
         priceChanges.push(change);
         if (acceptPriceChanges) {
-          // Update the snapshot to the current price.
           return {
             ...item,
-            unitPriceSnapshot: Money.create(snap.basePrice, Currency.EUR),
+            unitPriceSnapshot: Money.create(
+              snap.basePrice,
+              item.unitPriceSnapshot.currency,
+            ),
           };
         }
       }

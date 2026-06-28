@@ -47,7 +47,7 @@ export default async function AdminSellerProductsPage({
               <tr key={product.id}>
                 <td>{product.translations[0]?.name ?? 'Untranslated'}</td>
                 <td>{product.status}</td>
-                <td>{product.basePrice.toFixed(2)}</td>
+                <td>{product.basePrice.format()}</td>
                 <td>
                   {LocalizedDate.create(product.updatedAt, locale).toString()}
                 </td>

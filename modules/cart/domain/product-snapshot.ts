@@ -11,5 +11,6 @@ import type { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
 export interface ProductSnapshot {
   id: ProductId;
   basePrice: number;
+  currency: string;
   sellerId: SellerId;
 }

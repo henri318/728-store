@@ -72,6 +72,12 @@ export class Money {
   }
 
   static format(amount: number, currency: Currency): string {
+    if (!Number.isFinite(amount)) {
+      throw new Error('Money amount must be a finite number');
+    }
+    if (amount < 0) {
+      throw new Error('Money amount cannot be negative');
+    }
     return `${amount.toFixed(2)} ${Money.getSymbol(currency)}`;
   }
 

@@ -28,7 +28,8 @@ export class CartProductRepositoryAdapter implements ProductRepository {
     if (!product) return null;
     return {
       id: ProductId.create(product.id),
-      basePrice: product.basePrice,
+      basePrice: product.basePrice.amount,
+      currency: product.basePrice.currency,
       sellerId: SellerId.create(product.sellerId),
     };
   }
@@ -44,7 +45,8 @@ export class CartProductRepositoryAdapter implements ProductRepository {
       if (wanted.has(p.id)) {
         map.set(p.id, {
           id: ProductId.create(p.id),
-          basePrice: p.basePrice,
+          basePrice: p.basePrice.amount,
+          currency: p.basePrice.currency,
           sellerId: SellerId.create(p.sellerId),
         });
       }

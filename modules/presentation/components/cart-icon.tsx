@@ -6,6 +6,8 @@ import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
 import { useCartPopup } from './cart-popup-context';
 import styles from './header-nav.module.css';
 
+const CART_UPDATED_EVENT = 'cart:updated';
+
 interface CartIconProps {
   alt: string;
 }
@@ -20,6 +22,7 @@ export function CartIcon({ alt }: CartIconProps) {
   useEffect(() => {
     if (!isAuthenticated) return;
     let cancelled = false;
+
     async function fetchCount() {
       try {
         const res = await fetch('/api/cart');
@@ -39,9 +42,17 @@ export function CartIcon({ alt }: CartIconProps) {
         /* ignore */
       }
     }
+
     fetchCount();
+
+    const handleCartUpdated = () => {
+      fetchCount();
+    };
+    window.addEventListener(CART_UPDATED_EVENT, handleCartUpdated);
+
     return () => {
       cancelled = true;
+      window.removeEventListener(CART_UPDATED_EVENT, handleCartUpdated);
     };
   }, [isAuthenticated]);
 

@@ -116,7 +116,10 @@ export class AddItemToCart {
         productId,
         sellerId: product.sellerId,
         quantity: quantity.value,
-        unitPriceSnapshot: Money.create(product.basePrice, Currency.EUR),
+        unitPriceSnapshot: Money.create(
+          product.basePrice,
+          (product.currency as Currency) ?? Currency.EUR,
+        ),
         customizationText: customization.text,
         customizationColor: customization.color,
         customizationSize: customization.size,

@@ -42,12 +42,14 @@ export class MemoryCartProductRepository implements ProductRepository {
       id: string;
       basePrice: number;
       sellerId: string;
+      currency?: string;
     }>,
   ): void {
     for (const p of products) {
       this.products.set(p.id, {
         id: ProductId.create(p.id),
         basePrice: p.basePrice,
+        currency: p.currency ?? 'EUR',
         sellerId: SellerId.create(p.sellerId),
       });
     }

@@ -25,7 +25,7 @@ export class OrderProductRepositoryAdapter implements ProductRepository {
     if (!product) return null;
     return {
       id: product.id,
-      basePrice: product.basePrice,
+      basePrice: product.basePrice.amount,
       sellerId: product.sellerId,
     };
   }
@@ -38,7 +38,7 @@ export class OrderProductRepositoryAdapter implements ProductRepository {
       .filter((p): p is NonNullable<typeof p> => p !== null)
       .map((p) => ({
         id: p.id,
-        basePrice: p.basePrice,
+        basePrice: p.basePrice.amount,
         sellerId: p.sellerId,
       }));
   }

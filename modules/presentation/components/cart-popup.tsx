@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useReducer } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
@@ -10,7 +10,11 @@ import {
   type GuestCartItem,
 } from '@/modules/cart/presentation/guest-cart-context';
 import { useCartPopup } from './cart-popup-context';
+import { Money } from '@/shared/kernel/domain/value-objects/money';
+import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import styles from './cart-popup.module.css';
+
+const CART_UPDATED_EVENT = 'cart:updated';
 
 interface CartItemDTO {
   id: string;
@@ -32,20 +36,27 @@ interface CartPopupLabels {
   viewFullCart: string;
   subtotal: string;
   loading: string;
+  soldBy: string;
+  remove: string;
+  unknownProduct: string;
+  unknownSeller: string;
 }
 
 interface CartPopupProps {
   labels: CartPopupLabels;
 }
 
-function guestItemToDTO(item: GuestCartItem): CartItemDTO {
+function guestItemToDTO(
+  item: GuestCartItem,
+  fallback: { productName: string; sellerName: string },
+): CartItemDTO {
   return {
     id: item.productId,
     productId: item.productId,
-    productName: item.productName ?? 'Unknown Product',
+    productName: item.productName ?? fallback.productName,
     productImageUrl: item.productImageUrl ?? null,
     sellerId: item.sellerId,
-    sellerName: item.sellerName ?? 'Unknown Seller',
+    sellerName: item.sellerName ?? fallback.sellerName,
     quantity: item.quantity,
     unitPrice: item.unitPriceSnapshot,
     lineTotal: +(item.unitPriceSnapshot * item.quantity).toFixed(2),
@@ -62,11 +73,15 @@ export function CartPopup({ labels }: CartPopupProps) {
   const guestCart = useGuestCart();
 
   const [authItems, setAuthItems] = useState<CartItemDTO[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useReducer(
+    (_state: boolean, next: boolean) => next,
+    false,
+  );
   const abortRef = useRef<AbortController | null>(null);
+  const unknownProduct = labels.unknownProduct;
+  const unknownSeller = labels.unknownSeller;
 
-  /* eslint-disable react-hooks/set-state-in-effect, @eslint-react/set-state-in-effect */
-  useEffect(() => {
+  const refreshAuthCart = useCallback(() => {
     if (!isOpen || !isAuthenticated) return;
     abortRef.current?.abort();
     const ctrl = new AbortController();
@@ -88,13 +103,27 @@ export function CartPopup({ labels }: CartPopupProps) {
       .catch(() => {
         if (!ctrl.signal.aborted) setLoading(false);
       });
-    return () => ctrl.abort();
   }, [isOpen, isAuthenticated]);
-  /* eslint-enable react-hooks/set-state-in-effect, @eslint-react/set-state-in-effect */
+
+  useEffect(() => {
+    if (!isOpen || !isAuthenticated) return;
+    refreshAuthCart();
+    const handleCartUpdated = () => refreshAuthCart();
+    window.addEventListener(CART_UPDATED_EVENT, handleCartUpdated);
+    return () => {
+      abortRef.current?.abort();
+      window.removeEventListener(CART_UPDATED_EVENT, handleCartUpdated);
+    };
+  }, [isOpen, isAuthenticated, refreshAuthCart]);
 
   const items = isAuthenticated
     ? authItems
-    : guestCart.items.map(guestItemToDTO);
+    : guestCart.items.map((item) =>
+        guestItemToDTO(item, {
+          productName: unknownProduct,
+          sellerName: unknownSeller,
+        }),
+      );
   const subtotal = items.reduce((s, i) => s + i.lineTotal, 0);
 
   const handleUpdate = useCallback(
@@ -215,9 +244,11 @@ export function CartPopup({ labels }: CartPopupProps) {
                         />
                       )}
                       <div>
-                        <span className={styles.name}>{item.productName}</span>
+                        <span className={styles.name}>
+                          {item.productName ?? unknownProduct}
+                        </span>
                         <span className={styles.seller}>
-                          Sold by {item.sellerName}
+                          {labels.soldBy} {item.sellerName ?? unknownSeller}
                         </span>
                       </div>
                     </div>
@@ -240,13 +271,13 @@ export function CartPopup({ labels }: CartPopupProps) {
                         </button>
                       </div>
                       <span className={styles.lineTotal}>
-                        {item.lineTotal.toFixed(2)} €
+                        {Money.format(item.lineTotal, Currency.EUR)}
                       </span>
                       <button
                         type="button"
                         onClick={() => handleRemove(item)}
                         className={styles.rmBtn}
-                        aria-label="Remove"
+                        aria-label={labels.remove}
                       >
                         ✕
                       </button>
@@ -257,7 +288,7 @@ export function CartPopup({ labels }: CartPopupProps) {
               <div className={styles.footer}>
                 <div className={styles.subtotal}>
                   <span>{labels.subtotal}</span>
-                  <span>€{subtotal.toFixed(2)}</span>
+                  <span>{Money.format(subtotal, Currency.EUR)}</span>
                 </div>
                 <button
                   type="button"

@@ -44,6 +44,23 @@ function setGuestCartItems(items: typeof guestCartItems) {
 }
 
 describe('CartView — guest cart', () => {
+  const labels = {
+    title: 'Tu carrito',
+    emptyTitle: 'Tu carrito está vacío',
+    emptyDescription:
+      'Explora nuestros productos y encuentra algo que te encante.',
+    browseProducts: 'Explorar productos',
+    soldBy: 'Vendido por',
+    remove: 'Eliminar',
+    subtotal: 'Subtotal',
+    checkout: 'Finalizar compra',
+    unknownProduct: 'Producto desconocido',
+    unknownSeller: 'Vendedor desconocido',
+    customizationSize: 'Talla',
+    customizationColor: 'Color',
+    customizationText: 'Texto',
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     setGuestCartItems([]);
@@ -73,7 +90,14 @@ describe('CartView — guest cart', () => {
   it('renders guest cart items when not authenticated', () => {
     setGuestCartItems(guestItems);
 
-    render(<CartView items={[]} locale="es" isAuthenticated={false} />);
+    render(
+      <CartView
+        items={[]}
+        locale="es"
+        isAuthenticated={false}
+        labels={labels}
+      />,
+    );
 
     expect(screen.getByText('Guest Product')).toBeTruthy();
     expect(screen.getByText('Another Guest Product')).toBeTruthy();
@@ -82,15 +106,29 @@ describe('CartView — guest cart', () => {
   it('shows empty state when guest cart is empty', () => {
     setGuestCartItems([]);
 
-    render(<CartView items={[]} locale="es" isAuthenticated={false} />);
+    render(
+      <CartView
+        items={[]}
+        locale="es"
+        isAuthenticated={false}
+        labels={labels}
+      />,
+    );
 
-    expect(screen.getByText(/your cart is empty/i)).toBeTruthy();
+    expect(screen.getByText(labels.emptyTitle)).toBeTruthy();
   });
 
   it('calls updateQuantity on guest context when changing quantity', async () => {
     setGuestCartItems(guestItems);
 
-    render(<CartView items={[]} locale="es" isAuthenticated={false} />);
+    render(
+      <CartView
+        items={[]}
+        locale="es"
+        isAuthenticated={false}
+        labels={labels}
+      />,
+    );
 
     const plusButtons = screen.getAllByRole('button', { name: '+' });
     fireEvent.click(plusButtons[0]);
@@ -101,9 +139,18 @@ describe('CartView — guest cart', () => {
   it('calls removeItem on guest context when removing', async () => {
     setGuestCartItems(guestItems);
 
-    render(<CartView items={[]} locale="es" isAuthenticated={false} />);
+    render(
+      <CartView
+        items={[]}
+        locale="es"
+        isAuthenticated={false}
+        labels={labels}
+      />,
+    );
 
-    const removeButtons = screen.getAllByRole('button', { name: /remove/i });
+    const removeButtons = screen.getAllByRole('button', {
+      name: labels.remove,
+    });
     fireEvent.click(removeButtons[0]);
 
     expect(mockRemoveItem).toHaveBeenCalledWith('prod-1');
@@ -112,7 +159,14 @@ describe('CartView — guest cart', () => {
   it('does NOT call fetch API for guest cart operations', async () => {
     setGuestCartItems(guestItems);
 
-    render(<CartView items={[]} locale="es" isAuthenticated={false} />);
+    render(
+      <CartView
+        items={[]}
+        locale="es"
+        isAuthenticated={false}
+        labels={labels}
+      />,
+    );
 
     const plusButtons = screen.getAllByRole('button', { name: '+' });
     fireEvent.click(plusButtons[0]);
@@ -123,7 +177,14 @@ describe('CartView — guest cart', () => {
   it('does NOT show checkout link for guest users', () => {
     setGuestCartItems(guestItems);
 
-    render(<CartView items={[]} locale="es" isAuthenticated={false} />);
+    render(
+      <CartView
+        items={[]}
+        locale="es"
+        isAuthenticated={false}
+        labels={labels}
+      />,
+    );
 
     expect(screen.queryByRole('link', { name: /checkout/i })).toBeNull();
   });
@@ -131,9 +192,16 @@ describe('CartView — guest cart', () => {
   it('computes subtotal from guest cart items', () => {
     setGuestCartItems(guestItems);
 
-    render(<CartView items={[]} locale="es" isAuthenticated={false} />);
+    render(
+      <CartView
+        items={[]}
+        locale="es"
+        isAuthenticated={false}
+        labels={labels}
+      />,
+    );
 
     // 10*2 + 25*1 = 45
-    expect(screen.getByText('€45.00')).toBeTruthy();
+    expect(screen.getByText('45.00 €')).toBeTruthy();
   });
 });
