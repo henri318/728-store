@@ -14,7 +14,7 @@ export interface OrderRepository {
    * @param order - The order entity to save
    * @returns The saved order entity
    */
-  save(order: OrderEntity): Promise<OrderEntity>;
+  save(order: OrderEntity, tx?: unknown): Promise<OrderEntity>;
 
   /**
    * Saves line items associated with an order.
@@ -24,6 +24,7 @@ export interface OrderRepository {
   saveOrderLineItems(
     orderId: string,
     lineItems: OrderLineItemEntity[],
+    tx?: unknown,
   ): Promise<void>;
 
   /**
@@ -49,7 +50,7 @@ export interface OrderRepository {
    * and string value, so a CartId and an OrderId with the same string are
    * never considered equal.
    */
-  findIdsByCartId(cartId: string): Promise<string[]>;
+  findIdsByCartId(cartId: string, tx?: unknown): Promise<string[]>;
 
   /**
    * Returns the number of orders in 'paid' status for the given user.

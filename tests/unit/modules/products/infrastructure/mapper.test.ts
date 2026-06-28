@@ -154,6 +154,13 @@ describe('mapper.toDomainProduct', () => {
     expect(result.basePrice.currency).toBe(Currency.EUR);
   });
 
+  it('defaults to EUR when the Prisma row omits currency', () => {
+    const row = makePrismaProductRow({ currency: undefined });
+    const result = toDomainProduct(row);
+
+    expect(result.basePrice.currency).toBe(Currency.EUR);
+  });
+
   it('should preserve dates correctly', () => {
     const created = new Date('2025-06-15T12:00:00Z');
     const updated = new Date('2025-06-16T12:00:00Z');

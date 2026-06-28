@@ -118,6 +118,117 @@ describe('PrismaOrderRepository — Integration', () => {
       expect(found!.total).toBe(100);
     });
 
+    it('should coerce legacy object-shaped customizationSnapshot rows on readback', async () => {
+      await ensurePrerequisites({
+        userId: 'user-order-legacy',
+        sellerId: 'seller-order-legacy',
+        productId: 'prod-order-legacy',
+      });
+
+      await repo.save(
+        makeOrder({
+          id: 'order-legacy',
+          userId: 'user-order-legacy',
+          sellerId: 'seller-order-legacy',
+          total: 75,
+          lineItems: [
+            {
+              id: 'item-legacy',
+              orderId: 'order-legacy',
+              productId: 'prod-order-legacy',
+              quantity: 1,
+              customizationIdList: ['cust-legacy'],
+              customizationSnapshot: null,
+            },
+          ],
+        }),
+      );
+
+      await prisma.orderLineItem.update({
+        where: { id: 'item-legacy' },
+        data: {
+          customizationSnapshot: {
+            id: 'cust-legacy',
+            text: 'Legacy snapshot',
+            color: 'green',
+            size: 'L',
+            imageUrl: null,
+          } as never,
+        },
+      });
+
+      const found = await repo.findById('order-legacy');
+      expect(found?.lineItems?.[0].customizationSnapshot).toEqual([
+        {
+          id: 'cust-legacy',
+          text: 'Legacy snapshot',
+          color: 'green',
+          size: 'L',
+          imageUrl: null,
+        },
+      ]);
+    });
+
+    it('should normalize malformed customizationSnapshot rows to empty arrays or null', async () => {
+      await ensurePrerequisites({
+        userId: 'user-order-invalid',
+        sellerId: 'seller-order-invalid',
+        productId: 'prod-order-invalid',
+      });
+
+      await repo.save(
+        makeOrder({
+          id: 'order-invalid',
+          userId: 'user-order-invalid',
+          sellerId: 'seller-order-invalid',
+          total: 80,
+          lineItems: [
+            {
+              id: 'item-invalid-array',
+              orderId: 'order-invalid',
+              productId: 'prod-order-invalid',
+              quantity: 1,
+              customizationIdList: [],
+              customizationSnapshot: null,
+            },
+            {
+              id: 'item-invalid-scalar',
+              orderId: 'order-invalid',
+              productId: 'prod-order-invalid',
+              quantity: 1,
+              customizationIdList: [],
+              customizationSnapshot: null,
+            },
+          ],
+        }),
+      );
+
+      await prisma.orderLineItem.update({
+        where: { id: 'item-invalid-array' },
+        data: {
+          customizationSnapshot: [null, 'bad-entry'] as never,
+        },
+      });
+
+      await prisma.orderLineItem.update({
+        where: { id: 'item-invalid-scalar' },
+        data: {
+          customizationSnapshot: 'broken' as never,
+        },
+      });
+
+      const found = await repo.findById('order-invalid');
+      const arrayItem = found?.lineItems?.find(
+        (item) => item.id === 'item-invalid-array',
+      );
+      const scalarItem = found?.lineItems?.find(
+        (item) => item.id === 'item-invalid-scalar',
+      );
+
+      expect(arrayItem?.customizationSnapshot).toEqual([]);
+      expect(scalarItem?.customizationSnapshot).toBeNull();
+    });
+
     it('should return null for non-existent ID', async () => {
       const found = await repo.findById('non-existent');
       expect(found).toBeNull();
@@ -139,7 +250,15 @@ describe('PrismaOrderRepository — Integration', () => {
           productId: 'prod-order-2',
           quantity: 2,
           customizationIdList: [],
-          customizationSnapshot: { text: 'Hello World', color: 'red' },
+          customizationSnapshot: [
+            {
+              id: 'cust-int-1',
+              text: 'Hello World',
+              color: 'red',
+              size: null,
+              imageUrl: null,
+            },
+          ],
         },
         {
           id: 'item-int-2',
@@ -147,7 +266,15 @@ describe('PrismaOrderRepository — Integration', () => {
           productId: 'prod-order-2',
           quantity: 1,
           customizationIdList: [],
-          customizationSnapshot: { size: 'XL' },
+          customizationSnapshot: [
+            {
+              id: 'cust-int-2',
+              text: null,
+              color: null,
+              size: 'XL',
+              imageUrl: null,
+            },
+          ],
         },
       ];
 
@@ -168,15 +295,28 @@ describe('PrismaOrderRepository — Integration', () => {
       const item1 = found!.lineItems!.find((i) => i.id === 'item-int-1');
       expect(item1).toBeDefined();
       expect(item1!.quantity).toBe(2);
-      expect(item1!.customizationSnapshot).toEqual({
-        text: 'Hello World',
-        color: 'red',
-      });
+      expect(item1!.customizationSnapshot).toEqual([
+        {
+          id: 'cust-int-1',
+          text: 'Hello World',
+          color: 'red',
+          size: null,
+          imageUrl: null,
+        },
+      ]);
 
       const item2 = found!.lineItems!.find((i) => i.id === 'item-int-2');
       expect(item2).toBeDefined();
       expect(item2!.quantity).toBe(1);
-      expect(item2!.customizationSnapshot).toEqual({ size: 'XL' });
+      expect(item2!.customizationSnapshot).toEqual([
+        {
+          id: 'cust-int-2',
+          text: null,
+          color: null,
+          size: 'XL',
+          imageUrl: null,
+        },
+      ]);
     });
 
     it('should persist line items with non-empty customizationIdList', async () => {
@@ -203,7 +343,15 @@ describe('PrismaOrderRepository — Integration', () => {
           productId: 'prod-order-2b',
           quantity: 1,
           customizationIdList: ['cust-order-1'],
-          customizationSnapshot: { text: 'Custom text', color: 'blue' },
+          customizationSnapshot: [
+            {
+              id: 'cust-order-1',
+              text: 'Custom text',
+              color: 'blue',
+              size: null,
+              imageUrl: null,
+            },
+          ],
         },
       ];
 
@@ -223,10 +371,15 @@ describe('PrismaOrderRepository — Integration', () => {
       expect(found!.lineItems![0].customizationIdList).toEqual([
         'cust-order-1',
       ]);
-      expect(found!.lineItems![0].customizationSnapshot).toEqual({
-        text: 'Custom text',
-        color: 'blue',
-      });
+      expect(found!.lineItems![0].customizationSnapshot).toEqual([
+        {
+          id: 'cust-order-1',
+          text: 'Custom text',
+          color: 'blue',
+          size: null,
+          imageUrl: null,
+        },
+      ]);
     });
   });
 
@@ -298,6 +451,74 @@ describe('PrismaOrderRepository — Integration', () => {
       await expect(
         repo.saveOrderLineItems('order-int-4', []),
       ).resolves.toBeUndefined();
+    });
+  });
+
+  describe('cartId + sellerId uniqueness', () => {
+    it('allows multiple manual orders with null cartId for the same seller', async () => {
+      await ensurePrerequisites({
+        userId: 'user-order-null-1',
+        sellerId: 'seller-order-null',
+        productId: 'prod-order-null-1',
+      });
+
+      await ensurePrerequisites({
+        userId: 'user-order-null-2',
+        sellerId: 'seller-order-null',
+        productId: 'prod-order-null-2',
+      });
+
+      await repo.save(
+        makeOrder({
+          id: 'order-null-1',
+          userId: 'user-order-null-1',
+          sellerId: 'seller-order-null',
+          total: 10,
+          cartId: null,
+        }),
+      );
+
+      await expect(
+        repo.save(
+          makeOrder({
+            id: 'order-null-2',
+            userId: 'user-order-null-2',
+            sellerId: 'seller-order-null',
+            total: 20,
+            cartId: null,
+          }),
+        ),
+      ).resolves.toBeDefined();
+    });
+
+    it('rejects duplicate cartId + sellerId pairs', async () => {
+      await ensurePrerequisites({
+        userId: 'user-order-dup',
+        sellerId: 'seller-order-dup',
+        productId: 'prod-order-dup',
+      });
+
+      await repo.save(
+        makeOrder({
+          id: 'order-dup-1',
+          userId: 'user-order-dup',
+          sellerId: 'seller-order-dup',
+          total: 10,
+          cartId: 'cart-dup-constraint',
+        }),
+      );
+
+      await expect(
+        repo.save(
+          makeOrder({
+            id: 'order-dup-2',
+            userId: 'user-order-dup',
+            sellerId: 'seller-order-dup',
+            total: 20,
+            cartId: 'cart-dup-constraint',
+          }),
+        ),
+      ).rejects.toThrow();
     });
   });
 });

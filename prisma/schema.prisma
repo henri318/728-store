@@ -111,6 +111,7 @@ model Order {
   updatedAt DateTime        @updatedAt
 
   @@index([cartId])
+  @@unique([cartId, sellerId])
 }
 
 model OrderLineItem {
