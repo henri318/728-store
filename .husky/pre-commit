@@ -1,17 +1,8 @@
 #!/usr/bin/env sh
+npx lint-staged
+
 FILES=$(git diff --cached --name-only --diff-filter=ACMR)
-[ -z "$FILES" ] && exit 0
-
-echo "$FILES" | xargs npx prettier --write --ignore-unknown
-
-ESLINT_FILES=$(echo "$FILES" | grep -E '\.(js|jsx|mjs|cjs|ts|tsx|json|jsonc|json5)$' | grep -Ev '(^|/)(package-lock\.json|\.markdownlint-cli2\.jsonc)$' || true)
-if [ -n "$ESLINT_FILES" ]; then
-  echo "$ESLINT_FILES" | xargs npx eslint --fix
-fi
-
-PRISMA_SCHEMA=$(echo "$FILES" | grep -E '^prisma/schema\.prisma$' || true)
+PRISMA_SCHEMA=$(printf '%s\n' "$FILES" | grep -Fx 'prisma/schema.prisma' || true)
 if [ -n "$PRISMA_SCHEMA" ]; then
   npx prisma validate
 fi
-
-git add $FILES
