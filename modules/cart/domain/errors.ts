@@ -110,3 +110,13 @@ export class CartMergeError extends ConflictError {
     this.name = 'CartMergeError';
   }
 }
+
+export class InvalidCustomizationError extends ValidationError {
+  constructor(
+    message: string = 'One or more customization IDs are invalid',
+    safeMessage: string = 'Invalid customization selected',
+  ) {
+    super(message, safeMessage);
+    this.name = 'InvalidCustomizationError';
+  }
+}

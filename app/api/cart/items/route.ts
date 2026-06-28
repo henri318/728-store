@@ -6,6 +6,7 @@ import { addItemSchema } from '@/modules/cart/presentation/schemas/cart-schemas'
 import { handleApiError } from '@/shared/presentation/error-handler';
 import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
+import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
 
 /**
  * POST /api/cart/items — adds a product to the user's ACTIVE cart.
@@ -32,33 +33,35 @@ export const POST = requireRole('CUSTOMER')(async function POST(
     const cartRepository = container.getCartRepository();
     const productRepository = container.getCartProductRepository();
     const outboxRepository = container.getOutboxRepository();
+    const customizationLookup = container.getCustomizationLookup();
 
     const addItemToCart = new AddItemToCart(
       cartRepository,
       productRepository,
       outboxRepository,
+      customizationLookup,
     );
 
     const item = await addItemToCart.execute({
       userId,
       productId: validated.productId,
       quantity: validated.quantity,
-      customization: {
-        text: validated.customizationText,
-        color: validated.customizationColor,
-        size: validated.customizationSize,
-        imageUrl: validated.customizationImageUrl,
-      },
+      customizationIdList: validated.customizationIdList,
     });
 
-    // Enrich the item with product display data.
+    // Enrich the item with product display data + resolved customizations.
     const productsModuleRepo = container.getProductRepository();
     const product = await productsModuleRepo.findById(
       item.productId.value,
       'es',
     );
 
-    const enriched = enrichCartItem(item, product ?? undefined);
+    const customizations =
+      item.customizationIdList.length > 0
+        ? await customizationLookup.findByIds(item.customizationIdList)
+        : [];
+
+    const enriched = enrichCartItem(item, product ?? undefined, customizations);
 
     return NextResponse.json(enriched, { status: 201 });
   } catch (error: unknown) {
@@ -71,6 +74,7 @@ export const POST = requireRole('CUSTOMER')(async function POST(
 function enrichCartItem(
   item: CartItemEntity,
   product: ProductEntity | undefined,
+  customizations: CustomizationSnapshot[],
 ): Record<string, unknown> {
   const productName = product?.translations?.[0]?.name ?? 'Unknown Product';
   const productImageUrl = product?.images?.[0]?.url ?? null;
@@ -88,11 +92,13 @@ function enrichCartItem(
     quantity: item.quantity,
     unitPrice,
     lineTotal,
-    customization: {
-      text: null,
-      color: null,
-      size: null,
-      imageUrl: null,
-    },
+    customizationIdList: item.customizationIdList,
+    customizations: customizations.map((c) => ({
+      id: c.id,
+      text: c.text,
+      color: c.color,
+      size: c.size,
+      imageUrl: c.imageUrl,
+    })),
   };
 }

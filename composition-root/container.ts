@@ -50,6 +50,8 @@ import type { UploadRepository } from '@/modules/uploads/domain/upload-repositor
 import type { CartRepository } from '@/modules/cart/domain/cart-repository';
 import type { ProductRepository as CartProductRepository } from '@/modules/cart/domain/product-repository';
 import type { PaidOrderCountPort } from '@/modules/cart/domain/paid-order-count-port';
+import type { CustomizationLookupPort } from '@/modules/cart/domain/customization-lookup-port';
+import type { CustomizationRepository } from '@/modules/customizations/domain/customization-repository';
 
 import { BrevoEmailSender } from '@/modules/email/infrastructure/brevo-email-sender';
 import { ConsoleEmailSender } from '@/modules/email/infrastructure/console-email-sender';
@@ -80,8 +82,10 @@ import { R2StorageAdapter } from '@/modules/uploads/infrastructure/r2-storage-ad
 import { PrismaUploadRepository } from '@/modules/uploads/infrastructure/prisma-upload-repository';
 import { PrismaCartRepository } from '@/modules/cart/infrastructure/prisma-cart-repository';
 import { CartProductRepositoryAdapter } from '@/modules/cart/infrastructure/cart-product-repository-adapter';
+import { CustomizationLookupAdapter } from '@/modules/cart/infrastructure/customization-lookup-adapter';
 import { PrismaPaidOrderCountAdapter } from '@/modules/orders/infrastructure/prisma-paid-order-count-adapter';
 import { HandleCartCheckedOut } from '@/modules/orders/application/handle-cart-checked-out';
+import { PrismaCustomizationRepository } from '@/modules/customizations/infrastructure/prisma-customization-repository';
 
 // ---------------------------------------------------------------------------
 // State
@@ -112,6 +116,8 @@ let _uploadRepository: UploadRepository | null = null;
 let _cartRepository: CartRepository | null = null;
 let _cartProductRepository: CartProductRepository | null = null;
 let _paidOrderCountPort: PaidOrderCountPort | null = null;
+let _customizationLookup: CustomizationLookupPort | null = null;
+let _customizationRepository: CustomizationRepository | null = null;
 
 // Idempotency flag for event subscriptions — prevents double registration
 // during HMR in development.
@@ -259,6 +265,18 @@ export function initContainer(): void {
   // --- PaidOrderCountPort: adapter bridging cart's port to the orders module ---
   if (!_paidOrderCountPort) {
     _paidOrderCountPort = new PrismaPaidOrderCountAdapter(_orderRepository!);
+  }
+
+  // --- CustomizationRepository: Prisma adapter ---
+  if (!_customizationRepository) {
+    _customizationRepository = new PrismaCustomizationRepository();
+  }
+
+  // --- CustomizationLookupPort: adapter bridging cart's port to the customizations module ---
+  if (!_customizationLookup) {
+    _customizationLookup = new CustomizationLookupAdapter(
+      _customizationRepository!,
+    );
   }
 
   // --- Cart event subscriptions (idempotent for HMR) ---
@@ -510,6 +528,24 @@ export function getPaidOrderCountPort(): PaidOrderCountPort {
   return _paidOrderCountPort!;
 }
 
+/**
+ * Returns the CustomizationLookupPort bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ */
+export function getCustomizationLookup(): CustomizationLookupPort {
+  if (!_customizationLookup) initContainer();
+  return _customizationLookup!;
+}
+
+/**
+ * Returns the CustomizationRepository bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ */
+export function getCustomizationRepository(): CustomizationRepository {
+  if (!_customizationRepository) initContainer();
+  return _customizationRepository!;
+}
+
 // ---------------------------------------------------------------------------
 // Testing helpers
 // ---------------------------------------------------------------------------
@@ -547,6 +583,8 @@ export const container = {
   getCartRepository,
   getCartProductRepository,
   getPaidOrderCountPort,
+  getCustomizationLookup,
+  getCustomizationRepository,
   /** Override — useful in tests to inject a mock without touching env vars. */
   setEmailSender(sender: EmailSender): void {
     _emailSender = sender;
@@ -646,6 +684,14 @@ export const container = {
   /** Override — useful in tests to inject a mock paid order count port. */
   setPaidOrderCountPort(port: PaidOrderCountPort): void {
     _paidOrderCountPort = port;
+  },
+  /** Override — useful in tests to inject a mock customization lookup port. */
+  setCustomizationLookup(port: CustomizationLookupPort): void {
+    _customizationLookup = port;
+  },
+  /** Override — useful in tests to inject a mock customization repository. */
+  setCustomizationRepository(repo: CustomizationRepository): void {
+    _customizationRepository = repo;
   },
   /** Reset the event subscription flag — useful in tests to allow re-subscription. */
   resetCartEventSubscriptions(): void {

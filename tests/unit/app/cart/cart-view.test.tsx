@@ -96,7 +96,7 @@ describe('CartView', () => {
     expect(screen.getByText('Another Product')).toBeTruthy();
     expect(screen.getByText('2')).toBeTruthy();
     expect(screen.getByText('20.00 €')).toBeTruthy();
-    expect(screen.getAllByText('25.00 €').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('25.00 €').length).toBe(2);
   });
 
   it('renders empty state with CTA when no items', () => {
