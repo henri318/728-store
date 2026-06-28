@@ -18,7 +18,6 @@ export interface PrismaProductRow {
   createdAt: Date;
   updatedAt: Date;
   translations: PrismaTranslationRow[];
-  customizations: PrismaCustomizationRow[];
   images: PrismaProductImageRow[];
   tags: PrismaTagRow[];
 }
@@ -27,16 +26,6 @@ export interface PrismaTranslationRow {
   locale: string;
   name: string;
   description: string | null;
-}
-
-export interface PrismaCustomizationRow {
-  id: string;
-  text: string | null;
-  color: string | null;
-  size: string | null;
-  imageUrl: string | null;
-  productId: string;
-  createdAt: Date;
 }
 
 export interface PrismaProductImageRow {
@@ -129,15 +118,6 @@ export function toDomainProduct(
       locale: t.locale,
       name: t.name,
       description: t.description,
-    })),
-    customizations: prismaProduct.customizations.map((c) => ({
-      id: c.id,
-      text: c.text,
-      color: c.color,
-      size: c.size,
-      imageUrl: c.imageUrl,
-      productId: c.productId,
-      createdAt: c.createdAt,
     })),
     images: prismaProduct.images.map((img) => toDomainProductImage(img)),
     tags: prismaProduct.tags.map((tag) => toDomainTag(tag)),

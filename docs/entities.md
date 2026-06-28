@@ -91,7 +91,6 @@ Sellable product.
 ## Relations
 
 - seller
-- customizations
 - orderItems
 
 ---
@@ -310,7 +309,7 @@ User -> Tickets -> TicketMessages -> AIInteraction
 User -> Cart -> CartItems -> Products -> Seller
 Order -> Payment
 Order -> Ticket
-Product -> ProductCustomization -> OrderItem
+Product -> OrderItem
 User -> Uploads
 Role -> User
 Seller -> Product / Order / CartItem

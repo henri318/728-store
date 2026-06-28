@@ -6,10 +6,10 @@ import { prisma } from '@/shared/infrastructure/prisma';
 /**
  * PrismaProductRepository — Integration tests against real Docker PostgreSQL.
  *
- * Verifies product retrieval with translations, customizations, and seller
- * data through the actual Prisma adapter (no mocks).
+ * Verifies product retrieval with translations and seller data through the
+ * actual Prisma adapter (no mocks).
  *
- * FK chain: User → Seller → Product → ProductTranslation / ProductCustomization
+ * FK chain: User → Seller → Product → ProductTranslation
  */
 describe('PrismaProductRepository — Integration', () => {
   let repo: PrismaProductRepository;
@@ -70,16 +70,6 @@ describe('PrismaProductRepository — Integration', () => {
       ],
       skipDuplicates: true,
     });
-
-    await prisma.customization.create({
-      data: {
-        id: 'cust-int-1',
-        productId: 'prod-int-1',
-        text: 'Custom text',
-        color: 'red',
-        size: 'M',
-      },
-    });
   });
 
   afterAll(async () => {
@@ -98,15 +88,6 @@ describe('PrismaProductRepository — Integration', () => {
       expect(product!.translations).toHaveLength(1);
       expect(product!.translations[0].name).toBe('Camiseta Test');
       expect(product!.translations[0].locale).toBe('es');
-    });
-
-    it('should return customizations for products', async () => {
-      const products = await repo.findAll('en');
-      const product = products.find((p) => p.id === 'prod-int-1');
-      expect(product).toBeDefined();
-      expect(product!.customizations).toHaveLength(1);
-      expect(product!.customizations[0].text).toBe('Custom text');
-      expect(product!.customizations[0].color).toBe('red');
     });
 
     it('should return empty array when no products exist', async () => {

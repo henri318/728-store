@@ -28,7 +28,6 @@ describe('GetProductsUseCase with i18n', () => {
           { locale: 'es', name: 'Taza', description: 'Una taza' },
           { locale: 'cat', name: 'Tassa', description: 'Una tassa' },
         ],
-        customizations: [],
         images: [],
         tags: [],
       },

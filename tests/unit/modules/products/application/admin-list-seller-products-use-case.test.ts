@@ -28,7 +28,6 @@ describe('AdminListSellerProductsUseCase', () => {
           { locale: 'es', name: 'Taza', description: 'Una taza' },
           { locale: 'cat', name: 'Tassa', description: 'Una tassa' },
         ],
-        customizations: [],
         images: [],
         tags: [],
       },
@@ -45,7 +44,6 @@ describe('AdminListSellerProductsUseCase', () => {
         translations: [
           { locale: 'es', name: 'Plato', description: 'Un plato' },
         ],
-        customizations: [],
         images: [],
         tags: [],
       },
@@ -60,7 +58,6 @@ describe('AdminListSellerProductsUseCase', () => {
         createdAt: new Date('2025-01-03'),
         updatedAt: new Date('2025-01-03'),
         translations: [{ locale: 'es', name: 'Vaso', description: 'Un vaso' }],
-        customizations: [],
         images: [],
         tags: [],
       },

@@ -49,17 +49,6 @@ function makePrismaProductRow(overrides: Record<string, unknown> = {}) {
     translations: [
       { locale: 'es', name: 'Producto Test', description: 'Descripción' },
     ],
-    customizations: [
-      {
-        id: 'c1',
-        text: 'Custom',
-        color: 'red',
-        size: 'M',
-        imageUrl: null,
-        productId: 'product-1',
-        createdAt: new Date('2025-01-01'),
-      },
-    ],
     images: [
       {
         id: 'img-1',
@@ -102,11 +91,11 @@ describe('mapper.toDomainProduct', () => {
     expect(result.updatedAt).toEqual(new Date('2025-01-02T10:00:00Z'));
     expect(result.translations).toHaveLength(1);
     expect(result.translations[0].locale).toBe('es');
-    expect(result.customizations).toHaveLength(1);
     expect(result.images).toHaveLength(1);
     expect(result.images[0].id).toBe('img-1');
     expect(result.tags).toHaveLength(1);
     expect(result.tags[0].name).toBe('Sale');
+    expect(result).not.toHaveProperty('customizations');
   });
 
   it('should map DRAFT status string to ProductStatus.DRAFT', () => {
@@ -131,17 +120,15 @@ describe('mapper.toDomainProduct', () => {
     expect(result.category).toBeNull();
   });
 
-  it('should handle empty arrays for images, tags, translations, customizations', () => {
+  it('should handle empty arrays for images, tags, and translations', () => {
     const row = makePrismaProductRow({
       translations: [],
-      customizations: [],
       images: [],
       tags: [],
     });
     const result = toDomainProduct(row);
 
     expect(result.translations).toEqual([]);
-    expect(result.customizations).toEqual([]);
     expect(result.images).toEqual([]);
     expect(result.tags).toEqual([]);
   });
@@ -276,17 +263,6 @@ describe('mapper.toPersistenceProduct', () => {
       updatedAt: new Date('2025-01-02T10:00:00Z'),
       translations: [
         { locale: 'es', name: 'Producto Test', description: 'Descripción' },
-      ],
-      customizations: [
-        {
-          id: 'c1',
-          text: 'Custom',
-          color: 'red',
-          size: 'M',
-          imageUrl: null,
-          productId: 'product-1',
-          createdAt: new Date('2025-01-01'),
-        },
       ],
       images: [
         {
@@ -561,7 +537,6 @@ describe('mapper — product round trip', () => {
       translations: [
         { locale: 'es', name: 'Producto RT', description: 'Desc RT' },
       ],
-      customizations: [],
       images: [
         {
           id: 'img-rt',
@@ -605,7 +580,6 @@ describe('mapper — product round trip', () => {
       createdAt: new Date('2025-01-01'),
       updatedAt: new Date('2025-01-01'),
       translations: [],
-      customizations: [],
       images: [],
       tags: [],
     };

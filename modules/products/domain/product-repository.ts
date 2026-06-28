@@ -3,7 +3,6 @@ import type { ProductEntity } from './entities/product';
 
 export type { ProductEntity } from './entities/product';
 export type { ProductTranslationEntity } from './entities/product-translation';
-export type { ProductCustomizationEntity } from './entities/product-customization';
 export type { ProductImageEntity } from './entities/product-image';
 export type { TagEntity } from './entities/tag';
 export type { CategoryEntity } from './entities/category';
