@@ -118,6 +118,7 @@ export default [
   },
   {
     files: ['**/*.jsonc'],
+    ignores: ['.markdownlint-cli2.jsonc'],
     language: 'json/jsonc',
     ...json.configs.recommended,
   },

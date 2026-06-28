@@ -4,7 +4,7 @@ FILES=$(git diff --cached --name-only --diff-filter=ACMR)
 
 echo "$FILES" | xargs npx prettier --write --ignore-unknown
 
-ESLINT_FILES=$(echo "$FILES" | grep -E '\.(js|jsx|mjs|cjs|ts|tsx|json|jsonc|json5)$' | grep -Ev '(^|/)package-lock\.json$' || true)
+ESLINT_FILES=$(echo "$FILES" | grep -E '\.(js|jsx|mjs|cjs|ts|tsx|json|jsonc|json5)$' | grep -Ev '(^|/)(package-lock\.json|\.markdownlint-cli2\.jsonc)$' || true)
 if [ -n "$ESLINT_FILES" ]; then
   echo "$ESLINT_FILES" | xargs npx eslint --fix
 fi
