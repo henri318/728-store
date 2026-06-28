@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { CustomizationOptions } from '@/modules/products/domain/value-objects/customization-options';
+import { CustomizationOptions } from '@/modules/customizations/domain/value-objects/customization-options';
 
 describe('CustomizationOptions', () => {
   describe('create()', () => {

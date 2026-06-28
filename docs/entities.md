@@ -96,9 +96,9 @@ Sellable product.
 
 ---
 
-# ProductCustomization
+# Customization
 
-Product customization options.
+Customization options owned by the customizations module.
 
 ## Fields
 

@@ -26,6 +26,7 @@ on(eventName, handler);
 - TicketCreated
 - MessageAdded
 - AISuggestionGenerated
+- ProductCustomizationCreated
 - CartCreated
 - CartItemAdded
 - CartItemUpdated
@@ -42,6 +43,7 @@ on(eventName, handler);
 3. OutboxWorker publishes `CART_CHECKED_OUT` to the event bus.
 4. `HandleCartCheckedOut` (Orders module) receives the event:
    - Groups items by `sellerId`.
+   - Preserves `customizationIdList` and frozen customization snapshots.
    - Creates one Order per seller with matching OrderLineItems.
    - Emits `OrderCreated` per order (in the same transaction).
    - Deduplicates by `cartId` for idempotency.

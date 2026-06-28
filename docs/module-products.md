@@ -2,11 +2,14 @@
 
 # Responsibility
 
-Catalog and customization.
+Catalog and product lifecycle.
 
 # Emitted Events
 
-- ProductCustomizationCreated
+- ProductCreated
+- ProductUpdated
+- ProductPublished
+- ProductArchived
 
 # Listened Events
 
