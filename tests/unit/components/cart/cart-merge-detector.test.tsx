@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { CartMergeDetector } from '@/components/cart/cart-merge-detector';
 
 const mockRefresh = vi.fn();
@@ -66,5 +66,23 @@ describe('CartMergeDetector', () => {
       expect(mockClearCart).toHaveBeenCalled();
       expect(mockRefresh).toHaveBeenCalled();
     });
+  });
+
+  it('shows merge dialog when both guest and server carts have items', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ items: [{ id: 'server-item-1' }] }),
+    });
+
+    render(<CartMergeDetector labels={labels} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(labels.mergeTitle)).toBeTruthy();
+    });
+
+    expect(mockFetch).not.toHaveBeenCalledWith(
+      '/api/cart/migrate',
+      expect.any(Object),
+    );
   });
 });

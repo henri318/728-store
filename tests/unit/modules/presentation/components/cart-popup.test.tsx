@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { act, render, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { CartPopup } from '@/modules/presentation/components/cart-popup';
 import { CartPopupProvider } from '@/modules/presentation/components/cart-popup-context';
 
@@ -91,6 +97,47 @@ describe('CartPopup', () => {
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('dispatches cart:updated after removing an authenticated item', async () => {
+    const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          items: [
+            {
+              id: 'i1',
+              productId: 'p1',
+              productName: 'Product',
+              productImageUrl: null,
+              sellerId: 's1',
+              sellerName: 'Seller',
+              unitPrice: 10,
+              quantity: 1,
+            },
+          ],
+        }),
+      })
+      .mockResolvedValueOnce({ ok: true })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ items: [] }),
+      });
+
+    renderPopup();
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Remove' })).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
+
+    await waitFor(() => {
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'cart:updated' }),
+      );
     });
   });
 });

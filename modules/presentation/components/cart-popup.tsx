@@ -16,6 +16,10 @@ import styles from './cart-popup.module.css';
 
 const CART_UPDATED_EVENT = 'cart:updated';
 
+function dispatchCartUpdated() {
+  window.dispatchEvent(new Event(CART_UPDATED_EVENT));
+}
+
 interface CartItemDTO {
   id: string;
   productId: string;
@@ -155,6 +159,7 @@ export function CartPopup({ labels }: CartPopupProps) {
                 : i,
             ),
           );
+        if (r.ok) dispatchCartUpdated();
       } catch {
         setAuthItems((p) =>
           p.map((i) =>
@@ -176,7 +181,10 @@ export function CartPopup({ labels }: CartPopupProps) {
       }
       setAuthItems((p) => p.filter((i) => i.id !== item.id));
       try {
-        await fetch(`/api/cart/items/${item.id}`, { method: 'DELETE' });
+        const r = await fetch(`/api/cart/items/${item.id}`, {
+          method: 'DELETE',
+        });
+        if (r.ok) dispatchCartUpdated();
       } catch {
         /* removed */
       }

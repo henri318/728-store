@@ -31,6 +31,11 @@ interface CartItemInfo {
 
 type ButtonState = 'idle' | 'adding' | 'success' | 'error';
 const MAX_QUANTITY = 99;
+const CART_UPDATED_EVENT = 'cart:updated';
+
+function dispatchCartUpdated() {
+  window.dispatchEvent(new Event(CART_UPDATED_EVENT));
+}
 
 /**
  * Cart button with quantity controls.
@@ -141,6 +146,7 @@ export function AddToCartButton({
         }
         setState('success');
         setTimeout(() => setState('idle'), 2000);
+        dispatchCartUpdated();
         refreshCartForProduct();
       } catch {
         setState('error');
@@ -173,7 +179,11 @@ export function AddToCartButton({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ quantity: newQty }),
         });
-        if (!res.ok) setCartItemInfo(cartItemInfo);
+        if (!res.ok) {
+          setCartItemInfo(cartItemInfo);
+          return;
+        }
+        dispatchCartUpdated();
       } catch {
         setCartItemInfo(cartItemInfo);
       }
@@ -202,7 +212,11 @@ export function AddToCartButton({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ quantity: newQty }),
         });
-        if (!res.ok) setCartItemInfo(cartItemInfo);
+        if (!res.ok) {
+          setCartItemInfo(cartItemInfo);
+          return;
+        }
+        dispatchCartUpdated();
       } catch {
         setCartItemInfo(cartItemInfo);
       }
@@ -223,9 +237,14 @@ export function AddToCartButton({
       const prev = cartItemInfo;
       setCartItemInfo(null);
       try {
-        await fetch(`/api/cart/items/${cartItemInfo.cartItemId}`, {
+        const res = await fetch(`/api/cart/items/${cartItemInfo.cartItemId}`, {
           method: 'DELETE',
         });
+        if (!res.ok) {
+          setCartItemInfo(prev);
+          return;
+        }
+        dispatchCartUpdated();
       } catch {
         setCartItemInfo(prev);
       }
