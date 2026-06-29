@@ -116,6 +116,11 @@
     "dashboard": "Panel de administración",
     "designerPanel": "Panel de diseñador"
   },
+  "sellerDashboard": {
+    "title": "Panel de vendedor",
+    "noProducts": "No se encontraron productos",
+    "searchPlaceholder": "Buscar productos..."
+  },
   "passwordStrength": {
     "hasNumbers": "Tiene números",
     "hasLetters": "Tiene letras",
@@ -160,8 +165,8 @@
     "productUpdated": "Actualizado",
     "searchSellers": "Buscar vendedores",
     "searchSellersPlaceholder": "Buscar vendedores...",
-    "searchProducts": "Buscar productos",
     "searchProductsPlaceholder": "Buscar productos...",
+    "searchProducts": "Buscar productos",
     "productCount": "Total de productos: {total}",
     "untranslatedProduct": "Sin traducción",
     "paginationAriaLabel": "Paginación"

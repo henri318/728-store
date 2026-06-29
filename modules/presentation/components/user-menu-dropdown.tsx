@@ -78,7 +78,7 @@ export function UserMenuDropdown(_props: UserMenuDropdownProps) {
           )}
           {_props.user?.role === 'DESIGNER' && (
             <Link
-              href={`/${locale}/profile`}
+              href={`/${locale}/seller/products`}
               role="menuitem"
               onClick={closeMenu}
               className={styles.menuItem}

@@ -21,7 +21,7 @@ describe('RoleNavLinks component', () => {
 
     const link = screen.getByRole('link', { name: /panel de diseñador/i });
     expect(link).toBeInTheDocument();
-    expect(link).toHaveAttribute('href', '/es/profile');
+    expect(link).toHaveAttribute('href', '/es/seller/products');
   });
 
   it('renders nothing for CUSTOMER role', () => {
