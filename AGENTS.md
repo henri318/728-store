@@ -36,6 +36,7 @@ This document defines the mandatory rules and constraints for the AI agent worki
 - DO NOT share domain logic across modules.
 - DO NOT couple payments, AI, or tickets directly to orders.
 - DO NOT execute business logic in the infrastructure layer.
+- DO NOT modify, delete, or rewrite existing Prisma migration files on `main`; create a new migration for schema changes instead.
 - AI MUST NOT take autonomous business decisions (suggestions only).
 - **No commits or PRs without explicit permission**: never run git commit, git push, or create PRs unless the user explicitly requests it. Changes must remain in the staging area/working tree until the user decides otherwise.
 - **Never auto-complete PRs**: always stop and ASK before merging. Never merge PRs automatically, even if all checks pass. The user must explicitly approve every merge.
