@@ -22,6 +22,12 @@ export class MemoryCustomizationLookup implements CustomizationLookupPort {
     return result;
   }
 
+  async findByProductId(productId: string): Promise<CustomizationSnapshot[]> {
+    return [...this.customizations.values()]
+      .filter((snapshot) => snapshot.productId === productId)
+      .map((snapshot) => ({ ...snapshot }));
+  }
+
   /** Seed customizations in plain-JSON form for readability in tests. */
   seed(
     customizations: Array<{

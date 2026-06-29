@@ -6,13 +6,14 @@ import { migrateGuestCartSchema } from '@/modules/cart/presentation/schemas/cart
 import { handleApiError } from '@/shared/presentation/error-handler';
 import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
+import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
 
 /**
  * POST /api/cart/migrate — migrates a guest cart (localStorage) to the
  * authenticated user's server cart.
  *
  * Spec REQ-CART-030:
- *  - 200 with { cart: CartDTO, migratedCount, skippedProductIds[] }
+ *  - 200 with { cart: CartDTO, migratedCount, skippedProductIds[], skippedCustomizationProductIds[] }
  *  - 400 on validation error (invalid strategy or items)
  *  - 401 if unauthenticated
  *
@@ -36,11 +37,13 @@ export const POST = requireRole('CUSTOMER')(async function POST(
     const cartRepository = container.getCartRepository();
     const productRepository = container.getCartProductRepository();
     const outboxRepository = container.getOutboxRepository();
+    const customizationLookup = container.getCustomizationLookup();
 
     const migrateGuestCart = new MigrateGuestCart(
       cartRepository,
       productRepository,
       outboxRepository,
+      customizationLookup,
     );
 
     const result = await migrateGuestCart.execute({
@@ -62,8 +65,23 @@ export const POST = requireRole('CUSTOMER')(async function POST(
       if (p) productMap.set(p.id, p);
     });
 
+    const allCustomizationIds = [
+      ...new Set(result.cart.items.flatMap((i) => i.customizationIdList)),
+    ];
+    const allCustomizations =
+      allCustomizationIds.length > 0
+        ? await customizationLookup.findByIds(allCustomizationIds)
+        : [];
+    const customizationMap = new Map(allCustomizations.map((c) => [c.id, c]));
+
     const enrichedItems = result.cart.items.map((item) =>
-      enrichCartItem(item, productMap.get(item.productId.value)),
+      enrichCartItem(
+        item,
+        productMap.get(item.productId.value),
+        item.customizationIdList
+          .map((id) => customizationMap.get(id))
+          .filter((c): c is CustomizationSnapshot => c != null),
+      ),
     );
 
     return NextResponse.json(
@@ -78,6 +96,7 @@ export const POST = requireRole('CUSTOMER')(async function POST(
         },
         migratedCount: result.migratedCount,
         skippedProductIds: result.skippedProductIds,
+        skippedCustomizationProductIds: result.skippedCustomizationProductIds,
       },
       { status: 200 },
     );
@@ -91,6 +110,7 @@ export const POST = requireRole('CUSTOMER')(async function POST(
 function enrichCartItem(
   item: CartItemEntity,
   product: ProductEntity | undefined,
+  customizations: CustomizationSnapshot[],
 ): Record<string, unknown> {
   const productName = product?.translations?.[0]?.name ?? 'Unknown Product';
   const productImageUrl = product?.images?.[0]?.url ?? null;
@@ -108,11 +128,13 @@ function enrichCartItem(
     quantity: item.quantity,
     unitPrice,
     lineTotal,
-    customization: {
-      text: null,
-      color: null,
-      size: null,
-      imageUrl: null,
-    },
+    customizationIdList: item.customizationIdList,
+    customizations: customizations.map((c) => ({
+      id: c.id,
+      text: c.text,
+      color: c.color,
+      size: c.size,
+      imageUrl: c.imageUrl,
+    })),
   };
 }

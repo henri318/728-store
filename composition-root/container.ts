@@ -50,7 +50,7 @@ import type { UploadRepository } from '@/modules/uploads/domain/upload-repositor
 import type { CartRepository } from '@/modules/cart/domain/cart-repository';
 import type { ProductRepository as CartProductRepository } from '@/modules/cart/domain/product-repository';
 import type { PaidOrderCountPort } from '@/modules/cart/domain/paid-order-count-port';
-import type { CustomizationLookupPort as OrderCustomizationLookupPort } from '@/modules/orders/domain/customization-lookup-port';
+import type { CustomizationLookupPort as CartCustomizationLookupPort } from '@/modules/cart/domain/customization-lookup-port';
 import type { CustomizationRepository } from '@/modules/customizations/domain/customization-repository';
 
 import { BrevoEmailSender } from '@/modules/email/infrastructure/brevo-email-sender';
@@ -116,7 +116,7 @@ let _uploadRepository: UploadRepository | null = null;
 let _cartRepository: CartRepository | null = null;
 let _cartProductRepository: CartProductRepository | null = null;
 let _paidOrderCountPort: PaidOrderCountPort | null = null;
-let _customizationLookup: OrderCustomizationLookupPort | null = null;
+let _customizationLookup: CartCustomizationLookupPort | null = null;
 let _customizationRepository: CustomizationRepository | null = null;
 
 // Idempotency flag for event subscriptions — prevents double registration
@@ -534,7 +534,7 @@ export function getPaidOrderCountPort(): PaidOrderCountPort {
  * Returns the CustomizationLookupPort bound for the current environment.
  * Auto-initializes the container on first call if not already initialized.
  */
-export function getCustomizationLookup(): OrderCustomizationLookupPort {
+export function getCustomizationLookup(): CartCustomizationLookupPort {
   if (!_customizationLookup) initContainer();
   return _customizationLookup!;
 }
@@ -688,7 +688,7 @@ export const container = {
     _paidOrderCountPort = port;
   },
   /** Override — useful in tests to inject a mock customization lookup port. */
-  setCustomizationLookup(port: OrderCustomizationLookupPort): void {
+  setCustomizationLookup(port: CartCustomizationLookupPort): void {
     _customizationLookup = port;
   },
   /** Override — useful in tests to inject a mock customization repository. */

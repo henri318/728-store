@@ -28,4 +28,16 @@ export class CustomizationLookupAdapter implements CustomizationLookupPort {
       imageUrl: entity.imageUrl,
     }));
   }
+
+  async findByProductId(productId: string): Promise<CustomizationSnapshot[]> {
+    const entities = await this.delegate.findByProductId(productId);
+    return entities.map((entity) => ({
+      id: entity.id,
+      productId: entity.productId,
+      text: entity.text,
+      color: entity.color,
+      size: entity.size,
+      imageUrl: entity.imageUrl,
+    }));
+  }
 }

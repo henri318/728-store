@@ -15,6 +15,13 @@ export interface CustomizationLookupPort {
    * as the customizations module's repository.findByIds).
    */
   findByIds(ids: string[]): Promise<CustomizationSnapshot[]>;
+
+  /**
+   * Returns the customizations that belong to a product.
+   * Used by guest-cart migration to resolve guest-side customization fields
+   * back to stable customization IDs before cart items are merged.
+   */
+  findByProductId(productId: string): Promise<CustomizationSnapshot[]>;
 }
 
 /**
