@@ -1,5 +1,6 @@
 import type { CartRepository } from '../domain/cart-repository';
 import type { ProductRepository } from '../domain/product-repository';
+import type { CustomizationLookupPort } from '../domain/customization-lookup-port';
 import { CartStatus } from '../domain/value-objects/cart-status';
 import { ProductId } from '@/shared/kernel/domain/value-objects/product-id';
 import { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
@@ -12,14 +13,6 @@ import type { CartItemEntity } from '../domain/entities/cart-item';
 
 // --- Types ---
 
-/**
- * GuestCartItem — the wire shape the client sends from localStorage.
- *
- * `unitPriceSnapshot` is a plain number here because the guest cart lives
- * in localStorage and cannot carry the `Money` class instance. The server
- * discards it on migration and uses the current product price instead
- * (spec REQ-CART-020 / scenario "Price changes in guest cart").
- */
 export interface GuestCartItem {
   productId: string;
   sellerId: string;
@@ -43,70 +36,83 @@ export interface MigrateGuestCartResult {
   cart: CartEntity;
   migratedCount: number;
   skippedProductIds: string[];
+  skippedCustomizationProductIds: string[];
 }
 
 // --- Use Case ---
 
-/**
- * MigrateGuestCart — merges a guest cart (from localStorage) into the
- * user's server cart on login (spec REQ-CART-020).
- *
- * Strategy matrix:
- *  - merge       : combine server + guest items, merging duplicates by
- *                  (productId + customization). Server stays ACTIVE.
- *  - keep-server : discard guest items, server cart stays as-is.
- *  - keep-guest  : replace server items with guest items (deduped).
- *
- * Behavior:
- *  - Filters out guest items whose product is no longer in the catalog.
- *  - Uses the CURRENT product price for every item (guest snapshot is
- *    discarded — see spec scenario "Price changes in guest cart").
- *  - Emits GUEST_CART_MIGRATED exactly once per non-trivial migration.
- *  - Returns the resulting cart, the count of items that actually
- *    landed, and the list of skipped product ids.
- */
 export class MigrateGuestCart {
   constructor(
     private cartRepository: CartRepository,
     private productRepository: ProductRepository,
     private outboxRepository: OutboxRepository,
+    private customizationLookup: CustomizationLookupPort,
   ) {}
 
   async execute(dto: MigrateGuestCartDTO): Promise<MigrateGuestCartResult> {
     const serverCart = await this.cartRepository.findActiveByUserId(dto.userId);
 
-    // Empty guest cart on login → no migration. Return whatever the
-    // server has (or a synthetic empty shape).
     if (dto.guestItems.length === 0) {
       return {
         cart: serverCart ?? this.emptyCart(dto.userId),
         migratedCount: 0,
         skippedProductIds: [],
+        skippedCustomizationProductIds: [],
       };
     }
 
-    // Filter guest items for product availability.
     const productIds = dto.guestItems.map((g) => ProductId.create(g.productId));
     const uniqueIds = uniqueBy(productIds, (p) => p.value);
     const productMap = await this.productRepository.findByIds(uniqueIds);
 
-    const availableGuest: GuestCartItem[] = [];
+    const customizationByProductId = new Map<string, CustomizationRecord[]>();
+    const availableProductIds = [
+      ...new Set(dto.guestItems.map((g) => g.productId)),
+    ].filter((productId) => productMap.has(productId));
+    await Promise.all(
+      availableProductIds.map(async (productId) => {
+        customizationByProductId.set(
+          productId,
+          await this.customizationLookup.findByProductId(productId),
+        );
+      }),
+    );
+
+    const availableGuest: Array<{
+      item: GuestCartItem;
+      customizationIdList: string[];
+    }> = [];
     const skippedProductIds: string[] = [];
+    const skippedCustomizationProductIds: string[] = [];
+
     for (const g of dto.guestItems) {
-      if (productMap.has(g.productId)) {
-        availableGuest.push(g);
-      } else if (!skippedProductIds.includes(g.productId)) {
-        skippedProductIds.push(g.productId);
+      if (!productMap.has(g.productId)) {
+        if (!skippedProductIds.includes(g.productId)) {
+          skippedProductIds.push(g.productId);
+        }
+        continue;
       }
+
+      const customizationIdList = resolveGuestCustomizationIds(
+        g,
+        customizationByProductId.get(g.productId) ?? [],
+      );
+      if (customizationIdList === null) {
+        if (!skippedCustomizationProductIds.includes(g.productId)) {
+          skippedCustomizationProductIds.push(g.productId);
+        }
+        continue;
+      }
+
+      availableGuest.push({ item: g, customizationIdList });
     }
 
-    // If nothing landed after filtering, return the existing server cart
-    // (or empty) and skip the migration event.
     if (availableGuest.length === 0) {
       return {
         cart: serverCart ?? this.emptyCart(dto.userId),
         migratedCount: 0,
         skippedProductIds,
+        skippedCustomizationProductIds,
       };
     }
 
@@ -114,7 +120,6 @@ export class MigrateGuestCart {
     let isNewCart = false;
 
     if (!serverCart) {
-      // No server cart → create one with the (filtered) guest items.
       const now = new Date();
       resultCart = {
         id: crypto.randomUUID(),
@@ -130,25 +135,27 @@ export class MigrateGuestCart {
     }
 
     let items: CartItemEntity[] = isNewCart ? [] : [...resultCart.items];
-    // Track which item ids were touched/created by this migration so we
-    // only emit CartItemAdded for the guest-side changes.
     const touchedIds = new Set<string>();
 
     if (dto.strategy === 'keep-server' && !isNewCart) {
-      // Server stays as-is. Guest items are discarded. No new row, no
-      // update to existing rows. migratedCount stays 0.
+      // no-op
     } else if (dto.strategy === 'keep-guest' && !isNewCart) {
-      // Replace server items with the guest items (fresh row each).
-      items = availableGuest.map((g) => {
-        const built = this.buildItem(g, resultCart.id, productMap);
+      items = availableGuest.map(({ item: g, customizationIdList }) => {
+        const built = this.buildItem(
+          g,
+          resultCart.id,
+          productMap,
+          customizationIdList,
+        );
         touchedIds.add(built.id);
         return built;
       });
     } else {
-      // merge (default) or keep-guest with a new cart.
-      for (const g of availableGuest) {
+      for (const { item: g, customizationIdList } of availableGuest) {
         const productSnap = productMap.get(g.productId)!;
-        const existing = items.find((i) => isSameVariant(i, g, productSnap));
+        const existing = items.find((i) =>
+          isSameVariant(i, g, productSnap, customizationIdList),
+        );
         if (existing) {
           items = items.map((i) =>
             i.id === existing.id
@@ -157,7 +164,12 @@ export class MigrateGuestCart {
           );
           touchedIds.add(existing.id);
         } else {
-          const built = this.buildItem(g, resultCart.id, productMap);
+          const built = this.buildItem(
+            g,
+            resultCart.id,
+            productMap,
+            customizationIdList,
+          );
           items.push(built);
           touchedIds.add(built.id);
         }
@@ -169,10 +181,9 @@ export class MigrateGuestCart {
       items,
       updatedAt: new Date(),
     };
+
     const saved = await this.cartRepository.save(resultCart);
 
-    // Emit CartCreated when we built a new cart, plus CartItemAdded for
-    // each item that landed or changed in this migration.
     if (isNewCart) {
       await this.outboxRepository.saveEvent(GlobalEvents.CART_CREATED, {
         cartId: saved.id,
@@ -180,6 +191,7 @@ export class MigrateGuestCart {
         occurredAt: new Date().toISOString(),
       });
     }
+
     for (const item of saved.items) {
       if (!touchedIds.has(item.id)) continue;
       await this.outboxRepository.saveEvent(GlobalEvents.CART_ITEM_ADDED, {
@@ -204,10 +216,9 @@ export class MigrateGuestCart {
       cart: saved,
       migratedCount,
       skippedProductIds,
+      skippedCustomizationProductIds,
     };
   }
-
-  // --- internals ---
 
   private buildItem(
     g: GuestCartItem,
@@ -216,6 +227,7 @@ export class MigrateGuestCart {
       string,
       { basePrice: number; currency: Currency; sellerId: SellerId }
     >,
+    customizationIdList: string[],
   ): CartItemEntity {
     const product = productMap.get(g.productId)!;
     return {
@@ -225,7 +237,7 @@ export class MigrateGuestCart {
       sellerId: product.sellerId,
       quantity: g.quantity,
       unitPriceSnapshot: Money.create(product.basePrice, product.currency),
-      customizationIdList: [],
+      customizationIdList: [...customizationIdList].sort(),
     };
   }
 
@@ -244,18 +256,52 @@ export class MigrateGuestCart {
 
 // --- helpers ---
 
+type CustomizationRecord = {
+  id: string;
+  productId: string;
+  text: string | null;
+  color: string | null;
+  size: string | null;
+  imageUrl: string | null;
+};
+
+function resolveGuestCustomizationIds(
+  g: GuestCartItem,
+  customizations: CustomizationRecord[],
+): string[] | null {
+  const hasCustomization =
+    (g.customizationText !== undefined && g.customizationText !== null) ||
+    (g.customizationColor !== undefined && g.customizationColor !== null) ||
+    (g.customizationSize !== undefined && g.customizationSize !== null) ||
+    (g.customizationImageUrl !== undefined && g.customizationImageUrl !== null);
+
+  if (!hasCustomization) return [];
+
+  const matches = customizations.filter(
+    (customization) =>
+      customization.text === (g.customizationText ?? null) &&
+      customization.color === (g.customizationColor ?? null) &&
+      customization.size === (g.customizationSize ?? null) &&
+      customization.imageUrl === (g.customizationImageUrl ?? null),
+  );
+
+  if (matches.length !== 1) return null;
+  return [matches[0].id];
+}
+
 function isSameVariant(
   item: CartItemEntity,
   g: GuestCartItem,
   productSnap: { basePrice: number; currency: Currency; sellerId: SellerId },
+  customizationIdList: string[],
 ): boolean {
   if (item.productId.value !== g.productId) return false;
   if (!item.sellerId.equals(productSnap.sellerId)) return false;
   if (item.unitPriceSnapshot.amount !== g.unitPriceSnapshot) return false;
   if (item.unitPriceSnapshot.currency !== productSnap.currency) return false;
-  // PR2 will resolve customization IDs; for now compare sorted lists.
   return (
-    JSON.stringify([...item.customizationIdList].sort()) === JSON.stringify([])
+    JSON.stringify([...item.customizationIdList].sort()) ===
+    JSON.stringify([...customizationIdList].sort())
   );
 }
 
