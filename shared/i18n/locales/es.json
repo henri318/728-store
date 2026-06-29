@@ -157,6 +157,13 @@
     "productName": "Nombre del producto",
     "productStatus": "Estado",
     "productPrice": "Precio",
-    "productUpdated": "Actualizado"
+    "productUpdated": "Actualizado",
+    "searchSellers": "Buscar vendedores",
+    "searchSellersPlaceholder": "Buscar vendedores...",
+    "searchProducts": "Buscar productos",
+    "searchProductsPlaceholder": "Buscar productos...",
+    "productCount": "Total de productos: {total}",
+    "untranslatedProduct": "Sin traducción",
+    "paginationAriaLabel": "Paginación"
   }
 }

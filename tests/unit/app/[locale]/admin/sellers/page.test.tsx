@@ -86,6 +86,8 @@ function makeDict() {
       pageNext: 'Siguiente →',
       pageXofY: 'Página {current} de {total}',
       delete: 'Eliminar',
+      searchSellers: 'Buscar vendedores',
+      searchSellersPlaceholder: 'Buscar vendedores...',
     },
     common: {
       loading: 'Cargando...',
@@ -138,6 +140,25 @@ describe('AdminSellersPage', () => {
       sortBy: 'name',
       sortDir: 'asc',
     });
+  });
+
+  it('renders the search form and preserves an existing query', async () => {
+    mocks.getSellerRepositoryMock.mockReturnValue(new MemorySellerRepository());
+
+    const element = await AdminSellersPage({
+      params: Promise.resolve({ locale: 'es' }),
+      searchParams: Promise.resolve({ q: 'tienda' }),
+    });
+    render(element);
+
+    const searchbox = screen.getByRole('searchbox', {
+      name: 'Buscar vendedores',
+    });
+    expect(searchbox).toHaveValue('tienda');
+    expect(searchbox).toHaveAttribute('placeholder', 'Buscar vendedores...');
+    expect(
+      screen.getByRole('button', { name: 'Buscar vendedores' }),
+    ).toBeInTheDocument();
   });
 
   it('renders pagination info and navigation links', async () => {

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/composition-root/container';
 import { handleApiError } from '@/shared/presentation/error-handler';
-import { AdminListSellerProductsUseCase } from '@/modules/products/application/admin-list-seller-products-use-case';
 import { requireRole } from '@/shared/authorization/authorization';
+import { ProductListQueryUseCase } from '@/modules/products/application/product-list-query-use-case';
+import { productListQuerySchema } from '@/modules/products/presentation/schemas/product-list-query-schema';
 
 /**
  * Internal handler — receives the `context` typed as `unknown` so it
@@ -15,23 +16,33 @@ async function getHandler(
 ): Promise<NextResponse> {
   try {
     const { sellerId } = await context.params;
-    const locale = request.nextUrl.searchParams.get('locale') ?? 'es';
+    const params = request.nextUrl.searchParams;
+    const filter = productListQuerySchema.parse({
+      page: params.get('page') ?? undefined,
+      pageSize: params.get('pageSize') ?? undefined,
+      q: params.get('q') ?? undefined,
+      lang: params.get('lang') ?? params.get('locale') ?? undefined,
+      sortBy: params.get('sortBy') ?? undefined,
+      sortDir: params.get('sortDir') ?? undefined,
+      sellerId,
+    });
 
     const productRepository = container.getProductRepository();
-    const useCase = new AdminListSellerProductsUseCase(productRepository);
-    const products = await useCase.execute({ sellerId, locale });
+    const useCase = new ProductListQueryUseCase(productRepository);
+    const result = await useCase.execute(filter);
 
     return NextResponse.json(
       {
-        products: products.map((p) => ({
-          id: p.id,
-          name: p.translations[0]?.name ?? 'Untranslated',
-          status: p.status,
+        ...result,
+        items: result.items.map((product) => ({
+          id: product.id,
+          name: product.translations[0]?.name ?? 'Untranslated',
+          status: product.status,
           basePrice: {
-            amount: p.basePrice.amount,
-            currency: p.basePrice.currency,
+            amount: product.basePrice.amount,
+            currency: product.basePrice.currency,
           },
-          updatedAt: p.updatedAt.toISOString(),
+          updatedAt: product.updatedAt.toISOString(),
         })),
       },
       { status: 200 },
@@ -44,7 +55,6 @@ async function getHandler(
 /**
  * GET /api/admin/sellers/[sellerId]/products
  * Admin-only. Returns the list of products for a specific seller.
- * Optional ?locale=es|cat query param (defaults to 'es').
  *
  * requireRole('ADMIN') performs:
  *   1. 401 if no session
