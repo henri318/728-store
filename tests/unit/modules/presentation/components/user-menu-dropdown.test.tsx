@@ -142,7 +142,7 @@ describe('UserMenuDropdown component', () => {
       name: /panel de diseñador/i,
     });
     expect(designerLink).toBeInTheDocument();
-    expect(designerLink).toHaveAttribute('href', '/es/profile');
+    expect(designerLink).toHaveAttribute('href', '/es/seller/products');
   });
 
   it('does not show Dashboard or Designer Panel for CUSTOMER role', () => {

@@ -11,32 +11,47 @@ const protectedPaths = [
   '/api/admin',
   '/api/orders',
   '/profile',
+  '/seller',
   '/api/users',
   '/auth/change-password',
 ];
 
-/**
- * Strips a known locale prefix from a pathname if present.
- * Returns the pathname as-is if no locale prefix is found.
- */
-function stripLocale(pathname: string): string {
-  for (const locale of locales) {
-    const prefix = `/${locale}`;
-    if (pathname === prefix || pathname.startsWith(`${prefix}/`)) {
-      const stripped = pathname.slice(prefix.length) || '/';
-      return stripped;
-    }
+function isKnownLocale(segment: string): boolean {
+  return locales.includes(segment);
+}
+
+function matchesProtectedPath(
+  pathname: string,
+  protectedPath: string,
+): boolean {
+  const pathnameSegments = pathname.split('/').filter(Boolean);
+  const protectedSegments = protectedPath.split('/').filter(Boolean);
+
+  if (pathnameSegments.length < protectedSegments.length) {
+    return false;
   }
-  return pathname;
+
+  const directMatch = protectedSegments.every(
+    (segment, index) => pathnameSegments[index] === segment,
+  );
+  if (directMatch) {
+    return true;
+  }
+
+  const localePrefixedMatch = protectedSegments.every(
+    (segment, index) =>
+      isKnownLocale(pathnameSegments[0] ?? '') &&
+      pathnameSegments[index + 1] === segment,
+  );
+  return localePrefixedMatch;
 }
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // ---- Auth gate for protected routes ----
-  const strippedPath = stripLocale(pathname);
-  const isProtected = protectedPaths.some(
-    (p) => strippedPath.startsWith(p) || pathname.startsWith(p),
+  const isProtected = protectedPaths.some((path) =>
+    matchesProtectedPath(pathname, path),
   );
 
   if (isProtected) {
@@ -100,7 +115,10 @@ function unauthorizedResponse(request: NextRequest, pathname: string) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const locale = pathname.split('/')[1] || defaultLocale;
+  const requestedLocale = pathname.split('/')[1];
+  const locale = locales.includes(requestedLocale)
+    ? requestedLocale
+    : defaultLocale;
   const homeUrl = new URL(`/${locale}`, request.url);
   return NextResponse.redirect(homeUrl);
 }

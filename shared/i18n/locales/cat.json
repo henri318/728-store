@@ -116,6 +116,11 @@
     "dashboard": "Panell d'administració",
     "designerPanel": "Panell de dissenyador"
   },
+  "sellerDashboard": {
+    "title": "Panell de venedor",
+    "noProducts": "No s'han trobat productes",
+    "searchPlaceholder": "Cercar productes..."
+  },
   "passwordStrength": {
     "hasNumbers": "Té números",
     "hasLetters": "Té lletres",
@@ -160,8 +165,8 @@
     "productUpdated": "Actualitzat",
     "searchSellers": "Cercar venedors",
     "searchSellersPlaceholder": "Cercar venedors...",
-    "searchProducts": "Cercar productes",
     "searchProductsPlaceholder": "Cercar productes...",
+    "searchProducts": "Cercar productes",
     "productCount": "{total} productes",
     "untranslatedProduct": "Sense traducció",
     "paginationAriaLabel": "Paginació"
