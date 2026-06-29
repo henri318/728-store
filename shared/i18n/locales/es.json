@@ -162,7 +162,7 @@
     "searchSellersPlaceholder": "Buscar vendedores...",
     "searchProducts": "Buscar productos",
     "searchProductsPlaceholder": "Buscar productos...",
-    "productCount": "{total} productos",
+    "productCount": "Total de productos: {total}",
     "untranslatedProduct": "Sin traducción",
     "paginationAriaLabel": "Paginación"
   }

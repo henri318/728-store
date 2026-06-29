@@ -174,7 +174,7 @@ describe('AdminSellerProductsPage', () => {
     mocks.getSellerRepositoryMock.mockReturnValue(sellerRepo);
 
     const element = await AdminSellerProductsPage({
-      params: Promise.resolve({ locale: 'es', sellerId: 'seller-1' }),
+      params: Promise.resolve({ locale: 'cat', sellerId: 'seller-1' }),
       searchParams: Promise.resolve({ page: '1', pageSize: '2' }),
     });
     render(element);
@@ -183,7 +183,7 @@ describe('AdminSellerProductsPage', () => {
       screen.getByRole('heading', { name: 'Seller products: Tienda Prueba' }),
     ).toBeInTheDocument();
 
-    expect(screen.getByText('Taza')).toBeInTheDocument();
+    expect(screen.getByText('Tassa')).toBeInTheDocument();
     expect(screen.getByText('No translation')).toBeInTheDocument();
     expect(screen.getByText('Page 1 of 2')).toBeInTheDocument();
     expect(screen.getByText('3 items')).toBeInTheDocument();
@@ -192,7 +192,41 @@ describe('AdminSellerProductsPage', () => {
     ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Next →' })).toHaveAttribute(
       'href',
-      '/es/admin/sellers/seller-1/products?page=2&pageSize=2',
+      '/cat/admin/sellers/seller-1/products?page=2&pageSize=2',
+    );
+  });
+
+  it('clamps out-of-range pagination before rendering page info', async () => {
+    const productRepo = {
+      findPaginated: vi.fn().mockResolvedValue({
+        items: [makeProduct()],
+        total: 3,
+        page: 99,
+        pageSize: 2,
+        totalPages: 2,
+      }),
+    };
+    mocks.getProductRepositoryMock.mockReturnValue(productRepo);
+
+    const sellerRepo = new MemorySellerRepository();
+    sellerRepo.seed(
+      makeSeller({
+        sellerId: SellerId.create('seller-1'),
+        name: 'Tienda Prueba',
+      }),
+    );
+    mocks.getSellerRepositoryMock.mockReturnValue(sellerRepo);
+
+    const element = await AdminSellerProductsPage({
+      params: Promise.resolve({ locale: 'es', sellerId: 'seller-1' }),
+      searchParams: Promise.resolve({ page: '99', pageSize: '2' }),
+    });
+    render(element);
+
+    expect(screen.getByText('Page 2 of 2')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '← Previous' })).toHaveAttribute(
+      'href',
+      '/es/admin/sellers/seller-1/products?pageSize=2',
     );
   });
 

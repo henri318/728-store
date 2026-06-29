@@ -69,7 +69,12 @@ export default async function AdminSellerProductsPage({
   const productRepository = container.getProductRepository();
   const useCase = new ProductListQueryUseCase(productRepository);
   const result = await useCase.execute(filter);
-  const { items: products, page, totalPages, total } = result;
+  const { items: products, totalPages, total } = result;
+  let page = result.page;
+
+  if (totalPages > 0 && page > totalPages) {
+    page = totalPages;
+  }
   const hasProducts = products.length > 0;
 
   return (
@@ -132,8 +137,9 @@ export default async function AdminSellerProductsPage({
                 {products.map((product) => (
                   <tr key={product.id}>
                     <td className={styles.nameCell}>
-                      {product.translations[0]?.name ??
-                        dict.admin.untranslatedProduct}
+                      {product.translations.find(
+                        (translation) => translation.locale === locale,
+                      )?.name ?? dict.admin.untranslatedProduct}
                     </td>
                     <td>{product.status}</td>
                     <td>{product.basePrice.format()}</td>

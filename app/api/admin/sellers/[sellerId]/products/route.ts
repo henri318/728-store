@@ -22,6 +22,8 @@ async function getHandler(
       pageSize: params.get('pageSize') ?? undefined,
       q: params.get('q') ?? undefined,
       lang: params.get('lang') ?? params.get('locale') ?? undefined,
+      sortBy: params.get('sortBy') ?? undefined,
+      sortDir: params.get('sortDir') ?? undefined,
       sellerId,
     });
 

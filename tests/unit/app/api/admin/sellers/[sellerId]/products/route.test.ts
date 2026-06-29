@@ -34,6 +34,7 @@ import { GET } from '@/app/api/admin/sellers/[sellerId]/products/route';
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
 import { ProductPrice } from '@/modules/products/domain/value-objects/product-price';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
+import { productListQuerySchema } from '@/modules/products/presentation/schemas/product-list-query-schema';
 
 const PARAMS = { params: Promise.resolve({ sellerId: 's-1' }) };
 
@@ -86,10 +87,11 @@ describe('GET /api/admin/sellers/[sellerId]/products', () => {
 
   it('returns 200 with a paginated envelope for the seller', async () => {
     mocks.findPaginatedMock.mockResolvedValue(makePaginatedResult());
+    const parseSpy = vi.spyOn(productListQuerySchema, 'parse');
 
     const res = await GET(
       makeRequest(
-        'http://localhost:3000/api/admin/sellers/s-1/products?q=taza&page=2&pageSize=5&locale=cat',
+        'http://localhost:3000/api/admin/sellers/s-1/products?q=taza&page=2&pageSize=5&locale=cat&sortBy=createdAt&sortDir=asc',
       ),
       PARAMS,
     );
@@ -115,8 +117,19 @@ describe('GET /api/admin/sellers/[sellerId]/products', () => {
       pageSize: 5,
       lang: 'cat',
       sortBy: 'createdAt',
-      sortDir: 'desc',
+      sortDir: 'asc',
     });
+    expect(parseSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sellerId: 's-1',
+        q: 'taza',
+        page: '2',
+        pageSize: '5',
+        lang: 'cat',
+        sortBy: 'createdAt',
+        sortDir: 'asc',
+      }),
+    );
   });
 
   it('returns empty array when seller has no products', async () => {
