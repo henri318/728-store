@@ -16,7 +16,6 @@ export class PrismaProductRepository implements ProductRepository {
         translations: {
           where: { locale },
         },
-        customizations: true,
         images: {
           orderBy: { position: 'asc' },
         },
@@ -36,7 +35,6 @@ export class PrismaProductRepository implements ProductRepository {
         translations: {
           where: { locale },
         },
-        customizations: true,
         images: {
           orderBy: { position: 'asc' },
         },
@@ -61,7 +59,6 @@ export class PrismaProductRepository implements ProductRepository {
         translations: {
           where: { locale },
         },
-        customizations: true,
         images: {
           orderBy: { position: 'asc' },
         },
@@ -91,7 +88,6 @@ export class PrismaProductRepository implements ProductRepository {
           translations: {
             where: { locale: { in: [locale, 'es'] } },
           },
-          customizations: true,
           images: {
             orderBy: { position: 'asc' },
           },

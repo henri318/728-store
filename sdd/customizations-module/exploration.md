@@ -6,7 +6,7 @@ The codebase **already has a partial customization implementation** spread acros
 
 Key findings:
 
-- **`ProductCustomization` is a child entity of `Product`** (lives in `modules/products/domain/entities/product-customization.ts`) and the `ProductCustomization` Prisma model has a hard FK to `Product` (no standalone id ownership outside a product).
+- **Legacy note**: `ProductCustomization` used to be a child entity of `Product` (it lived in `modules/products/domain/entities/product-customization.ts`) and the `ProductCustomization` Prisma model had a hard FK to `Product` (no standalone id ownership outside a product).
 - The four customization fields (`text`, `color`, `size`, `imageUrl`) are **duplicated as denormalized columns** on `CartItem` and `OrderLineItem` (Prisma models + entities).
 - A `CustomizationOptions` value object exists in `modules/products/domain/value-objects/customization-options.ts`, but it lives in the products module, so cart and orders can only reach it through the products module's adapter — a hexagonal violation for what should be shared kernel data.
 - The doc `docs/entities.md` already shows the _target_ shape with `OrderItem.customizationId` (FK), so this exploration is the bridge from the current denormalized shape to the documented target.
@@ -16,8 +16,8 @@ Key findings:
 ### Entities (current location)
 
 - `prisma/schema.prisma` — `ProductCustomization` (FK to Product), `CartItem.customization*` columns, `OrderLineItem.customization*` columns.
-- `modules/products/domain/entities/product-customization.ts` — current customization entity, owned by products.
-- `modules/products/domain/entities/product.ts` — `customizations: ProductCustomizationEntity[]` collection.
+- `modules/products/domain/entities/product-customization.ts` — legacy products-owned customization entity (removed in PR4 cleanup).
+- `modules/products/domain/entities/product.ts` — product no longer owns customization collection.
 - `modules/products/domain/value-objects/customization-options.ts` — VO enforcing 500-char text, 50-char color/size, https URL.
 - `modules/products/domain/product-events.ts` — declares local product events; customization-related event constant lives in `events/event-registry.ts` instead (`PRODUCT_CUSTOMIZATION_CREATED`).
 - `modules/cart/domain/entities/cart-item.ts` — carries `customizationText/Color/Size/ImageUrl` strings.

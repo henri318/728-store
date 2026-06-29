@@ -1,5 +1,4 @@
 import type { ProductTranslationEntity } from './product-translation';
-import type { ProductCustomizationEntity } from './product-customization';
 import type { ProductImageEntity } from './product-image';
 import type { TagEntity } from './tag';
 import type { CategoryEntity } from './category';
@@ -17,7 +16,6 @@ export interface ProductEntity {
   readonly createdAt: Date;
   readonly updatedAt: Date;
   readonly translations: ProductTranslationEntity[];
-  readonly customizations: ProductCustomizationEntity[];
   readonly images: ProductImageEntity[];
   readonly tags: TagEntity[];
 }

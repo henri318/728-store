@@ -10,6 +10,7 @@ Modular monolith system in Next.js with decoupling through internal events.
 
 ```plaintext
 /modules
+/modules/customizations
 /shared
 /app
 ```

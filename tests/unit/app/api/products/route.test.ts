@@ -42,7 +42,6 @@ function makeProduct(
     translations: [
       { locale: 'es', name: 'Producto', description: 'Un producto' },
     ],
-    customizations: [],
     images: [],
     tags: [],
     ...overrides,

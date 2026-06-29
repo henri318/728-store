@@ -91,14 +91,13 @@ Sellable product.
 ## Relations
 
 - seller
-- customizations
 - orderItems
 
 ---
 
-# ProductCustomization
+# Customization
 
-Product customization options.
+Customization options owned by the customizations module.
 
 ## Fields
 
@@ -310,7 +309,7 @@ User -> Tickets -> TicketMessages -> AIInteraction
 User -> Cart -> CartItems -> Products -> Seller
 Order -> Payment
 Order -> Ticket
-Product -> ProductCustomization -> OrderItem
+Product -> OrderItem
 User -> Uploads
 Role -> User
 Seller -> Product / Order / CartItem

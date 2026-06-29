@@ -6,7 +6,7 @@ Complete list of domain events used for cross-module communication.
 
 ---
 
-# Products
+# Customizations
 
 - **ProductCustomizationCreated**: Triggered when a user creates a new customization.
 
