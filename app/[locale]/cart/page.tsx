@@ -5,6 +5,7 @@ import { GetCart } from '@/modules/cart/application/get-cart';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { CartView, type CartItemDTO } from './cart-view';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
+import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
 
 /**
  * Cart page — RSC shell.
@@ -31,6 +32,7 @@ export default async function CartPage({
 
   if (isAuthenticated) {
     const cartRepository = container.getCartRepository();
+    const customizationLookup = container.getCustomizationLookup();
     const getCart = new GetCart(cartRepository);
     const cart = await getCart.execute(session.user.id);
 
@@ -46,8 +48,27 @@ export default async function CartPage({
         if (p) productMap.set(p.id, p);
       });
 
+      const customizationIds = [
+        ...new Set(cart.items.flatMap((item) => item.customizationIdList)),
+      ];
+      const customizations =
+        customizationIds.length > 0
+          ? await customizationLookup.findByIds(customizationIds)
+          : [];
+      const customizationMap = new Map<string, CustomizationSnapshot>(
+        customizations.map((item) => [item.id, item]),
+      );
+
       items = cart.items.map((item) => {
         const product = productMap.get(item.productId.value);
+        const firstCustomization =
+          item.customizationIdList
+            .map((id) => customizationMap.get(id))
+            .find(
+              (customization): customization is CustomizationSnapshot =>
+                customization != null,
+            ) ?? null;
+
         return {
           id: item.id,
           productId: item.productId.value,
@@ -60,12 +81,21 @@ export default async function CartPage({
           lineTotal: +(item.unitPriceSnapshot.amount * item.quantity).toFixed(
             2,
           ),
-          customization: {
-            text: null,
-            color: null,
-            size: null,
-            imageUrl: null,
-          },
+          customization: firstCustomization
+            ? {
+                text: firstCustomization.text,
+                color: firstCustomization.color,
+                size: firstCustomization.size,
+                imageUrl: firstCustomization.imageUrl,
+                imageUploadId: null,
+              }
+            : {
+                text: null,
+                color: null,
+                size: null,
+                imageUrl: null,
+                imageUploadId: null,
+              },
         };
       });
     }
@@ -90,6 +120,7 @@ export default async function CartPage({
         customizationSize: dict.common.customizationSize,
         customizationColor: dict.common.customizationColor,
         customizationText: dict.common.customizationText,
+        customizationEditFromCart: dict.common.customizationEditFromCart,
       }}
     />
   );

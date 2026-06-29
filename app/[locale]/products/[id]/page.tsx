@@ -1,16 +1,20 @@
 import { container } from '@/composition-root/container';
 import { GetProductByIdUseCase } from '@/modules/products/application/get-product-by-id-use-case';
+import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import Link from 'next/link';
-import { AddToCartButton } from '@/components/cart/add-to-cart-button';
+import { CustomizationExperience } from './customization-experience';
 import styles from './page.module.css';
 
 export default async function ProductDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale, id } = await params;
+  const query = await searchParams;
   const dict = await getDictionary(locale as 'es' | 'cat');
 
   const repository = container.getProductRepository();
@@ -31,6 +35,17 @@ export default async function ProductDetailPage({
     );
   }
 
+  const getValue = (value: string | string[] | undefined): string | null =>
+    Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
+
+  const initialDraft = {
+    text: getValue(query.customizationText),
+    color: getValue(query.customizationColor),
+    size: getValue(query.customizationSize),
+    imageUploadId: getValue(query.customizationImageUploadId),
+    imageUrl: getValue(query.customizationImageUrl),
+  };
+
   return (
     <div className={styles.container}>
       <Link href={`/${locale}`} className={styles.backLink}>
@@ -49,19 +64,43 @@ export default async function ProductDetailPage({
           <p className={styles.seller}>Seller: {product.sellerName}</p>
 
           <div className={styles.addToCart}>
-            <AddToCartButton
+            <CustomizationExperience
               productId={product.id}
               productName={product.displayName}
               sellerId={product.sellerId}
               sellerName={product.sellerName}
               price={product.basePrice.amount}
-              imageUrl={product.images?.[0]?.url ?? null}
+              previewBaseImageUrl={product.images?.[0]?.url ?? ''}
+              customizationConfig={
+                product.customizationConfig ??
+                ProductCustomizationConfig.default()
+              }
+              initialDraft={initialDraft}
               labels={{
                 addToCart: dict.common.addToCart,
                 removeFromCart: dict.common.removeFromCart,
                 adding: '...',
                 added: '✓',
                 error: 'Error',
+                customizationDesign: dict.common.customizationDesign,
+                customizationPhrase: dict.common.customizationPhrase,
+                customizationColor: dict.common.customizationColor,
+                customizationSize: dict.common.customizationSize,
+                customizationUpload: dict.common.customizationUpload,
+                customizationReplaceImage:
+                  dict.common.customizationReplaceImage,
+                customizationRemoveImage: dict.common.customizationRemoveImage,
+                customizationInvalidImage:
+                  dict.common.customizationInvalidImage,
+                customizationImageTooLarge:
+                  dict.common.customizationImageTooLarge,
+                customizationPreview: dict.common.customizationPreview,
+                customizationPreviewDisclaimer:
+                  dict.common.customizationPreviewDisclaimer,
+                customizationPreviewUnavailable:
+                  dict.common.customizationPreviewUnavailable,
+                customizationLimitedToDescription:
+                  dict.common.customizationLimitedToDescription,
               }}
             />
           </div>
