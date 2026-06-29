@@ -10,6 +10,10 @@ const mocks = vi.hoisted(() => {
   const migrateExecuteMock = vi.fn();
   const findByIdMock = vi.fn();
   const findByIdsMock = vi.fn();
+  const uploadFindByIdMock = vi.fn();
+  const generateReadUrlMock = vi.fn(
+    async () => 'https://cdn.example.com/image.png',
+  );
 
   return {
     getSessionMock,
@@ -17,6 +21,8 @@ const mocks = vi.hoisted(() => {
     migrateExecuteMock,
     findByIdMock,
     findByIdsMock,
+    uploadFindByIdMock,
+    generateReadUrlMock,
   };
 });
 
@@ -40,6 +46,18 @@ vi.mock('@/composition-root/container', () => ({
     getCartRepository: () => ({}),
     getCartProductRepository: () => ({}),
     getOutboxRepository: () => ({}),
+    getCustomizationRepository: () => ({
+      save: vi.fn(async (entity) => entity),
+    }),
+    getUploadRepository: () => ({
+      findById: mocks.uploadFindByIdMock,
+    }),
+    getStoragePort: () => ({
+      generateReadUrl: mocks.generateReadUrlMock,
+      generateUploadUrl: vi.fn(),
+      getPublicUrl: vi.fn(),
+      delete: vi.fn(),
+    }),
     getProductRepository: () => ({
       findById: mocks.findByIdMock,
     }),
@@ -137,5 +155,58 @@ describe('POST /api/cart/migrate', () => {
       },
     ]);
     expect(body.skippedCustomizationProductIds).toEqual([]);
+  });
+
+  it('resolves guest customization image upload ids before migration', async () => {
+    mocks.uploadFindByIdMock.mockResolvedValue({
+      id: 'upload-1',
+      storageKey: 'customization/guest/upload-1.png',
+    });
+    mocks.migrateExecuteMock.mockResolvedValue({
+      cart: {
+        id: 'cart-1',
+        userId: 'user-1',
+        status: 'ACTIVE',
+        items: [],
+        createdAt: new Date('2025-01-01'),
+        updatedAt: new Date('2025-01-01'),
+      },
+      migratedCount: 0,
+      skippedProductIds: [],
+      skippedCustomizationProductIds: [],
+    });
+    mocks.findByIdMock.mockResolvedValue({
+      id: 'p-1',
+      translations: [{ locale: 'es', name: 'Taza' }],
+      images: [{ url: 'https://cdn.example.com/taza.png' }],
+      sellerName: 'Test Shop',
+      customizationConfig: null,
+    });
+
+    const res = await POST(
+      makeRequest({
+        guestItems: [
+          {
+            productId: 'p-1',
+            sellerId: 's-1',
+            quantity: 1,
+            unitPriceSnapshot: 10,
+            customizationImageUploadId: 'upload-1',
+          },
+        ],
+        strategy: 'merge',
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(mocks.generateReadUrlMock).toHaveBeenCalledWith(
+      'customization/guest/upload-1.png',
+    );
+    const migrateBody = mocks.migrateExecuteMock.mock.calls[0][0] as {
+      guestItems: Array<{ customizationImageUrl?: string }>;
+    };
+    expect(migrateBody.guestItems[0].customizationImageUrl).toBe(
+      'https://cdn.example.com/image.png',
+    );
   });
 });

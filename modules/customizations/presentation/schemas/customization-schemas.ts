@@ -31,6 +31,12 @@ export const createCustomizationSchema = customizationFieldsSchema
   })
   .strict();
 
+export const createCustomerCustomizationSchema = customizationFieldsSchema
+  .extend({
+    productId: z.string().min(1, 'Product ID is required'),
+  })
+  .strict();
+
 export const updateCustomizationSchema = customizationFieldsSchema
   .strict()
   .refine((data) => Object.values(data).some((value) => value !== undefined), {
@@ -53,6 +59,9 @@ export const customizationListResponseSchema = z.object({
 
 export type CreateCustomizationInput = z.infer<
   typeof createCustomizationSchema
+>;
+export type CreateCustomerCustomizationInput = z.infer<
+  typeof createCustomerCustomizationSchema
 >;
 export type UpdateCustomizationInput = z.infer<
   typeof updateCustomizationSchema

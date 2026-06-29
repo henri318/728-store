@@ -12,6 +12,9 @@ import { ProductId } from '@/shared/kernel/domain/value-objects/product-id';
 import { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
 import type { CartEntity } from '@/modules/cart/domain/entities/cart';
 import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
+import type { ProductCapabilityPort } from '@/modules/products/domain/product-capability-port';
+import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
+import type { CustomizationCreatePort } from '@/modules/cart/domain/customization-create-port';
 
 /**
  * Tests for MigrateGuestCart (spec REQ-CART-020 / REQ-CART-033).
@@ -35,6 +38,8 @@ describe('MigrateGuestCart', () => {
   let productRepo: MemoryCartProductRepository;
   let outboxRepo: MemoryOutboxRepository;
   let customizationLookup: MemoryCustomizationLookup;
+  let capabilityPort: ProductCapabilityPort;
+  let customizationCreator: CustomizationCreatePort;
   let useCase: MigrateGuestCart;
 
   const makeItem = (
@@ -65,11 +70,30 @@ describe('MigrateGuestCart', () => {
     productRepo = new MemoryCartProductRepository();
     outboxRepo = new MemoryOutboxRepository();
     customizationLookup = new MemoryCustomizationLookup();
+    capabilityPort = {
+      async getConfig() {
+        return ProductCustomizationConfig.default();
+      },
+    };
+    customizationCreator = {
+      async create(input) {
+        return {
+          id: `created-${input.productId}-${input.text ?? input.imageUrl ?? 'x'}`,
+          productId: input.productId,
+          text: input.text ?? null,
+          color: input.color ?? null,
+          size: input.size ?? null,
+          imageUrl: input.imageUrl ?? null,
+        };
+      },
+    };
     useCase = new MigrateGuestCart(
       cartRepo,
       productRepo,
       outboxRepo,
       customizationLookup,
+      capabilityPort,
+      customizationCreator,
     );
   });
 
@@ -255,7 +279,86 @@ describe('MigrateGuestCart', () => {
     expect(result.migratedCount).toBe(2);
   });
 
+  it('creates a new customization when the guest payload does not match an existing one', async () => {
+    productRepo.seed([{ id: 'p1', basePrice: 12, sellerId: 's1' }]);
+
+    const result = await useCase.execute({
+      userId: 'u1',
+      guestItems: [
+        {
+          productId: 'p1',
+          sellerId: 's1',
+          quantity: 1,
+          unitPriceSnapshot: 12,
+          customizationText: 'Unique note',
+        },
+      ],
+      strategy: 'merge',
+    });
+
+    expect(result.cart.items).toHaveLength(1);
+    expect(result.cart.items[0].customizationIdList).toEqual([
+      'created-p1-Unique note',
+    ]);
+  });
+
+  it('skips customization creation when the capability does not allow photo uploads', async () => {
+    capabilityPort = {
+      async getConfig() {
+        return ProductCustomizationConfig.fromJson({
+          mode: 'description',
+          previewEnabled: false,
+        });
+      },
+    };
+    useCase = new MigrateGuestCart(
+      cartRepo,
+      productRepo,
+      outboxRepo,
+      customizationLookup,
+      capabilityPort,
+      customizationCreator,
+    );
+
+    productRepo.seed([{ id: 'p1', basePrice: 12, sellerId: 's1' }]);
+
+    const result = await useCase.execute({
+      userId: 'u1',
+      guestItems: [
+        {
+          productId: 'p1',
+          sellerId: 's1',
+          quantity: 1,
+          unitPriceSnapshot: 12,
+          customizationImageUrl: 'https://cdn.example.com/photo.png',
+        },
+      ],
+      strategy: 'merge',
+    });
+
+    expect(result.cart.items).toHaveLength(0);
+    expect(result.skippedCustomizationProductIds).toEqual(['p1']);
+  });
+
   it('merge: resolves text-only and imageUrl customizations in one pass', async () => {
+    capabilityPort = {
+      async getConfig(productId: string) {
+        return ProductCustomizationConfig.fromJson({
+          mode: productId === 'p1' ? 'text' : 'photo',
+          previewEnabled: true,
+          previewTemplateUrl: 'https://cdn.example.com/base.png',
+        });
+      },
+    };
+    useCase = new MigrateGuestCart(
+      cartRepo,
+      productRepo,
+      outboxRepo,
+      customizationLookup,
+      capabilityPort,
+      customizationCreator,
+    );
+
     productRepo.seed([
       { id: 'p1', basePrice: 10, sellerId: 's1' },
       { id: 'p2', basePrice: 20, sellerId: 's1' },

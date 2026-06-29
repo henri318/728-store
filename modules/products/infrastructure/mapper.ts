@@ -4,6 +4,7 @@ import type { TagEntity } from '../domain/entities/tag';
 import type { CategoryEntity } from '../domain/entities/category';
 import { ProductPrice } from '../domain/value-objects/product-price';
 import { ProductStatus } from '../domain/value-objects/product-status';
+import { ProductCustomizationConfig } from '../domain/value-objects/product-customization-config';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 
 export interface PrismaProductRow {
@@ -15,6 +16,7 @@ export interface PrismaProductRow {
   status: string;
   categoryId: string | null;
   category: PrismaCategoryRow | null;
+  customizationConfig?: import('@prisma/client').Prisma.JsonValue | null;
   createdAt: Date;
   updatedAt: Date;
   translations: PrismaTranslationRow[];
@@ -60,7 +62,34 @@ export interface PrismaProductCreateInput {
   sellerId: string;
   status: string;
   categoryId: string | null;
+  customizationConfig?: import('@prisma/client').Prisma.InputJsonValue;
   updatedAt: Date;
+}
+
+export interface PrismaProductCustomizationConfigJson {
+  [key: string]: unknown;
+  mode: 'description' | 'text' | 'photo' | 'text_photo';
+  previewEnabled: boolean;
+  previewTemplateUrl: string | null;
+  textOffset: PrismaPreviewOffsetJson | null;
+  imageOffset: PrismaPreviewOffsetJson | null;
+}
+
+export interface PrismaPreviewOffsetJson {
+  [key: string]: unknown;
+  x: number;
+  y: number;
+  rotate?: number;
+  scale?: number;
+  maxWidth?: number;
+}
+
+export interface PrismaProductCustomizationConfigRow {
+  mode?: 'description' | 'text' | 'photo' | 'text_photo';
+  previewEnabled?: boolean;
+  previewTemplateUrl?: string | null;
+  textOffset?: PrismaPreviewOffsetJson | null;
+  imageOffset?: PrismaPreviewOffsetJson | null;
 }
 
 /** Shape of a Prisma `ProductImage` create input. */
@@ -112,6 +141,9 @@ export function toDomainProduct(
     category: prismaProduct.category
       ? toDomainCategory(prismaProduct.category)
       : null,
+    customizationConfig: ProductCustomizationConfig.fromJson(
+      prismaProduct.customizationConfig ?? null,
+    ),
     createdAt: prismaProduct.createdAt,
     updatedAt: prismaProduct.updatedAt,
     translations: prismaProduct.translations.map((t) => ({
@@ -134,7 +166,7 @@ export function toDomainProduct(
 export function toPersistenceProduct(
   product: ProductEntity,
 ): PrismaProductCreateInput {
-  return {
+  const persistence: PrismaProductCreateInput = {
     id: product.id,
     basePrice: product.basePrice.amount,
     currency: product.basePrice.currency,
@@ -143,6 +175,13 @@ export function toPersistenceProduct(
     categoryId: product.categoryId,
     updatedAt: product.updatedAt,
   };
+
+  if (product.customizationConfig && !product.customizationConfig.isDefault()) {
+    persistence.customizationConfig =
+      product.customizationConfig.toJson() as import('@prisma/client').Prisma.InputJsonValue;
+  }
+
+  return persistence;
 }
 
 /**
