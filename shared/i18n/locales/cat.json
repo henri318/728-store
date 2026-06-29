@@ -157,6 +157,13 @@
     "productName": "Nom del producte",
     "productStatus": "Estat",
     "productPrice": "Preu",
-    "productUpdated": "Actualitzat"
+    "productUpdated": "Actualitzat",
+    "searchSellers": "Cercar venedors",
+    "searchSellersPlaceholder": "Cercar venedors...",
+    "searchProducts": "Cercar productes",
+    "searchProductsPlaceholder": "Cercar productes...",
+    "productCount": "{total} productes",
+    "untranslatedProduct": "Sense traducció",
+    "paginationAriaLabel": "Paginació"
   }
 }

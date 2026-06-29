@@ -86,13 +86,37 @@ export default async function AdminSellersPage({
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h2 className={styles.title}>{dict.admin.sellersTitle}</h2>
-        <a
-          href={`/${locale}/admin/sellers/create`}
-          className={styles.createButton}
-        >
-          + {dict.admin.createSeller}
-        </a>
+        <div>
+          <h2 className={styles.title}>{dict.admin.sellersTitle}</h2>
+          <a
+            href={`/${locale}/admin/sellers/create`}
+            className={styles.createButton}
+          >
+            + {dict.admin.createSeller}
+          </a>
+        </div>
+        <form className={styles.searchForm} method="get">
+          <label className={styles.searchLabel}>
+            <span className={styles.srOnly}>{dict.admin.searchSellers}</span>
+            <input
+              type="search"
+              name="q"
+              defaultValue={filter.q ?? ''}
+              placeholder={dict.admin.searchSellersPlaceholder}
+              className={styles.searchInput}
+            />
+          </label>
+          <input type="hidden" name="pageSize" value={String(pageSize)} />
+          {filter.sortBy ? (
+            <input type="hidden" name="sortBy" value={filter.sortBy} />
+          ) : null}
+          {filter.sortDir ? (
+            <input type="hidden" name="sortDir" value={filter.sortDir} />
+          ) : null}
+          <button type="submit" className={styles.searchButton}>
+            {dict.admin.searchSellers}
+          </button>
+        </form>
       </div>
       {sellers.length === 0 ? (
         <p className={styles.noSellers}>{dict.admin.noSellers}</p>
