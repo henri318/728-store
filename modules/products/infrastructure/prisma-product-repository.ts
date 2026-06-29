@@ -174,6 +174,7 @@ export class PrismaProductRepository implements ProductRepository {
         currency: data.currency,
         status: data.status,
         categoryId: data.categoryId,
+        customizationConfig: data.customizationConfig,
         updatedAt: data.updatedAt,
       },
     });

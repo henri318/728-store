@@ -60,6 +60,7 @@ model Product {
   status         String                 @default("ACTIVE") // DRAFT | ACTIVE | ARCHIVED
   categoryId     String?
   category       Category?              @relation(fields: [categoryId], references: [id])
+  customizationConfig Json?
   images         ProductImage[]
   tags           Tag[]                  @relation("ProductTags")
   translations   ProductTranslation[]
@@ -193,6 +194,7 @@ enum UploadType {
   avatar
   ticket
   general
+  customization
 }
 
 enum UploadStatus {

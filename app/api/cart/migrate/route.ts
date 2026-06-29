@@ -7,6 +7,9 @@ import { handleApiError } from '@/shared/presentation/error-handler';
 import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
 import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
+import { CreateCustomerCustomization } from '@/modules/customizations/application/create-customer-customization';
+import type { ProductCapabilityPort } from '@/modules/products/domain/product-capability-port';
+import { NotFoundError } from '@/shared/kernel/app-error';
 
 /**
  * POST /api/cart/migrate — migrates a guest cart (localStorage) to the
@@ -36,24 +39,78 @@ export const POST = requireRole('CUSTOMER')(async function POST(
 
     const cartRepository = container.getCartRepository();
     const productRepository = container.getCartProductRepository();
+    const productsModuleRepo = container.getProductRepository();
     const outboxRepository = container.getOutboxRepository();
     const customizationLookup = container.getCustomizationLookup();
+    const uploadRepository = container.getUploadRepository();
+    const storagePort = container.getStoragePort();
+
+    const guestItems = await Promise.all(
+      validated.guestItems.map(async (item) => {
+        if (!item.customizationImageUploadId) {
+          return item;
+        }
+
+        const upload = await uploadRepository.findById(
+          item.customizationImageUploadId,
+        );
+        if (!upload) {
+          throw new NotFoundError(
+            `Customization image upload ${item.customizationImageUploadId} not found`,
+            'Customization image not found',
+          );
+        }
+
+        const imageUrl = await storagePort.generateReadUrl(upload.storageKey);
+        return {
+          ...item,
+          customizationImageUrl: imageUrl,
+        };
+      }),
+    );
+
+    const guestProductIds = [
+      ...new Set(guestItems.map((item) => item.productId)),
+    ];
+    const productRows = await Promise.all(
+      guestProductIds.map((id) => productsModuleRepo.findById(id, 'es')),
+    );
+    const capabilityProductMap = new Map<string, ProductEntity>();
+    productRows.forEach((product) => {
+      if (product) {
+        capabilityProductMap.set(product.id, product);
+      }
+    });
+
+    const capabilityPort: ProductCapabilityPort = {
+      async getConfig(productId: string) {
+        return capabilityProductMap.get(productId)?.customizationConfig ?? null;
+      },
+    };
+
+    const customizationCreator = new CreateCustomerCustomization(
+      container.getCustomizationRepository(),
+      capabilityPort,
+    );
 
     const migrateGuestCart = new MigrateGuestCart(
       cartRepository,
       productRepository,
       outboxRepository,
       customizationLookup,
+      capabilityPort,
+      {
+        create: async (input) => customizationCreator.execute(input, userId),
+      },
     );
 
     const result = await migrateGuestCart.execute({
       userId,
-      guestItems: validated.guestItems,
+      guestItems,
       strategy: validated.strategy,
     });
 
     // Enrich the cart items with product display data.
-    const productsModuleRepo = container.getProductRepository();
     const productIds = [
       ...new Set(result.cart.items.map((i) => i.productId.value)),
     ];

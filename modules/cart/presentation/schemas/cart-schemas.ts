@@ -57,6 +57,7 @@ const guestCartItemSchema = z.object({
   customizationColor: z.string().nullable().optional(),
   customizationSize: z.string().nullable().optional(),
   customizationImageUrl: z.string().nullable().optional(),
+  customizationImageUploadId: z.string().nullable().optional(),
 });
 
 export const migrateGuestCartSchema = z.object({
