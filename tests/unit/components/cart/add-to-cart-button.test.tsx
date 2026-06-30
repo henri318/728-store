@@ -190,6 +190,7 @@ describe('AddToCartButton', () => {
             body: JSON.stringify({
               productId: 'prod-1',
               quantity: 1,
+              customizationIdList: [],
             }),
           }),
         );
@@ -250,6 +251,51 @@ describe('AddToCartButton', () => {
       expect(mockAddItem).not.toHaveBeenCalled();
     });
 
+    it('adds guest customization payload to the guest cart context', async () => {
+      mockUseSession.mockReturnValue({
+        data: null,
+        status: 'unauthenticated',
+        update: vi.fn(),
+      } as never);
+
+      mockUseGuestCart.mockReturnValue({
+        items: [],
+        itemCount: 0,
+        addItem: mockAddItem,
+        updateQuantity: vi.fn(),
+        removeItem: vi.fn(),
+        clearCart: vi.fn(),
+        hydrated: true,
+      });
+
+      render(
+        <AddToCartButton
+          {...defaultProps}
+          customization={{
+            text: 'Hello mug',
+            color: 'Blue',
+            size: 'M',
+            imageUrl: '/preview.png',
+            imageUploadId: 'upload-1',
+          }}
+        />,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /add to cart/i }));
+
+      expect(mockAddItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          productId: 'prod-1',
+          sellerId: 'seller-1',
+          customizationText: 'Hello mug',
+          customizationColor: 'Blue',
+          customizationSize: 'M',
+          customizationImageUrl: '/preview.png',
+          customizationImageUploadId: 'upload-1',
+        }),
+      );
+    });
+
     it('shows error feedback when API fails', async () => {
       // Cart fetch on mount (empty cart).
       mockFetch.mockResolvedValueOnce({
@@ -287,6 +333,54 @@ describe('AddToCartButton', () => {
       await waitFor(() => {
         expect(screen.getByText(/error|try again/i)).toBeTruthy();
       });
+    });
+
+    it('creates a customer customization before adding a customized item to the cart', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ items: [] }),
+      });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: 'cust-1' }),
+      });
+      mockFetch.mockResolvedValueOnce({ ok: true });
+
+      render(
+        <AddToCartButton
+          {...defaultProps}
+          customization={{
+            text: 'Hello mug',
+            color: 'Blue',
+            size: 'M',
+            imageUrl: '/preview.png',
+            imageUploadId: null,
+          }}
+        />,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /add to cart/i }));
+
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledWith(
+          '/api/customizations/customer',
+          expect.objectContaining({
+            method: 'POST',
+          }),
+        );
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/cart/items',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            productId: 'prod-1',
+            quantity: 1,
+            customizationIdList: ['cust-1'],
+          }),
+        }),
+      );
     });
   });
 

@@ -3,6 +3,11 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
+import {
+  customizationDraftSchema,
+  normalizeCustomizationDraft,
+  type CustomizationDraftPayload,
+} from './customization-draft-schema';
 import styles from './add-to-cart-button.module.css';
 
 export interface CartButtonLabels {
@@ -20,6 +25,7 @@ interface AddToCartButtonProps {
   sellerName: string;
   price: number;
   imageUrl?: string | null;
+  customization?: CustomizationDraftPayload | null;
   disabled?: boolean;
   labels: CartButtonLabels;
 }
@@ -52,6 +58,7 @@ export function AddToCartButton({
   sellerName,
   price,
   imageUrl = null,
+  customization = null,
   disabled = false,
   labels,
 }: AddToCartButtonProps) {
@@ -123,10 +130,63 @@ export function AddToCartButton({
 
       try {
         if (isAuthenticated) {
+          const normalizedCustomization =
+            normalizeCustomizationDraft(customization);
+          const validation = customizationDraftSchema.safeParse(
+            normalizedCustomization,
+          );
+
+          if (!validation.success) {
+            setState('error');
+            setTimeout(() => setState('idle'), 3000);
+            return;
+          }
+
+          let customizationIdList: string[] = [];
+
+          if (
+            normalizedCustomization.text ||
+            normalizedCustomization.color ||
+            normalizedCustomization.size ||
+            normalizedCustomization.imageUrl
+          ) {
+            const customizationResponse = await fetch(
+              '/api/customizations/customer',
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  productId,
+                  text: normalizedCustomization.text,
+                  color: normalizedCustomization.color,
+                  size: normalizedCustomization.size,
+                  imageUrl: normalizedCustomization.imageUrl,
+                }),
+              },
+            );
+
+            if (!customizationResponse.ok) {
+              setState('error');
+              setTimeout(() => setState('idle'), 3000);
+              return;
+            }
+
+            const customizationData = (await customizationResponse.json()) as {
+              id?: string;
+            };
+            if (customizationData.id) {
+              customizationIdList = [customizationData.id];
+            }
+          }
+
           const res = await fetch('/api/cart/items', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productId, quantity: 1 }),
+            body: JSON.stringify({
+              productId,
+              quantity: 1,
+              customizationIdList,
+            }),
           });
           if (!res.ok) {
             setState('error');
@@ -134,6 +194,18 @@ export function AddToCartButton({
             return;
           }
         } else {
+          const normalizedCustomization =
+            normalizeCustomizationDraft(customization);
+          const validation = customizationDraftSchema.safeParse(
+            normalizedCustomization,
+          );
+
+          if (!validation.success) {
+            setState('error');
+            setTimeout(() => setState('idle'), 3000);
+            return;
+          }
+
           addItem({
             productId,
             sellerId,
@@ -142,6 +214,11 @@ export function AddToCartButton({
             productName,
             sellerName,
             productImageUrl: imageUrl,
+            customizationText: normalizedCustomization.text,
+            customizationColor: normalizedCustomization.color,
+            customizationSize: normalizedCustomization.size,
+            customizationImageUrl: normalizedCustomization.imageUrl,
+            customizationImageUploadId: normalizedCustomization.imageUploadId,
           });
         }
         setState('success');
@@ -163,6 +240,7 @@ export function AddToCartButton({
       productName,
       sellerName,
       imageUrl,
+      customization,
       addItem,
       refreshCartForProduct,
     ],

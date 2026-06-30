@@ -34,13 +34,11 @@ export const GET = requireRole('CUSTOMER')(async function GET() {
     // Enrich items with product name, image URL, and seller name.
     const productRepository = container.getProductRepository();
     const productIds = [...new Set(cart.items.map((i) => i.productId.value))];
-    const products = await Promise.all(
-      productIds.map((id) => productRepository.findById(id, 'es')),
-    );
     const productMap = new Map<string, ProductEntity>();
-    products.forEach((p) => {
-      if (p) productMap.set(p.id, p);
-    });
+    for (const id of productIds) {
+      const product = await productRepository.findById(id, 'es');
+      if (product) productMap.set(product.id, product);
+    }
 
     // Resolve all customizations in a single batch.
     const allCustomizationIds = [

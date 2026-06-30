@@ -149,6 +149,13 @@ export class PrismaProductRepository implements ProductRepository {
     await prisma.product.create({
       data: {
         ...data,
+        translations: {
+          create: entity.translations.map((translation) => ({
+            locale: translation.locale,
+            name: translation.name,
+            description: translation.description,
+          })),
+        },
         images: {
           create: entity.images.map((img) => ({
             id: img.id,
@@ -167,16 +174,41 @@ export class PrismaProductRepository implements ProductRepository {
 
   async update(entity: ProductEntity): Promise<boolean> {
     const data = toPersistenceProduct(entity);
-    const result = await prisma.product.update({
-      where: { id: entity.id },
-      data: {
-        basePrice: data.basePrice,
-        currency: data.currency,
-        status: data.status,
-        categoryId: data.categoryId,
-        updatedAt: data.updatedAt,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.product.update({
+        where: { id: entity.id },
+        data: {
+          basePrice: data.basePrice,
+          currency: data.currency,
+          status: data.status,
+          categoryId: data.categoryId,
+          customizationConfig: data.customizationConfig,
+          updatedAt: data.updatedAt,
+        },
+      });
+
+      for (const translation of entity.translations) {
+        await tx.productTranslation.upsert({
+          where: {
+            productId_locale: {
+              productId: entity.id,
+              locale: translation.locale,
+            },
+          },
+          create: {
+            productId: entity.id,
+            locale: translation.locale,
+            name: translation.name,
+            description: translation.description,
+          },
+          update: {
+            name: translation.name,
+            description: translation.description,
+          },
+        });
+      }
     });
-    return result !== null;
+
+    return true;
   }
 }

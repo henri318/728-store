@@ -8,6 +8,7 @@ import type { ProductEntity } from '@/modules/products/domain/product-repository
 import { Money } from '@/shared/kernel/domain/value-objects/money';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
+import Image from 'next/image';
 import styles from './page.module.css';
 
 interface CheckoutItem {
@@ -75,13 +76,11 @@ export default async function CheckoutPage({
   // Enrich items with product display data.
   const productRepository = container.getProductRepository();
   const productIds = [...new Set(cart.items.map((i) => i.productId.value))];
-  const products = await Promise.all(
-    productIds.map((id) => productRepository.findById(id, locale)),
-  );
   const productMap = new Map<string, ProductEntity>();
-  products.forEach((p) => {
-    if (p) productMap.set(p.id, p);
-  });
+  for (const id of productIds) {
+    const product = await productRepository.findById(id, locale);
+    if (product) productMap.set(product.id, product);
+  }
 
   const currency = cart.items[0].unitPriceSnapshot.currency;
   const hasMixedCurrencies = cart.items.some(
@@ -196,6 +195,15 @@ export default async function CheckoutPage({
                       .filter(Boolean)
                       .join(' · ')}
                   </span>
+                )}
+                {item.customizations[0]?.imageUrl && (
+                  <Image
+                    src={item.customizations[0].imageUrl}
+                    alt="Customization preview"
+                    width={48}
+                    height={48}
+                    className={styles.itemCustomizationThumbnail}
+                  />
                 )}
                 {item.customizationIdList.length >
                   item.customizations.length && (

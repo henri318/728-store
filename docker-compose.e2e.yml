@@ -16,6 +16,14 @@ services:
       timeout: 3s
       retries: 10
 
+  product-assets:
+    image: nginx:1.27-alpine
+    restart: always
+    ports:
+      - '8081:80'
+    volumes:
+      - ./devresources/products:/usr/share/nginx/html/products:ro
+
   app:
     build:
       context: .
@@ -29,10 +37,13 @@ services:
       NEXTAUTH_SECRET: e2e-test-secret-do-not-use-in-production
       NEXTAUTH_URL: http://localhost:3000
       NEXT_PUBLIC_APP_URL: http://localhost:3000
+      SEED_PRODUCT_ASSET_BASE_URL: http://localhost:8081
       NODE_ENV: production
     depends_on:
       db:
         condition: service_healthy
+      product-assets:
+        condition: service_started
     command: >
       sh -c "
         npx prisma db push &&

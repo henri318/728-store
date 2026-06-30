@@ -116,13 +116,21 @@ export default async function SellerProductsPage({
         <div>
           <h2 className={styles.title}>{dict.sellerDashboard.title}</h2>
         </div>
-        <div className={styles.searchWrap}>
-          <SearchForm
-            placeholder={dict.sellerDashboard.searchPlaceholder}
-            ariaLabel={dict.sellerDashboard.searchProducts}
-            defaultValue={filter.q ?? ''}
-            hiddenFields={{ pageSize: String(filter.pageSize) }}
-          />
+        <div className={styles.headerActions}>
+          <Link
+            href={`/${locale}/seller/products/new`}
+            className={styles.pageButton}
+          >
+            {dict.sellerDashboard.createProduct}
+          </Link>
+          <div className={styles.searchWrap}>
+            <SearchForm
+              placeholder={dict.sellerDashboard.searchPlaceholder}
+              ariaLabel={dict.sellerDashboard.searchProducts}
+              defaultValue={filter.q ?? ''}
+              hiddenFields={{ pageSize: String(filter.pageSize) }}
+            />
+          </div>
         </div>
       </div>
 
@@ -163,10 +171,18 @@ export default async function SellerProductsPage({
                       ).toString()}
                     </td>
                     <td>
-                      <ProductActions
-                        productId={product.id}
-                        currentStatus={product.status}
-                      />
+                      <div className={styles.rowActions}>
+                        <Link
+                          href={`/${locale}/seller/products/${product.id}/edit`}
+                          className={styles.pageButton}
+                        >
+                          {dict.sellerDashboard.editProduct}
+                        </Link>
+                        <ProductActions
+                          productId={product.id}
+                          currentStatus={product.status}
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))}

@@ -1,0 +1,61 @@
+.previewShell {
+  position: relative;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.previewFigure {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  background: radial-gradient(circle at top, #f7f0ea, #e7ddd2 55%, #cbbfb3 100%);
+  box-shadow: 0 30px 70px rgba(41, 27, 16, 0.18);
+}
+
+.baseImage {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.overlayLayer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.textLayer {
+  position: absolute;
+  max-width: 65%;
+  text-align: center;
+  font-weight: 700;
+  color: #3b2213;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.photoLayer {
+  position: absolute;
+  width: 42%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 999px;
+  mix-blend-mode: multiply;
+}
+
+.previewShell::before {
+  content: '';
+  position: absolute;
+  inset: auto 20% 10% 20%;
+  height: 55%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  pointer-events: none;
+}
+
+.disclaimer,
+.fallback,
+.descriptionOnly {
+  font-size: 0.9rem;
+  color: #6b4f3d;
+}

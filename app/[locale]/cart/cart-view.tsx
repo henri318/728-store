@@ -24,6 +24,7 @@ export interface CartItemDTO {
     color: string | null;
     size: string | null;
     imageUrl: string | null;
+    imageUploadId?: string | null;
   };
 }
 
@@ -56,7 +57,38 @@ interface CartViewProps {
     customizationSize: string;
     customizationColor: string;
     customizationText: string;
+    customizationEditFromCart?: string;
   };
+}
+
+function buildCustomizationHref(
+  locale: string,
+  productId: string,
+  customization: CartItemDTO['customization'],
+): string | null {
+  const hasCustomization =
+    customization.text ||
+    customization.color ||
+    customization.size ||
+    customization.imageUrl ||
+    customization.imageUploadId;
+
+  if (!hasCustomization) {
+    return null;
+  }
+
+  const params = new URLSearchParams();
+  if (customization.text) params.set('customizationText', customization.text);
+  if (customization.color)
+    params.set('customizationColor', customization.color);
+  if (customization.size) params.set('customizationSize', customization.size);
+  if (customization.imageUrl)
+    params.set('customizationImageUrl', customization.imageUrl);
+  if (customization.imageUploadId)
+    params.set('customizationImageUploadId', customization.imageUploadId);
+
+  const query = params.toString();
+  return `/${locale}/products/${productId}${query ? `?${query}` : ''}`;
 }
 
 /**
@@ -106,6 +138,7 @@ export function CartView({
           color: gi.customizationColor ?? null,
           size: gi.customizationSize ?? null,
           imageUrl: gi.customizationImageUrl ?? null,
+          imageUploadId: gi.customizationImageUploadId ?? null,
         },
       }));
 
@@ -233,7 +266,8 @@ export function CartView({
                 </span>
                 {(item.customization.text ||
                   item.customization.color ||
-                  item.customization.size) && (
+                  item.customization.size ||
+                  item.customization.imageUrl) && (
                   <span className={styles.customization}>
                     {[
                       item.customization.size &&
@@ -246,6 +280,34 @@ export function CartView({
                       .filter(Boolean)
                       .join(' · ')}
                   </span>
+                )}
+                {labels.customizationEditFromCart &&
+                  buildCustomizationHref(
+                    locale,
+                    item.productId,
+                    item.customization,
+                  ) && (
+                    <a
+                      href={
+                        buildCustomizationHref(
+                          locale,
+                          item.productId,
+                          item.customization,
+                        ) ?? '#'
+                      }
+                      className={styles.editLink}
+                    >
+                      {labels.customizationEditFromCart}
+                    </a>
+                  )}
+                {item.customization.imageUrl && (
+                  <Image
+                    src={item.customization.imageUrl}
+                    alt="Customization preview"
+                    width={48}
+                    height={48}
+                    className={styles.customizationThumbnail}
+                  />
                 )}
               </div>
             </div>

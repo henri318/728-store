@@ -91,6 +91,8 @@ function makeDict() {
       productPrice: 'Price',
       productUpdated: 'Updated',
       actions: 'Actions',
+      editProduct: 'Edit product',
+      createProduct: 'Create product',
       untranslatedProduct: 'Untranslated',
       paginationAriaLabel: 'Page navigation',
       pagePrev: '← Previous',
@@ -108,6 +110,23 @@ function makeDict() {
       noProducts: 'No products found',
       searchProducts: 'Search products',
       searchPlaceholder: 'Search products...',
+      createProduct: 'Create product',
+      editProduct: 'Edit product',
+      backToProducts: 'Back to products',
+      productNameLabel: 'Name',
+      productDescriptionLabel: 'Description',
+      productPriceLabel: 'Price',
+      productStatusLabel: 'Status',
+      productCustomizationConfigLabel: 'Customization config',
+      productCustomizationConfigHint: 'Paste the JSON config here.',
+      productSaved: 'Saved',
+      productFormError: 'Unable to save product',
+      createProductTitle: 'Create product',
+      editProductTitle: 'Edit product',
+      statusDraft: 'Draft',
+      statusActive: 'Active',
+      statusArchived: 'Archived',
+      statusEliminated: 'Eliminated',
     },
   } as unknown as Awaited<
     ReturnType<typeof import('@/shared/i18n/get-dictionary').getDictionary>
@@ -145,6 +164,9 @@ describe('SellerProductsPage', () => {
     expect(
       screen.getByRole('heading', { name: 'Seller products' }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Create product' }),
+    ).toHaveAttribute('href', '/es/seller/products/new');
     expect(spy).toHaveBeenCalledWith({
       q: 'taza',
       page: 1,
@@ -159,6 +181,10 @@ describe('SellerProductsPage', () => {
     ).toHaveValue('taza');
     expect(screen.getByText('Taza')).toBeInTheDocument();
     expect(screen.getByText('Active')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Edit product' })).toHaveAttribute(
+      'href',
+      '/es/seller/products/p-1/edit',
+    );
     expect(
       screen.getByRole('button', { name: 'Suspender' }),
     ).toBeInTheDocument();
