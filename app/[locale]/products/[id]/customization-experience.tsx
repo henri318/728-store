@@ -1,7 +1,7 @@
 'use client';
 
 import { AddToCartButton } from '@/components/cart/add-to-cart-button';
-import type { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
+import type { ProductCustomizationConfigJson } from '@/modules/products/domain/value-objects/product-customization-config';
 import {
   CustomizationDraftProvider,
   useCustomizationDraft,
@@ -38,7 +38,7 @@ interface CustomizationExperienceProps {
   sellerName: string;
   price: number;
   previewBaseImageUrl: string;
-  customizationConfig: ProductCustomizationConfig;
+  customizationConfig: ProductCustomizationConfigJson;
   labels: CustomizationExperienceLabels;
   initialDraft?: Partial<Omit<CustomizationDraft, 'error'>>;
 }
@@ -88,7 +88,7 @@ function CustomizationExperienceInner({
 }
 
 export function CustomizationExperience(props: CustomizationExperienceProps) {
-  if (process.env.NEXT_PUBLIC_CUSTOMIZATION_FRONTEND_ENABLED !== 'true') {
+  if (process.env.NEXT_PUBLIC_CUSTOMIZATION_FRONTEND_ENABLED === 'false') {
     return (
       <AddToCartButton
         productId={props.productId}

@@ -1,0 +1,25 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="140" y1="130" x2="1050" y2="1070" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F5F0E6" />
+      <stop offset="1" stop-color="#ECF2E8" />
+    </linearGradient>
+    <linearGradient id="hoodie" x1="390" y1="320" x2="810" y2="960" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8F6F0" />
+      <stop offset="1" stop-color="#EAE2D6" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="1200" rx="120" fill="url(#bg)" />
+  <circle cx="300" cy="260" r="170" fill="#CBE08C" fill-opacity="0.18" />
+  <circle cx="910" cy="860" r="170" fill="#DF8072" fill-opacity="0.16" />
+  <path d="M451 400C468 340 518 296 600 296C682 296 732 340 749 400L778 503L860 580L824 938C821 973 792 1000 757 1000H443C408 1000 379 973 376 938L340 580L422 503L451 400Z" fill="url(#hoodie)" stroke="#0D5C46" stroke-opacity="0.12" stroke-width="10" />
+  <path d="M490 408C512 382 547 366 600 366C653 366 688 382 710 408" stroke="#0D5C46" stroke-opacity="0.18" stroke-width="18" stroke-linecap="round" />
+  <path d="M545 370C555 326 576 292 600 292C624 292 645 326 655 370" stroke="#DF8072" stroke-opacity="0.35" stroke-width="18" stroke-linecap="round" />
+  <rect x="472" y="506" width="256" height="312" rx="36" fill="#CBE08C" fill-opacity="0.2" />
+  <path d="M520 566H680" stroke="#0D5C46" stroke-opacity="0.28" stroke-width="18" stroke-linecap="round" />
+  <path d="M520 626H632" stroke="#DF8072" stroke-width="18" stroke-linecap="round" />
+  <path d="M520 686H704" stroke="#0D5C46" stroke-opacity="0.28" stroke-width="18" stroke-linecap="round" />
+  <path d="M522 760C556 732 590 718 626 718C666 718 696 728 724 748" stroke="#DF8072" stroke-width="18" stroke-linecap="round" />
+  <path d="M414 582H364C336 582 314 604 314 632C314 660 336 682 364 682H414" stroke="#0D5C46" stroke-opacity="0.16" stroke-width="36" stroke-linecap="round" />
+  <path d="M786 582H836C864 582 886 604 886 632C886 660 864 682 836 682H786" stroke="#0D5C46" stroke-opacity="0.16" stroke-width="36" stroke-linecap="round" />
+</svg>

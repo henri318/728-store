@@ -132,7 +132,24 @@
   "sellerDashboard": {
     "title": "Listado de productos",
     "noProducts": "No se encontraron productos",
-    "searchPlaceholder": "Buscar productos..."
+    "searchPlaceholder": "Buscar productos...",
+    "createProduct": "Crear producto",
+    "editProduct": "Editar producto",
+    "backToProducts": "Volver a productos",
+    "productNameLabel": "Nombre",
+    "productDescriptionLabel": "Descripción",
+    "productPriceLabel": "Precio",
+    "productStatusLabel": "Estado",
+    "productCustomizationConfigLabel": "Configuración de personalización",
+    "productCustomizationConfigHint": "Pega aquí la configuración JSON.",
+    "productSaved": "Guardado",
+    "productFormError": "No se pudo guardar el producto",
+    "createProductTitle": "Crear producto",
+    "editProductTitle": "Editar producto",
+    "statusDraft": "Borrador",
+    "statusActive": "Activo",
+    "statusArchived": "Archivado",
+    "statusEliminated": "Eliminado"
   },
   "passwordStrength": {
     "hasNumbers": "Tiene números",

@@ -10,6 +10,7 @@ import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-
 import { CreateCustomerCustomization } from '@/modules/customizations/application/create-customer-customization';
 import type { ProductCapabilityPort } from '@/modules/products/domain/product-capability-port';
 import { NotFoundError } from '@/shared/kernel/app-error';
+import type { GuestCartItemInput } from '@/modules/cart/presentation/schemas/cart-schemas';
 
 /**
  * POST /api/cart/migrate — migrates a guest cart (localStorage) to the
@@ -45,42 +46,40 @@ export const POST = requireRole('CUSTOMER')(async function POST(
     const uploadRepository = container.getUploadRepository();
     const storagePort = container.getStoragePort();
 
-    const guestItems = await Promise.all(
-      validated.guestItems.map(async (item) => {
-        if (!item.customizationImageUploadId) {
-          return item;
-        }
+    const guestItems: GuestCartItemInput[] = [];
+    for (const item of validated.guestItems) {
+      if (!item.customizationImageUploadId) {
+        guestItems.push(item);
+        continue;
+      }
 
-        const upload = await uploadRepository.findById(
-          item.customizationImageUploadId,
+      const upload = await uploadRepository.findById(
+        item.customizationImageUploadId,
+      );
+      if (!upload) {
+        throw new NotFoundError(
+          `Customization image upload ${item.customizationImageUploadId} not found`,
+          'Customization image not found',
         );
-        if (!upload) {
-          throw new NotFoundError(
-            `Customization image upload ${item.customizationImageUploadId} not found`,
-            'Customization image not found',
-          );
-        }
+      }
 
-        const imageUrl = await storagePort.generateReadUrl(upload.storageKey);
-        return {
-          ...item,
-          customizationImageUrl: imageUrl,
-        };
-      }),
-    );
+      const imageUrl = await storagePort.generateReadUrl(upload.storageKey);
+      guestItems.push({
+        ...item,
+        customizationImageUrl: imageUrl,
+      });
+    }
 
     const guestProductIds = [
       ...new Set(guestItems.map((item) => item.productId)),
     ];
-    const productRows = await Promise.all(
-      guestProductIds.map((id) => productsModuleRepo.findById(id, 'es')),
-    );
     const capabilityProductMap = new Map<string, ProductEntity>();
-    productRows.forEach((product) => {
+    for (const id of guestProductIds) {
+      const product = await productsModuleRepo.findById(id, 'es');
       if (product) {
         capabilityProductMap.set(product.id, product);
       }
-    });
+    }
 
     const capabilityPort: ProductCapabilityPort = {
       async getConfig(productId: string) {
@@ -114,13 +113,11 @@ export const POST = requireRole('CUSTOMER')(async function POST(
     const productIds = [
       ...new Set(result.cart.items.map((i) => i.productId.value)),
     ];
-    const products = await Promise.all(
-      productIds.map((id) => productsModuleRepo.findById(id, 'es')),
-    );
     const productMap = new Map<string, ProductEntity>();
-    products.forEach((p) => {
-      if (p) productMap.set(p.id, p);
-    });
+    for (const id of productIds) {
+      const product = await productsModuleRepo.findById(id, 'es');
+      if (product) productMap.set(product.id, product);
+    }
 
     const allCustomizationIds = [
       ...new Set(result.cart.items.flatMap((i) => i.customizationIdList)),

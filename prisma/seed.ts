@@ -2,15 +2,26 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import bcrypt from 'bcrypt';
 import { existsSync } from 'node:fs';
+import { buildSeedProducts, type SeedProductData } from './seed-data';
 
 if (existsSync('.env')) {
   process.loadEnvFile();
 }
 
-const adapter = new PrismaPg(process.env.DATABASE_URL!);
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
 const BCRYPT_COST = 12;
+
+function getSeedProductLabel(product: SeedProductData) {
+  return (
+    product.translations.create.find(
+      (translation) => translation.locale === 'es',
+    )?.name ??
+    product.translations.create[0]?.name ??
+    'Unnamed product'
+  );
+}
 
 async function main() {
   console.log('🌱 Seeding dev data...');
@@ -30,34 +41,29 @@ async function main() {
   await prisma.role.deleteMany();
 
   // 2. Seed roles (ADMIN, SUPPORT, DESIGNER, CUSTOMER)
-  const roles = await Promise.all([
-    prisma.role.upsert({
-      where: { name: 'ADMIN' },
-      update: {},
-      create: {
-        name: 'ADMIN',
-        description: 'System administrator with full access',
-      },
-    }),
-    prisma.role.upsert({
-      where: { name: 'SUPPORT' },
-      update: {},
-      create: { name: 'SUPPORT', description: 'Customer support agent' },
-    }),
-    prisma.role.upsert({
-      where: { name: 'DESIGNER' },
-      update: {},
-      create: {
-        name: 'DESIGNER',
-        description: 'Product designer with customization access',
-      },
-    }),
-    prisma.role.upsert({
-      where: { name: 'CUSTOMER' },
-      update: {},
-      create: { name: 'CUSTOMER', description: 'Registered customer' },
-    }),
-  ]);
+  const roles: Array<Awaited<ReturnType<typeof prisma.role.upsert>>> = [];
+  // Keep role seeding sequential so we never issue overlapping pg queries
+  // against the same adapter/client during seed execution.
+  for (const role of [
+    {
+      name: 'ADMIN',
+      description: 'System administrator with full access',
+    },
+    { name: 'SUPPORT', description: 'Customer support agent' },
+    {
+      name: 'DESIGNER',
+      description: 'Product designer with customization access',
+    },
+    { name: 'CUSTOMER', description: 'Registered customer' },
+  ]) {
+    roles.push(
+      await prisma.role.upsert({
+        where: { name: role.name },
+        update: {},
+        create: role,
+      }),
+    );
+  }
   console.log(`  ✓ Roles seeded: ${roles.map((r) => r.name).join(', ')}`);
 
   // 2. Create Admin user with ADMIN role
@@ -109,69 +115,13 @@ async function main() {
   );
 
   // 5. Create Products with i18n translations
-  const productsData = [
-    {
-      basePrice: 25.0,
-      currency: 'EUR',
-      sellerId: seller.id,
-      translations: {
-        create: [
-          {
-            locale: 'es',
-            name: 'Camiseta Personalizada',
-            description: 'Diseñá tu propia remera con estilo.',
-          },
-          {
-            locale: 'cat',
-            name: 'Samarreta Personalitzada',
-            description: 'Dissenya la teva pròpia samarreta amb estil.',
-          },
-        ],
-      },
-    },
-    {
-      basePrice: 15.0,
-      currency: 'EUR',
-      sellerId: seller.id,
-      translations: {
-        create: [
-          {
-            locale: 'es',
-            name: 'Taza Personalizada',
-            description: 'Café con estilo, personalizá tu taza.',
-          },
-          {
-            locale: 'cat',
-            name: 'Tassa Personalitzada',
-            description: 'Cafè amb estil, personalitza la teva tassa.',
-          },
-        ],
-      },
-    },
-    {
-      basePrice: 45.0,
-      currency: 'EUR',
-      sellerId: seller.id,
-      translations: {
-        create: [
-          {
-            locale: 'es',
-            name: 'Sudadera con Capucha',
-            description: 'Cómoda, única y personalizable.',
-          },
-          {
-            locale: 'cat',
-            name: 'Dessuadora amb Caputxa',
-            description: 'Còmoda, única i personalitzable.',
-          },
-        ],
-      },
-    },
-  ];
+  const productsData = buildSeedProducts(seller.id);
 
   for (const p of productsData) {
-    const product = await prisma.product.create({ data: p });
-    console.log(`  ✓ Product created: ${product.id}`);
+    const product = await prisma.product.create({ data: p as never });
+    console.log(
+      `  ✓ Product created: ${getSeedProductLabel(p)} (${product.id}) [customizable: ${p.customizationConfig.previewEnabled ? 'yes' : 'no'}, images: ${p.images.create.length}]`,
+    );
   }
 
   // 6. Create test user (customer role, verified email)

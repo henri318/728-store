@@ -40,13 +40,11 @@ export default async function CartPage({
       // Enrich items with product display data.
       const productRepository = container.getProductRepository();
       const productIds = [...new Set(cart.items.map((i) => i.productId.value))];
-      const products = await Promise.all(
-        productIds.map((id) => productRepository.findById(id, locale)),
-      );
       const productMap = new Map<string, ProductEntity>();
-      products.forEach((p) => {
-        if (p) productMap.set(p.id, p);
-      });
+      for (const id of productIds) {
+        const product = await productRepository.findById(id, locale);
+        if (product) productMap.set(product.id, product);
+      }
 
       const customizationIds = [
         ...new Set(cart.items.flatMap((item) => item.customizationIdList)),

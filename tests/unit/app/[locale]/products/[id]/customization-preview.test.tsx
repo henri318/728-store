@@ -31,7 +31,7 @@ describe('CustomizationPreview', () => {
     render(
       <CustomizationPreview
         baseImageUrl="/mug.png"
-        customizationConfig={config}
+        customizationConfig={config.toJson()}
         draft={{
           text: 'Hello world',
           color: 'Blue',
@@ -59,7 +59,7 @@ describe('CustomizationPreview', () => {
     render(
       <CustomizationPreview
         baseImageUrl="/mug.png"
-        customizationConfig={config}
+        customizationConfig={config.toJson()}
         draft={{
           text: 'Fallback text',
           color: null,

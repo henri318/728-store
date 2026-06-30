@@ -132,7 +132,24 @@
   "sellerDashboard": {
     "title": "Llistat de productes",
     "noProducts": "No s'han trobat productes",
-    "searchPlaceholder": "Cercar productes..."
+    "searchPlaceholder": "Cercar productes...",
+    "createProduct": "Crear producte",
+    "editProduct": "Editar producte",
+    "backToProducts": "Tornar a productes",
+    "productNameLabel": "Nom",
+    "productDescriptionLabel": "Descripció",
+    "productPriceLabel": "Preu",
+    "productStatusLabel": "Estat",
+    "productCustomizationConfigLabel": "Configuració de personalització",
+    "productCustomizationConfigHint": "Enganxa aquí la configuració JSON.",
+    "productSaved": "Desat",
+    "productFormError": "No s'ha pogut desar el producte",
+    "createProductTitle": "Crear producte",
+    "editProductTitle": "Editar producte",
+    "statusDraft": "Esborrany",
+    "statusActive": "Actiu",
+    "statusArchived": "Arxivat",
+    "statusEliminated": "Eliminat"
   },
   "passwordStrength": {
     "hasNumbers": "Té números",

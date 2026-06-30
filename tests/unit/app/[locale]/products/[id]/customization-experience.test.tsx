@@ -65,7 +65,7 @@ describe('CustomizationExperience', () => {
         sellerName="Test Seller"
         price={12.5}
         previewBaseImageUrl="/mug.png"
-        customizationConfig={config}
+        customizationConfig={config.toJson()}
         labels={labels}
         initialDraft={{ text: 'Hello', imageUrl: '/upload.png' }}
       />,
@@ -93,7 +93,7 @@ describe('CustomizationExperience', () => {
         sellerName="Test Seller"
         price={12.5}
         previewBaseImageUrl="/mug.png"
-        customizationConfig={ProductCustomizationConfig.default()}
+        customizationConfig={ProductCustomizationConfig.default().toJson()}
         labels={labels}
       />,
     );
@@ -103,5 +103,27 @@ describe('CustomizationExperience', () => {
       screen.queryByText(labels.customizationPreviewDisclaimer),
     ).toBeNull();
     expect(screen.getByTestId('mock-add-to-cart')).toBeTruthy();
+  });
+
+  it('renders the customization UI by default when the flag is unset', () => {
+    delete process.env.NEXT_PUBLIC_CUSTOMIZATION_FRONTEND_ENABLED;
+
+    render(
+      <CustomizationExperience
+        productId="prod-1"
+        productName="Mug"
+        sellerId="seller-1"
+        sellerName="Test Seller"
+        price={12.5}
+        previewBaseImageUrl="/mug.png"
+        customizationConfig={ProductCustomizationConfig.default().toJson()}
+        labels={labels}
+      />,
+    );
+
+    expect(screen.getByLabelText(labels.customizationDesign)).toBeTruthy();
+    expect(
+      screen.getByText(labels.customizationPreviewDisclaimer),
+    ).toBeTruthy();
   });
 });

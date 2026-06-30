@@ -12,6 +12,18 @@ const nextConfig: NextConfig = {
   // Optimize images
   images: {
     formats: ['image/avif', 'image/webp'],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '8081',
+        pathname: '/products/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
   },
 
   // Enable React strict mode

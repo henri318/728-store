@@ -1,6 +1,6 @@
 'use client';
 
-import type { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
+import type { ProductCustomizationConfigJson } from '@/modules/products/domain/value-objects/product-customization-config';
 import { PhotoUploadField } from './photo-upload-field';
 import { useCustomizationDraft } from './customization-draft-context';
 
@@ -21,7 +21,7 @@ interface CustomizationFormLabels {
 }
 
 interface CustomizationFormProps {
-  customizationConfig: ProductCustomizationConfig;
+  customizationConfig: ProductCustomizationConfigJson;
   labels: CustomizationFormLabels;
   onValidate?: () => void;
 }
@@ -42,9 +42,13 @@ export function CustomizationForm({
     validateDraft,
   } = useCustomizationDraft();
 
-  const allowsText = customizationConfig.allowsText();
-  const allowsStyleOptions = customizationConfig.allowsStyleOptions();
-  const allowsPhoto = customizationConfig.allowsPhoto();
+  const allowsText = customizationConfig.mode !== 'photo';
+  const allowsStyleOptions =
+    customizationConfig.mode === 'text' ||
+    customizationConfig.mode === 'text_photo';
+  const allowsPhoto =
+    customizationConfig.mode === 'photo' ||
+    customizationConfig.mode === 'text_photo';
 
   const textErrorId = errors.text ? 'customization-text-error' : undefined;
   const colorErrorId = errors.color ? 'customization-color-error' : undefined;

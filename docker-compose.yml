@@ -11,5 +11,13 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql
 
+  product-assets:
+    image: nginx:1.27-alpine
+    restart: always
+    ports:
+      - '8081:80'
+    volumes:
+      - ./devresources/products:/usr/share/nginx/html/products:ro
+
 volumes:
   postgres_data:

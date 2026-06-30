@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import type { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
+import type { ProductCustomizationConfigJson } from '@/modules/products/domain/value-objects/product-customization-config';
 import type { CustomizationDraft } from './customization-draft-context';
 import styles from './preview-overlay.module.css';
 
@@ -14,7 +14,7 @@ interface CustomizationPreviewLabels {
 
 interface CustomizationPreviewProps {
   baseImageUrl: string;
-  customizationConfig: ProductCustomizationConfig;
+  customizationConfig: ProductCustomizationConfigJson;
   draft: CustomizationDraft;
   labels: CustomizationPreviewLabels;
 }

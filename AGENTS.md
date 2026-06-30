@@ -39,6 +39,7 @@ This document defines the mandatory rules and constraints for the AI agent worki
 - DO NOT modify, delete, or rewrite existing Prisma migration files on `main`; create a new migration for schema changes instead.
 - AI MUST NOT take autonomous business decisions (suggestions only).
 - **No commits or PRs without explicit permission**: never run git commit, git push, or create PRs unless the user explicitly requests it. Changes must remain in the staging area/working tree until the user decides otherwise.
+- **No issue required for PRs**: this repository does not require a GitHub issue to open a pull request. If a PR template asks for issue linkage, mark it as not applicable instead of blocking PR creation.
 - **Never auto-complete PRs**: always stop and ASK before merging. Never merge PRs automatically, even if all checks pass. The user must explicitly approve every merge.
 
 ---
@@ -68,3 +69,49 @@ This document defines the mandatory rules and constraints for the AI agent worki
 - Event Bus: `docs/event-bus.md`
 - Entity Model: `docs/entities.md`
 - Modules: See `docs/module-*.md`
+
+<!-- headroom:rtk-instructions -->
+
+# RTK (Rust Token Killer) - Token-Optimized Commands
+
+When running shell commands, **always prefix with `rtk`**. This reduces context
+usage by 60-90% with zero behavior change. If rtk has no filter for a command,
+it passes through unchanged — so it is always safe to use.
+
+## Key Commands
+
+```bash
+# Git (59-80% savings)
+rtk git status          rtk git diff            rtk git log
+
+# Files & Search (60-75% savings)
+rtk ls <path>           rtk read <file>         rtk grep <pattern>
+rtk find <pattern>      rtk diff <file>
+
+# Test (90-99% savings) — shows failures only
+rtk pytest tests/       rtk cargo test          rtk test <cmd>
+
+# Build & Lint (80-90% savings) — shows errors only
+rtk tsc                 rtk lint                rtk cargo build
+rtk prettier --check    rtk mypy                rtk ruff check
+
+# Analysis (70-90% savings)
+rtk err <cmd>           rtk log <file>          rtk json <file>
+rtk summary <cmd>       rtk deps                rtk env
+
+# GitHub (26-87% savings)
+rtk gh pr view <n>      rtk gh run list         rtk gh issue list
+
+# Infrastructure (85% savings)
+rtk docker ps           rtk kubectl get         rtk docker logs <c>
+
+# Package managers (70-90% savings)
+rtk pip list            rtk pnpm install        rtk npm run <script>
+```
+
+## Rules
+
+- In command chains, prefix each segment: `rtk git add . && rtk git commit -m "msg"`
+- For debugging, use raw command without rtk prefix
+- `rtk proxy <cmd>` runs command without filtering but tracks usage
+<!-- /headroom:rtk-instructions -->

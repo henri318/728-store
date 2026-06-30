@@ -76,25 +76,21 @@ export class MigrateGuestCart {
     const availableProductIds = [
       ...new Set(dto.guestItems.map((g) => g.productId)),
     ].filter((productId) => productMap.has(productId));
-    await Promise.all(
-      availableProductIds.map(async (productId) => {
-        customizationByProductId.set(
-          productId,
-          await this.customizationLookup.findByProductId(productId),
-        );
-      }),
-    );
+    for (const productId of availableProductIds) {
+      customizationByProductId.set(
+        productId,
+        await this.customizationLookup.findByProductId(productId),
+      );
+    }
 
     if (this.productCapability) {
-      await Promise.all(
-        availableProductIds.map(async (productId) => {
-          capabilityByProductId.set(
-            productId,
-            (await this.productCapability?.getConfig(productId)) ??
-              ProductCustomizationConfig.default(),
-          );
-        }),
-      );
+      for (const productId of availableProductIds) {
+        capabilityByProductId.set(
+          productId,
+          (await this.productCapability?.getConfig(productId)) ??
+            ProductCustomizationConfig.default(),
+        );
+      }
     }
 
     const availableGuest: Array<{

@@ -11,11 +11,26 @@
   margin-bottom: var(--spacing-lg);
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .title {
   margin: 0;
   font-size: 1.5rem;
   font-weight: var(--font-weight-semibold);
   color: var(--color-green-dark);
+}
+
+.rowActions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
 }
 
 .tableWrap {

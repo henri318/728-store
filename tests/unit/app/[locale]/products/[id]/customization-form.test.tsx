@@ -38,7 +38,7 @@ describe('CustomizationForm', () => {
     render(
       <CustomizationDraftProvider>
         <CustomizationForm
-          customizationConfig={ProductCustomizationConfig.default()}
+          customizationConfig={ProductCustomizationConfig.default().toJson()}
           labels={labels}
         />
       </CustomizationDraftProvider>,
@@ -60,7 +60,10 @@ describe('CustomizationForm', () => {
 
     render(
       <CustomizationDraftProvider>
-        <CustomizationForm customizationConfig={config} labels={labels} />
+        <CustomizationForm
+          customizationConfig={config.toJson()}
+          labels={labels}
+        />
       </CustomizationDraftProvider>,
     );
 
@@ -79,7 +82,10 @@ describe('CustomizationForm', () => {
 
     render(
       <CustomizationDraftProvider>
-        <CustomizationForm customizationConfig={config} labels={labels} />
+        <CustomizationForm
+          customizationConfig={config.toJson()}
+          labels={labels}
+        />
       </CustomizationDraftProvider>,
     );
 
