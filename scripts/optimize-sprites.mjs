@@ -142,9 +142,13 @@ writeFileSync(OUTPUT_CSS, cssContent, 'utf8');
 console.log(`\n✓ Sprite generated: ${OUTPUT_SVG}`);
 console.log(`  ${icons.length} icons optimized`);
 icons.forEach((i) =>
-  console.log(`  • ${i.file.padEnd(22)} → icon-${i.name.padEnd(10)} ${i.originalSize}B → ${i.optimizedSize}B`),
+  console.log(
+    `  • ${i.file.padEnd(22)} → icon-${i.name.padEnd(10)} ${i.originalSize}B → ${i.optimizedSize}B`,
+  ),
 );
 const totalOriginal = icons.reduce((s, i) => s + i.originalSize, 0);
 const totalOptimized = icons.reduce((s, i) => s + i.optimizedSize, 0);
-console.log(`  Total: ${totalOriginal}B → ${totalOptimized}B (${Math.round((1 - totalOptimized / totalOriginal) * 100)}% savings)`);
+console.log(
+  `  Total: ${totalOriginal}B → ${totalOptimized}B (${Math.round((1 - totalOptimized / totalOriginal) * 100)}% savings)`,
+);
 console.log(`✓ CSS generated: ${OUTPUT_CSS}`);
