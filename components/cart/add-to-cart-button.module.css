@@ -134,3 +134,18 @@
 .iconButton svg {
   display: block;
 }
+
+/* Loading state — pulsed opacity provides visual feedback during async add */
+.iconButton.loading {
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}

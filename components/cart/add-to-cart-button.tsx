@@ -321,9 +321,9 @@ export function AddToCartButton({
   return (
     <button
       type="button"
-      className={styles.iconButton}
+      className={`${styles.iconButton} ${state === 'adding' ? styles.loading : ''}`}
       onClick={handleAdd}
-      disabled={disabled}
+      disabled={disabled || state === 'adding'}
       aria-label={feedbackLabel}
     >
       <svg aria-hidden="true" width="40" height="40">
