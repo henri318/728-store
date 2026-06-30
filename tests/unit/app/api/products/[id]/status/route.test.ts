@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => {
   const findByUserIdMock = vi.fn();
   const findByIdMock = vi.fn();
   const updateMock = vi.fn();
+  const getUserLookupFindByIdMock = vi.fn();
 
   return {
     requireRoleMock,
@@ -22,6 +23,7 @@ const mocks = vi.hoisted(() => {
     findByUserIdMock,
     findByIdMock,
     updateMock,
+    getUserLookupFindByIdMock,
   };
 });
 
@@ -33,6 +35,9 @@ vi.mock('@/composition-root/container', () => ({
   container: {
     getSession: () => ({
       getSession: mocks.getSessionMock,
+    }),
+    getUserLookup: () => ({
+      findById: mocks.getUserLookupFindByIdMock,
     }),
     getSellerRepository: () => ({
       findByUserId: mocks.findByUserIdMock,
@@ -92,13 +97,14 @@ function makeSeller() {
 }
 
 describe('route authorization (module-load wiring)', () => {
-  it('wires PATCH through requireRole("DESIGNER")', () => {
+  it('wires PATCH through requireRole("DESIGNER", "ADMIN")', () => {
     const calls = mocks.requireRoleMock.mock.calls as unknown as Array<
       [string, ...unknown[]]
     >;
     expect(calls.length).toBeGreaterThanOrEqual(1);
     for (const call of calls) {
-      expect(call[0]).toBe('DESIGNER');
+      expect(call).toContain('DESIGNER');
+      expect(call).toContain('ADMIN');
     }
   });
 });
@@ -107,6 +113,10 @@ describe('PATCH /api/products/[id]/status', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.getSessionMock.mockResolvedValue({ id: 'user-1' });
+    mocks.getUserLookupFindByIdMock.mockResolvedValue({
+      id: 'user-1',
+      role: 'DESIGNER',
+    });
     mocks.findByUserIdMock.mockResolvedValue(makeSeller());
   });
 
