@@ -121,9 +121,9 @@ export default async function AdminSellersPage({
                       data-testid={`status-badge-${seller.sellerId.value}`}
                       data-status={seller.status}
                     >
-                      {dict.admin[
+                      {(dict.admin[
                         `status_${seller.status}` as keyof typeof dict.admin
-                      ] ?? seller.status}
+                      ] as string) ?? seller.status}
                     </span>
                   </td>
                   <td className={styles.dateCell}>
