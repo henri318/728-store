@@ -116,6 +116,11 @@
     "dashboard": "Panell d'administració",
     "designerPanel": "Panell de dissenyador"
   },
+  "sellerDashboard": {
+    "title": "Panell de venedor",
+    "noProducts": "No s'han trobat productes",
+    "searchPlaceholder": "Cercar productes..."
+  },
   "passwordStrength": {
     "hasNumbers": "Té números",
     "hasLetters": "Té lletres",
@@ -129,9 +134,17 @@
     "sellerStatus": "Estat",
     "sellerCreated": "Creat",
     "actions": "Accions",
+    "edit": "Editar",
     "viewProducts": "Veure productes",
     "suspend": "Suspendre",
     "activate": "Activar",
+    "status_draft": "Esborrany",
+    "status_archived": "Arxivat",
+    "status_eliminated": "Eliminat",
+    "suspendProduct": "Suspendre",
+    "activateProduct": "Activar",
+    "eliminateProduct": "Eliminar",
+    "eliminateProductConfirm": "Estàs segur d'eliminar aquest producte? Aquesta acció no es pot desfer.",
     "ban": "Banejar",
     "status_active": "Actiu",
     "status_suspended": "Sospès",
@@ -157,6 +170,21 @@
     "productName": "Nom del producte",
     "productStatus": "Estat",
     "productPrice": "Preu",
-    "productUpdated": "Actualitzat"
+    "productUpdated": "Actualitzat",
+    "searchSellers": "Cercar venedors",
+    "searchSellersPlaceholder": "Cercar venedors...",
+    "searchProductsPlaceholder": "Cercar productes...",
+    "searchProducts": "Cercar productes",
+    "productCount": "{total} productes",
+    "untranslatedProduct": "Sense traducció",
+    "paginationAriaLabel": "Paginació",
+    "sellerDetail": {
+      "editTitle": "Editar venedor",
+      "nameLabel": "Nom del negoci",
+      "descriptionLabel": "Descripció",
+      "save": "Desar",
+      "saved": "Desat",
+      "error": "Error en desar el venedor"
+    }
   }
 }

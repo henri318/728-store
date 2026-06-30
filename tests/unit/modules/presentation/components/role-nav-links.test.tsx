@@ -5,6 +5,7 @@ import { RoleNavLinks } from '@/modules/presentation/components/role-nav-links';
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
   useParams: () => ({ locale: 'es' }),
+  useRouter: () => ({ refresh: vi.fn() }),
 }));
 
 describe('RoleNavLinks component', () => {
