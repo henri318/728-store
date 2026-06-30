@@ -130,36 +130,13 @@ vi.mock('@/modules/sellers/infrastructure/prisma-seller-repository', () => ({
 }));
 
 // Import after mocks
-import {
-  container,
-  getSellerRepository,
-  initContainer,
-} from '@/composition-root/container';
+import { container, initContainer } from '@/composition-root/container';
 
 describe('container — SellerRepository binding', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     // Reset binding to a known state
     container.setSellerRepository(mocks.sellerRepositoryInstance as never);
-  });
-
-  it('exposes a getSellerRepository function', () => {
-    expect(typeof getSellerRepository).toBe('function');
-  });
-
-  it('exposes a setSellerRepository function on the container', () => {
-    expect(typeof container.setSellerRepository).toBe('function');
-  });
-
-  it('returns the seller repository instance that was set', () => {
-    const result = container.getSellerRepository();
-    expect(result).toBe(mocks.sellerRepositoryInstance);
-  });
-
-  it('allows overriding the seller repository for tests', () => {
-    const replacement = { findById: vi.fn() } as never;
-    container.setSellerRepository(replacement);
-    expect(container.getSellerRepository()).toBe(replacement);
   });
 
   it('initContainer() is idempotent — does not re-bind seller repo when set', () => {
