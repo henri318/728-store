@@ -8,6 +8,7 @@ import type { ProductEntity } from '@/modules/products/domain/product-repository
 import { Money } from '@/shared/kernel/domain/value-objects/money';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
+import Image from 'next/image';
 import styles from './page.module.css';
 
 interface CheckoutItem {
@@ -196,6 +197,15 @@ export default async function CheckoutPage({
                       .filter(Boolean)
                       .join(' · ')}
                   </span>
+                )}
+                {item.customizations[0]?.imageUrl && (
+                  <Image
+                    src={item.customizations[0].imageUrl}
+                    alt="Customization preview"
+                    width={48}
+                    height={48}
+                    className={styles.itemCustomizationThumbnail}
+                  />
                 )}
                 {item.customizationIdList.length >
                   item.customizations.length && (
