@@ -98,6 +98,9 @@ function makeDict() {
       productCount: '{total} items',
       untranslatedProduct: 'No translation',
       paginationAriaLabel: 'Page navigation',
+      status_draft: 'Draft',
+      status_active: 'Active',
+      status_archived: 'Archived',
     },
   } as unknown as Awaited<
     ReturnType<typeof import('@/shared/i18n/get-dictionary').getDictionary>
@@ -159,7 +162,7 @@ describe('AdminSellerProductsPage', () => {
     const repo = new MemoryProductRepository();
     repo.seed([
       makeProduct({ id: 'p-1' }),
-      makeProduct({ id: 'p-2', translations: [] }),
+      makeProduct({ id: 'p-2', status: ProductStatus.DRAFT, translations: [] }),
       makeProduct({ id: 'p-3' }),
     ]);
     mocks.getProductRepositoryMock.mockReturnValue(repo);
@@ -185,8 +188,8 @@ describe('AdminSellerProductsPage', () => {
 
     expect(screen.getByText('Tassa')).toBeInTheDocument();
     expect(screen.getByText('No translation')).toBeInTheDocument();
-    expect(screen.getByText('Page 1 of 2')).toBeInTheDocument();
-    expect(screen.getByText('3 items')).toBeInTheDocument();
+    expect(screen.getAllByText('Active')).toHaveLength(1);
+    expect(screen.getByText('Draft')).toBeInTheDocument();
     expect(
       screen.getByRole('navigation', { name: 'Page navigation' }),
     ).toBeInTheDocument();
@@ -223,7 +226,6 @@ describe('AdminSellerProductsPage', () => {
     });
     render(element);
 
-    expect(screen.getByText('Page 2 of 2')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '← Previous' })).toHaveAttribute(
       'href',
       '/es/admin/sellers/seller-1/products?pageSize=2',

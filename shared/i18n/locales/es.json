@@ -134,9 +134,17 @@
     "sellerStatus": "Estado",
     "sellerCreated": "Creado",
     "actions": "Acciones",
+    "edit": "Editar",
     "viewProducts": "Ver productos",
     "suspend": "Suspender",
     "activate": "Activar",
+    "status_draft": "Borrador",
+    "status_archived": "Archivado",
+    "status_eliminated": "Eliminado",
+    "suspendProduct": "Suspender",
+    "activateProduct": "Activar",
+    "eliminateProduct": "Eliminar",
+    "eliminateProductConfirm": "¿Estás seguro de eliminar este producto? Esta acción no se puede deshacer.",
     "ban": "Banear",
     "status_active": "Activo",
     "status_suspended": "Suspendido",
@@ -169,6 +177,13 @@
     "searchProducts": "Buscar productos",
     "productCount": "Total de productos: {total}",
     "untranslatedProduct": "Sin traducción",
-    "paginationAriaLabel": "Paginación"
+    "paginationAriaLabel": "Paginación",
+    "sellerDetail": {
+      "editTitle": "Editar vendedor",
+      "nameLabel": "Nombre del negocio",
+      "descriptionLabel": "Descripción",
+      "save": "Guardar",
+      "saved": "Guardado"
+    }
   }
 }
