@@ -175,9 +175,15 @@
   cursor: pointer;
   font-size: 0.85rem;
   padding: 0.15rem;
+  line-height: 0;
 }
 .rmBtn:hover {
   color: var(--color-coral, #e8614d);
+}
+.rmBtn svg {
+  width: 25px;
+  height: 25px;
+  display: block;
 }
 .footer {
   padding: 1.25rem;

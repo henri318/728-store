@@ -36,3 +36,30 @@
 .suspend:hover:not(:disabled) {
   opacity: 0.85;
 }
+
+/* Icon-only buttons — no text-button styling */
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  line-height: 0;
+  color: var(--color-coral);
+}
+.iconButton:hover:not(:disabled) {
+  opacity: 0.75;
+}
+.iconButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.iconTrash {
+  display: block;
+  width: 30px;
+  height: 30px;
+}

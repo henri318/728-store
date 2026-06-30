@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
-import { ConfirmModal } from '@/shared/presentation/components/confirm-modal';
+import { DeleteConfirmModal } from '@/shared/presentation/components/delete-confirm-modal';
 import styles from './product-actions.module.css';
 
 interface ProductActionsProps {
@@ -24,6 +24,7 @@ export function ProductActions({
   const router = useRouter();
   const [status, setStatus] = useState(currentStatus);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
 
@@ -39,6 +40,7 @@ export function ProductActions({
 
   const executeStatusChange = async (newStatus: string) => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`/api/products/${productId}/status`, {
         method: 'PATCH',
@@ -54,12 +56,12 @@ export function ProductActions({
       const data = await res.json();
       setStatus(data.status);
       router.refresh();
-    } catch (error) {
-      console.error('Failed to change product status:', error);
-    } finally {
-      setLoading(false);
       setShowConfirmModal(false);
       setPendingStatus(null);
+    } catch {
+      setError(dict.common.genericError);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -72,6 +74,7 @@ export function ProductActions({
   const handleCancel = () => {
     setShowConfirmModal(false);
     setPendingStatus(null);
+    setError(null);
   };
 
   const isActive = status === ACTIVE_STATUS;
@@ -98,11 +101,16 @@ export function ProductActions({
             </button>
             <button
               type="button"
-              className={`${styles.button} ${styles.suspend}`}
+              className={styles.iconButton}
               disabled={loading}
+              aria-label={
+                loading ? dict.common.loading : dict.admin.eliminateProduct
+              }
               onClick={() => handleStatusChange(ELIMINATED_STATUS)}
             >
-              {loading ? dict.common.loading : dict.admin.eliminateProduct}
+              <svg aria-hidden="true" className={styles.iconTrash}>
+                <use href="/img/icons/sprites.svg#icon-trash" />
+              </svg>
             </button>
           </>
         )}
@@ -118,11 +126,16 @@ export function ProductActions({
             </button>
             <button
               type="button"
-              className={`${styles.button} ${styles.suspend}`}
+              className={styles.iconButton}
               disabled={loading}
+              aria-label={
+                loading ? dict.common.loading : dict.admin.eliminateProduct
+              }
               onClick={() => handleStatusChange(ELIMINATED_STATUS)}
             >
-              {loading ? dict.common.loading : dict.admin.eliminateProduct}
+              <svg aria-hidden="true" className={styles.iconTrash}>
+                <use href="/img/icons/sprites.svg#icon-trash" />
+              </svg>
             </button>
           </>
         )}
@@ -138,24 +151,30 @@ export function ProductActions({
             </button>
             <button
               type="button"
-              className={`${styles.button} ${styles.suspend}`}
+              className={styles.iconButton}
               disabled={loading}
+              aria-label={
+                loading ? dict.common.loading : dict.admin.eliminateProduct
+              }
               onClick={() => handleStatusChange(ELIMINATED_STATUS)}
             >
-              {loading ? dict.common.loading : dict.admin.eliminateProduct}
+              <svg aria-hidden="true" className={styles.iconTrash}>
+                <use href="/img/icons/sprites.svg#icon-trash" />
+              </svg>
             </button>
           </>
         )}
       </span>
-      <ConfirmModal
+      <DeleteConfirmModal
         open={showConfirmModal}
         title={dict.admin.eliminateProduct}
         message={dict.admin.eliminateProductConfirm}
         confirmLabel={dict.admin.eliminateProduct}
         cancelLabel={dict.common.cancel}
+        loading={loading}
+        error={error}
         onConfirm={handleConfirm}
         onCancel={handleCancel}
-        variant="danger"
       />
     </>
   );

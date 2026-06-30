@@ -54,7 +54,8 @@
     "cartMergeKeepServer": "Conservar la cistella de l'usuari",
     "cartMergeKeepServerHint": "Descarta els articles de la cistella de convidat",
     "cartMergeKeepGuest": "Conservar la cistella de convidat",
-    "cartMergeKeepGuestHint": "Substitueix la cistella de l'usuari pels articles de convidat"
+    "cartMergeKeepGuestHint": "Substitueix la cistella de l'usuari pels articles de convidat",
+    "genericError": "Alguna cosa ha anat malament. Torna-ho a intentar."
   },
   "auth": {
     "signInTitle": "Iniciar sessió",
@@ -117,7 +118,7 @@
     "designerPanel": "Panell de dissenyador"
   },
   "sellerDashboard": {
-    "title": "Panell de venedor",
+    "title": "Llistat de productes",
     "noProducts": "No s'han trobat productes",
     "searchPlaceholder": "Cercar productes..."
   },

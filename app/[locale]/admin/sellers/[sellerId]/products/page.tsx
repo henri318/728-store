@@ -9,6 +9,7 @@ import { assertRole } from '@/shared/authorization/authorization';
 import { LocalizedDate } from '@/shared/kernel/domain/value-objects/localized-date';
 import { PaginationDefaults } from '@/shared/kernel/domain/value-objects/pagination';
 import { ProductActions } from '@/app/[locale]/seller/products/product-actions';
+import { SearchForm } from '@/shared/presentation/components/search-form';
 import styles from './page.module.css';
 
 function buildPageUrl(
@@ -105,26 +106,14 @@ export default async function AdminSellerProductsPage({
             {dict.admin.sellerProductsTitle}: {sellerName}
           </h2>
         </div>
-        <form className={styles.searchForm} method="get">
-          <label className={styles.searchLabel}>
-            <span className={styles.srOnly}>{dict.admin.searchProducts}</span>
-            <input
-              type="search"
-              name="q"
-              defaultValue={filter.q ?? ''}
-              placeholder={dict.admin.searchProductsPlaceholder}
-              className={styles.searchInput}
-            />
-          </label>
-          <input
-            type="hidden"
-            name="pageSize"
-            value={String(filter.pageSize)}
+        <div className={styles.searchWrap}>
+          <SearchForm
+            placeholder={dict.admin.searchProductsPlaceholder}
+            ariaLabel={dict.admin.searchProducts}
+            defaultValue={filter.q ?? ''}
+            hiddenFields={{ pageSize: String(filter.pageSize) }}
           />
-          <button type="submit" className={styles.searchButton}>
-            {dict.admin.searchProducts}
-          </button>
-        </form>
+        </div>
       </div>
 
       {hasProducts ? (

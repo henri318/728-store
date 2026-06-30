@@ -2,11 +2,11 @@
  * Optimizes SVGs and generates an SVG sprite with <symbol> definitions.
  *
  * Usage pattern:
- *   <svg width="24" height="24"><use href="/img/sprites.svg#icon-profile"></use></svg>
+ *   <svg width="24" height="24"><use href="/img/icons/sprites.svg#icon-profile"></use></svg>
  *
- * Input:  public/img/icons/iconos-*.svg (individual icon files)
- * Output: public/img/sprites.svg (symbol sprite for <use href> references)
- *         shared/presentation/sprites.css (utility classes for sizing)
+ * Input:  ../../icons/*.svg (individual icon files — root-level /icons directory)
+ * Output: ../public/img/icons/sprites.svg (symbol sprite for <use href> references)
+ *         ../shared/presentation/sprites.css (utility classes for sizing)
  */
 import { readFileSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
@@ -14,19 +14,23 @@ import { fileURLToPath } from 'url';
 import { optimize } from 'svgo';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ICONS_DIR = join(__dirname, '../public/img/icons');
-const OUTPUT_SVG = join(__dirname, '../public/img/sprites.svg');
+const ICONS_DIR = join(__dirname, '../icons');
+const OUTPUT_SVG = join(__dirname, '../public/img/icons/sprites.svg');
 const OUTPUT_CSS = join(__dirname, '../shared/presentation/sprites.css');
 
-// Icon name mapping: filename -> class name
+// Icon name mapping: filename -> class/id name
+// Files are read directly from the /icons directory at repo root
 const ICON_MAP = {
-  'iconos-01.svg': 'facebook',
-  'iconos-02.svg': 'instagram',
-  'iconos-03.svg': 'tiktok',
-  'iconos-04.svg': 'cart',
-  'iconos-07.svg': 'profile',
-  'iconos-08.svg': 'whatsapp',
-  'iconos-09.svg': 'email',
+  'Facebook.svg': 'facebook',
+  'Instagram.svg': 'instagram',
+  'Tiktok.svg': 'tiktok',
+  'Carrito.svg': 'cart',
+  'Inicio Sesion.svg': 'profile',
+  'Whatsapp.svg': 'whatsapp',
+  'Mensaje.svg': 'email',
+  'Añadir.svg': 'add',
+  'Buscar.svg': 'search',
+  'Papelera.svg': 'trash',
 };
 
 const files = Object.keys(ICON_MAP);
@@ -107,23 +111,19 @@ ${spriteSymbols}
 writeFileSync(OUTPUT_SVG, spriteSvg, 'utf8');
 
 // Generate CSS utility classes (sizing only — use <use href> for rendering)
+const allIconClasses = icons.map((i) => `.icon-${i.name}`).join(',\n');
+
 const cssContent = `/* Auto-generated SVG sprite utilities — DO NOT EDIT */
 /*
  * Usage:
- *   <svg class="icon-md" aria-hidden="true"><use href="/img/sprites.svg#icon-profile"></use></svg>
+ *   <svg class="icon-md" aria-hidden="true"><use href="/img/icons/sprites.svg#icon-profile"></use></svg>
  *
  * Or inline without class:
- *   <svg width="24" height="24"><use href="/img/sprites.svg#icon-profile"></use></svg>
+ *   <svg width="24" height="24"><use href="/img/icons/sprites.svg#icon-profile"></use></svg>
  */
 
 /* Base icon sizing */
-.icon-facebook,
-.icon-instagram,
-.icon-tiktok,
-.icon-cart,
-.icon-profile,
-.icon-whatsapp,
-.icon-email {
+${allIconClasses} {
   display: inline-block;
   vertical-align: middle;
   width: 24px;
@@ -137,3 +137,18 @@ const cssContent = `/* Auto-generated SVG sprite utilities — DO NOT EDIT */
 `;
 
 writeFileSync(OUTPUT_CSS, cssContent, 'utf8');
+
+// Print summary
+console.log(`\n✓ Sprite generated: ${OUTPUT_SVG}`);
+console.log(`  ${icons.length} icons optimized`);
+icons.forEach((i) =>
+  console.log(
+    `  • ${i.file.padEnd(22)} → icon-${i.name.padEnd(10)} ${i.originalSize}B → ${i.optimizedSize}B`,
+  ),
+);
+const totalOriginal = icons.reduce((s, i) => s + i.originalSize, 0);
+const totalOptimized = icons.reduce((s, i) => s + i.optimizedSize, 0);
+console.log(
+  `  Total: ${totalOriginal}B → ${totalOptimized}B (${Math.round((1 - totalOptimized / totalOriginal) * 100)}% savings)`,
+);
+console.log(`✓ CSS generated: ${OUTPUT_CSS}`);

@@ -54,7 +54,8 @@
     "cartMergeKeepServer": "Conservar el carrito de la cuenta",
     "cartMergeKeepServerHint": "Descarta los artículos del carrito de invitado",
     "cartMergeKeepGuest": "Conservar el carrito de invitado",
-    "cartMergeKeepGuestHint": "Reemplaza el carrito del servidor con los artículos de invitado"
+    "cartMergeKeepGuestHint": "Reemplaza el carrito del servidor con los artículos de invitado",
+    "genericError": "Algo salió mal. Inténtalo de nuevo."
   },
   "auth": {
     "signInTitle": "Iniciar sesión",
@@ -117,7 +118,7 @@
     "designerPanel": "Panel de diseñador"
   },
   "sellerDashboard": {
-    "title": "Panel de vendedor",
+    "title": "Listado de productos",
     "noProducts": "No se encontraron productos",
     "searchPlaceholder": "Buscar productos..."
   },

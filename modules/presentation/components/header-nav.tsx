@@ -26,13 +26,8 @@ export function HeaderNav({ loginLabel, cartAlt }: HeaderNavProps) {
     return (
       <>
         <UserMenuDropdown user={session.user}>
-          <svg
-            className={styles.userIcon}
-            aria-hidden="true"
-            width="62"
-            height="62"
-          >
-            <use href="/img/sprites.svg#icon-profile" />
+          <svg className={styles.userIcon} aria-hidden="true">
+            <use href="/img/icons/sprites.svg#icon-profile" />
           </svg>
         </UserMenuDropdown>
         <CartIcon alt={cartAlt} />
@@ -53,13 +48,8 @@ export function HeaderNav({ loginLabel, cartAlt }: HeaderNavProps) {
         className={styles.iconButton}
         aria-label={loginLabel}
       >
-        <svg
-          className={styles.userIcon}
-          aria-hidden="true"
-          width="62"
-          height="62"
-        >
-          <use href="/img/sprites.svg#icon-profile" />
+        <svg className={styles.userIcon} aria-hidden="true">
+          <use href="/img/icons/sprites.svg#icon-profile" />
         </svg>
       </button>
       <CartIcon alt={cartAlt} />

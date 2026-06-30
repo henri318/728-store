@@ -2,9 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Modal } from '@/modules/presentation/components/modal';
-import { Button } from '@/modules/presentation/components/button';
-import { ErrorMessage } from '@/modules/presentation/components/error-message';
+import { DeleteConfirmModal } from '@/shared/presentation/components/delete-confirm-modal';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 import styles from './seller-delete.module.css';
 
@@ -43,36 +41,30 @@ export function SellerDelete({ sellerId, sellerName }: SellerDeleteProps) {
     <>
       <button
         type="button"
-        className={styles.deleteButton}
+        className={styles.iconButton}
+        aria-label={dict.admin.delete}
         onClick={() => setOpen(true)}
       >
-        {dict.admin.delete}
+        <svg aria-hidden="true" className={styles.iconTrash}>
+          <use href="/img/icons/sprites.svg#icon-trash" />
+        </svg>
       </button>
 
-      <Modal isOpen={open} onClose={() => setOpen(false)}>
-        <div className={styles.confirm}>
-          <h3 className={styles.confirmTitle}>{dict.admin.deleteConfirm}</h3>
-          <p className={styles.confirmMessage}>
-            {dict.admin.deleteConfirmMessage}
-          </p>
-          <p className={styles.confirmSeller}>
-            <strong>{sellerName}</strong>
-          </p>
-          {error && <ErrorMessage message={error} />}
-          <div className={styles.confirmActions}>
-            <Button
-              variant="secondary"
-              onClick={() => setOpen(false)}
-              disabled={loading}
-            >
-              {dict.common.cancel}
-            </Button>
-            <Button variant="danger" loading={loading} onClick={handleDelete}>
-              {dict.admin.delete}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      <DeleteConfirmModal
+        open={open}
+        title={dict.admin.deleteConfirm}
+        message={dict.admin.deleteConfirmMessage}
+        confirmLabel={dict.admin.delete}
+        cancelLabel={dict.common.cancel}
+        loading={loading}
+        error={error}
+        onConfirm={handleDelete}
+        onCancel={() => setOpen(false)}
+      >
+        <p className={styles.confirmSeller}>
+          <strong>{sellerName}</strong>
+        </p>
+      </DeleteConfirmModal>
     </>
   );
 }

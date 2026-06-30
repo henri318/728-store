@@ -7,11 +7,23 @@ interface SocialLink {
 }
 
 const SOCIAL_LINKS: SocialLink[] = [
-  { icon: 'facebook', alt: 'Facebook', href: 'https://facebook.com' },
-  { icon: 'instagram', alt: 'Instagram', href: 'https://instagram.com' },
-  { icon: 'tiktok', alt: 'TikTok', href: 'https://tiktok.com' },
-  { icon: 'whatsapp', alt: 'WhatsApp', href: 'https://wa.me' },
-  { icon: 'email', alt: 'Email', href: 'mailto:info@728store.com' },
+  {
+    icon: 'facebook',
+    alt: 'Facebook',
+    href: 'https://www.facebook.com/728merch',
+  },
+  {
+    icon: 'instagram',
+    alt: 'Instagram',
+    href: 'https://www.instagram.com/728_studio',
+  },
+  {
+    icon: 'tiktok',
+    alt: 'TikTok',
+    href: 'https://www.tiktok.com/@studio.728?_r=1&_t=ZN-97e3Ez9CP0Y',
+  },
+  { icon: 'whatsapp', alt: 'WhatsApp', href: 'https://wa.me/34635274152' },
+  { icon: 'email', alt: 'Email', href: 'mailto:informes.728@gmail.com' },
 ];
 
 export function SocialFooter() {
@@ -26,7 +38,7 @@ export function SocialFooter() {
           rel="noopener noreferrer"
         >
           <svg className={styles.icon} aria-hidden="true">
-            <use href={`/img/sprites.svg#icon-${link.icon}`} />
+            <use href={`/img/icons/sprites.svg#icon-${link.icon}`} />
           </svg>
         </a>
       ))}
