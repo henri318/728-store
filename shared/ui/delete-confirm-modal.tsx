@@ -1,8 +1,8 @@
 'use client';
 
-import { Modal } from '@/modules/presentation/components/modal';
-import { Button } from '@/modules/presentation/components/button';
-import { ErrorMessage } from '@/modules/presentation/components/error-message';
+import { Modal } from '@/shared/ui/modal';
+import { Button } from '@/shared/ui/button';
+import { ErrorMessage } from '@/shared/ui/error-message';
 import styles from './delete-confirm-modal.module.css';
 
 interface DeleteConfirmModalProps {

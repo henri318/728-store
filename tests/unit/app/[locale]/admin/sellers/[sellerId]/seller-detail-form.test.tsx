@@ -6,7 +6,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
-import { SellerDetailForm } from '@/app/[locale]/admin/sellers/[sellerId]/seller-detail-form';
+import { SellerDetailForm } from '@/modules/sellers/presentation/components/seller-detail-form';
 
 const fetchMock = vi.fn();
 

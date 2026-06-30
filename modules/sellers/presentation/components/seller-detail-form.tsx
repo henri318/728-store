@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/modules/presentation/components/button';
-import { ErrorMessage } from '@/modules/presentation/components/error-message';
-import styles from './page.module.css';
+import { Button } from '@/shared/ui/button';
+import { ErrorMessage } from '@/shared/ui/error-message';
+import styles from '@/app/[locale]/admin/sellers/[sellerId]/page.module.css';
 
 interface SellerDetailFormProps {
   sellerId: string;

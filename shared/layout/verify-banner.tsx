@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/modules/presentation/components/button';
+import { Button } from '@/shared/ui/button';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 import styles from './verify-banner.module.css';
 

@@ -6,8 +6,8 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
-import { CartPopup } from '@/modules/presentation/components/cart-popup';
-import { CartPopupProvider } from '@/modules/presentation/components/cart-popup-context';
+import { CartPopup } from '@/modules/cart/presentation/components/cart-popup';
+import { CartPopupProvider } from '@/modules/cart/presentation/components/cart-popup-context';
 
 const mockFetch = vi.fn();
 const mockUseSession = vi.fn();
@@ -21,7 +21,7 @@ vi.mock('next-auth/react', () => ({
   useSession: () => mockUseSession(),
 }));
 
-vi.mock('@/modules/presentation/components/cart-popup-context', () => ({
+vi.mock('@/modules/cart/presentation/components/cart-popup-context', () => ({
   CartPopupProvider: ({ children }: { children: React.ReactNode }) => children,
   useCartPopup: () => ({ isOpen: true, close: vi.fn(), open: vi.fn() }),
 }));

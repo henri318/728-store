@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
-import { Button } from '@/modules/presentation/components/button';
-import { EyeToggleWrapper } from '@/modules/presentation/components/eye-toggle-wrapper';
-import { PasswordStrengthIndicator } from '@/modules/presentation/components/password-strength-indicator';
+import { Button } from '@/shared/ui/button';
+import { EyeToggleWrapper } from '@/shared/ui/eye-toggle-wrapper';
+import { PasswordStrengthIndicator } from '@/shared/ui/password-strength-indicator';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 import styles from './page.module.css';
 

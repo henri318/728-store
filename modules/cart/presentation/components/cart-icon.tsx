@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
 import { useCartPopup } from './cart-popup-context';
-import styles from './header-nav.module.css';
+import styles from '@/shared/layout/header-nav.module.css';
 
 const CART_UPDATED_EVENT = 'cart:updated';
 

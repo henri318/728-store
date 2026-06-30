@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
-import { DeleteConfirmModal } from '@/shared/presentation/components/delete-confirm-modal';
+import { DeleteConfirmModal } from '@/shared/ui/delete-confirm-modal';
 import styles from './product-actions.module.css';
 
 interface ProductActionsProps {

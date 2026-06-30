@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import { container } from '@/composition-root/container';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
-import { HeroSection } from '@/shared/presentation/components/hero-section';
-import { MiddleSection } from '@/shared/presentation/components/middle-section';
-import { WaveTransition } from '@/shared/presentation/components/wave-transition';
-import { BottomSection } from '@/shared/presentation/components/bottom-section';
-import { AddToCartButton } from '@/components/cart/add-to-cart-button';
+import { HeroSection } from '@/shared/ui/hero-section';
+import { MiddleSection } from '@/shared/ui/middle-section';
+import { WaveTransition } from '@/shared/ui/wave-transition';
+import { BottomSection } from '@/shared/ui/bottom-section';
+import { AddToCartButton } from '@/modules/cart/presentation/components/add-to-cart-button';
 import styles from './page.module.css';
 
 export default async function HomePage({

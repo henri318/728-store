@@ -5,9 +5,9 @@ import { listSellersQuerySchema } from '@/modules/sellers/presentation/schemas/s
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { assertRole } from '@/shared/authorization/authorization';
 import { LocalizedDate } from '@/shared/kernel/domain/value-objects/localized-date';
-import { SellerActions } from './seller-actions';
-import { SellerDelete } from './seller-delete';
-import { SearchForm } from '@/shared/presentation/components/search-form';
+import { SellerActions } from '@/modules/sellers/presentation/components/seller-actions';
+import { SellerDelete } from '@/modules/sellers/presentation/components/seller-delete';
+import { SearchForm } from '@/shared/ui/search-form';
 import styles from './page.module.css';
 
 const PAGE_SIZE = 20;

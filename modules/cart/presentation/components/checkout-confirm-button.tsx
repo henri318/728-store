@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
-import { Modal } from '@/modules/presentation/components/modal';
+import { Modal } from '@/shared/ui/modal';
 import { Money } from '@/shared/kernel/domain/value-objects/money';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import styles from './checkout-confirm-button.module.css';

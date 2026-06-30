@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { DeleteConfirmModal } from '@/shared/presentation/components/delete-confirm-modal';
+import { DeleteConfirmModal } from '@/shared/ui/delete-confirm-modal';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 import styles from './seller-delete.module.css';
 

@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { X } from 'lucide-react';
-import { Modal } from '@/modules/presentation/components/modal';
-import { Input } from '@/modules/presentation/components/input';
-import { Button } from '@/modules/presentation/components/button';
-import { EyeToggleWrapper } from '@/modules/presentation/components/eye-toggle-wrapper';
+import { Modal } from '@/shared/ui/modal';
+import { Input } from '@/shared/ui/input';
+import { Button } from '@/shared/ui/button';
+import { EyeToggleWrapper } from '@/shared/ui/eye-toggle-wrapper';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 import styles from './login-modal.module.css';
 

@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Input } from '@/modules/presentation/components/input';
-import { Button } from '@/modules/presentation/components/button';
-import { ErrorMessage } from '@/modules/presentation/components/error-message';
+import { Input } from '@/shared/ui/input';
+import { Button } from '@/shared/ui/button';
+import { ErrorMessage } from '@/shared/ui/error-message';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 import styles from './page.module.css';
 

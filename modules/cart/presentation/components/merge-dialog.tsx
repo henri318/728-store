@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Modal } from '@/modules/presentation/components/modal';
+import { Modal } from '@/shared/ui/modal';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
 import type { MergeStrategy } from '@/modules/cart/application/migrate-guest-cart';
 import styles from './merge-dialog.module.css';
