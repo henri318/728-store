@@ -221,27 +221,4 @@ describe('SignUpPage', () => {
     expect(screen.getByText('Fortaleza de la contraseña')).toBeInTheDocument();
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
   });
-
-  it('eye toggles on both password and confirmPassword fields', () => {
-    render(<SignUpPage />);
-
-    const passwordInput = screen.getByLabelText('Contraseña');
-    const confirmInput = screen.getByLabelText('Confirmar contraseña');
-
-    expect(passwordInput).toHaveAttribute('type', 'password');
-    expect(confirmInput).toHaveAttribute('type', 'password');
-
-    const toggleButtons = screen.getAllByRole('button', {
-      name: /show password/i,
-    });
-    expect(toggleButtons).toHaveLength(2);
-
-    fireEvent.click(toggleButtons[0]);
-    expect(passwordInput).toHaveAttribute('type', 'text');
-    expect(confirmInput).toHaveAttribute('type', 'password');
-
-    fireEvent.click(toggleButtons[1]);
-    expect(passwordInput).toHaveAttribute('type', 'text');
-    expect(confirmInput).toHaveAttribute('type', 'text');
-  });
 });

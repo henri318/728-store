@@ -9,50 +9,43 @@ describe('SocialFooter', () => {
     expect(links.length).toBe(5);
   });
 
-  it('renders facebook link with correct sprite href', () => {
+  it('renders the expected social link labels', () => {
     render(<SocialFooter />);
-    const fbLink = screen.getByLabelText('Facebook');
-    const use = fbLink.querySelector('use');
-    expect(use).toHaveAttribute('href', '/img/sprites.svg#icon-facebook');
+
+    for (const label of [
+      'Facebook',
+      'Instagram',
+      'TikTok',
+      'WhatsApp',
+      'Email',
+    ]) {
+      expect(screen.getByRole('link', { name: label })).toBeInTheDocument();
+    }
   });
 
-  it('renders instagram link with correct sprite href', () => {
+  it('opens links in a new tab', () => {
     render(<SocialFooter />);
-    const igLink = screen.getByLabelText('Instagram');
-    const use = igLink.querySelector('use');
-    expect(use).toHaveAttribute('href', '/img/sprites.svg#icon-instagram');
-  });
 
-  it('renders tiktok link', () => {
-    render(<SocialFooter />);
-    const ttLink = screen.getByLabelText('TikTok');
-    expect(ttLink).toBeTruthy();
-  });
-
-  it('renders whatsapp link', () => {
-    render(<SocialFooter />);
-    const waLink = screen.getByLabelText('WhatsApp');
-    expect(waLink).toBeTruthy();
-  });
-
-  it('renders email link', () => {
-    render(<SocialFooter />);
-    const emailLink = screen.getByLabelText('Email');
-    expect(emailLink).toBeTruthy();
-  });
-
-  it('applies the footer container class', () => {
-    const { container } = render(<SocialFooter />);
-    const footer = container.firstChild as HTMLElement;
-    const className = footer.getAttribute('class') ?? '';
-    expect(className).toMatch(/footer/);
-  });
-
-  it('links open in new tab', () => {
-    render(<SocialFooter />);
-    const links = screen.getAllByRole('link');
-    links.forEach((link) => {
+    screen.getAllByRole('link').forEach((link) => {
       expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'));
     });
+  });
+
+  it('uses the expected external destinations for major links', () => {
+    render(<SocialFooter />);
+
+    expect(screen.getByRole('link', { name: 'Facebook' })).toHaveAttribute(
+      'href',
+      'https://facebook.com',
+    );
+    expect(screen.getByRole('link', { name: 'Instagram' })).toHaveAttribute(
+      'href',
+      'https://instagram.com',
+    );
+    expect(screen.getByRole('link', { name: 'Email' })).toHaveAttribute(
+      'href',
+      'mailto:info@728store.com',
+    );
   });
 });

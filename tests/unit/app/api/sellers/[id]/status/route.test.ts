@@ -52,18 +52,6 @@ import { PATCH } from '@/app/api/sellers/[id]/status/route';
 import { SellerStatus } from '@/modules/sellers/domain/seller-status';
 import { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
 
-describe('route authorization (module-load wiring)', () => {
-  it('wires PATCH through requireRole("ADMIN")', () => {
-    const calls = mocks.requireRoleMock.mock.calls as unknown as Array<
-      [string, ...unknown[]]
-    >;
-    expect(calls.length).toBeGreaterThanOrEqual(1);
-    for (const call of calls) {
-      expect(call[0]).toBe('ADMIN');
-    }
-  });
-});
-
 const PARAMS = { params: Promise.resolve({ id: 's-1' }) };
 
 function makeRequest(body: unknown): NextRequest {

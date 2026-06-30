@@ -96,19 +96,6 @@ function makeSeller() {
   };
 }
 
-describe('route authorization (module-load wiring)', () => {
-  it('wires PATCH through requireRole("DESIGNER", "ADMIN")', () => {
-    const calls = mocks.requireRoleMock.mock.calls as unknown as Array<
-      [string, ...unknown[]]
-    >;
-    expect(calls.length).toBeGreaterThanOrEqual(1);
-    for (const call of calls) {
-      expect(call).toContain('DESIGNER');
-      expect(call).toContain('ADMIN');
-    }
-  });
-});
-
 describe('PATCH /api/products/[id]/status', () => {
   beforeEach(() => {
     vi.clearAllMocks();

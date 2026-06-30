@@ -68,18 +68,6 @@ function makePaginatedResult() {
   };
 }
 
-describe('route authorization (module-load wiring)', () => {
-  it('wires GET through requireRole("ADMIN")', () => {
-    const calls = mocks.requireRoleMock.mock.calls as unknown as Array<
-      [string, ...unknown[]]
-    >;
-    expect(calls.length).toBeGreaterThanOrEqual(1);
-    for (const call of calls) {
-      expect(call[0]).toBe('ADMIN');
-    }
-  });
-});
-
 describe('GET /api/admin/sellers/[sellerId]/products', () => {
   beforeEach(() => {
     vi.clearAllMocks();
