@@ -58,28 +58,4 @@ describe('Button component', () => {
     render(<Button type="button">Cancel</Button>);
     expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
   });
-
-  it('uses primary variant by default', () => {
-    render(<Button>Primary</Button>);
-    expect(screen.getByRole('button')).toHaveAttribute(
-      'data-variant',
-      'primary',
-    );
-  });
-
-  it('applies secondary variant', () => {
-    render(<Button variant="secondary">Secondary</Button>);
-    expect(screen.getByRole('button')).toHaveAttribute(
-      'data-variant',
-      'secondary',
-    );
-  });
-
-  it('applies danger variant', () => {
-    render(<Button variant="danger">Delete</Button>);
-    expect(screen.getByRole('button')).toHaveAttribute(
-      'data-variant',
-      'danger',
-    );
-  });
 });

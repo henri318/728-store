@@ -1,10 +1,10 @@
 /* Auto-generated SVG sprite utilities — DO NOT EDIT */
 /*
  * Usage:
- *   <svg class="icon-md" aria-hidden="true"><use href="/img/sprites.svg#icon-profile"></use></svg>
+ *   <svg class="icon-md" aria-hidden="true"><use href="/img/icons/sprites.svg#icon-profile"></use></svg>
  *
  * Or inline without class:
- *   <svg width="24" height="24"><use href="/img/sprites.svg#icon-profile"></use></svg>
+ *   <svg width="24" height="24"><use href="/img/icons/sprites.svg#icon-profile"></use></svg>
  */
 
 /* Base icon sizing */
@@ -14,7 +14,10 @@
 .icon-cart,
 .icon-profile,
 .icon-whatsapp,
-.icon-email {
+.icon-email,
+.icon-add,
+.icon-search,
+.icon-trash {
   display: inline-block;
   vertical-align: middle;
   width: 24px;

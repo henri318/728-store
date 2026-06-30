@@ -7,6 +7,7 @@ import { assertRole } from '@/shared/authorization/authorization';
 import { LocalizedDate } from '@/shared/kernel/domain/value-objects/localized-date';
 import { SellerActions } from './seller-actions';
 import { SellerDelete } from './seller-delete';
+import { SearchForm } from '@/shared/presentation/components/search-form';
 import styles from './page.module.css';
 
 const PAGE_SIZE = 20;
@@ -99,37 +100,25 @@ export default async function AdminSellersPage({
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <div>
-          <h2 className={styles.title}>{dict.admin.sellersTitle}</h2>
+        <h2 className={styles.title}>{dict.admin.sellersTitle}</h2>
+        <div className={styles.headerActions}>
           <a
             href={`/${locale}/admin/sellers/create`}
             className={styles.createButton}
           >
             + {dict.admin.createSeller}
           </a>
+          <SearchForm
+            placeholder={dict.admin.searchSellersPlaceholder}
+            ariaLabel={dict.admin.searchSellers}
+            defaultValue={filter.q ?? ''}
+            hiddenFields={{
+              pageSize: String(pageSize),
+              ...(filter.sortBy ? { sortBy: filter.sortBy } : {}),
+              ...(filter.sortDir ? { sortDir: filter.sortDir } : {}),
+            }}
+          />
         </div>
-        <form className={styles.searchForm} method="get">
-          <label className={styles.searchLabel}>
-            <span className={styles.srOnly}>{dict.admin.searchSellers}</span>
-            <input
-              type="search"
-              name="q"
-              defaultValue={filter.q ?? ''}
-              placeholder={dict.admin.searchSellersPlaceholder}
-              className={styles.searchInput}
-            />
-          </label>
-          <input type="hidden" name="pageSize" value={String(pageSize)} />
-          {filter.sortBy ? (
-            <input type="hidden" name="sortBy" value={filter.sortBy} />
-          ) : null}
-          {filter.sortDir ? (
-            <input type="hidden" name="sortDir" value={filter.sortDir} />
-          ) : null}
-          <button type="submit" className={styles.searchButton}>
-            {dict.admin.searchSellers}
-          </button>
-        </form>
       </div>
       {sellers.length === 0 ? (
         <p className={styles.noSellers}>{dict.admin.noSellers}</p>

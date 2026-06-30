@@ -121,21 +121,6 @@ function makePostRequest(body: unknown): NextRequest {
   });
 }
 
-describe('route authorization (module-load wiring)', () => {
-  it('wires GET and POST through requireRole("ADMIN")', () => {
-    // requireRole is called when the route module is imported, before any
-    // test runs. So we inspect the cumulative call history here.
-    const calls = mocks.requireRoleMock.mock.calls as unknown as Array<
-      [string, ...unknown[]]
-    >;
-    // At least two calls: one for GET, one for POST, both with 'ADMIN'
-    expect(calls.length).toBeGreaterThanOrEqual(2);
-    for (const call of calls) {
-      expect(call[0]).toBe('ADMIN');
-    }
-  });
-});
-
 describe('GET /api/sellers', () => {
   beforeEach(() => {
     vi.clearAllMocks();

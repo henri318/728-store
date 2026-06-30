@@ -22,23 +22,56 @@ import { useSession } from 'next-auth/react';
 
 const mockUseSession = vi.mocked(useSession);
 
+const baseProfileResponse = {
+  id: '1',
+  email: 'test@example.com',
+  firstName: 'John',
+  lastName: 'Doe',
+  address: {
+    street: '123 Main St',
+    city: 'Barcelona',
+    postalCode: '08001',
+    country: 'Spain',
+  },
+  emailVerified: null,
+  createdAt: '2025-01-01T00:00:00.000Z',
+};
+
+type ProfileResponse = Omit<typeof baseProfileResponse, 'address'> & {
+  address: typeof baseProfileResponse.address | null;
+};
+
+const mockAuthenticatedSession = (role: string) => {
+  mockUseSession.mockReturnValue({
+    data: {
+      user: {
+        id: '1',
+        email: 'test@example.com',
+        name: 'John Doe',
+        role,
+        emailVerified: null,
+      },
+      expires: '2099-01-01T00:00:00.000Z',
+    },
+    status: 'authenticated',
+    update: vi.fn(),
+  });
+};
+
+const mockProfileFetch = (profile: Partial<ProfileResponse> = {}) => {
+  mockFetch.mockResolvedValueOnce({
+    ok: true,
+    json: async () => ({
+      ...baseProfileResponse,
+      ...profile,
+    }),
+  });
+};
+
 describe('ProfilePage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseSession.mockReturnValue({
-      data: {
-        user: {
-          id: '1',
-          email: 'test@example.com',
-          name: 'John Doe',
-          role: 'user',
-          emailVerified: null,
-        },
-        expires: '2099-01-01T00:00:00.000Z',
-      },
-      status: 'authenticated',
-      update: vi.fn(),
-    });
+    mockAuthenticatedSession('user');
   });
 
   it('renders loading state initially', () => {
@@ -48,38 +81,8 @@ describe('ProfilePage', () => {
   });
 
   it('fetches and displays user profile data', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        id: '1',
-        email: 'test@example.com',
-        firstName: 'John',
-        lastName: 'Doe',
-        address: {
-          street: '123 Main St',
-          city: 'Barcelona',
-          postalCode: '08001',
-          country: 'Spain',
-        },
-        emailVerified: null,
-        createdAt: '2025-01-01T00:00:00.000Z',
-      }),
-    });
-
-    mockUseSession.mockReturnValue({
-      data: {
-        user: {
-          id: '1',
-          email: 'test@example.com',
-          name: 'John Doe',
-          role: 'CUSTOMER',
-          emailVerified: null,
-        },
-        expires: '2099-01-01T00:00:00.000Z',
-      },
-      status: 'authenticated',
-      update: vi.fn(),
-    });
+    mockProfileFetch();
+    mockAuthenticatedSession('CUSTOMER');
 
     render(<ProfilePage />);
 
@@ -105,18 +108,7 @@ describe('ProfilePage', () => {
   });
 
   it('displays delete account button', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        id: '1',
-        email: 'test@example.com',
-        firstName: 'John',
-        lastName: 'Doe',
-        address: null,
-        emailVerified: null,
-        createdAt: '2025-01-01T00:00:00.000Z',
-      }),
-    });
+    mockProfileFetch({ address: null });
 
     render(<ProfilePage />);
 
@@ -156,38 +148,8 @@ describe('ProfilePage', () => {
   });
 
   it('shows profile form when authenticated', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        id: '1',
-        email: 'test@example.com',
-        firstName: 'John',
-        lastName: 'Doe',
-        address: {
-          street: '123 Main St',
-          city: 'Barcelona',
-          postalCode: '08001',
-          country: 'Spain',
-        },
-        emailVerified: null,
-        createdAt: '2025-01-01T00:00:00.000Z',
-      }),
-    });
-
-    mockUseSession.mockReturnValue({
-      data: {
-        user: {
-          id: '1',
-          email: 'test@example.com',
-          name: 'John Doe',
-          role: 'CUSTOMER',
-          emailVerified: null,
-        },
-        expires: '2099-01-01T00:00:00.000Z',
-      },
-      status: 'authenticated',
-      update: vi.fn(),
-    });
+    mockProfileFetch();
+    mockAuthenticatedSession('CUSTOMER');
 
     render(<ProfilePage />);
 
@@ -202,18 +164,15 @@ describe('ProfilePage', () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        id: '1',
+        ...baseProfileResponse,
         email: 'customer@test.com',
         firstName: 'Jane',
-        lastName: 'Doe',
         address: {
           street: '456 Oak Ave',
           city: 'Madrid',
           postalCode: '28001',
           country: 'Spain',
         },
-        emailVerified: null,
-        createdAt: '2025-01-01T00:00:00.000Z',
       }),
     });
 
@@ -240,132 +199,25 @@ describe('ProfilePage', () => {
     });
   });
 
-  it('hides address section for ADMIN role', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        id: '1',
-        email: 'admin@test.com',
-        firstName: 'Admin',
+  it.each(['SUPPORT', 'DESIGNER'] as const)(
+    'hides address section for %s role even when API returns address data',
+    async (role) => {
+      mockProfileFetch({
+        email: `${role.toLowerCase()}@test.com`,
+        firstName: role,
         lastName: 'User',
-        address: {
-          street: '789 Pine St',
-          city: 'Valencia',
-          postalCode: '46001',
-          country: 'Spain',
-        },
-        emailVerified: null,
-        createdAt: '2025-01-01T00:00:00.000Z',
-      }),
-    });
+      });
+      mockAuthenticatedSession(role);
 
-    mockUseSession.mockReturnValue({
-      data: {
-        user: {
-          id: '1',
-          email: 'admin@test.com',
-          name: 'Admin User',
-          role: 'ADMIN',
-          emailVerified: null,
-        },
-        expires: '2099-01-01T00:00:00.000Z',
-      },
-      status: 'authenticated',
-      update: vi.fn(),
-    });
+      render(<ProfilePage />);
 
-    render(<ProfilePage />);
+      await waitFor(() => {
+        expect(screen.getByLabelText('Nombre')).toHaveValue(role);
+      });
 
-    await waitFor(() => {
-      expect(screen.getByLabelText('Nombre')).toHaveValue('Admin');
-    });
-
-    expect(screen.queryByLabelText('Calle')).toBeNull();
-    expect(screen.queryByLabelText('Ciudad')).toBeNull();
-    expect(screen.queryByLabelText('Código postal')).toBeNull();
-    expect(screen.queryByLabelText('País')).toBeNull();
-  });
-
-  it('hides address section for SUPPORT role', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        id: '1',
-        email: 'support@test.com',
-        firstName: 'Support',
-        lastName: 'User',
-        address: {
-          street: '101 Elm St',
-          city: 'Sevilla',
-          postalCode: '41001',
-          country: 'Spain',
-        },
-        emailVerified: null,
-        createdAt: '2025-01-01T00:00:00.000Z',
-      }),
-    });
-
-    mockUseSession.mockReturnValue({
-      data: {
-        user: {
-          id: '1',
-          email: 'support@test.com',
-          name: 'Support User',
-          role: 'SUPPORT',
-          emailVerified: null,
-        },
-        expires: '2099-01-01T00:00:00.000Z',
-      },
-      status: 'authenticated',
-      update: vi.fn(),
-    });
-
-    render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByLabelText('Nombre')).toHaveValue('Support');
-    });
-
-    expect(screen.queryByLabelText('Calle')).toBeNull();
-    expect(screen.queryByLabelText('Ciudad')).toBeNull();
-  });
-
-  it('hides address section for DESIGNER role', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        id: '1',
-        email: 'designer@test.com',
-        firstName: 'Art',
-        lastName: 'Designer',
-        address: null,
-        emailVerified: null,
-        createdAt: '2025-01-01T00:00:00.000Z',
-      }),
-    });
-
-    mockUseSession.mockReturnValue({
-      data: {
-        user: {
-          id: '1',
-          email: 'designer@test.com',
-          name: 'Art Designer',
-          role: 'DESIGNER',
-          emailVerified: null,
-        },
-        expires: '2099-01-01T00:00:00.000Z',
-      },
-      status: 'authenticated',
-      update: vi.fn(),
-    });
-
-    render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByLabelText('Nombre')).toHaveValue('Art');
-    });
-
-    expect(screen.queryByLabelText('Calle')).toBeNull();
-    expect(screen.queryByLabelText('Ciudad')).toBeNull();
-  });
+      for (const label of ['Calle', 'Ciudad', 'Código postal', 'País']) {
+        expect(screen.queryByLabelText(label)).toBeNull();
+      }
+    },
+  );
 });

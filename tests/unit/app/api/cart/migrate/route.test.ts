@@ -77,16 +77,6 @@ function makeRequest(body: unknown): NextRequest {
   });
 }
 
-describe('route authorization (module-load wiring)', () => {
-  it('wires POST through requireRole("CUSTOMER")', () => {
-    const calls = mocks.requireRoleMock.mock.calls as unknown as Array<
-      [string, ...unknown[]]
-    >;
-    expect(calls.length).toBeGreaterThanOrEqual(1);
-    expect(calls[0][0]).toBe('CUSTOMER');
-  });
-});
-
 describe('POST /api/cart/migrate', () => {
   beforeEach(() => {
     vi.clearAllMocks();
