@@ -183,7 +183,8 @@
       "nameLabel": "Nom del negoci",
       "descriptionLabel": "Descripció",
       "save": "Desar",
-      "saved": "Desat"
+      "saved": "Desat",
+      "error": "Error en desar el venedor"
     }
   }
 }

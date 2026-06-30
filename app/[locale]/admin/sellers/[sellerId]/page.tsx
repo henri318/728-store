@@ -71,6 +71,7 @@ export default async function AdminSellerDetailPage({
         descriptionLabel={dict.admin.sellerDetail.descriptionLabel}
         saveLabel={dict.admin.sellerDetail.save}
         savedLabel={dict.admin.sellerDetail.saved}
+        errorLabel={dict.admin.sellerDetail.error}
         initialName={seller.name}
         initialDescription={seller.description ?? ''}
       />

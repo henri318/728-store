@@ -183,7 +183,8 @@
       "nameLabel": "Nombre del negocio",
       "descriptionLabel": "Descripción",
       "save": "Guardar",
-      "saved": "Guardado"
+      "saved": "Guardado",
+      "error": "Error al guardar el vendedor"
     }
   }
 }

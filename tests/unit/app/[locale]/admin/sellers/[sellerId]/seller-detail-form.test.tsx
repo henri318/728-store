@@ -30,6 +30,7 @@ describe('SellerDetailForm', () => {
         descriptionLabel="Description"
         saveLabel="Save"
         savedLabel="Saved"
+        errorLabel="Failed to save seller"
         initialName="Test Shop"
         initialDescription="Test description"
       />,
@@ -57,6 +58,7 @@ describe('SellerDetailForm', () => {
         descriptionLabel="Description"
         saveLabel="Save"
         savedLabel="Saved"
+        errorLabel="Failed to save seller"
         initialName="Test Shop"
         initialDescription="Test description"
       />,
@@ -89,6 +91,7 @@ describe('SellerDetailForm', () => {
         descriptionLabel="Description"
         saveLabel="Save"
         savedLabel="Saved"
+        errorLabel="Failed to save seller"
         initialName="Test Shop"
         initialDescription="Test description"
       />,
@@ -127,6 +130,7 @@ describe('SellerDetailForm', () => {
         descriptionLabel="Description"
         saveLabel="Save"
         savedLabel="Saved"
+        errorLabel="Failed to save seller"
         initialName="Test Shop"
         initialDescription="Test description"
       />,

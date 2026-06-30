@@ -10,6 +10,7 @@ export interface SellerDetailDictionary {
   descriptionLabel: string;
   save: string;
   saved: string;
+  error: string;
 }
 
 export interface AdminDictionary {

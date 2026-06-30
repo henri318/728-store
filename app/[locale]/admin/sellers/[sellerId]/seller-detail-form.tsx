@@ -11,6 +11,7 @@ interface SellerDetailFormProps {
   descriptionLabel: string;
   saveLabel: string;
   savedLabel: string;
+  errorLabel: string;
   initialName: string;
   initialDescription: string;
 }
@@ -21,6 +22,7 @@ export function SellerDetailForm({
   descriptionLabel,
   saveLabel,
   savedLabel,
+  errorLabel,
   initialName,
   initialDescription,
 }: SellerDetailFormProps) {
@@ -63,16 +65,12 @@ export function SellerDetailForm({
           }
         }
 
-        throw new Error(errorMessage || 'Failed to save seller');
+        throw new Error(errorMessage || errorLabel);
       }
 
       setSaved(savedLabel);
     } catch (submitError: unknown) {
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : 'Failed to save seller',
-      );
+      setError(submitError instanceof Error ? submitError.message : errorLabel);
     } finally {
       setLoading(false);
     }

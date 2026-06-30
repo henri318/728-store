@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 import { ConfirmModal } from '@/shared/presentation/components/confirm-modal';
 import styles from './product-actions.module.css';
@@ -20,6 +21,7 @@ export function ProductActions({
   currentStatus,
 }: ProductActionsProps) {
   const dict = useDictionary();
+  const router = useRouter();
   const [status, setStatus] = useState(currentStatus);
   const [loading, setLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -51,6 +53,7 @@ export function ProductActions({
 
       const data = await res.json();
       setStatus(data.status);
+      router.refresh();
     } catch (error) {
       console.error('Failed to change product status:', error);
     } finally {

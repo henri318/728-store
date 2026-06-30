@@ -5,12 +5,17 @@ import userEvent from '@testing-library/user-event';
 const mocks = vi.hoisted(() => {
   const fetchMock = vi.fn();
   const useDictionaryMock = vi.fn();
+  const refreshMock = vi.fn();
 
-  return { fetchMock, useDictionaryMock };
+  return { fetchMock, useDictionaryMock, refreshMock };
 });
 
 vi.mock('@/shared/i18n/dictionary-context', () => ({
   useDictionary: mocks.useDictionaryMock,
+}));
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ refresh: mocks.refreshMock }),
 }));
 
 globalThis.fetch = mocks.fetchMock as typeof fetch;
