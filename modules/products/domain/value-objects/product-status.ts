@@ -4,13 +4,14 @@
  * Follows the SellerStatus pattern exactly:
  *  - Enum with string values
  *  - VALID_TRANSITIONS map for state machine enforcement
- *  - ARCHIVED is terminal (no outgoing transitions)
+ *  - ELIMINATED is terminal (no outgoing transitions)
  *  - Same-status transitions are no-ops (handled by use case)
  */
 export enum ProductStatus {
   DRAFT = 'DRAFT',
   ACTIVE = 'ACTIVE',
   ARCHIVED = 'ARCHIVED',
+  ELIMINATED = 'ELIMINATED',
 }
 
 /**
@@ -18,13 +19,24 @@ export enum ProductStatus {
  * A missing key means the status is terminal (no outgoing transitions).
  *
  * Rules:
- *  - DRAFT   → [ACTIVE]           (must publish before archiving)
- *  - ACTIVE  → [ARCHIVED]         (can archive directly)
- *  - ARCHIVED → (none — terminal)  (no further transitions)
+ *  - DRAFT   → [ACTIVE, ELIMINATED]       (can publish or delete)
+ *  - ACTIVE  → [ARCHIVED, ELIMINATED]     (can suspend or delete)
+ *  - ARCHIVED → [ACTIVE, ELIMINATED]      (can reactivate or delete)
+ *  - ELIMINATED → (none — terminal)       (no further transitions)
  */
 export const VALID_TRANSITIONS: Readonly<
   Partial<Record<ProductStatus, readonly ProductStatus[]>>
 > = Object.freeze({
-  [ProductStatus.DRAFT]: Object.freeze([ProductStatus.ACTIVE]),
-  [ProductStatus.ACTIVE]: Object.freeze([ProductStatus.ARCHIVED]),
+  [ProductStatus.DRAFT]: Object.freeze([
+    ProductStatus.ACTIVE,
+    ProductStatus.ELIMINATED,
+  ]),
+  [ProductStatus.ACTIVE]: Object.freeze([
+    ProductStatus.ARCHIVED,
+    ProductStatus.ELIMINATED,
+  ]),
+  [ProductStatus.ARCHIVED]: Object.freeze([
+    ProductStatus.ACTIVE,
+    ProductStatus.ELIMINATED,
+  ]),
 });

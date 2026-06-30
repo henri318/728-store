@@ -77,13 +77,30 @@ async function main() {
     `  ✓ Admin user created: ${adminUser.firstName} ${adminUser.lastName} (${adminUser.email})`,
   );
 
-  // 3. Create Seller (the company/store) linked to admin user
+  // 3. Create designer user (DESIGNER role, verified email)
+  const designerPasswordHash = await bcrypt.hash('Designer123!', BCRYPT_COST);
+  const designerUser = await prisma.user.create({
+    data: {
+      firstName: 'Designer',
+      lastName: 'User',
+      email: 'designer@test.com',
+      passwordHash: designerPasswordHash,
+      role: 'DESIGNER',
+      emailVerified: new Date(),
+      preferredLanguage: 'es',
+    },
+  });
+  console.log(
+    `  ✓ Designer user created: ${designerUser.firstName} ${designerUser.lastName} (${designerUser.email})`,
+  );
+
+  // 4. Create Seller (the company/store) linked to designer user
   const seller = await prisma.seller.create({
     data: {
       name: '728 Store',
       description:
         'Tienda oficial de 728 Store — productos personalizados de calidad.',
-      userId: adminUser.id,
+      userId: designerUser.id,
       status: 'active',
     },
   });
@@ -91,7 +108,7 @@ async function main() {
     `  ✓ Seller created: ${seller.name} (${seller.id}, linked to user: ${seller.userId})`,
   );
 
-  // 3. Create Products with i18n translations
+  // 5. Create Products with i18n translations
   const productsData = [
     {
       basePrice: 25.0,
@@ -157,7 +174,7 @@ async function main() {
     console.log(`  ✓ Product created: ${product.id}`);
   }
 
-  // 4. Create test user (customer role, verified email)
+  // 6. Create test user (customer role, verified email)
   const passwordHash = await bcrypt.hash('Test123!', BCRYPT_COST);
   const user = await prisma.user.create({
     data: {
@@ -175,23 +192,6 @@ async function main() {
   );
   console.log(`    → Email: test@test.com`);
   console.log(`    → Password: Test123!`);
-
-  // 5. Create designer user (DESIGNER role, verified email)
-  const designerPasswordHash = await bcrypt.hash('Designer123!', BCRYPT_COST);
-  const designerUser = await prisma.user.create({
-    data: {
-      firstName: 'Designer',
-      lastName: 'User',
-      email: 'designer@test.com',
-      passwordHash: designerPasswordHash,
-      role: 'DESIGNER',
-      emailVerified: new Date(),
-      preferredLanguage: 'es',
-    },
-  });
-  console.log(
-    `  ✓ Designer user created: ${designerUser.firstName} ${designerUser.lastName} (***@test.com)`,
-  );
 
   console.log('\n✅ Seed complete!');
 }

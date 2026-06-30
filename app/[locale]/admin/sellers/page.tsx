@@ -70,6 +70,19 @@ export default async function AdminSellersPage({
   const result = await useCase.execute(filter);
   const { items: sellers, page: currentPage, pageSize, totalPages } = result;
 
+  function getStatusLabel(status: string): string {
+    switch (status) {
+      case 'active':
+        return dict.admin.status_active;
+      case 'suspended':
+        return dict.admin.status_suspended;
+      case 'banned':
+        return dict.admin.status_banned;
+      default:
+        return status;
+    }
+  }
+
   // Redirect to valid page if current page is out of range
   if (currentPage > totalPages && totalPages > 0) {
     redirect(
@@ -145,9 +158,7 @@ export default async function AdminSellersPage({
                       data-testid={`status-badge-${seller.sellerId.value}`}
                       data-status={seller.status}
                     >
-                      {dict.admin[
-                        `status_${seller.status}` as keyof typeof dict.admin
-                      ] ?? seller.status}
+                      {getStatusLabel(seller.status)}
                     </span>
                   </td>
                   <td className={styles.dateCell}>
@@ -160,6 +171,12 @@ export default async function AdminSellersPage({
                         className={styles.viewProducts}
                       >
                         {dict.admin.viewProducts}
+                      </a>
+                      <a
+                        href={`/${locale}/admin/sellers/${seller.sellerId.value}`}
+                        className={styles.editLink}
+                      >
+                        {dict.admin.edit}
                       </a>
                       <SellerActions
                         sellerId={seller.sellerId.value}

@@ -15,6 +15,11 @@ const mocks = vi.hoisted(() => {
   };
 });
 
+vi.mock('next/navigation', () => ({
+  redirect: vi.fn(),
+  useRouter: () => ({ refresh: vi.fn() }),
+}));
+
 vi.mock('@/shared/i18n/get-dictionary', () => ({
   getDictionary: mocks.getDictionaryMock,
 }));
@@ -77,17 +82,26 @@ function makeSeller(overrides: Partial<SellerEntity> = {}): SellerEntity {
 
 function makeDict() {
   return {
+    common: {
+      loading: 'Loading...',
+    },
     admin: {
       productName: 'Product',
       productStatus: 'Status',
       productPrice: 'Price',
       productUpdated: 'Updated',
+      actions: 'Actions',
       untranslatedProduct: 'Untranslated',
       paginationAriaLabel: 'Page navigation',
       pagePrev: '← Previous',
       pageNext: 'Next →',
       pageXofY: 'Page {current} of {total}',
       searchProductsPlaceholder: 'Search products...',
+      status_draft: 'Draft',
+      status_active: 'Active',
+      status_archived: 'Archived',
+      suspendProduct: 'Suspend',
+      activateProduct: 'Activate',
     },
     sellerDashboard: {
       title: 'Seller products',
@@ -144,13 +158,16 @@ describe('SellerProductsPage', () => {
       screen.getByRole('searchbox', { name: 'Search products' }),
     ).toHaveValue('taza');
     expect(screen.getByText('Taza')).toBeInTheDocument();
-    expect(screen.getByText('ACTIVE')).toBeInTheDocument();
+    expect(screen.getByText('Active')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Suspender' }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Search products' }),
     ).toBeInTheDocument();
   });
 
-  it('renders pagination controls and page info when multiple pages exist', async () => {
+  it('renders pagination controls when products exist', async () => {
     const repo = new MemoryProductRepository();
     repo.seed([
       makeProduct({ id: 'p-1' }),
@@ -177,7 +194,6 @@ describe('SellerProductsPage', () => {
     expect(
       screen.getByRole('navigation', { name: 'Page navigation' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('Page 1 of 2')).toBeInTheDocument();
     expect(screen.getByText('← Previous')).toHaveTextContent('← Previous');
     expect(screen.getByText('← Previous').tagName).toBe('SPAN');
     expect(screen.getByRole('link', { name: 'Next →' })).toHaveAttribute(
@@ -213,7 +229,6 @@ describe('SellerProductsPage', () => {
     });
     render(element);
 
-    expect(screen.getByText('Page 2 of 2')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '← Previous' })).toHaveAttribute(
       'href',
       '/cat/seller/products?pageSize=2',

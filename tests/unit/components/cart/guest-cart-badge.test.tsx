@@ -15,6 +15,7 @@ vi.mock('@/modules/cart/presentation/guest-cart-context', () => ({
 // Mock next/navigation for usePathname
 vi.mock('next/navigation', () => ({
   usePathname: vi.fn(() => '/es/some-page'),
+  useRouter: () => ({ refresh: vi.fn() }),
 }));
 
 import { useSession } from 'next-auth/react';

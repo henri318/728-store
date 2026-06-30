@@ -134,9 +134,17 @@
     "sellerStatus": "Estat",
     "sellerCreated": "Creat",
     "actions": "Accions",
+    "edit": "Editar",
     "viewProducts": "Veure productes",
     "suspend": "Suspendre",
     "activate": "Activar",
+    "status_draft": "Esborrany",
+    "status_archived": "Arxivat",
+    "status_eliminated": "Eliminat",
+    "suspendProduct": "Suspendre",
+    "activateProduct": "Activar",
+    "eliminateProduct": "Eliminar",
+    "eliminateProductConfirm": "Estàs segur d'eliminar aquest producte? Aquesta acció no es pot desfer.",
     "ban": "Banejar",
     "status_active": "Actiu",
     "status_suspended": "Sospès",
@@ -169,6 +177,14 @@
     "searchProducts": "Cercar productes",
     "productCount": "{total} productes",
     "untranslatedProduct": "Sense traducció",
-    "paginationAriaLabel": "Paginació"
+    "paginationAriaLabel": "Paginació",
+    "sellerDetail": {
+      "editTitle": "Editar venedor",
+      "nameLabel": "Nom del negoci",
+      "descriptionLabel": "Descripció",
+      "save": "Desar",
+      "saved": "Desat",
+      "error": "Error en desar el venedor"
+    }
   }
 }

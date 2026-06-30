@@ -188,6 +188,26 @@
   color: var(--color-white);
 }
 
+.editLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--color-green-dark);
+  border-radius: 4px;
+  color: var(--color-green-dark);
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-medium);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.editLink:hover {
+  background: var(--color-green-dark);
+  color: var(--color-white);
+}
+
 .noSellers {
   text-align: center;
   padding: var(--spacing-xl);

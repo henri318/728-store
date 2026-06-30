@@ -171,6 +171,34 @@
   pointer-events: none;
 }
 
+.statusBadge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-medium);
+}
+
+.statusBadge[data-status='active'] {
+  background: var(--color-green-light);
+  color: var(--color-green-dark);
+}
+
+.statusBadge[data-status='draft'] {
+  background: var(--color-lila);
+  color: var(--color-white);
+}
+
+.statusBadge[data-status='archived'] {
+  background: var(--color-coral);
+  color: var(--color-white);
+}
+
+.statusBadge[data-status='eliminated'] {
+  background: var(--color-gray);
+  color: var(--color-white);
+}
+
 @media (max-width: 720px) {
   .header {
     flex-direction: column;
