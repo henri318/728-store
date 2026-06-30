@@ -14,9 +14,11 @@ vi.mock('@/shared/i18n/dictionary-context', () => ({
   useDictionary: mocks.useDictionaryMock,
 }));
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ refresh: mocks.refreshMock }),
-}));
+vi.mock('next/navigation', () => {
+  return {
+    useRouter: () => ({ refresh: mocks.refreshMock }),
+  };
+});
 
 globalThis.fetch = mocks.fetchMock as typeof fetch;
 
