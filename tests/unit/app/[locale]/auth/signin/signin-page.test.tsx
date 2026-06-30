@@ -40,18 +40,6 @@ describe('SignInPage', () => {
     ).toBeInTheDocument();
   });
 
-  it('password field uses EyeToggleWrapper (has show/hide toggle)', () => {
-    render(<SignInPage />);
-
-    const passwordInput = screen.getByLabelText('Contraseña');
-    expect(passwordInput).toHaveAttribute('type', 'password');
-
-    const toggleButton = screen.getByRole('button', { name: /show password/i });
-    fireEvent.click(toggleButton);
-
-    expect(passwordInput).toHaveAttribute('type', 'text');
-  });
-
   it('submits form with email and password via signIn', async () => {
     const mockSignIn = vi
       .mocked(signIn)

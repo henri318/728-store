@@ -8,77 +8,30 @@ import {
 
 describe('cart-schemas', () => {
   describe('addItemSchema', () => {
-    it('accepts valid input with productId and quantity', () => {
-      const result = addItemSchema.safeParse({
-        productId: 'prod_123',
-        quantity: 2,
-      });
+    it.each([
+      {
+        title: 'defaults customizationIdList when omitted',
+        input: { productId: 'prod_123', quantity: 1 },
+        customizationIdList: [],
+      },
+      {
+        title: 'preserves a populated customizationIdList',
+        input: {
+          productId: 'prod_123',
+          quantity: 1,
+          customizationIdList: ['cust-1', 'cust-2'],
+        },
+        customizationIdList: ['cust-1', 'cust-2'],
+      },
+    ])('$title', ({ input, customizationIdList }) => {
+      const result = addItemSchema.safeParse(input);
+
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.productId).toBe('prod_123');
-        expect(result.data.quantity).toBe(2);
-        expect(result.data.customizationIdList).toEqual([]);
+        expect(result.data.quantity).toBe(1);
+        expect(result.data.customizationIdList).toEqual(customizationIdList);
       }
-    });
-
-    it('accepts valid input with customizationIdList', () => {
-      const result = addItemSchema.safeParse({
-        productId: 'prod_123',
-        quantity: 1,
-        customizationIdList: ['cust-1', 'cust-2'],
-      });
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.customizationIdList).toEqual(['cust-1', 'cust-2']);
-      }
-    });
-
-    it('defaults customizationIdList to empty array when omitted', () => {
-      const result = addItemSchema.safeParse({
-        productId: 'prod_123',
-        quantity: 1,
-      });
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.customizationIdList).toEqual([]);
-      }
-    });
-
-    it('rejects missing productId', () => {
-      const result = addItemSchema.safeParse({ quantity: 1 });
-      expect(result.success).toBe(false);
-    });
-
-    it('rejects empty productId', () => {
-      const result = addItemSchema.safeParse({
-        productId: '',
-        quantity: 1,
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('rejects quantity less than 1', () => {
-      const result = addItemSchema.safeParse({
-        productId: 'prod_123',
-        quantity: 0,
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('rejects quantity greater than 99', () => {
-      const result = addItemSchema.safeParse({
-        productId: 'prod_123',
-        quantity: 100,
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('rejects non-integer quantity', () => {
-      const result = addItemSchema.safeParse({
-        productId: 'prod_123',
-        quantity: 1.5,
-      });
-      expect(result.success).toBe(false);
     });
 
     it('coerces string quantity to number', () => {
@@ -86,181 +39,149 @@ describe('cart-schemas', () => {
         productId: 'prod_123',
         quantity: '5',
       });
+
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.quantity).toBe(5);
       }
     });
 
-    it('rejects customizationIdList with empty string IDs', () => {
-      const result = addItemSchema.safeParse({
-        productId: 'prod_123',
-        quantity: 1,
-        customizationIdList: [''],
-      });
-      expect(result.success).toBe(false);
+    it('rejects invalid product and quantity combinations', () => {
+      for (const input of [
+        { quantity: 1 },
+        { productId: '', quantity: 1 },
+        { productId: 'prod_123', quantity: 0 },
+        { productId: 'prod_123', quantity: 100 },
+        { productId: 'prod_123', quantity: 1.5 },
+      ]) {
+        expect(addItemSchema.safeParse(input).success).toBe(false);
+      }
     });
 
-    it('rejects non-array customizationIdList', () => {
-      const result = addItemSchema.safeParse({
-        productId: 'prod_123',
-        quantity: 1,
-        customizationIdList: 'not-an-array',
-      });
-      expect(result.success).toBe(false);
+    it('rejects invalid customizationIdList values', () => {
+      for (const input of [
+        { productId: 'prod_123', quantity: 1, customizationIdList: [''] },
+        {
+          productId: 'prod_123',
+          quantity: 1,
+          customizationIdList: 'not-an-array',
+        },
+      ]) {
+        expect(addItemSchema.safeParse(input).success).toBe(false);
+      }
     });
   });
 
   describe('updateQuantitySchema', () => {
     it('accepts valid quantity', () => {
       const result = updateQuantitySchema.safeParse({ quantity: 5 });
+
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.quantity).toBe(5);
       }
     });
 
-    it('rejects quantity less than 1', () => {
-      const result = updateQuantitySchema.safeParse({ quantity: 0 });
-      expect(result.success).toBe(false);
-    });
-
-    it('rejects quantity greater than 99', () => {
-      const result = updateQuantitySchema.safeParse({ quantity: 100 });
-      expect(result.success).toBe(false);
-    });
-
     it('coerces string quantity to number', () => {
       const result = updateQuantitySchema.safeParse({ quantity: '10' });
+
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.quantity).toBe(10);
       }
     });
+
+    it('rejects invalid quantity values', () => {
+      for (const input of [
+        { quantity: 0 },
+        { quantity: 100 },
+        { quantity: 1.5 },
+      ]) {
+        expect(updateQuantitySchema.safeParse(input).success).toBe(false);
+      }
+    });
   });
 
   describe('confirmCheckoutSchema', () => {
-    it('accepts acceptPriceChanges=true', () => {
-      const result = confirmCheckoutSchema.safeParse({
-        acceptPriceChanges: true,
-      });
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.acceptPriceChanges).toBe(true);
+    it('accepts boolean values and rejects invalid input', () => {
+      for (const value of [true, false]) {
+        const result = confirmCheckoutSchema.safeParse({
+          acceptPriceChanges: value,
+        });
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data.acceptPriceChanges).toBe(value);
+        }
       }
-    });
 
-    it('accepts acceptPriceChanges=false', () => {
-      const result = confirmCheckoutSchema.safeParse({
-        acceptPriceChanges: false,
-      });
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.acceptPriceChanges).toBe(false);
+      for (const input of [{}, { acceptPriceChanges: 'yes' }]) {
+        expect(confirmCheckoutSchema.safeParse(input).success).toBe(false);
       }
-    });
-
-    it('rejects missing acceptPriceChanges', () => {
-      const result = confirmCheckoutSchema.safeParse({});
-      expect(result.success).toBe(false);
-    });
-
-    it('rejects non-boolean acceptPriceChanges', () => {
-      const result = confirmCheckoutSchema.safeParse({
-        acceptPriceChanges: 'yes',
-      });
-      expect(result.success).toBe(false);
     });
   });
 
   describe('migrateGuestCartSchema', () => {
-    it('accepts valid merge strategy', () => {
-      const result = migrateGuestCartSchema.safeParse({
-        guestItems: [
-          {
-            productId: 'prod_1',
-            sellerId: 'seller_1',
-            quantity: 2,
-            unitPriceSnapshot: 10.5,
-          },
-        ],
-        strategy: 'merge',
-      });
-      expect(result.success).toBe(true);
+    it('accepts valid migration payloads', () => {
+      const validPayloads = [
+        {
+          guestItems: [
+            {
+              productId: 'prod_1',
+              sellerId: 'seller_1',
+              quantity: 2,
+              unitPriceSnapshot: 10.5,
+            },
+          ],
+          strategy: 'merge',
+        },
+        { guestItems: [], strategy: 'keep-server' },
+        { guestItems: [], strategy: 'keep-guest' },
+        {
+          guestItems: [
+            {
+              productId: 'prod_1',
+              sellerId: 'seller_1',
+              quantity: 1,
+              unitPriceSnapshot: 10,
+              customizationText: 'Hello',
+              customizationColor: 'blue',
+              customizationSize: 'L',
+            },
+          ],
+          strategy: 'merge',
+        },
+      ] as const;
+
+      for (const input of validPayloads) {
+        expect(migrateGuestCartSchema.safeParse(input).success).toBe(true);
+      }
     });
 
-    it('accepts keep-server strategy', () => {
-      const result = migrateGuestCartSchema.safeParse({
-        guestItems: [],
-        strategy: 'keep-server',
-      });
-      expect(result.success).toBe(true);
-    });
-
-    it('accepts keep-guest strategy', () => {
-      const result = migrateGuestCartSchema.safeParse({
-        guestItems: [],
-        strategy: 'keep-guest',
-      });
-      expect(result.success).toBe(true);
-    });
-
-    it('rejects invalid strategy', () => {
-      const result = migrateGuestCartSchema.safeParse({
-        guestItems: [],
-        strategy: 'invalid',
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('rejects missing guestItems', () => {
-      const result = migrateGuestCartSchema.safeParse({
-        strategy: 'merge',
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('rejects guestItems with missing productId', () => {
-      const result = migrateGuestCartSchema.safeParse({
-        guestItems: [
-          { sellerId: 'seller_1', quantity: 1, unitPriceSnapshot: 10 },
-        ],
-        strategy: 'merge',
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('rejects guestItems with quantity less than 1', () => {
-      const result = migrateGuestCartSchema.safeParse({
-        guestItems: [
-          {
-            productId: 'prod_1',
-            sellerId: 'seller_1',
-            quantity: 0,
-            unitPriceSnapshot: 10,
-          },
-        ],
-        strategy: 'merge',
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('accepts guestItems with customization fields', () => {
-      const result = migrateGuestCartSchema.safeParse({
-        guestItems: [
-          {
-            productId: 'prod_1',
-            sellerId: 'seller_1',
-            quantity: 1,
-            unitPriceSnapshot: 10,
-            customizationText: 'Hello',
-            customizationColor: 'blue',
-            customizationSize: 'L',
-          },
-        ],
-        strategy: 'merge',
-      });
-      expect(result.success).toBe(true);
+    it('rejects invalid migration payloads', () => {
+      for (const input of [
+        { guestItems: [], strategy: 'invalid' },
+        { strategy: 'merge' },
+        {
+          guestItems: [
+            { sellerId: 'seller_1', quantity: 1, unitPriceSnapshot: 10 },
+          ],
+          strategy: 'merge',
+        },
+        {
+          guestItems: [
+            {
+              productId: 'prod_1',
+              sellerId: 'seller_1',
+              quantity: 0,
+              unitPriceSnapshot: 10,
+            },
+          ],
+          strategy: 'merge',
+        },
+      ]) {
+        expect(migrateGuestCartSchema.safeParse(input).success).toBe(false);
+      }
     });
   });
 });

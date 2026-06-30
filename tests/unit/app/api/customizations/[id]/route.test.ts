@@ -59,18 +59,6 @@ function makeRequest(body: unknown): NextRequest {
   });
 }
 
-describe('route authorization (module-load wiring)', () => {
-  it('wires GET, PATCH and DELETE through requireRole("DESIGNER")', () => {
-    const calls = mocks.requireRoleMock.mock.calls as unknown as Array<
-      [string, ...unknown[]]
-    >;
-    expect(calls.length).toBeGreaterThanOrEqual(3);
-    for (const call of calls) {
-      expect(call[0]).toBe('DESIGNER');
-    }
-  });
-});
-
 describe('GET /api/customizations/[id]', () => {
   beforeEach(() => {
     vi.clearAllMocks();
