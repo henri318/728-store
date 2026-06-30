@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
-import { MergeDialog } from '@/components/cart/merge-dialog';
+import { MergeDialog } from './merge-dialog';
 
 const CART_UPDATED_EVENT = 'cart:updated';
 

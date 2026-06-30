@@ -3,7 +3,7 @@ import { authOptions } from '@/shared/infrastructure/auth-options';
 import { container } from '@/composition-root/container';
 import { GetCart } from '@/modules/cart/application/get-cart';
 import { redirect } from 'next/navigation';
-import { CheckoutConfirmButton } from './checkout-confirm-button';
+import { CheckoutConfirmButton } from '@/modules/cart/presentation/components/checkout-confirm-button';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
 import { Money } from '@/shared/kernel/domain/value-objects/money';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';

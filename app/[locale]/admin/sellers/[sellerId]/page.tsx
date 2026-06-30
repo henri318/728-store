@@ -6,7 +6,7 @@ import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { NotFoundError } from '@/shared/kernel/app-error';
 import { GetSellerUseCase } from '@/modules/sellers/application/use-cases/get-seller-use-case';
 import styles from './page.module.css';
-import { SellerDetailForm } from './seller-detail-form';
+import { SellerDetailForm } from '@/modules/sellers/presentation/components/seller-detail-form';
 
 export default async function AdminSellerDetailPage({
   params,

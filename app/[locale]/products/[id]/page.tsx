@@ -2,7 +2,7 @@ import { container } from '@/composition-root/container';
 import { GetProductByIdUseCase } from '@/modules/products/application/get-product-by-id-use-case';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import Link from 'next/link';
-import { AddToCartButton } from '@/components/cart/add-to-cart-button';
+import { AddToCartButton } from '@/modules/cart/presentation/components/add-to-cart-button';
 import styles from './page.module.css';
 
 export default async function ProductDetailPage({

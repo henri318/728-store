@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { CartView } from '@/app/[locale]/cart/cart-view';
+import { CartView } from '@/modules/cart/presentation/components/cart-view';
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;

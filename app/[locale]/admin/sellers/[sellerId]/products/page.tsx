@@ -8,8 +8,8 @@ import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { assertRole } from '@/shared/authorization/authorization';
 import { LocalizedDate } from '@/shared/kernel/domain/value-objects/localized-date';
 import { PaginationDefaults } from '@/shared/kernel/domain/value-objects/pagination';
-import { ProductActions } from '@/app/[locale]/seller/products/product-actions';
-import { SearchForm } from '@/shared/presentation/components/search-form';
+import { ProductActions } from '@/modules/products/presentation/components/product-actions';
+import { SearchForm } from '@/shared/ui/search-form';
 import styles from './page.module.css';
 
 function buildPageUrl(

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { WaveTransition } from '@/shared/presentation/components/wave-transition';
+import { WaveTransition } from '@/shared/ui/wave-transition';
 
 describe('WaveTransition', () => {
   it('renders the default wave text for users', () => {

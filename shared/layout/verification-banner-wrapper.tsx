@@ -1,7 +1,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { VerifyBanner } from '@/modules/presentation/components/verify-banner';
+import { VerifyBanner } from '@/shared/layout/verify-banner';
 
 export function VerificationBannerWrapper() {
   const { data: session, status } = useSession();

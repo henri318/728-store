@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { LoginModal } from '@/modules/presentation/components/login-modal';
-import { UserMenuDropdown } from '@/modules/presentation/components/user-menu-dropdown';
-import { RoleNavLinks } from '@/modules/presentation/components/role-nav-links';
-import { CartIcon } from '@/modules/presentation/components/cart-icon';
+import { LoginModal } from '@/shared/layout/login-modal';
+import { UserMenuDropdown } from '@/shared/layout/user-menu-dropdown';
+import { RoleNavLinks } from '@/shared/layout/role-nav-links';
+import { CartIcon } from '@/modules/cart/presentation/components/cart-icon';
 import styles from './header-nav.module.css';
 
 interface HeaderNavProps {

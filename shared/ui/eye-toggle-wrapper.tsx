@@ -2,7 +2,7 @@
 
 import { useState, type KeyboardEvent } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { Input } from '@/modules/presentation/components/input';
+import { Input } from '@/shared/ui/input';
 import styles from './eye-toggle-wrapper.module.css';
 
 interface EyeToggleWrapperProps {

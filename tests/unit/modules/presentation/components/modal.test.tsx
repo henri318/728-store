@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { Modal } from '@/modules/presentation/components/modal';
+import { Modal } from '@/shared/ui/modal';
 
 describe('Modal component', () => {
   it('renders children when isOpen is true', () => {

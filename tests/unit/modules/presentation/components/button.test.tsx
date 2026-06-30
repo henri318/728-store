@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { Button } from '@/modules/presentation/components/button';
+import { Button } from '@/shared/ui/button';
 
 describe('Button component', () => {
   it('renders with children text', () => {

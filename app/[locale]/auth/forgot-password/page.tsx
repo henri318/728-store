@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Input } from '@/modules/presentation/components/input';
-import { Button } from '@/modules/presentation/components/button';
+import { Input } from '@/shared/ui/input';
+import { Button } from '@/shared/ui/button';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 import styles from './page.module.css';
 

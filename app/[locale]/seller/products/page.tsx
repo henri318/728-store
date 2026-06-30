@@ -9,8 +9,8 @@ import type { ProductEntity } from '@/modules/products/domain/product-repository
 import { LocalizedDate } from '@/shared/kernel/domain/value-objects/localized-date';
 import { PaginationDefaults } from '@/shared/kernel/domain/value-objects/pagination';
 import type { PaginatedResult } from '@/shared/kernel/domain/value-objects/pagination';
-import { SearchForm } from '@/shared/presentation/components/search-form';
-import { ProductActions } from './product-actions';
+import { SearchForm } from '@/shared/ui/search-form';
+import { ProductActions } from '@/modules/products/presentation/components/product-actions';
 import styles from './page.module.css';
 
 function buildPageUrl(
