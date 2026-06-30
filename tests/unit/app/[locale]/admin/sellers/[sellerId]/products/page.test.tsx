@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => {
 
 vi.mock('next/navigation', () => ({
   redirect: vi.fn(),
+  useRouter: () => ({ refresh: vi.fn() }),
 }));
 
 vi.mock('@/shared/authorization/authorization', () => ({

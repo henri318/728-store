@@ -5,6 +5,7 @@ import { UserMenuDropdown } from '@/modules/presentation/components/user-menu-dr
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
   useParams: () => ({ locale: 'es' }),
+  useRouter: () => ({ refresh: vi.fn() }),
 }));
 
 // Mock next-auth/react
