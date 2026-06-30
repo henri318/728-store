@@ -7,7 +7,9 @@ type IconName =
   | 'instagram'
   | 'tiktok'
   | 'whatsapp'
-  | 'email';
+  | 'email'
+  | 'add'
+  | 'search';
 type IconColor = 'green-dark' | 'cream' | 'coral' | 'green-light' | 'lila';
 type IconSize = 'sm' | 'md' | 'lg';
 
@@ -26,7 +28,7 @@ export function IconCircle({ icon, color, size = 'md', alt }: IconCircleProps) {
       aria-label={alt ?? icon}
     >
       <svg className={styles.iconSvg} aria-hidden="true">
-        <use href={`/img/sprites.svg#icon-${icon}`} />
+        <use href={`/img/icons/sprites.svg#icon-${icon}`} />
       </svg>
     </span>
   );

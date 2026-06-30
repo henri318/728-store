@@ -9,8 +9,8 @@
 }
 
 .userIcon {
-  width: 62px;
-  height: 62px;
+  width: 31px;
+  height: 31px;
   cursor: pointer;
   transition: transform 0.2s ease;
   display: block;

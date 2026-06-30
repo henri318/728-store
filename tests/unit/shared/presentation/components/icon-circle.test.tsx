@@ -20,7 +20,7 @@ describe('IconCircle', () => {
 
     expect(document.querySelector('use')).toHaveAttribute(
       'href',
-      '/img/sprites.svg#icon-profile',
+      '/img/icons/sprites.svg#icon-profile',
     );
   });
 
@@ -29,7 +29,7 @@ describe('IconCircle', () => {
 
     expect(document.querySelector('use')).toHaveAttribute(
       'href',
-      '/img/sprites.svg#icon-email',
+      '/img/icons/sprites.svg#icon-email',
     );
   });
 });

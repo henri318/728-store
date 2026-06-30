@@ -73,7 +73,9 @@ describe('CartIcon', () => {
 
       const use = document.querySelector('use');
       expect(use).toBeTruthy();
-      expect(use?.getAttribute('href')).toBe('/img/sprites.svg#icon-cart');
+      expect(use?.getAttribute('href')).toBe(
+        '/img/icons/sprites.svg#icon-cart',
+      );
     });
   });
 

@@ -9,6 +9,7 @@ import type { ProductEntity } from '@/modules/products/domain/product-repository
 import { LocalizedDate } from '@/shared/kernel/domain/value-objects/localized-date';
 import { PaginationDefaults } from '@/shared/kernel/domain/value-objects/pagination';
 import type { PaginatedResult } from '@/shared/kernel/domain/value-objects/pagination';
+import { SearchForm } from '@/shared/presentation/components/search-form';
 import { ProductActions } from './product-actions';
 import styles from './page.module.css';
 
@@ -115,28 +116,14 @@ export default async function SellerProductsPage({
         <div>
           <h2 className={styles.title}>{dict.sellerDashboard.title}</h2>
         </div>
-        <form className={styles.searchForm} method="get">
-          <label className={styles.searchLabel}>
-            <span className={styles.srOnly}>
-              {dict.sellerDashboard.searchProducts}
-            </span>
-            <input
-              type="search"
-              name="q"
-              defaultValue={filter.q ?? ''}
-              placeholder={dict.sellerDashboard.searchPlaceholder}
-              className={styles.searchInput}
-            />
-          </label>
-          <input
-            type="hidden"
-            name="pageSize"
-            value={String(filter.pageSize)}
+        <div className={styles.searchWrap}>
+          <SearchForm
+            placeholder={dict.sellerDashboard.searchPlaceholder}
+            ariaLabel={dict.sellerDashboard.searchProducts}
+            defaultValue={filter.q ?? ''}
+            hiddenFields={{ pageSize: String(filter.pageSize) }}
           />
-          <button type="submit" className={styles.searchButton}>
-            {dict.sellerDashboard.searchProducts}
-          </button>
-        </form>
+        </div>
       </div>
 
       {hasProducts ? (

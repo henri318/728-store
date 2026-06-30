@@ -70,13 +70,8 @@ export function CartIcon({ alt }: CartIconProps) {
       className={styles.cartIconWrapper}
       aria-label={`${alt}${count > 0 ? ` (${count})` : ''}`}
     >
-      <svg
-        className={styles.userIcon}
-        aria-hidden="true"
-        width="62"
-        height="62"
-      >
-        <use href="/img/sprites.svg#icon-cart" />
+      <svg className={styles.userIcon} aria-hidden="true">
+        <use href="/img/icons/sprites.svg#icon-cart" />
       </svg>
       {count > 0 && <span className={styles.badge}>{count}</span>}
     </button>

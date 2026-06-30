@@ -284,7 +284,14 @@ export function CartView({
                 className={styles.removeButton}
                 onClick={() => handleRemove(item)}
               >
-                ✕
+                <svg
+                  className={styles.iconTrash}
+                  aria-hidden="true"
+                  width="18"
+                  height="18"
+                >
+                  <use href="/img/icons/sprites.svg#icon-trash" />
+                </svg>
               </button>
             </div>
           </div>

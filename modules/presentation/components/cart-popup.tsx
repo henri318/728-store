@@ -287,7 +287,9 @@ export function CartPopup({ labels }: CartPopupProps) {
                         className={styles.rmBtn}
                         aria-label={labels.remove}
                       >
-                        ✕
+                        <svg aria-hidden="true">
+                          <use href="/img/icons/sprites.svg#icon-trash" />
+                        </svg>
                       </button>
                     </div>
                   </li>

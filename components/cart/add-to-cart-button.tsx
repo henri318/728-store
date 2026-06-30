@@ -305,11 +305,13 @@ export function AddToCartButton({
         </div>
         <button
           type="button"
-          className={styles.removeButton}
+          className={styles.iconButton}
           onClick={handleRemove}
           aria-label={labels.removeFromCart}
         >
-          {labels.removeFromCart}
+          <svg aria-hidden="true" width="36" height="36">
+            <use href="/img/icons/sprites.svg#icon-trash" />
+          </svg>
         </button>
       </div>
     );
@@ -319,12 +321,14 @@ export function AddToCartButton({
   return (
     <button
       type="button"
-      className={styles.button}
+      className={styles.iconButton}
       onClick={handleAdd}
       disabled={disabled}
       aria-label={feedbackLabel}
     >
-      {feedbackLabel}
+      <svg aria-hidden="true" width="40" height="40">
+        <use href="/img/icons/sprites.svg#icon-add" />
+      </svg>
     </button>
   );
 }

@@ -6,9 +6,8 @@
 
 .header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--spacing-lg);
+  flex-direction: column;
+  gap: var(--spacing-md);
   margin-bottom: var(--spacing-lg);
 }
 
@@ -30,53 +29,6 @@
   color: var(--color-green-dark);
 }
 
-.searchForm {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  flex-wrap: wrap;
-}
-
-.searchLabel {
-  display: block;
-}
-
-.searchInput {
-  min-width: 240px;
-  padding: 0.7rem 0.9rem;
-  border: 1px solid var(--color-lila);
-  border-radius: 6px;
-  background: var(--color-white);
-  color: #222;
-}
-
-.searchButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 0.7rem 1rem;
-  border-radius: 6px;
-  background: var(--color-green-dark);
-  color: var(--color-white);
-  font-weight: var(--font-weight-medium);
-}
-
-.searchButton:hover {
-  opacity: 0.9;
-}
-
-.srOnly {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
 
 .summary {
   margin-bottom: var(--spacing-md);
@@ -190,21 +142,16 @@
 }
 
 .statusBadge[data-status='archived'] {
+  background: var(--color-cream);
+  color: var(--color-green-dark);
+}
+
+.statusBadge[data-status='eliminated'] {
   background: var(--color-coral);
   color: var(--color-white);
 }
 
-.statusBadge[data-status='eliminated'] {
-  background: var(--color-gray);
-  color: var(--color-white);
-}
-
-@media (max-width: 720px) {
-  .header {
-    flex-direction: column;
-  }
-
-  .searchInput {
-    min-width: min(100%, 240px);
-  }
+.searchWrap {
+  display: flex;
+  justify-content: flex-end;
 }

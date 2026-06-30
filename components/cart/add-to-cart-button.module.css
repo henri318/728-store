@@ -109,3 +109,28 @@
   background: #c0392b;
   transform: scale(1.03);
 }
+
+/* Icon-only buttons — the button IS the SVG, no text-button styling */
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  line-height: 0;
+  color: inherit;
+}
+.iconButton:hover:not(:disabled) {
+  opacity: 0.8;
+}
+.iconButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.iconButton svg {
+  display: block;
+}

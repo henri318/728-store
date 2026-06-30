@@ -37,15 +37,15 @@ describe('SocialFooter', () => {
 
     expect(screen.getByRole('link', { name: 'Facebook' })).toHaveAttribute(
       'href',
-      'https://facebook.com',
+      'https://www.facebook.com/728merch',
     );
     expect(screen.getByRole('link', { name: 'Instagram' })).toHaveAttribute(
       'href',
-      'https://instagram.com',
+      'https://www.instagram.com/728_studio',
     );
     expect(screen.getByRole('link', { name: 'Email' })).toHaveAttribute(
       'href',
-      'mailto:info@728store.com',
+      'mailto:informes.728@gmail.com',
     );
   });
 });
