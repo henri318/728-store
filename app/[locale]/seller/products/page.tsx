@@ -1,19 +1,19 @@
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { container } from '@/composition-root/container';
-import { ProductListQueryUseCase } from '@/modules/products/application/product-list-query-use-case';
-import { productListQuerySchema } from '@/modules/products/presentation/schemas/product-list-query-schema';
-import { GetSellerUseCase } from '@/modules/sellers/application/use-cases/get-seller-use-case';
+import { NotFoundError } from '@/shared/kernel/app-error';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
-import { assertRole } from '@/shared/authorization/authorization';
+import { ProductListQueryUseCase } from '@/modules/products/application/product-list-query-use-case';
+import { ListSellerProductsUseCase } from '@/modules/sellers/application/use-cases/list-seller-products-use-case';
+import { productListQuerySchema } from '@/modules/products/presentation/schemas/product-list-query-schema';
+import type { ProductEntity } from '@/modules/products/domain/product-repository';
 import { LocalizedDate } from '@/shared/kernel/domain/value-objects/localized-date';
 import { PaginationDefaults } from '@/shared/kernel/domain/value-objects/pagination';
-import { ProductActions } from '@/app/[locale]/seller/products/product-actions';
+import type { PaginatedResult } from '@/shared/kernel/domain/value-objects/pagination';
+import { ProductActions } from './product-actions';
 import styles from './page.module.css';
 
 function buildPageUrl(
   locale: string,
-  sellerId: string,
   filter: {
     q?: string;
     pageSize: number;
@@ -29,49 +29,70 @@ function buildPageUrl(
   }
 
   const query = search.toString();
-  return `/${locale}/admin/sellers/${sellerId}/products${query ? `?${query}` : ''}`;
+  return `/${locale}/seller/products${query ? `?${query}` : ''}`;
 }
 
-export default async function AdminSellerProductsPage({
+export default async function SellerProductsPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ locale: string; sellerId: string }>;
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{
     q?: string;
     page?: string;
     pageSize?: string;
   }>;
 }) {
-  const { locale, sellerId } = await params;
+  const { locale } = await params;
   const { q, page: pageStr, pageSize: pageSizeStr } = await searchParams;
+  const session = await container.getSession().getSession();
 
-  // Server-side role check — throws if not ADMIN
-  try {
-    await assertRole('ADMIN');
-  } catch {
-    redirect(`/${locale}`);
-  }
-
+  const dict = await getDictionary(locale as 'es' | 'cat');
   const filter = productListQuerySchema.parse({
     q,
     page: pageStr,
     pageSize: pageSizeStr,
     lang: locale,
-    sellerId,
   });
 
-  const dict = await getDictionary(locale as 'es' | 'cat');
-
   const sellerRepository = container.getSellerRepository();
-  const getSeller = new GetSellerUseCase(sellerRepository);
-  const sellerName = (await getSeller.execute({ sellerId })).name;
-
   const productRepository = container.getProductRepository();
-  const useCase = new ProductListQueryUseCase(productRepository);
-  const result = await useCase.execute(filter);
-  const { items: products, totalPages } = result;
-  let page = result.page;
+  const useCase = new ListSellerProductsUseCase(
+    sellerRepository,
+    new ProductListQueryUseCase(productRepository),
+  );
+
+  const fallbackResult: PaginatedResult<ProductEntity> = {
+    items: [],
+    total: 0,
+    page: filter.page,
+    pageSize: filter.pageSize,
+    totalPages: 0,
+  };
+
+  const result = (await useCase
+    .execute({
+      userId: session?.id ?? '',
+      q: filter.q,
+      page: filter.page,
+      pageSize: filter.pageSize,
+      lang: filter.lang,
+      sortBy: filter.sortBy,
+      sortDir: filter.sortDir,
+    })
+    .catch((error: unknown) => {
+      if (error instanceof NotFoundError) {
+        return fallbackResult;
+      }
+
+      throw error;
+    })) as PaginatedResult<ProductEntity>;
+
+  const hasProducts = result.items.length > 0;
+  const currentPage =
+    result.totalPages > 0 && result.page > result.totalPages
+      ? result.totalPages
+      : result.page;
 
   function getStatusLabel(status: string): string {
     switch (status) {
@@ -88,31 +109,22 @@ export default async function AdminSellerProductsPage({
     }
   }
 
-  if (totalPages > 0 && page > totalPages) {
-    page = totalPages;
-  }
-  const hasProducts = products.length > 0;
-
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <div>
-          <Link href={`/${locale}/admin/sellers`} className={styles.backLink}>
-            <span aria-hidden="true">&larr; </span>
-            <span>{dict.admin.backToSellers}</span>
-          </Link>
-          <h2 className={styles.title}>
-            {dict.admin.sellerProductsTitle}: {sellerName}
-          </h2>
+          <h2 className={styles.title}>{dict.sellerDashboard.title}</h2>
         </div>
         <form className={styles.searchForm} method="get">
           <label className={styles.searchLabel}>
-            <span className={styles.srOnly}>{dict.admin.searchProducts}</span>
+            <span className={styles.srOnly}>
+              {dict.sellerDashboard.searchProducts}
+            </span>
             <input
               type="search"
               name="q"
               defaultValue={filter.q ?? ''}
-              placeholder={dict.admin.searchProductsPlaceholder}
+              placeholder={dict.sellerDashboard.searchPlaceholder}
               className={styles.searchInput}
             />
           </label>
@@ -122,7 +134,7 @@ export default async function AdminSellerProductsPage({
             value={String(filter.pageSize)}
           />
           <button type="submit" className={styles.searchButton}>
-            {dict.admin.searchProducts}
+            {dict.sellerDashboard.searchProducts}
           </button>
         </form>
       </div>
@@ -141,7 +153,7 @@ export default async function AdminSellerProductsPage({
                 </tr>
               </thead>
               <tbody>
-                {products.map((product) => (
+                {result.items.map((product) => (
                   <tr key={product.id}>
                     <td className={styles.nameCell}>
                       {product.translations.find(
@@ -178,9 +190,9 @@ export default async function AdminSellerProductsPage({
             className={styles.pagination}
             aria-label={dict.admin.paginationAriaLabel}
           >
-            {page > 1 ? (
+            {currentPage > 1 ? (
               <Link
-                href={buildPageUrl(locale, sellerId, filter, page - 1)}
+                href={buildPageUrl(locale, filter, currentPage - 1)}
                 className={styles.pageButton}
               >
                 {dict.admin.pagePrev}
@@ -192,9 +204,9 @@ export default async function AdminSellerProductsPage({
                 {dict.admin.pagePrev}
               </span>
             )}
-            {page < totalPages ? (
+            {currentPage < result.totalPages ? (
               <Link
-                href={buildPageUrl(locale, sellerId, filter, page + 1)}
+                href={buildPageUrl(locale, filter, currentPage + 1)}
                 className={styles.pageButton}
               >
                 {dict.admin.pageNext}
@@ -209,7 +221,7 @@ export default async function AdminSellerProductsPage({
           </nav>
         </>
       ) : (
-        <p className={styles.noProducts}>{dict.admin.noProducts}</p>
+        <p className={styles.noProducts}>{dict.sellerDashboard.noProducts}</p>
       )}
     </div>
   );

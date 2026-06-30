@@ -2,26 +2,22 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
 const mocks = vi.hoisted(() => {
-  const assertRoleMock = vi.fn(async () => undefined);
   const getDictionaryMock = vi.fn();
   const getProductRepositoryMock = vi.fn();
   const getSellerRepositoryMock = vi.fn();
+  const getSessionMock = vi.fn();
 
   return {
-    assertRoleMock,
     getDictionaryMock,
     getProductRepositoryMock,
     getSellerRepositoryMock,
+    getSessionMock,
   };
 });
 
 vi.mock('next/navigation', () => ({
   redirect: vi.fn(),
   useRouter: () => ({ refresh: vi.fn() }),
-}));
-
-vi.mock('@/shared/authorization/authorization', () => ({
-  assertRole: mocks.assertRoleMock,
 }));
 
 vi.mock('@/shared/i18n/get-dictionary', () => ({
@@ -32,10 +28,13 @@ vi.mock('@/composition-root/container', () => ({
   container: {
     getProductRepository: mocks.getProductRepositoryMock,
     getSellerRepository: mocks.getSellerRepositoryMock,
+    getSession: () => ({
+      getSession: mocks.getSessionMock,
+    }),
   },
 }));
 
-import AdminSellerProductsPage from '@/app/[locale]/admin/sellers/[sellerId]/products/page';
+import SellerProductsPage from '@/app/[locale]/seller/products/page';
 import { MemoryProductRepository } from '@/tests/doubles/memory-product-repository';
 import { MemorySellerRepository } from '@/tests/doubles/memory-seller-repository';
 import { ProductPrice } from '@/modules/products/domain/value-objects/product-price';
@@ -83,38 +82,46 @@ function makeSeller(overrides: Partial<SellerEntity> = {}): SellerEntity {
 
 function makeDict() {
   return {
+    common: {
+      loading: 'Loading...',
+    },
     admin: {
-      backToSellers: 'Back to sellers',
-      sellerProductsTitle: 'Seller products',
-      noProducts: 'No products found',
       productName: 'Product',
       productStatus: 'Status',
       productPrice: 'Price',
       productUpdated: 'Updated',
+      actions: 'Actions',
+      untranslatedProduct: 'Untranslated',
+      paginationAriaLabel: 'Page navigation',
       pagePrev: '← Previous',
       pageNext: 'Next →',
       pageXofY: 'Page {current} of {total}',
-      searchProducts: 'Find products',
-      searchProductsPlaceholder: 'Find products placeholder',
-      productCount: '{total} items',
-      untranslatedProduct: 'No translation',
-      paginationAriaLabel: 'Page navigation',
+      searchProductsPlaceholder: 'Search products...',
       status_draft: 'Draft',
       status_active: 'Active',
       status_archived: 'Archived',
+      suspendProduct: 'Suspend',
+      activateProduct: 'Activate',
+    },
+    sellerDashboard: {
+      title: 'Seller products',
+      noProducts: 'No products found',
+      searchProducts: 'Search products',
+      searchPlaceholder: 'Search products...',
     },
   } as unknown as Awaited<
     ReturnType<typeof import('@/shared/i18n/get-dictionary').getDictionary>
   >;
 }
 
-describe('AdminSellerProductsPage', () => {
+describe('SellerProductsPage', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     mocks.getDictionaryMock.mockResolvedValue(makeDict());
+    mocks.getSessionMock.mockResolvedValue({ id: 'user-1' });
   });
 
-  it('passes query params to the product list and renders the search form', async () => {
+  it('passes query params to the product listing and renders rows', async () => {
     const repo = new MemoryProductRepository();
     const spy = vi.spyOn(repo, 'findPaginated');
     repo.seed([makeProduct()]);
@@ -129,41 +136,42 @@ describe('AdminSellerProductsPage', () => {
     );
     mocks.getSellerRepositoryMock.mockReturnValue(sellerRepo);
 
-    const element = await AdminSellerProductsPage({
-      params: Promise.resolve({ locale: 'es', sellerId: 'seller-1' }),
-      searchParams: Promise.resolve({ q: 'taza', page: '2', pageSize: '5' }),
+    const element = await SellerProductsPage({
+      params: Promise.resolve({ locale: 'es' }),
+      searchParams: Promise.resolve({ q: 'taza', page: '1', pageSize: '5' }),
     });
     render(element);
 
     expect(
-      screen.getByRole('heading', { name: 'Seller products: Tienda Prueba' }),
+      screen.getByRole('heading', { name: 'Seller products' }),
     ).toBeInTheDocument();
-
     expect(spy).toHaveBeenCalledWith({
       q: 'taza',
-      page: 2,
+      page: 1,
       pageSize: 5,
       sellerId: 'seller-1',
       lang: 'es',
       sortBy: 'createdAt',
       sortDir: 'desc',
     });
-    const searchbox = screen.getByRole('searchbox', { name: 'Find products' });
-    expect(searchbox).toHaveValue('taza');
-    expect(searchbox).toHaveAttribute(
-      'placeholder',
-      'Find products placeholder',
-    );
     expect(
-      screen.getByRole('button', { name: 'Find products' }),
+      screen.getByRole('searchbox', { name: 'Search products' }),
+    ).toHaveValue('taza');
+    expect(screen.getByText('Taza')).toBeInTheDocument();
+    expect(screen.getByText('Active')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Suspender' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Search products' }),
     ).toBeInTheDocument();
   });
 
-  it('renders paginated products and preserves seller scope in navigation links', async () => {
+  it('renders pagination controls when products exist', async () => {
     const repo = new MemoryProductRepository();
     repo.seed([
       makeProduct({ id: 'p-1' }),
-      makeProduct({ id: 'p-2', status: ProductStatus.DRAFT, translations: [] }),
+      makeProduct({ id: 'p-2' }),
       makeProduct({ id: 'p-3' }),
     ]);
     mocks.getProductRepositoryMock.mockReturnValue(repo);
@@ -177,30 +185,24 @@ describe('AdminSellerProductsPage', () => {
     );
     mocks.getSellerRepositoryMock.mockReturnValue(sellerRepo);
 
-    const element = await AdminSellerProductsPage({
-      params: Promise.resolve({ locale: 'cat', sellerId: 'seller-1' }),
+    const element = await SellerProductsPage({
+      params: Promise.resolve({ locale: 'es' }),
       searchParams: Promise.resolve({ page: '1', pageSize: '2' }),
     });
     render(element);
 
     expect(
-      screen.getByRole('heading', { name: 'Seller products: Tienda Prueba' }),
-    ).toBeInTheDocument();
-
-    expect(screen.getByText('Tassa')).toBeInTheDocument();
-    expect(screen.getByText('No translation')).toBeInTheDocument();
-    expect(screen.getAllByText('Active')).toHaveLength(1);
-    expect(screen.getByText('Draft')).toBeInTheDocument();
-    expect(
       screen.getByRole('navigation', { name: 'Page navigation' }),
     ).toBeInTheDocument();
+    expect(screen.getByText('← Previous')).toHaveTextContent('← Previous');
+    expect(screen.getByText('← Previous').tagName).toBe('SPAN');
     expect(screen.getByRole('link', { name: 'Next →' })).toHaveAttribute(
       'href',
-      '/cat/admin/sellers/seller-1/products?page=2&pageSize=2',
+      '/es/seller/products?page=2&pageSize=2',
     );
   });
 
-  it('clamps out-of-range pagination before rendering page info', async () => {
+  it('clamps out-of-range pagination before rendering navigation', async () => {
     const productRepo = {
       findPaginated: vi.fn().mockResolvedValue({
         items: [makeProduct()],
@@ -221,16 +223,17 @@ describe('AdminSellerProductsPage', () => {
     );
     mocks.getSellerRepositoryMock.mockReturnValue(sellerRepo);
 
-    const element = await AdminSellerProductsPage({
-      params: Promise.resolve({ locale: 'es', sellerId: 'seller-1' }),
+    const element = await SellerProductsPage({
+      params: Promise.resolve({ locale: 'cat' }),
       searchParams: Promise.resolve({ page: '99', pageSize: '2' }),
     });
     render(element);
 
     expect(screen.getByRole('link', { name: '← Previous' })).toHaveAttribute(
       'href',
-      '/es/admin/sellers/seller-1/products?pageSize=2',
+      '/cat/seller/products?pageSize=2',
     );
+    expect(screen.getByText('Next →').tagName).toBe('SPAN');
   });
 
   it('renders the empty state when the seller has no products', async () => {
@@ -246,19 +249,50 @@ describe('AdminSellerProductsPage', () => {
     );
     mocks.getSellerRepositoryMock.mockReturnValue(sellerRepo);
 
-    const element = await AdminSellerProductsPage({
-      params: Promise.resolve({ locale: 'es', sellerId: 'seller-1' }),
+    const element = await SellerProductsPage({
+      params: Promise.resolve({ locale: 'cat' }),
       searchParams: Promise.resolve({}),
     });
     render(element);
 
-    expect(
-      screen.getByRole('heading', { name: 'Seller products: Tienda Prueba' }),
-    ).toBeInTheDocument();
-
     expect(screen.getByText('No products found')).toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: 'Back to sellers' }),
-    ).toHaveAttribute('href', '/es/admin/sellers');
+      screen.getByRole('searchbox', { name: 'Search products' }),
+    ).toBeInTheDocument();
+  });
+
+  it('falls back to the empty state when the seller is not linked', async () => {
+    const productRepo = new MemoryProductRepository();
+    const spy = vi.spyOn(productRepo, 'findPaginated');
+    mocks.getProductRepositoryMock.mockReturnValue(productRepo);
+
+    mocks.getSellerRepositoryMock.mockReturnValue({
+      findByUserId: vi.fn().mockResolvedValue(null),
+    });
+
+    const element = await SellerProductsPage({
+      params: Promise.resolve({ locale: 'es' }),
+      searchParams: Promise.resolve({}),
+    });
+    render(element);
+
+    expect(screen.getByText('No products found')).toBeInTheDocument();
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('rethrows non-NotFound errors from the seller lookup', async () => {
+    mocks.getProductRepositoryMock.mockReturnValue(
+      new MemoryProductRepository(),
+    );
+    mocks.getSellerRepositoryMock.mockReturnValue({
+      findByUserId: vi.fn().mockRejectedValue(new Error('boom')),
+    });
+
+    await expect(
+      SellerProductsPage({
+        params: Promise.resolve({ locale: 'es' }),
+        searchParams: Promise.resolve({}),
+      }),
+    ).rejects.toThrow('boom');
   });
 });

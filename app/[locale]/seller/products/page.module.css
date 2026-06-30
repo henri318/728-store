@@ -12,6 +12,13 @@
   margin-bottom: var(--spacing-lg);
 }
 
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-green-dark);
+}
+
 .searchForm {
   display: flex;
   align-items: center;
@@ -60,37 +67,16 @@
   border: 0;
 }
 
-.title {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-green-dark);
-}
-
-.createButton {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: 0.6rem 1.2rem;
-  background: var(--color-green-dark);
-  color: var(--color-white);
-  border-radius: 4px;
-  font-size: 0.9rem;
-  font-weight: var(--font-weight-medium);
-  transition: opacity 0.15s ease;
-}
-
-.createButton:hover {
-  opacity: 0.85;
+.tableWrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.08);
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
   background: var(--color-white);
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 4px rgb(0 0 0 / 0.08);
 }
 
 .table th {
@@ -125,94 +111,14 @@
   white-space: nowrap;
 }
 
-.descriptionCell {
-  max-width: 220px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: #666;
-  font-size: 0.85rem;
-}
-
-.dateCell {
-  white-space: nowrap;
-}
-
-.actionsCell {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  flex-wrap: nowrap;
-}
-
-.statusBadge {
-  display: inline-block;
-  padding: 0.2rem 0.6rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: var(--font-weight-medium);
-}
-
-.statusBadge[data-status='active'] {
-  background: var(--color-green-light);
-  color: var(--color-green-dark);
-}
-
-.statusBadge[data-status='suspended'] {
-  background: var(--color-lila);
-  color: var(--color-white);
-}
-
-.statusBadge[data-status='banned'] {
-  background: var(--color-coral);
-  color: var(--color-white);
-}
-
-.viewProducts {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: 0.35rem 0.8rem;
-  border: 1px solid var(--color-green-dark);
-  border-radius: 4px;
-  color: var(--color-green-dark);
-  font-size: 0.8rem;
-  font-weight: var(--font-weight-medium);
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-}
-
-.viewProducts:hover {
-  background: var(--color-green-dark);
-  color: var(--color-white);
-}
-
-.editLink {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: 0.35rem 0.8rem;
-  border: 1px solid var(--color-green-dark);
-  border-radius: 4px;
-  color: var(--color-green-dark);
-  font-size: 0.8rem;
-  font-weight: var(--font-weight-medium);
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-}
-
-.editLink:hover {
-  background: var(--color-green-dark);
-  color: var(--color-white);
-}
-
-.noSellers {
+.noProducts {
   text-align: center;
   padding: var(--spacing-xl);
   color: var(--color-lila);
   font-size: 1rem;
+  background: var(--color-white);
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.08);
 }
 
 .pagination {
@@ -224,9 +130,13 @@
 }
 
 .pageButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   padding: 0.5rem 1rem;
   border: 1px solid var(--color-green-dark);
-  border-radius: 4px;
+  border-radius: 6px;
   color: var(--color-green-dark);
   font-size: 0.85rem;
   font-weight: var(--font-weight-medium);
@@ -248,6 +158,34 @@
 .pageInfo {
   font-size: 0.85rem;
   color: #666;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-medium);
+}
+
+.statusBadge[data-status='active'] {
+  background: var(--color-green-light);
+  color: var(--color-green-dark);
+}
+
+.statusBadge[data-status='draft'] {
+  background: var(--color-lila);
+  color: var(--color-white);
+}
+
+.statusBadge[data-status='archived'] {
+  background: var(--color-coral);
+  color: var(--color-white);
+}
+
+.statusBadge[data-status='eliminated'] {
+  background: var(--color-gray);
+  color: var(--color-white);
 }
 
 @media (max-width: 720px) {

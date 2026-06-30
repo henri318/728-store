@@ -8,6 +8,8 @@ export interface ListSellerProductsDTO {
   page?: number;
   pageSize?: number;
   lang?: string;
+  sortBy?: 'createdAt';
+  sortDir?: 'asc' | 'desc';
 }
 
 export interface ProductQuery {
@@ -16,6 +18,8 @@ export interface ProductQuery {
     page?: number;
     pageSize?: number;
     lang?: string;
+    sortBy?: 'createdAt';
+    sortDir?: 'asc' | 'desc';
     sellerId: string;
   }): Promise<PaginatedResult<unknown>>;
 }

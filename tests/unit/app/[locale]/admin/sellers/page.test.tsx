@@ -3,15 +3,23 @@ import { render, screen } from '@testing-library/react';
 
 const mocks = vi.hoisted(() => {
   const assertRoleMock = vi.fn(async () => undefined);
+  const redirectMock = vi.fn(() => {
+    throw new Error('NEXT_REDIRECT');
+  });
   const getDictionaryMock = vi.fn();
   const getSellerRepositoryMock = vi.fn();
 
   return {
     assertRoleMock,
+    redirectMock,
     getDictionaryMock,
     getSellerRepositoryMock,
   };
 });
+
+vi.mock('next/navigation', () => ({
+  redirect: mocks.redirectMock,
+}));
 
 vi.mock('@/shared/authorization/authorization', () => ({
   assertRole: mocks.assertRoleMock,
@@ -74,6 +82,7 @@ function makeDict() {
       sellerStatus: 'Estado',
       sellerCreated: 'Creado',
       actions: 'Acciones',
+      edit: 'Edit',
       viewProducts: 'Ver productos',
       suspend: 'Suspender',
       activate: 'Activar',
@@ -234,5 +243,40 @@ describe('AdminSellersPage', () => {
       'data-status',
       'suspended',
     );
+  });
+
+  it('renders an edit link for each seller row', async () => {
+    const repo = new MemorySellerRepository();
+    repo.seed(
+      makeSeller({
+        sellerId: SellerId.create('seller-1'),
+        name: 'Edit Me',
+      }),
+    );
+    mocks.getSellerRepositoryMock.mockReturnValue(repo);
+
+    const element = await AdminSellersPage({
+      params: Promise.resolve({ locale: 'es' }),
+      searchParams: Promise.resolve({}),
+    });
+    render(element);
+
+    expect(screen.getByRole('link', { name: 'Edit' })).toHaveAttribute(
+      'href',
+      '/es/admin/sellers/seller-1',
+    );
+  });
+
+  it('redirects non-admin users to the locale root', async () => {
+    mocks.assertRoleMock.mockRejectedValueOnce(new Error('FORBIDDEN'));
+
+    await expect(
+      AdminSellersPage({
+        params: Promise.resolve({ locale: 'es' }),
+        searchParams: Promise.resolve({}),
+      }),
+    ).rejects.toThrow('NEXT_REDIRECT');
+
+    expect(mocks.redirectMock).toHaveBeenCalledWith('/es');
   });
 });

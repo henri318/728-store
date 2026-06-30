@@ -22,7 +22,7 @@ export function RoleNavLinks({ role, locale }: RoleNavLinksProps) {
 
   if (role === 'DESIGNER') {
     return (
-      <Link href={`/${locale}/profile`} className={styles.navLink}>
+      <Link href={`/${locale}/seller/products`} className={styles.navLink}>
         {dict.userMenu.designerPanel}
       </Link>
     );
