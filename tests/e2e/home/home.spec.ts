@@ -38,12 +38,14 @@ test.describe('Home Page', () => {
     page,
   }) => {
     await page.goto('/es');
+    await page.getByRole('button', { name: /buscar productos/i }).click();
     const input = page.getByTestId('search-input');
     await expect(input).toBeVisible();
   });
 
   test('guests see no recent-search suggestions', async ({ page }) => {
     await page.goto('/es');
+    await page.getByRole('button', { name: /buscar productos/i }).click();
     const input = page.getByTestId('search-input');
     await input.focus();
     await expect(page.getByRole('listbox')).toHaveCount(0);

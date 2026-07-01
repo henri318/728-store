@@ -56,7 +56,12 @@ export class ProductListQueryUseCase {
     //   can construct the use case without it.
     // - Only emit on the first page to avoid duplicate history entries during infinite scroll.
     const page = filter.page ?? PaginationDefaults.page;
-    if (isPublic && trimmedQ.length > 0 && page === 1 && this.outboxRepository) {
+    if (
+      isPublic &&
+      trimmedQ.length > 0 &&
+      page === 1 &&
+      this.outboxRepository
+    ) {
       try {
         await this.outboxRepository.saveEvent(
           GlobalEvents.PRODUCT_SEARCH_EXECUTED,
@@ -67,7 +72,7 @@ export class ProductListQueryUseCase {
             occurredAt: new Date().toISOString(),
           },
         );
-      } catch (error) {
+      } catch {
         // Swallow outbox errors to avoid breaking the search query
       }
     }
