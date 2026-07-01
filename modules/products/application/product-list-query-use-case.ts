@@ -54,16 +54,22 @@ export class ProductListQueryUseCase {
     // - userId may be `null` for guests; the subscriber handles null gracefully.
     // - Outbox is optional so non-orchestrated callers (e.g. legacy routes)
     //   can construct the use case without it.
-    if (isPublic && trimmedQ.length > 0 && this.outboxRepository) {
-      await this.outboxRepository.saveEvent(
-        GlobalEvents.PRODUCT_SEARCH_EXECUTED,
-        {
-          userId: filter.userId ?? null,
-          term: trimmedQ,
-          locale: filter.lang ?? 'es',
-          occurredAt: new Date().toISOString(),
-        },
-      );
+    // - Only emit on the first page to avoid duplicate history entries during infinite scroll.
+    const page = filter.page ?? PaginationDefaults.page;
+    if (isPublic && trimmedQ.length > 0 && page === 1 && this.outboxRepository) {
+      try {
+        await this.outboxRepository.saveEvent(
+          GlobalEvents.PRODUCT_SEARCH_EXECUTED,
+          {
+            userId: filter.userId ?? null,
+            term: trimmedQ,
+            locale: filter.lang ?? 'es',
+            occurredAt: new Date().toISOString(),
+          },
+        );
+      } catch (error) {
+        // Swallow outbox errors to avoid breaking the search query
+      }
     }
 
     return result;

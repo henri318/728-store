@@ -264,8 +264,13 @@
     transition: none;
   }
   .productCard:hover,
-  .productLink:hover,
+  .productLink:hover {
+    transform: none;
+  }
   .searchToggle:hover {
     transform: none;
+  }
+  .searchInputGroupVisible .searchToggle:hover {
+    transform: translateY(-50%);
   }
 }
