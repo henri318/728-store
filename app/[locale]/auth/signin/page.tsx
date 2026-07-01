@@ -6,6 +6,7 @@ import { signIn } from 'next-auth/react';
 import { Input } from '@/shared/ui/input';
 import { Button } from '@/shared/ui/button';
 import { EyeToggleWrapper } from '@/shared/ui/eye-toggle-wrapper';
+import { AuthCard } from '@/shared/ui/auth-card';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 import styles from './page.module.css';
 
@@ -24,7 +25,7 @@ export default function SignInPage() {
   };
 
   return (
-    <div className={styles.container}>
+    <AuthCard className={styles.card}>
       <h2>{dict.auth.signInTitle}</h2>
 
       <button
@@ -78,6 +79,6 @@ export default function SignInPage() {
           {dict.auth.signUpButton}
         </a>
       </p>
-    </div>
+    </AuthCard>
   );
 }

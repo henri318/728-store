@@ -12,6 +12,7 @@ import {
 import { useCartPopup } from './cart-popup-context';
 import { Money } from '@/shared/kernel/domain/value-objects/money';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
+import { QuantityControls } from '@/shared/ui/quantity-controls';
 import styles from './cart-popup.module.css';
 
 const CART_UPDATED_EVENT = 'cart:updated';
@@ -261,23 +262,13 @@ export function CartPopup({ labels }: CartPopupProps) {
                       </div>
                     </div>
                     <div className={styles.itemCtrls}>
-                      <div className={styles.qty}>
-                        <button
-                          type="button"
-                          onClick={() => handleUpdate(item, -1)}
-                          disabled={item.quantity <= 1}
-                        >
-                          −
-                        </button>
-                        <span>{item.quantity}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleUpdate(item, +1)}
-                          disabled={item.quantity >= 99}
-                        >
-                          +
-                        </button>
-                      </div>
+                      <QuantityControls
+                        value={item.quantity}
+                        onChange={(newQty) =>
+                          handleUpdate(item, newQty - item.quantity)
+                        }
+                        variant="compact"
+                      />
                       <span className={styles.lineTotal}>
                         {Money.format(item.lineTotal, Currency.EUR)}
                       </span>

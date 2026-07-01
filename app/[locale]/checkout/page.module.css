@@ -13,8 +13,8 @@
 .sellerSection {
   margin-bottom: 1.5rem;
   padding: 1rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
 }
 
 .sellerName {
@@ -73,7 +73,7 @@
 }
 
 .itemQty {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 0.9rem;
 }
 
@@ -97,7 +97,7 @@
   margin: 1.5rem 0;
   padding: 1rem;
   background: #f9f9f9;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
 .totalRow {
@@ -108,7 +108,7 @@
 }
 
 .discount {
-  color: var(--color-green-dark, #2e7d32);
+  color: var(--color-green-dark, var(--color-green-dark));
 }
 
 .grandTotal {
