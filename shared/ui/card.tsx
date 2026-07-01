@@ -1,6 +1,6 @@
 import styles from './card.module.css';
 
-interface CardProps {
+interface CardProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;
   className?: string;
   as?: 'div' | 'section' | 'aside';
@@ -12,6 +12,7 @@ export function Card({
   className,
   as: Component = 'div',
   padding = 'md',
+  ...rest
 }: CardProps) {
   const classes = [
     styles.card,
@@ -21,5 +22,9 @@ export function Card({
     .filter(Boolean)
     .join(' ');
 
-  return <Component className={classes}>{children}</Component>;
+  return (
+    <Component className={classes} {...rest}>
+      {children}
+    </Component>
+  );
 }

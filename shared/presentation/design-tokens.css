@@ -40,10 +40,10 @@
   --color-border-strong: #ddd;
 
   /* Shadows */
-  --shadow-card: 0 1px 4px rgb(0 0 0 / 0.08);
+  --shadow-card: 0 1px 4px rgb(0 0 0 / 8%);
 
   /* Row hover */
-  --color-row-hover: rgb(193 224 140 / 0.15);
+  --color-row-hover: rgb(193 224 140 / 15%);
 
   /* Text */
   --color-text-secondary: #666;
