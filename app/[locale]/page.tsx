@@ -96,6 +96,7 @@ export default async function HomePage({
           }}
         />
         <InfiniteProductList
+          key={q || 'all-products'}
           initialItems={initialItems}
           pageSize={PUBLIC_PAGE_SIZE}
           q={q}

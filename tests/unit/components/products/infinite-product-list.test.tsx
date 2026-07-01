@@ -144,6 +144,7 @@ describe('InfiniteProductList', () => {
 
     const { rerender } = render(
       <InfiniteProductList
+        key="all-products"
         initialItems={first}
         pageSize={10}
         q=""
@@ -156,6 +157,7 @@ describe('InfiniteProductList', () => {
 
     rerender(
       <InfiniteProductList
+        key="lamp"
         initialItems={second}
         pageSize={10}
         q="lamp"

@@ -78,18 +78,6 @@ export function InfiniteProductList({
   const [error, setError] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState('');
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const lastQRef = useRef<string>(q);
-
-  // Reset whenever the search term changes — the parent passes a new
-  // `initialItems` and the island must drop any locally-appended pages.
-  useEffect(() => {
-    if (lastQRef.current === q) return;
-    lastQRef.current = q;
-    setItems(initialItems);
-    setPage(1);
-    setHasMore(initialItems.length >= pageSize);
-    setError(null);
-  }, [q, initialItems, pageSize]);
 
   const loadMore = useCallback(async () => {
     if (isLoading || !hasMore) return;
