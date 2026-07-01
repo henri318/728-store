@@ -28,7 +28,7 @@ import { getToken } from 'next-auth/jwt';
 
 // Import the proxy function — this will trigger any side effects
 // and use our mocked getToken
-import { proxy } from '@/shared/middleware/proxy';
+import { proxy } from '@/proxy';
 
 function buildRequest(pathname: string, cookie?: string): NextRequest {
   const url = `http://localhost:3000${pathname}`;
