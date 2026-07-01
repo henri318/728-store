@@ -7,6 +7,8 @@ import {
   ProductsListFilter,
   ProductRepository,
 } from '@/modules/products/domain/product-repository';
+import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
+import { normalizeText } from '@/shared/lib/normalize-text';
 
 export class MemoryProductRepository implements ProductRepository {
   private products: ProductEntity[] = [];
@@ -51,8 +53,17 @@ export class MemoryProductRepository implements ProductRepository {
     const sortDir = filter.sortDir ?? PaginationDefaults.sortDir;
     const page = filter.page ?? PaginationDefaults.page;
     const pageSize = filter.pageSize ?? PaginationDefaults.pageSize;
+    const audience = filter.audience ?? 'seller';
+    const isPublic = audience === 'public';
 
     const filtered = this.products.filter((p) => {
+      // Public audience MUST only see ACTIVE products — this is the
+      // safety net that closes the DRAFT/ARCHIVED leak from the public
+      // API and storefront.
+      if (isPublic && p.status !== ProductStatus.ACTIVE) {
+        return false;
+      }
+
       if (filter.sellerId !== undefined && p.sellerId !== filter.sellerId) {
         return false;
       }
@@ -74,14 +85,34 @@ export class MemoryProductRepository implements ProductRepository {
       }
 
       if (filter.q !== undefined && filter.q !== '') {
+        // Normalise both the search term and the stored data so
+        // accent-insensitive matching works both directions:
+        // "café" matches "cafe" and vice versa.
+        const q = normalizeText(filter.q).toLowerCase();
+
+        // Match against the requested locale's name/description first,
+        // then fall back to the `es` translation if no match in the
+        // requested locale. This mirrors the Prisma adapter's
+        // `translations.some({ locale: { in: [locale, 'es'] } })` filter.
         const requested = p.translations.find((t) => t.locale === locale);
         const fallback = p.translations.find((t) => t.locale === 'es');
-        const requestedHaystack =
-          `${requested?.name ?? ''} ${requested?.description ?? ''}`.toLowerCase();
-        const fallbackHaystack =
-          `${fallback?.name ?? ''} ${fallback?.description ?? ''}`.toLowerCase();
-        const q = filter.q.toLowerCase();
-        if (!requestedHaystack.includes(q) && !fallbackHaystack.includes(q)) {
+        const requestedHaystack = normalizeText(
+          `${requested?.name ?? ''} ${requested?.description ?? ''}`,
+        ).toLowerCase();
+        const fallbackHaystack = normalizeText(
+          `${fallback?.name ?? ''} ${fallback?.description ?? ''}`,
+        ).toLowerCase();
+        const translationHit =
+          requestedHaystack.includes(q) || fallbackHaystack.includes(q);
+
+        // Match against tag name + tag slug, case-insensitive.
+        const tagHit = p.tags.some(
+          (t) =>
+            normalizeText(t.name).toLowerCase().includes(q) ||
+            normalizeText(t.slug).toLowerCase().includes(q),
+        );
+
+        if (!translationHit && !tagHit) {
           return false;
         }
       }

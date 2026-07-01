@@ -147,6 +147,7 @@ describe('AdminSellerProductsPage', () => {
       lang: 'es',
       sortBy: 'createdAt',
       sortDir: 'desc',
+      audience: 'admin',
     });
     const searchbox = screen.getByRole('searchbox', { name: 'Find products' });
     expect(searchbox).toHaveValue('taza');

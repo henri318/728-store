@@ -70,7 +70,7 @@ export default async function AdminSellerProductsPage({
 
   const productRepository = container.getProductRepository();
   const useCase = new ProductListQueryUseCase(productRepository);
-  const result = await useCase.execute(filter);
+  const result = await useCase.execute({ ...filter, audience: 'admin' });
   const { items: products, totalPages } = result;
   let page = result.page;
 
@@ -169,7 +169,15 @@ export default async function AdminSellerProductsPage({
           >
             {page > 1 ? (
               <Link
-                href={buildPageUrl(locale, sellerId, filter, page - 1)}
+                href={buildPageUrl(
+                  locale,
+                  sellerId,
+                  {
+                    q: filter.q,
+                    pageSize: filter.pageSize ?? PaginationDefaults.pageSize,
+                  },
+                  page - 1,
+                )}
                 className={styles.pageButton}
               >
                 {dict.admin.pagePrev}
@@ -183,7 +191,15 @@ export default async function AdminSellerProductsPage({
             )}
             {page < totalPages ? (
               <Link
-                href={buildPageUrl(locale, sellerId, filter, page + 1)}
+                href={buildPageUrl(
+                  locale,
+                  sellerId,
+                  {
+                    q: filter.q,
+                    pageSize: filter.pageSize ?? PaginationDefaults.pageSize,
+                  },
+                  page + 1,
+                )}
                 className={styles.pageButton}
               >
                 {dict.admin.pageNext}
