@@ -4,7 +4,7 @@
     "logout": "Tancar sessió",
     "register": "Registrar-se",
     "home": "Inici",
-    "homeTitle": "728-store: detalls que connecten",
+    "homeTitle": "728studio: detalls que connecten",
     "homeDescription": "Compra productes únics i personalitza'ls al teu gust. Dissenys exclusius creats per dissenyadors perquè cada compra sigui realment teva.",
     "keywords": "ecommerce, botiga online, plataforma, venta online, compra online, personalitzar, dissenyar",
     "hi": "Hola",
@@ -55,6 +55,8 @@
     "cartMergeKeepServerHint": "Descarta els articles de la cistella de convidat",
     "cartMergeKeepGuest": "Conservar la cistella de convidat",
     "cartMergeKeepGuestHint": "Substitueix la cistella de l'usuari pels articles de convidat",
+    "increaseQuantity": "Augmentar quantitat",
+    "decreaseQuantity": "Reduir quantitat",
     "genericError": "Alguna cosa ha anat malament. Torna-ho a intentar."
   },
   "auth": {

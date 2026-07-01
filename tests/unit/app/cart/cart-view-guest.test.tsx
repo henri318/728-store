@@ -59,6 +59,8 @@ describe('CartView — guest cart', () => {
     customizationSize: 'Talla',
     customizationColor: 'Color',
     customizationText: 'Texto',
+    increaseQuantity: 'Aumentar cantidad',
+    decreaseQuantity: 'Reducir cantidad',
   };
 
   beforeEach(() => {
@@ -130,7 +132,9 @@ describe('CartView — guest cart', () => {
       />,
     );
 
-    const plusButtons = screen.getAllByRole('button', { name: '+' });
+    const plusButtons = screen.getAllByRole('button', {
+      name: labels.increaseQuantity,
+    });
     fireEvent.click(plusButtons[0]);
 
     expect(mockUpdateQuantity).toHaveBeenCalledWith('prod-1', 3);
@@ -168,7 +172,9 @@ describe('CartView — guest cart', () => {
       />,
     );
 
-    const plusButtons = screen.getAllByRole('button', { name: '+' });
+    const plusButtons = screen.getAllByRole('button', {
+      name: labels.increaseQuantity,
+    });
     fireEvent.click(plusButtons[0]);
 
     expect(mockFetch).not.toHaveBeenCalled();

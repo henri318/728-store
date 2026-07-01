@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, type ChangeEvent } from 'react';
+import { useId, type ChangeEvent, type ReactNode } from 'react';
 import styles from './input.module.css';
 
 interface InputProps {
@@ -12,6 +12,8 @@ interface InputProps {
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
+  /** Elemento renderizado dentro del input row (ej: toggle password) */
+  rightElement?: ReactNode;
 }
 
 export function Input({
@@ -23,6 +25,7 @@ export function Input({
   placeholder,
   required,
   disabled,
+  rightElement,
 }: InputProps) {
   const id = useId();
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -36,18 +39,21 @@ export function Input({
       <label htmlFor={id} className={styles.label}>
         {label}
       </label>
-      <input
-        id={id}
-        type={type}
-        value={value}
-        onChange={handleChange}
-        placeholder={placeholder}
-        required={required}
-        disabled={disabled}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={errorId}
-        className={`${styles.input} ${error ? styles.inputError : ''}`}
-      />
+      <div className={styles.inputRow}>
+        <input
+          id={id}
+          type={type}
+          value={value}
+          onChange={handleChange}
+          placeholder={placeholder}
+          required={required}
+          disabled={disabled}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={errorId}
+          className={`${styles.input} ${error ? styles.inputError : ''} ${rightElement ? styles.hasSuffix : ''}`}
+        />
+        {rightElement && <span className={styles.suffix}>{rightElement}</span>}
+      </div>
       {error && (
         <span id={errorId} role="alert" className={styles.errorText}>
           {error}

@@ -10,6 +10,9 @@
 /test-results/
 /playwright-report/
 
+# sdd — exploration / planning artifacts
+/sdd/
+
 # next.js
 /.next/
 /out/

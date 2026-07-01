@@ -4,7 +4,7 @@
     "logout": "Cerrar sesión",
     "register": "Registrarse",
     "home": "Inicio",
-    "homeTitle": "728-store: detalles que conectan",
+    "homeTitle": "728studio: detalles que conectan",
     "homeDescription": "Compra productos únicos y personalízalos a tu gusto. Diseños exclusivos creados por diseñadores para que cada compra sea realmente tuya.",
     "keywords": "ecommerce, tienda online, plataforma, venta online, comprar online, personalizar, diseñar",
     "hi": "Hola",
@@ -55,6 +55,8 @@
     "cartMergeKeepServerHint": "Descarta los artículos del carrito de invitado",
     "cartMergeKeepGuest": "Conservar el carrito de invitado",
     "cartMergeKeepGuestHint": "Reemplaza el carrito del servidor con los artículos de invitado",
+    "increaseQuantity": "Aumentar cantidad",
+    "decreaseQuantity": "Reducir cantidad",
     "genericError": "Algo salió mal. Inténtalo de nuevo."
   },
   "auth": {

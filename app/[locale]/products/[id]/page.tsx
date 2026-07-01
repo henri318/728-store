@@ -62,6 +62,8 @@ export default async function ProductDetailPage({
                 adding: '...',
                 added: '✓',
                 error: 'Error',
+                increaseQuantity: dict.common.increaseQuantity,
+                decreaseQuantity: dict.common.decreaseQuantity,
               }}
             />
           </div>
