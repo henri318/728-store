@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
-import { Input } from '@/modules/presentation/components/input';
-import { Button } from '@/modules/presentation/components/button';
-import { ErrorMessage } from '@/modules/presentation/components/error-message';
-import { Modal } from '@/modules/presentation/components/modal';
+import { Input } from '@/shared/ui/input';
+import { Button } from '@/shared/ui/button';
+import { ErrorMessage } from '@/shared/ui/error-message';
+import { DeleteConfirmModal } from '@/shared/ui/delete-confirm-modal';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 import styles from './page.module.css';
 
@@ -242,29 +242,16 @@ export default function ProfilePage() {
         </Button>
       </div>
 
-      <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-        <h3 className={styles.modalTitle}>{dict.profile.deleteConfirmTitle}</h3>
-        <p className={styles.modalMessage}>
-          {dict.profile.deleteConfirmMessage}
-        </p>
-        <div className={styles.modalActions}>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => setShowDeleteModal(false)}
-          >
-            {dict.common.cancel}
-          </Button>
-          <Button
-            type="button"
-            variant="danger"
-            loading={saving}
-            onClick={handleDelete}
-          >
-            {dict.profile.deleteAccount}
-          </Button>
-        </div>
-      </Modal>
+      <DeleteConfirmModal
+        open={showDeleteModal}
+        title={dict.profile.deleteConfirmTitle}
+        message={dict.profile.deleteConfirmMessage}
+        confirmLabel={dict.profile.deleteAccount}
+        cancelLabel={dict.common.cancel}
+        loading={saving}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteModal(false)}
+      />
     </div>
   );
 }

@@ -1,9 +1,9 @@
 import { container } from '@/composition-root/container';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
-import { HeroSection } from '@/shared/presentation/components/hero-section';
-import { MiddleSection } from '@/shared/presentation/components/middle-section';
-import { WaveTransition } from '@/shared/presentation/components/wave-transition';
-import { BottomSection } from '@/shared/presentation/components/bottom-section';
+import { HeroSection } from '@/shared/ui/hero-section';
+import { MiddleSection } from '@/shared/ui/middle-section';
+import { WaveTransition } from '@/shared/ui/wave-transition';
+import { BottomSection } from '@/shared/ui/bottom-section';
 import { InfiniteProductList } from '@/components/products/infinite-product-list';
 import {
   SearchInputWithSuggestions,
@@ -105,6 +105,8 @@ export default async function HomePage({
             viewDetails: dict.common.viewDetails,
             addToCart: dict.common.addToCart,
             removeFromCart: dict.common.removeFromCart,
+            increaseQuantity: dict.common.increaseQuantity,
+            decreaseQuantity: dict.common.decreaseQuantity,
             loadingMore: dict.common.loadingMore,
             noSearchResults: dict.common.noSearchResults,
             noProducts: dict.common.noProducts,

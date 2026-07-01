@@ -3,11 +3,21 @@ import { container } from '@/composition-root/container';
 import { ListSellersUseCase } from '@/modules/sellers/application/use-cases/list-sellers-use-case';
 import { listSellersQuerySchema } from '@/modules/sellers/presentation/schemas/seller-schemas';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
-import { assertRole } from '@/shared/authorization/authorization';
 import { LocalizedDate } from '@/shared/kernel/domain/value-objects/localized-date';
-import { SellerActions } from './seller-actions';
-import { SellerDelete } from './seller-delete';
-import { SearchForm } from '@/shared/presentation/components/search-form';
+import { SellerActions } from '@/modules/sellers/presentation/components/seller-actions';
+import { SellerDelete } from '@/modules/sellers/presentation/components/seller-delete';
+import { SearchForm } from '@/shared/ui/search-form';
+import { DataTable } from '@/shared/ui/data-table';
+import type { DataTableColumn } from '@/shared/ui/data-table';
+import { StatusBadge } from '@/shared/ui/status-badge';
+import { Pagination } from '@/shared/ui/pagination';
+import { requireAdmin } from '@/shared/authorization/require-admin';
+import { buildPageUrl } from '@/shared/presentation/build-page-url';
+import {
+  resolveStatusLabel,
+  SELLER_STATUS_LABELS,
+} from '@/shared/presentation/status-labels';
+import type { SellerEntity } from '@/modules/sellers/domain/seller';
 import styles from './page.module.css';
 
 const PAGE_SIZE = 20;
@@ -34,11 +44,7 @@ export default async function AdminSellersPage({
     sortDir,
   } = await searchParams;
 
-  try {
-    await assertRole('ADMIN');
-  } catch {
-    redirect(`/${locale}`);
-  }
+  await requireAdmin(locale);
 
   const filter = listSellersQuerySchema.parse({
     page: pageStr,
@@ -48,54 +54,99 @@ export default async function AdminSellersPage({
     sortDir,
   });
 
-  function buildPageUrl(
-    targetPage: number,
-    size: number,
-    query?: string,
-    sort?: string,
-    direction?: string,
-  ): string {
-    const search = new URLSearchParams();
-    if (targetPage > 1) search.set('page', String(targetPage));
-    if (size !== PAGE_SIZE) search.set('pageSize', String(size));
-    if (query) search.set('q', query);
-    if (sort) search.set('sortBy', sort);
-    if (direction) search.set('sortDir', direction);
-    const params = search.toString();
-    return `/${locale}/admin/sellers${params ? `?${params}` : ''}`;
-  }
-
   const dict = await getDictionary(locale as 'es' | 'cat');
   const sellerRepository = container.getSellerRepository();
   const useCase = new ListSellersUseCase(sellerRepository);
   const result = await useCase.execute(filter);
   const { items: sellers, page: currentPage, pageSize, totalPages } = result;
 
-  function getStatusLabel(status: string): string {
-    switch (status) {
-      case 'active':
-        return dict.admin.status_active;
-      case 'suspended':
-        return dict.admin.status_suspended;
-      case 'banned':
-        return dict.admin.status_banned;
-      default:
-        return status;
-    }
-  }
-
   // Redirect to valid page if current page is out of range
   if (currentPage > totalPages && totalPages > 0) {
     redirect(
-      buildPageUrl(
-        totalPages,
+      buildPageUrl(`/${locale}/admin/sellers`, totalPages, {
+        q: filter.q,
         pageSize,
-        filter.q,
-        filter.sortBy,
-        filter.sortDir,
-      ),
+        defaultPageSize: PAGE_SIZE,
+        sortBy: filter.sortBy,
+        sortDir: filter.sortDir,
+      }),
     );
   }
+
+  const columns: DataTableColumn<SellerEntity>[] = [
+    {
+      key: 'name',
+      header: dict.admin.sellerName,
+      render: (seller) => (
+        <span className={styles.nameCell}>{seller.name}</span>
+      ),
+    },
+    {
+      key: 'description',
+      header: dict.admin.sellerDescriptionList,
+      render: (seller) => (
+        <span className={styles.descriptionCell}>
+          {seller.description ?? '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      header: dict.admin.sellerStatus,
+      render: (seller) => (
+        <span
+          data-testid={`status-badge-${seller.sellerId.value}`}
+          data-status={seller.status}
+        >
+          <StatusBadge
+            status={seller.status}
+            label={resolveStatusLabel(
+              seller.status,
+              SELLER_STATUS_LABELS,
+              dict.admin,
+            )}
+          />
+        </span>
+      ),
+    },
+    {
+      key: 'createdAt',
+      header: dict.admin.sellerCreated,
+      render: (seller) => (
+        <span className={styles.dateCell}>
+          {LocalizedDate.create(seller.createdAt, locale).toString()}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: dict.admin.actions,
+      render: (seller) => (
+        <div className={styles.actionsCell}>
+          <a
+            href={`/${locale}/admin/sellers/${seller.sellerId.value}/products`}
+            className={styles.viewProducts}
+          >
+            {dict.admin.viewProducts}
+          </a>
+          <a
+            href={`/${locale}/admin/sellers/${seller.sellerId.value}`}
+            className={styles.editLink}
+          >
+            {dict.admin.edit}
+          </a>
+          <SellerActions
+            sellerId={seller.sellerId.value}
+            currentStatus={seller.status}
+          />
+          <SellerDelete
+            sellerId={seller.sellerId.value}
+            sellerName={seller.name}
+          />
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className={styles.container}>
@@ -124,110 +175,29 @@ export default async function AdminSellersPage({
         <p className={styles.noSellers}>{dict.admin.noSellers}</p>
       ) : (
         <>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>{dict.admin.sellerName}</th>
-                <th>{dict.admin.sellerDescriptionList}</th>
-                <th>{dict.admin.sellerStatus}</th>
-                <th>{dict.admin.sellerCreated}</th>
-                <th>{dict.admin.actions}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sellers.map((seller) => (
-                <tr key={seller.sellerId.value}>
-                  <td className={styles.nameCell}>{seller.name}</td>
-                  <td className={styles.descriptionCell}>
-                    {seller.description ?? '—'}
-                  </td>
-                  <td>
-                    <span
-                      className={styles.statusBadge}
-                      data-testid={`status-badge-${seller.sellerId.value}`}
-                      data-status={seller.status}
-                    >
-                      {getStatusLabel(seller.status)}
-                    </span>
-                  </td>
-                  <td className={styles.dateCell}>
-                    {LocalizedDate.create(seller.createdAt, locale).toString()}
-                  </td>
-                  <td>
-                    <div className={styles.actionsCell}>
-                      <a
-                        href={`/${locale}/admin/sellers/${seller.sellerId.value}/products`}
-                        className={styles.viewProducts}
-                      >
-                        {dict.admin.viewProducts}
-                      </a>
-                      <a
-                        href={`/${locale}/admin/sellers/${seller.sellerId.value}`}
-                        className={styles.editLink}
-                      >
-                        {dict.admin.edit}
-                      </a>
-                      <SellerActions
-                        sellerId={seller.sellerId.value}
-                        currentStatus={seller.status}
-                      />
-                      <SellerDelete
-                        sellerId={seller.sellerId.value}
-                        sellerName={seller.name}
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className={styles.pagination}>
-            {currentPage <= 1 ? (
-              <span
-                className={`${styles.pageButton} ${styles.pageButtonDisabled}`}
-              >
-                {dict.admin.pagePrev}
-              </span>
-            ) : (
-              <a
-                href={buildPageUrl(
-                  currentPage - 1,
-                  pageSize,
-                  filter.q,
-                  filter.sortBy,
-                  filter.sortDir,
-                )}
-                className={styles.pageButton}
-              >
-                {dict.admin.pagePrev}
-              </a>
-            )}
-            <span className={styles.pageInfo}>
-              {dict.admin.pageXofY
-                .replace('{current}', String(currentPage))
-                .replace('{total}', String(totalPages))}
-            </span>
-            {currentPage >= totalPages ? (
-              <span
-                className={`${styles.pageButton} ${styles.pageButtonDisabled}`}
-              >
-                {dict.admin.pageNext}
-              </span>
-            ) : (
-              <a
-                href={buildPageUrl(
-                  currentPage + 1,
-                  pageSize,
-                  filter.q,
-                  filter.sortBy,
-                  filter.sortDir,
-                )}
-                className={styles.pageButton}
-              >
-                {dict.admin.pageNext}
-              </a>
-            )}
-          </div>
+          <DataTable
+            columns={columns}
+            rows={sellers}
+            rowKey={(s) => s.sellerId.value}
+          />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            buildPageUrl={(page) =>
+              buildPageUrl(`/${locale}/admin/sellers`, page, {
+                q: filter.q,
+                pageSize,
+                defaultPageSize: PAGE_SIZE,
+                sortBy: filter.sortBy,
+                sortDir: filter.sortDir,
+              })
+            }
+            prevLabel={dict.admin.pagePrev}
+            nextLabel={dict.admin.pageNext}
+            pageInfo={dict.admin.pageXofY
+              .replace('{current}', String(currentPage))
+              .replace('{total}', String(totalPages))}
+          />
         </>
       )}
     </div>

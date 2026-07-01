@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { CartView } from '@/app/[locale]/cart/cart-view';
+import { CartView } from '@/modules/cart/presentation/components/cart-view';
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
@@ -39,6 +39,8 @@ describe('CartView', () => {
     customizationSize: 'Talla',
     customizationColor: 'Color',
     customizationText: 'Texto',
+    increaseQuantity: 'Aumentar cantidad',
+    decreaseQuantity: 'Reducir cantidad',
   };
 
   const baseItems = [
@@ -196,7 +198,9 @@ describe('CartView', () => {
       />,
     );
 
-    const plusButtons = screen.getAllByRole('button', { name: '+' });
+    const plusButtons = screen.getAllByRole('button', {
+      name: labels.increaseQuantity,
+    });
     fireEvent.click(plusButtons[0]);
 
     await waitFor(() => {
@@ -226,7 +230,9 @@ describe('CartView', () => {
       />,
     );
 
-    const minusButtons = screen.getAllByRole('button', { name: '−' });
+    const minusButtons = screen.getAllByRole('button', {
+      name: labels.decreaseQuantity,
+    });
     fireEvent.click(minusButtons[0]);
 
     await waitFor(() => {
@@ -280,7 +286,9 @@ describe('CartView', () => {
       />,
     );
 
-    const plusButtons = screen.getAllByRole('button', { name: '+' });
+    const plusButtons = screen.getAllByRole('button', {
+      name: labels.increaseQuantity,
+    });
     fireEvent.click(plusButtons[0]);
 
     await waitFor(() => {

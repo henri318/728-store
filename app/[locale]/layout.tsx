@@ -3,17 +3,17 @@ import type { Metadata, Viewport } from 'next';
 import Image from 'next/image';
 import { authOptions } from '@/shared/infrastructure/auth-options';
 import { prisma } from '@/shared/infrastructure/prisma';
-import LanguageSelector from '@/modules/presentation/components/language-selector';
-import { SessionProviderWrapper } from '@/modules/presentation/components/session-provider';
-import { HeaderNav } from '@/modules/presentation/components/header-nav';
-import { VerificationBannerWrapper } from '@/modules/presentation/components/verification-banner-wrapper';
-import { HeaderBanner } from '@/shared/presentation/components/header-banner';
-import { SocialFooter } from '@/shared/presentation/components/social-footer';
+import LanguageSelector from '@/shared/layout/language-selector';
+import { SessionProviderWrapper } from '@/shared/layout/session-provider';
+import { HeaderNav } from '@/shared/layout/header-nav';
+import { VerificationBannerWrapper } from '@/shared/layout/verification-banner-wrapper';
+import { HeaderBanner } from '@/shared/ui/header-banner';
+import { SocialFooter } from '@/shared/ui/social-footer';
 import type { Role } from '@/modules/roles/domain/roles';
 import { GuestCartProvider } from '@/modules/cart/presentation/guest-cart-context';
-import { CartPopupProvider } from '@/modules/presentation/components/cart-popup-context';
-import { CartPopup } from '@/modules/presentation/components/cart-popup';
-import { CartMergeDetector } from '@/components/cart/cart-merge-detector';
+import { CartPopupProvider } from '@/modules/cart/presentation/components/cart-popup-context';
+import { CartPopup } from '@/modules/cart/presentation/components/cart-popup';
+import { CartMergeDetector } from '@/modules/cart/presentation/components/cart-merge-detector';
 import { outboxWorker } from '@/workers/outbox-worker';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { DictionaryProvider } from '@/shared/i18n/dictionary-context';
@@ -165,6 +165,8 @@ export default async function RootLayout({
                   remove: dict.common.removeFromCart,
                   unknownProduct: dict.common.unknownProduct,
                   unknownSeller: dict.common.unknownSeller,
+                  increaseQuantity: dict.common.increaseQuantity,
+                  decreaseQuantity: dict.common.decreaseQuantity,
                 }}
               />
             </CartPopupProvider>

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { Input } from '@/modules/presentation/components/input';
+import { Input } from '@/shared/ui/input';
 
 describe('Input component', () => {
   it('renders with label text', () => {

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { AddToCartButton } from '@/components/cart/add-to-cart-button';
+import { AddToCartButton } from '@/modules/cart/presentation/components/add-to-cart-button';
 import styles from '@/app/[locale]/page.module.css';
 
 /**
@@ -34,6 +34,8 @@ export interface InfiniteProductListLabels {
   viewDetails: string;
   addToCart: string;
   removeFromCart: string;
+  increaseQuantity: string;
+  decreaseQuantity: string;
   loadingMore: string;
   noSearchResults: string;
   noProducts: string;
@@ -198,6 +200,8 @@ export function InfiniteProductList({
                     adding: '...',
                     added: '✓',
                     error: 'Error',
+                    increaseQuantity: labels.increaseQuantity,
+                    decreaseQuantity: labels.decreaseQuantity,
                   }}
                 />
               </div>

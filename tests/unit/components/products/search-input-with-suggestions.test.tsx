@@ -37,7 +37,7 @@ function renderAndOpen(props: Partial<SearchInputWithSuggestionsProps> = {}) {
     />,
   );
   // Click the toggle button to show the input.
-  fireEvent.click(screen.getByRole('button', { name: 'Buscar productos' }));
+  fireEvent.mouseDown(screen.getByRole('button', { name: 'Buscar productos' }));
   return result;
 }
 

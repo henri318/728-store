@@ -64,7 +64,7 @@
   background: var(--color-green-dark);
   color: var(--color-white);
   border: none;
-  border-radius: 24px;
+  border-radius: var(--radius-pill);
   font-family: var(--font-family-primary);
   font-weight: var(--font-weight-medium);
   font-size: 0.9rem;
@@ -78,7 +78,7 @@
 }
 
 .productLink:hover {
-  background: #0a4a38;
+  background: var(--color-green-dark-hover);
   transform: scale(1.03);
 }
 

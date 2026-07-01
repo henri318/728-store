@@ -78,6 +78,8 @@ const baseLabels = {
   viewDetails: 'Ver Detalles',
   addToCart: 'Añadir',
   removeFromCart: 'Quitar',
+  increaseQuantity: 'Aumentar',
+  decreaseQuantity: 'Reducir',
   loadingMore: 'Cargando...',
   noSearchResults: 'Sin resultados para {term}',
   noProducts: 'Sin productos',

@@ -3,7 +3,10 @@ import { authOptions } from '@/shared/infrastructure/auth-options';
 import { container } from '@/composition-root/container';
 import { GetCart } from '@/modules/cart/application/get-cart';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
-import { CartView, type CartItemDTO } from './cart-view';
+import {
+  CartView,
+  type CartItemDTO,
+} from '@/modules/cart/presentation/components/cart-view';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
 
 /**
@@ -90,6 +93,8 @@ export default async function CartPage({
         customizationSize: dict.common.customizationSize,
         customizationColor: dict.common.customizationColor,
         customizationText: dict.common.customizationText,
+        increaseQuantity: dict.common.increaseQuantity,
+        decreaseQuantity: dict.common.decreaseQuantity,
       }}
     />
   );

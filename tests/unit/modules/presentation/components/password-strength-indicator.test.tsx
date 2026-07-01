@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { PasswordStrengthIndicator } from '@/modules/presentation/components/password-strength-indicator';
+import { PasswordStrengthIndicator } from '@/shared/ui/password-strength-indicator';
 
 describe('PasswordStrengthIndicator component', () => {
   it('shows 0/3 criteria with all crosses for empty password', () => {

@@ -1,0 +1,7 @@
+.card {
+  max-width: 480px;
+  margin: 4rem auto;
+  padding: 2rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+}

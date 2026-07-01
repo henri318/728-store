@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { AddToCartButton } from '@/components/cart/add-to-cart-button';
+import { AddToCartButton } from '@/modules/cart/presentation/components/add-to-cart-button';
 
 // Mock next-auth/react
 vi.mock('next-auth/react', () => ({
@@ -34,6 +34,8 @@ describe('AddToCartButton', () => {
       adding: '...',
       added: '✓',
       error: 'Error',
+      increaseQuantity: 'Increase quantity',
+      decreaseQuantity: 'Decrease quantity',
     },
   };
 

@@ -22,7 +22,7 @@ vi.mock('next/navigation', () => {
 
 globalThis.fetch = mocks.fetchMock as typeof fetch;
 
-import { ProductActions } from '@/app/[locale]/seller/products/product-actions';
+import { ProductActions } from '@/modules/products/presentation/components/product-actions';
 
 function makeDict() {
   return {
