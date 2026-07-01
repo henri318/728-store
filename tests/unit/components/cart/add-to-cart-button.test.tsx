@@ -34,6 +34,8 @@ describe('AddToCartButton', () => {
       adding: '...',
       added: '✓',
       error: 'Error',
+      increaseQuantity: 'Increase quantity',
+      decreaseQuantity: 'Decrease quantity',
     },
   };
 

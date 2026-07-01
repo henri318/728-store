@@ -12,6 +12,8 @@ export interface CartButtonLabels {
   adding: string;
   added: string;
   error: string;
+  increaseQuantity: string;
+  decreaseQuantity: string;
 }
 
 interface AddToCartButtonProps {
@@ -288,8 +290,8 @@ export function AddToCartButton({
             else if (newQty < currentQuantity) handleDecrement();
           }}
           variant="compact"
-          decrementLabel="Decrease quantity"
-          incrementLabel="Increase quantity"
+          decrementLabel={labels.decreaseQuantity}
+          incrementLabel={labels.increaseQuantity}
         />
         <button
           type="button"

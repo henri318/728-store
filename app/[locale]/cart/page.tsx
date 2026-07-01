@@ -92,7 +92,11 @@ export default async function CartPage({
         unknownSeller: dict.common.unknownSeller,
         customizationSize: dict.common.customizationSize,
         customizationColor: dict.common.customizationColor,
+        customizationSize: dict.common.customizationSize,
+        customizationColor: dict.common.customizationColor,
         customizationText: dict.common.customizationText,
+        increaseQuantity: dict.common.increaseQuantity,
+        decreaseQuantity: dict.common.decreaseQuantity,
       }}
     />
   );

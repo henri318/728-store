@@ -10,7 +10,7 @@ vi.mock('next-auth/jwt', () => ({
   getToken: mocks.getTokenMock,
 }));
 
-import { proxy } from '@/proxy';
+import { proxy } from '@/shared/middleware/proxy';
 
 describe('proxy', () => {
   beforeEach(() => {

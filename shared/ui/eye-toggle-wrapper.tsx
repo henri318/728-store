@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, type KeyboardEvent } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
 import { Input } from '@/shared/ui/input';
 import styles from './eye-toggle-wrapper.module.css';
 
@@ -37,24 +36,28 @@ export function EyeToggleWrapper({
   const ariaLabel = showPassword ? 'Hide password' : 'Show password';
 
   return (
-    <div className={styles.wrapper}>
-      <Input
-        label={label}
-        value={value}
-        onChange={onChange}
-        type={inputType}
-        error={error}
-        required={required}
-      />
-      <button
-        type="button"
-        onClick={toggleVisibility}
-        onKeyDown={handleKeyDown}
-        aria-label={ariaLabel}
-        className={styles.toggleButton}
-      >
-        {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
-      </button>
-    </div>
+    <Input
+      label={label}
+      value={value}
+      onChange={onChange}
+      type={inputType}
+      error={error}
+      required={required}
+      rightElement={
+        <button
+          type="button"
+          onClick={toggleVisibility}
+          onKeyDown={handleKeyDown}
+          aria-label={ariaLabel}
+          className={styles.toggleButton}
+        >
+          <svg aria-hidden="true" width="20" height="20">
+            <use
+              href={`/img/icons/sprites.svg#icon-${showPassword ? 'eye' : 'eye-off'}`}
+            />
+          </svg>
+        </button>
+      }
+    />
   );
 }

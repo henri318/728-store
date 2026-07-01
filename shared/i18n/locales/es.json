@@ -55,6 +55,8 @@
     "cartMergeKeepServerHint": "Descarta los artículos del carrito de invitado",
     "cartMergeKeepGuest": "Conservar el carrito de invitado",
     "cartMergeKeepGuestHint": "Reemplaza el carrito del servidor con los artículos de invitado",
+    "increaseQuantity": "Aumentar cantidad",
+    "decreaseQuantity": "Reducir cantidad",
     "genericError": "Algo salió mal. Inténtalo de nuevo."
   },
   "auth": {

@@ -55,6 +55,8 @@
     "cartMergeKeepServerHint": "Descarta els articles de la cistella de convidat",
     "cartMergeKeepGuest": "Conservar la cistella de convidat",
     "cartMergeKeepGuestHint": "Substitueix la cistella de l'usuari pels articles de convidat",
+    "increaseQuantity": "Augmentar quantitat",
+    "decreaseQuantity": "Reduir quantitat",
     "genericError": "Alguna cosa ha anat malament. Torna-ho a intentar."
   },
   "auth": {

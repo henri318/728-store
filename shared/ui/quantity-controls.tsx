@@ -22,6 +22,10 @@ export function QuantityControls({
   variant = 'default',
 }: QuantityControlsProps) {
   const clamp = (n: number) => Math.max(min, Math.min(max, n));
+  // Mostrar siempre el símbolo como contenido visual,
+  // el label se usa solo para accesibilidad.
+  const decSymbol = '\u2212';
+  const incSymbol = '+';
 
   return (
     <div
@@ -34,7 +38,7 @@ export function QuantityControls({
         disabled={value <= min}
         aria-label={decrementLabel}
       >
-        {decrementLabel}
+        {decSymbol}
       </button>
       <span className={styles.value} aria-live="polite">
         {value}
@@ -46,7 +50,7 @@ export function QuantityControls({
         disabled={value >= max}
         aria-label={incrementLabel}
       >
-        {incrementLabel}
+        {incSymbol}
       </button>
     </div>
   );

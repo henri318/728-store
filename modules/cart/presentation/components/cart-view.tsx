@@ -57,6 +57,8 @@ interface CartViewProps {
     customizationSize: string;
     customizationColor: string;
     customizationText: string;
+    increaseQuantity: string;
+    decreaseQuantity: string;
   };
 }
 
@@ -257,6 +259,8 @@ export function CartView({
                 onChange={(newQty) =>
                   handleUpdateQuantity(item, newQty - item.quantity)
                 }
+                decrementLabel={labels.decreaseQuantity}
+                incrementLabel={labels.increaseQuantity}
               />
 
               <span className={styles.unitPrice}>

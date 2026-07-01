@@ -45,6 +45,8 @@ interface CartPopupLabels {
   remove: string;
   unknownProduct: string;
   unknownSeller: string;
+  increaseQuantity: string;
+  decreaseQuantity: string;
 }
 
 interface CartPopupProps {
@@ -268,6 +270,8 @@ export function CartPopup({ labels }: CartPopupProps) {
                           handleUpdate(item, newQty - item.quantity)
                         }
                         variant="compact"
+                        decrementLabel={labels.decreaseQuantity}
+                        incrementLabel={labels.increaseQuantity}
                       />
                       <span className={styles.lineTotal}>
                         {Money.format(item.lineTotal, Currency.EUR)}
