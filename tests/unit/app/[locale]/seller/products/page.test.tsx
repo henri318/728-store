@@ -153,6 +153,7 @@ describe('SellerProductsPage', () => {
       lang: 'es',
       sortBy: 'createdAt',
       sortDir: 'desc',
+      audience: 'seller',
     });
     expect(
       screen.getByRole('searchbox', { name: 'Search products' }),

@@ -54,7 +54,7 @@ export default async function AdminSellerProductsPage({
 
   const productRepository = container.getProductRepository();
   const useCase = new ProductListQueryUseCase(productRepository);
-  const result = await useCase.execute(filter);
+  const result = await useCase.execute({ ...filter, audience: 'admin' });
   const { items: products, totalPages } = result;
   let page = result.page;
 

@@ -29,7 +29,7 @@ async function getHandler(
 
     const productRepository = container.getProductRepository();
     const useCase = new ProductListQueryUseCase(productRepository);
-    const result = await useCase.execute(filter);
+    const result = await useCase.execute({ ...filter, audience: 'admin' });
 
     return NextResponse.json(
       {

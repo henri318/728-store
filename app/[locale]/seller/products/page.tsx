@@ -56,7 +56,7 @@ export default async function SellerProductsPage({
     items: [],
     total: 0,
     page: filter.page,
-    pageSize: filter.pageSize,
+    pageSize: filter.pageSize ?? PaginationDefaults.pageSize,
     totalPages: 0,
   };
 
@@ -69,6 +69,7 @@ export default async function SellerProductsPage({
       lang: filter.lang,
       sortBy: filter.sortBy,
       sortDir: filter.sortDir,
+      audience: 'seller',
     })
     .catch((error: unknown) => {
       if (error instanceof NotFoundError) {
@@ -141,7 +142,9 @@ export default async function SellerProductsPage({
             placeholder={dict.sellerDashboard.searchPlaceholder}
             ariaLabel={dict.sellerDashboard.searchProducts}
             defaultValue={filter.q ?? ''}
-            hiddenFields={{ pageSize: String(filter.pageSize) }}
+            hiddenFields={{
+              pageSize: String(filter.pageSize ?? PaginationDefaults.pageSize),
+            }}
           />
         </div>
       </div>

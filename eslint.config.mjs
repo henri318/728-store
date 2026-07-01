@@ -20,6 +20,7 @@ const MODULES = [
   'presentation',
   'products',
   'roles',
+  'search-history',
   'tickets',
   'users',
 ];

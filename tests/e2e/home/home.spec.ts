@@ -26,4 +26,28 @@ test.describe('Home Page', () => {
 
     await expect(page).toHaveURL(/\/es/);
   });
+
+  test('does NOT expose a /products public listing route (v1 spec)', async ({
+    page,
+  }) => {
+    const res = await page.goto('/es/products');
+    expect(res?.status()).toBe(404);
+  });
+
+  test('renders the unified search input with an accessible name', async ({
+    page,
+  }) => {
+    await page.goto('/es');
+    await page.getByRole('button', { name: /buscar productos/i }).click();
+    const input = page.getByTestId('search-input');
+    await expect(input).toBeVisible();
+  });
+
+  test('guests see no recent-search suggestions', async ({ page }) => {
+    await page.goto('/es');
+    await page.getByRole('button', { name: /buscar productos/i }).click();
+    const input = page.getByTestId('search-input');
+    await input.focus();
+    await expect(page.getByRole('listbox')).toHaveCount(0);
+  });
 });

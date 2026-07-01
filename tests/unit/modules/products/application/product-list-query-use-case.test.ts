@@ -1,9 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ProductListQueryUseCase } from '@/modules/products/application/product-list-query-use-case';
 import { MemoryProductRepository } from '@/tests/doubles/memory-product-repository';
+import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
+import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
 import { ProductPrice } from '@/modules/products/domain/value-objects/product-price';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
+import { GlobalEvents } from '@/modules/events/domain/event-registry';
 
 function makeProduct(
   id: string,
@@ -35,11 +38,13 @@ function makeProduct(
 
 describe('ProductListQueryUseCase', () => {
   let repo: MemoryProductRepository;
+  let outbox: OutboxRepository;
   let useCase: ProductListQueryUseCase;
 
   beforeEach(() => {
     repo = new MemoryProductRepository();
-    useCase = new ProductListQueryUseCase(repo);
+    outbox = new MemoryOutboxRepository();
+    useCase = new ProductListQueryUseCase(repo, outbox);
   });
 
   it('returns empty paginated result when no products exist', async () => {
@@ -289,5 +294,261 @@ describe('ProductListQueryUseCase', () => {
     expect(withCategory?.category?.id).toBe('cat-1');
     expect(withCategory?.category?.slug).toBe('clothing');
     expect(withoutCategory?.category).toBeNull();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Public audience — status filter and pageSize default
+  // ---------------------------------------------------------------------------
+
+  describe('audience=public', () => {
+    it('forces status=ACTIVE and returns only ACTIVE products', async () => {
+      repo.seed([
+        makeProduct('active-1', { status: ProductStatus.ACTIVE }),
+        makeProduct('draft-1', { status: ProductStatus.DRAFT }),
+        makeProduct('archived-1', { status: ProductStatus.ARCHIVED }),
+      ]);
+
+      const result = await useCase.execute({ audience: 'public' });
+
+      expect(result.items.map((p) => p.id)).toEqual(['active-1']);
+      expect(result.total).toBe(1);
+    });
+
+    it('defaults pageSize to 10 when audience is public', async () => {
+      const products = Array.from({ length: 25 }, (_, i) =>
+        makeProduct(`p-${i}`, { createdAt: new Date(2025, 0, i + 1) }),
+      );
+      repo.seed(products);
+
+      const result = await useCase.execute({ audience: 'public' });
+
+      expect(result.pageSize).toBe(10);
+      expect(result.items).toHaveLength(10);
+      expect(result.totalPages).toBe(3);
+    });
+
+    it('respects explicit pageSize when audience is public', async () => {
+      const products = Array.from({ length: 12 }, (_, i) =>
+        makeProduct(`p-${i}`, { createdAt: new Date(2025, 0, i + 1) }),
+      );
+      repo.seed(products);
+
+      const result = await useCase.execute({
+        audience: 'public',
+        pageSize: 5,
+      });
+
+      expect(result.pageSize).toBe(5);
+      expect(result.items).toHaveLength(5);
+      expect(result.totalPages).toBe(3);
+    });
+  });
+
+  describe('audience=seller', () => {
+    it('does NOT filter to ACTIVE only', async () => {
+      repo.seed([
+        makeProduct('active-1', { status: ProductStatus.ACTIVE }),
+        makeProduct('draft-1', { status: ProductStatus.DRAFT }),
+      ]);
+
+      const result = await useCase.execute({ audience: 'seller' });
+
+      expect(result.items.map((p) => p.id).sort()).toEqual([
+        'active-1',
+        'draft-1',
+      ]);
+    });
+
+    it('keeps the default pageSize=20 (admin tables unaffected)', async () => {
+      const products = Array.from({ length: 25 }, (_, i) =>
+        makeProduct(`p-${i}`, { createdAt: new Date(2025, 0, i + 1) }),
+      );
+      repo.seed(products);
+
+      const result = await useCase.execute({ audience: 'seller' });
+
+      expect(result.pageSize).toBe(20);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Tag search in q
+  // ---------------------------------------------------------------------------
+
+  describe('q matches tags', () => {
+    it('returns a product whose tag name contains the query', async () => {
+      repo.seed([
+        makeProduct('p1', {
+          tags: [
+            {
+              id: 't1',
+              name: 'Handmade',
+              slug: 'handmade',
+              createdAt: new Date(),
+            },
+          ],
+        }),
+        makeProduct('p2', {
+          tags: [
+            {
+              id: 't2',
+              name: 'Industrial',
+              slug: 'industrial',
+              createdAt: new Date(),
+            },
+          ],
+        }),
+      ]);
+
+      const result = await useCase.execute({ q: 'handmade' });
+
+      expect(result.items.map((p) => p.id)).toEqual(['p1']);
+    });
+
+    it('returns a product whose tag slug contains the query (case-insensitive)', async () => {
+      repo.seed([
+        makeProduct('p1', {
+          tags: [
+            {
+              id: 't1',
+              name: 'Hand Made',
+              slug: 'hand-made',
+              createdAt: new Date(),
+            },
+          ],
+        }),
+        makeProduct('p2', {
+          tags: [
+            {
+              id: 't2',
+              name: 'Industrial',
+              slug: 'industrial',
+              createdAt: new Date(),
+            },
+          ],
+        }),
+      ]);
+
+      const result = await useCase.execute({ q: 'HAND-MADE' });
+
+      expect(result.items.map((p) => p.id)).toEqual(['p1']);
+    });
+
+    it('returns a product whose tag name OR translation matches', async () => {
+      repo.seed([
+        makeProduct('p1', {
+          tags: [
+            {
+              id: 't1',
+              name: 'Cerámica',
+              slug: 'ceramica',
+              createdAt: new Date(),
+            },
+          ],
+        }),
+        makeProduct('p2', {
+          translations: [
+            { locale: 'es', name: 'Taza de cerámica', description: '' },
+          ],
+        }),
+      ]);
+
+      const result = await useCase.execute({ q: 'cerámica' });
+
+      expect(result.items.map((p) => p.id).sort()).toEqual(['p1', 'p2']);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // PRODUCT_SEARCH_EXECUTED event emission
+  // ---------------------------------------------------------------------------
+
+  describe('event emission', () => {
+    it('emits PRODUCT_SEARCH_EXECUTED for public audience with non-empty q', async () => {
+      repo.seed([makeProduct('p1')]);
+
+      await useCase.execute({
+        audience: 'public',
+        q: 'ceramic',
+        lang: 'es',
+        userId: 'user-1',
+      });
+
+      const events = await outbox.findPending(10);
+      expect(events).toHaveLength(1);
+      expect(events[0].eventType).toBe(GlobalEvents.PRODUCT_SEARCH_EXECUTED);
+      expect(events[0].payload).toMatchObject({
+        userId: 'user-1',
+        term: 'ceramic',
+        locale: 'es',
+      });
+    });
+
+    it('does NOT emit when q is empty for public audience', async () => {
+      repo.seed([makeProduct('p1')]);
+
+      await useCase.execute({ audience: 'public', q: '', userId: 'user-1' });
+
+      const events = await outbox.findPending(10);
+      expect(events).toHaveLength(0);
+    });
+
+    it('does NOT emit when q is only whitespace for public audience', async () => {
+      repo.seed([makeProduct('p1')]);
+
+      await useCase.execute({ audience: 'public', q: '   ', userId: 'user-1' });
+
+      const events = await outbox.findPending(10);
+      expect(events).toHaveLength(0);
+    });
+
+    it('emits with userId=null for guest public searches', async () => {
+      repo.seed([makeProduct('p1')]);
+
+      await useCase.execute({ audience: 'public', q: 'ceramic', lang: 'es' });
+
+      const events = await outbox.findPending(10);
+      expect(events).toHaveLength(1);
+      expect(events[0].payload).toMatchObject({
+        userId: null,
+        term: 'ceramic',
+        locale: 'es',
+      });
+    });
+
+    it('does NOT emit for non-public audiences', async () => {
+      repo.seed([makeProduct('p1')]);
+
+      await useCase.execute({
+        audience: 'seller',
+        q: 'ceramic',
+        userId: 'user-1',
+      });
+
+      const events = await outbox.findPending(10);
+      expect(events).toHaveLength(0);
+    });
+
+    it('does not throw when outbox is not provided (optional dependency)', async () => {
+      const useCaseNoOutbox = new ProductListQueryUseCase(repo);
+      repo.seed([makeProduct('p1')]);
+
+      await expect(
+        useCaseNoOutbox.execute({ audience: 'public', q: 'foo' }),
+      ).resolves.toBeDefined();
+    });
+  });
+});
+
+describe('ProductListQueryUseCase — constructor contract', () => {
+  it('accepts an outbox as the second argument', () => {
+    const repo = new MemoryProductRepository();
+    const outbox = new MemoryOutboxRepository();
+    expect(() => new ProductListQueryUseCase(repo, outbox)).not.toThrow();
+  });
+
+  it('also accepts being called with only the repo (back-compat)', () => {
+    const repo = new MemoryProductRepository();
+    expect(() => new ProductListQueryUseCase(repo)).not.toThrow();
   });
 });
