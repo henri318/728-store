@@ -288,6 +288,8 @@ export function AddToCartButton({
             else if (newQty < currentQuantity) handleDecrement();
           }}
           variant="compact"
+          decrementLabel="Decrease quantity"
+          incrementLabel="Increase quantity"
         />
         <button
           type="button"
