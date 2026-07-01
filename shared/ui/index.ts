@@ -1,5 +1,8 @@
+export { AuthCard } from './auth-card';
 export { BottomSection } from './bottom-section';
 export { Button } from './button';
+export { Card } from './card';
+export { DataTable } from './data-table';
 export { DeleteConfirmModal } from './delete-confirm-modal';
 export { ErrorMessage } from './error-message';
 export { EyeToggleWrapper } from './eye-toggle-wrapper';
@@ -9,6 +12,9 @@ export { Input } from './input';
 export { MiddleSection } from './middle-section';
 export { Modal } from './modal';
 export { PasswordStrengthIndicator } from './password-strength-indicator';
+export { Pagination } from './pagination';
+export { QuantityControls } from './quantity-controls';
 export { SearchForm } from './search-form';
 export { SocialFooter } from './social-footer';
+export { StatusBadge } from './status-badge';
 export { WaveTransition } from './wave-transition';

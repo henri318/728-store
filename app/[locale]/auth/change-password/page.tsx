@@ -4,9 +4,12 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/shared/ui/button';
+import { ErrorMessage } from '@/shared/ui/error-message';
 import { EyeToggleWrapper } from '@/shared/ui/eye-toggle-wrapper';
 import { PasswordStrengthIndicator } from '@/shared/ui/password-strength-indicator';
+import { AuthCard } from '@/shared/ui/auth-card';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
+import { checkPasswordMatch } from '@/shared/validation/password-match';
 import styles from './page.module.css';
 
 export default function ChangePasswordPage() {
@@ -36,8 +39,13 @@ export default function ChangePasswordPage() {
     setError(null);
     setSuccess(null);
 
-    if (newPassword !== confirmPassword) {
-      setError(dict.auth.passwordsDoNotMatch);
+    const mismatch = checkPasswordMatch(
+      newPassword,
+      confirmPassword,
+      dict.auth.passwordsDoNotMatch,
+    );
+    if (mismatch) {
+      setError(mismatch.confirmPassword);
       return;
     }
 
@@ -66,13 +74,9 @@ export default function ChangePasswordPage() {
   };
 
   return (
-    <div className={styles.container}>
+    <AuthCard>
       <h2 className={styles.title}>{dict.auth.changePasswordTitle}</h2>
-      {error && (
-        <span role="alert" className={styles.errorText}>
-          {error}
-        </span>
-      )}
+      {error && <ErrorMessage message={error} />}
       {success && (
         <div role="alert" className={styles.successMessage}>
           {success}
@@ -102,6 +106,6 @@ export default function ChangePasswordPage() {
           {dict.common.submit}
         </Button>
       </form>
-    </div>
+    </AuthCard>
   );
 }

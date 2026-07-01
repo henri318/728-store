@@ -13,7 +13,7 @@
 .message {
   margin: 0 0 var(--spacing-sm);
   font-size: 0.9rem;
-  color: #666;
+  color: var(--color-text-secondary);
   line-height: 1.4;
 }
 

@@ -1,4 +1,4 @@
-# Design System — 728store
+# Design System -- 728store
 
 ## Design Tokens
 
@@ -6,15 +6,24 @@ All design tokens are defined as CSS custom properties in `shared/presentation/d
 
 ### Colors
 
-| Token                 | Value     | Usage                                |
-| --------------------- | --------- | ------------------------------------ |
-| `--color-green-dark`  | `#0D5C46` | Primary brand color, header, buttons |
-| `--color-cream`       | `#F4F2E6` | Page background                      |
-| `--color-coral`       | `#DF8072` | Accent, alerts, highlights           |
-| `--color-green-light` | `#CBE08C` | Success states, secondary accents    |
-| `--color-lila`        | `#B1ACCD` | Tertiary accent                      |
-| `--color-white`       | `#FFFFFF` | Cards, modals, inputs                |
-| `--color-black`       | `#000000` | Body text                            |
+| Token                      | Value                     | Usage                                |
+| -------------------------- | ------------------------- | ------------------------------------ |
+| `--color-green-dark`       | `#0D5C46`                 | Primary brand color, header, buttons |
+| `--color-cream`            | `#F4F2E6`                 | Page background                      |
+| `--color-coral`            | `#DF8072`                 | Accent, alerts, highlights           |
+| `--color-green-light`      | `#CBE08C`                 | Success states, secondary accents    |
+| `--color-lila`             | `#B1ACCD`                 | Tertiary accent                      |
+| `--color-white`            | `#FFFFFF`                 | Cards, modals, inputs                |
+| `--color-black`            | `#000000`                 | Body text                            |
+| `--color-link`             | `#0070f3`                 | Link text, interactive elements      |
+| `--color-success`          | `#52c41a`                 | Success messages, confirmations      |
+| `--color-danger`           | `#ff4d4f`                 | Error messages, destructive actions  |
+| `--color-warning`          | `#faad14`                 | Warning states                       |
+| `--color-border`           | `#e0e0e0`                 | Default borders                      |
+| `--color-border-strong`    | `#ddd`                    | Stronger borders (cards, inputs)     |
+| `--color-green-dark-hover` | `#0a4a38`                 | Hover state for green-dark buttons   |
+| `--color-text-secondary`   | `#666`                    | Muted/secondary text                 |
+| `--color-row-hover`        | `rgb(193 224 140 / 0.15)` | Table row hover                      |
 
 ### Typography
 
@@ -35,6 +44,21 @@ All design tokens are defined as CSS custom properties in `shared/presentation/d
 | `--spacing-md` | `1rem`    |
 | `--spacing-lg` | `1.5rem`  |
 | `--spacing-xl` | `2rem`    |
+
+### Shadows
+
+| Token           | Value                         | Usage         |
+| --------------- | ----------------------------- | ------------- |
+| `--shadow-card` | `0 1px 4px rgb(0 0 0 / 0.08)` | Card surfaces |
+
+### Border Radius
+
+| Token           | Value  | Usage                             |
+| --------------- | ------ | --------------------------------- |
+| `--radius-sm`   | `4px`  | Small elements (inputs, badges)   |
+| `--radius-md`   | `8px`  | Cards, modals                     |
+| `--radius-lg`   | `12px` | Large containers                  |
+| `--radius-pill` | `24px` | Pill-shaped buttons, qty controls |
 
 ### Z-index
 
@@ -58,25 +82,52 @@ All design tokens are defined as CSS custom properties in `shared/presentation/d
 
 ## Components
 
-### IconCircle
+### Shared UI (`shared/ui/`)
 
-Renders a circular icon with optional link wrapper. Uses CSS Module classes.
+| Component                   | Description                                         | Import        |
+| --------------------------- | --------------------------------------------------- | ------------- |
+| `Button`                    | Generic button (primary/secondary/danger + loading) | `@/shared/ui` |
+| `Input`                     | Generic input with label and error                  | `@/shared/ui` |
+| `Modal`                     | Generic modal with portal + Escape key              | `@/shared/ui` |
+| `ErrorMessage`              | Inline error alert                                  | `@/shared/ui` |
+| `EyeToggleWrapper`          | Password input with show/hide toggle                | `@/shared/ui` |
+| `PasswordStrengthIndicator` | Password strength bar (3 criteria)                  | `@/shared/ui` |
+| `DeleteConfirmModal`        | Confirmation modal for destructive actions          | `@/shared/ui` |
+| `SearchForm`                | Server-side search form with hidden fields          | `@/shared/ui` |
+| `DataTable`                 | Generic column-driven data table                    | `@/shared/ui` |
+| `Pagination`                | Prev/Next pagination with page info                 | `@/shared/ui` |
+| `StatusBadge`               | Status badge with color-coded variants              | `@/shared/ui` |
+| `AuthCard`                  | Centered card wrapper for auth forms                | `@/shared/ui` |
+| `Card`                      | Generic card surface (white bg, shadow, radius)     | `@/shared/ui` |
+| `QuantityControls`          | -/qty/+ controls with clamp logic                   | `@/shared/ui` |
+| `HeroSection`               | Landing page hero with wave SVG                     | `@/shared/ui` |
+| `MiddleSection`             | Landing page product grid wrapper                   | `@/shared/ui` |
+| `BottomSection`             | Landing page bottom CTA                             | `@/shared/ui` |
+| `WaveTransition`            | Animated SVG wave divider                           | `@/shared/ui` |
+| `SocialFooter`              | Social media links footer                           | `@/shared/ui` |
+| `HeaderBanner`              | Scrolling promo text banner                         | `@/shared/ui` |
 
-### HeaderBanner
+### Shared Layout (`shared/layout/`)
 
-Client component with scrolling text animation. Supports `prefers-reduced-motion`.
+| Component                   | Description                                      | Import            |
+| --------------------------- | ------------------------------------------------ | ----------------- |
+| `HeaderNav`                 | Top nav with login/user-menu + cart + role links | `@/shared/layout` |
+| `LanguageSelector`          | Locale switcher (es/cat)                         | `@/shared/layout` |
+| `SessionProviderWrapper`    | NextAuth SessionProvider wrapper                 | `@/shared/layout` |
+| `VerificationBannerWrapper` | Checks session for unverified email              | `@/shared/layout` |
+| `VerifyBanner`              | Resend verification email banner                 | `@/shared/layout` |
+| `UserMenuDropdown`          | Authenticated user dropdown menu                 | `@/shared/layout` |
+| `RoleNavLinks`              | Role-based navigation links                      | `@/shared/layout` |
+| `LoginModal`                | Login form modal (Google + credentials)          | `@/shared/layout` |
 
-### WaveTransition
+### Helper Utilities
 
-SVG wave divider with configurable fill/stroke colors and direction.
-
-### HeroSection
-
-Composes WaveTransition and an image.
-
-### SocialFooter
-
-Fixed 5-icon social media grid (Facebook, Instagram, TikTok, WhatsApp, Email).
+| Helper               | Location                             | Purpose                                 |
+| -------------------- | ------------------------------------ | --------------------------------------- |
+| `resolveStatusLabel` | `shared/presentation/status-labels`  | Maps status to i18n label               |
+| `buildPageUrl`       | `shared/presentation/build-page-url` | Builds paginated URLs with query params |
+| `requireAdmin`       | `shared/authorization/require-admin` | Server-side admin role guard            |
+| `checkPasswordMatch` | `shared/validation/password-match`   | Password confirmation validator         |
 
 ## Usage
 
@@ -93,5 +144,58 @@ Reference tokens in CSS Modules:
   background: var(--color-green-dark);
   color: var(--color-white);
   font-weight: var(--font-weight-semibold);
+}
+```
+
+### DataTable + Pagination + StatusBadge
+
+```tsx
+import { DataTable, Pagination, StatusBadge } from '@/shared/ui';
+import { buildPageUrl, resolveStatusLabel, PRODUCT_STATUS_LABELS } from '@/shared/presentation';
+
+const columns = [
+  { key: 'name', header: dict.name, render: (p) => p.name },
+  { key: 'status', header: dict.status, render: (p) => (
+    <StatusBadge status={p.status} label={resolveStatusLabel(p.status, PRODUCT_STATUS_LABELS, dict)} />
+  )},
+];
+
+<DataTable columns={columns} rows={products} rowKey={(p) => p.id} />
+<Pagination
+  currentPage={page}
+  totalPages={totalPages}
+  buildPageUrl={(p) => buildPageUrl(basePath, p, { q })}
+  prevLabel="&larr;"
+  nextLabel="&rarr;"
+/>
+```
+
+### AuthCard
+
+```tsx
+import { AuthCard } from '@/shared/ui';
+
+<AuthCard>
+  <h1>{dict.auth.signin}</h1>
+  <form>...</form>
+</AuthCard>;
+```
+
+### QuantityControls
+
+```tsx
+import { QuantityControls } from '@/shared/ui';
+
+<QuantityControls value={qty} onChange={setQty} variant="compact" />;
+```
+
+### requireAdmin (server components)
+
+```tsx
+import { requireAdmin } from '@/shared/authorization/require-admin';
+
+export default async function AdminPage({ params: { locale } }) {
+  await requireAdmin(locale);
+  return <div>...</div>;
 }
 ```

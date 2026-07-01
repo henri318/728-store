@@ -10,6 +10,7 @@ import { ErrorMessage } from '@/shared/ui/error-message';
 import { EyeToggleWrapper } from '@/shared/ui/eye-toggle-wrapper';
 import { createSellerSchema } from '@/modules/sellers/presentation/schemas/seller-schemas';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
+import { checkPasswordMatch } from '@/shared/validation/password-match';
 import styles from './page.module.css';
 
 interface FormState {
@@ -47,9 +48,12 @@ function validateForm(
   form: FormState,
   passwordsDoNotMatch: string,
 ): FormErrors | null {
-  if (form.password !== form.confirmPassword) {
-    return { confirmPassword: passwordsDoNotMatch };
-  }
+  const mismatch = checkPasswordMatch(
+    form.password,
+    form.confirmPassword,
+    passwordsDoNotMatch,
+  );
+  if (mismatch) return mismatch;
 
   const payload = normalizePayload(form);
   const result = createSellerSchema.safeParse(payload);

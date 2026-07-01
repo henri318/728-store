@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Input } from '@/shared/ui/input';
 import { Button } from '@/shared/ui/button';
+import { AuthCard } from '@/shared/ui/auth-card';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 import styles from './page.module.css';
 
@@ -29,7 +30,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className={styles.container}>
+    <AuthCard>
       <h2 className={styles.title}>{dict.auth.forgotPasswordTitle}</h2>
 
       {submitted ? (
@@ -53,6 +54,6 @@ export default function ForgotPasswordPage() {
           </Button>
         </form>
       )}
-    </div>
+    </AuthCard>
   );
 }

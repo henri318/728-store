@@ -14,7 +14,7 @@
 .content {
   background: var(--color-white);
   padding: var(--spacing-xl);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   min-width: 300px;
   max-width: 90vw;
   max-height: 90vh;

@@ -1,10 +1,11 @@
-import { redirect, notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { container } from '@/composition-root/container';
-import { assertRole } from '@/shared/authorization/authorization';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { NotFoundError } from '@/shared/kernel/app-error';
 import { GetSellerUseCase } from '@/modules/sellers/application/use-cases/get-seller-use-case';
+import { requireAdmin } from '@/shared/authorization/require-admin';
+import { Card } from '@/shared/ui/card';
 import styles from './page.module.css';
 import { SellerDetailForm } from '@/modules/sellers/presentation/components/seller-detail-form';
 
@@ -15,11 +16,7 @@ export default async function AdminSellerDetailPage({
 }) {
   const { locale, sellerId } = await params;
 
-  try {
-    await assertRole('ADMIN');
-  } catch {
-    redirect(`/${locale}`);
-  }
+  await requireAdmin(locale);
 
   const dict = await getDictionary(locale as 'es' | 'cat');
   const sellerRepository = container.getSellerRepository();
@@ -47,8 +44,10 @@ export default async function AdminSellerDetailPage({
         </div>
       </header>
 
-      <section
-        className={styles.summary}
+      <Card
+        as="section"
+        padding="lg"
+        className={styles.surface}
         aria-label={dict.admin.sellerDetail.editTitle}
       >
         <div className={styles.summaryRow}>
@@ -63,7 +62,7 @@ export default async function AdminSellerDetailPage({
           </span>
           <p className={styles.summaryValue}>{seller.description ?? '—'}</p>
         </div>
-      </section>
+      </Card>
 
       <SellerDetailForm
         sellerId={seller.sellerId.value}

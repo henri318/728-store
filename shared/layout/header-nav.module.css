@@ -9,8 +9,8 @@
 }
 
 .userIcon {
-  width: 31px;
-  height: 31px;
+  width: 46px;
+  height: 46px;
   cursor: pointer;
   transition: transform 0.2s ease;
   display: block;
@@ -38,15 +38,15 @@
 
 .badge {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: -2px;
+  right: -2px;
   background: var(--color-coral, #e8614d);
   color: #fff;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  min-width: 18px;
-  height: 18px;
-  border-radius: 9px;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -56,16 +56,11 @@
 }
 
 @media (max-width: 768px) {
-  .userIcon {
-    width: 40px;
-    height: 40px;
-  }
-
   .badge {
-    font-size: 0.6rem;
-    min-width: 16px;
-    height: 16px;
-    border-radius: 8px;
+    font-size: 0.7rem;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
     top: -2px;
     right: -2px;
   }

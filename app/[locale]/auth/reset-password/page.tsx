@@ -6,7 +6,9 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Input } from '@/shared/ui/input';
 import { Button } from '@/shared/ui/button';
 import { ErrorMessage } from '@/shared/ui/error-message';
+import { AuthCard } from '@/shared/ui/auth-card';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
+import { checkPasswordMatch } from '@/shared/validation/password-match';
 import styles from './page.module.css';
 
 export default function ResetPasswordPage() {
@@ -27,8 +29,13 @@ export default function ResetPasswordPage() {
     e.preventDefault();
     setError(null);
 
-    if (newPassword !== confirmPassword) {
-      setError(dict.auth.passwordsDoNotMatch);
+    const mismatch = checkPasswordMatch(
+      newPassword,
+      confirmPassword,
+      dict.auth.passwordsDoNotMatch,
+    );
+    if (mismatch) {
+      setError(mismatch.confirmPassword);
       return;
     }
 
@@ -56,18 +63,18 @@ export default function ResetPasswordPage() {
 
   if (!token) {
     return (
-      <div className={styles.containerCentered}>
+      <AuthCard className={styles.centered}>
         <h2 className={styles.title}>{dict.auth.resetPasswordTitle}</h2>
         <ErrorMessage message={error ?? undefined} />
         <Link href="/auth/forgot-password" className={styles.link}>
           {dict.auth.requestNewLink}
         </Link>
-      </div>
+      </AuthCard>
     );
   }
 
   return (
-    <div className={styles.container}>
+    <AuthCard>
       <h2 className={styles.title}>{dict.auth.resetPasswordTitle}</h2>
       {error && <ErrorMessage message={error} />}
       {success && (
@@ -94,6 +101,6 @@ export default function ResetPasswordPage() {
           {dict.common.submit}
         </Button>
       </form>
-    </div>
+    </AuthCard>
   );
 }

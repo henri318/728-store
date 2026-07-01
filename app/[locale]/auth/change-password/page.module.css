@@ -3,26 +3,12 @@
   padding: 2rem;
 }
 
-.container {
-  max-width: 480px;
-  margin: 4rem auto;
-  padding: 2rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-}
-
 .title {
   margin-top: 0;
 }
 
-.errorText {
-  color: #ff4d4f;
-  font-size: 0.85rem;
-  margin-bottom: 0.5rem;
-}
-
 .successMessage {
-  color: #52c41a;
+  color: var(--color-success);
   font-size: 0.9rem;
   margin-bottom: 1rem;
 }

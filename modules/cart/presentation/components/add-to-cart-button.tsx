@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
+import { QuantityControls } from '@/shared/ui/quantity-controls';
 import styles from './add-to-cart-button.module.css';
 
 export interface CartButtonLabels {
@@ -280,29 +281,16 @@ export function AddToCartButton({
   if (isInCart) {
     return (
       <div className={styles.quantityRow}>
-        <div className={styles.quantityControls}>
-          <button
-            type="button"
-            className={styles.quantityButton}
-            onClick={handleDecrement}
-            disabled={currentQuantity <= 1}
-            aria-label="Decrease quantity"
-          >
-            −
-          </button>
-          <span className={styles.quantityDisplay} aria-live="polite">
-            {currentQuantity}
-          </span>
-          <button
-            type="button"
-            className={styles.quantityButton}
-            onClick={handleIncrement}
-            disabled={currentQuantity >= MAX_QUANTITY}
-            aria-label="Increase quantity"
-          >
-            +
-          </button>
-        </div>
+        <QuantityControls
+          value={currentQuantity}
+          onChange={(newQty) => {
+            if (newQty > currentQuantity) handleIncrement();
+            else if (newQty < currentQuantity) handleDecrement();
+          }}
+          variant="compact"
+          decrementLabel="Decrease quantity"
+          incrementLabel="Increase quantity"
+        />
         <button
           type="button"
           className={styles.iconButton}

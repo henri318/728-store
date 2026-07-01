@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
+import { AuthCard } from '@/shared/ui/auth-card';
 import styles from './page.module.css';
 
 export default function VerifyEmailPage() {
@@ -42,7 +43,7 @@ export default function VerifyEmailPage() {
   }, [token]);
 
   return (
-    <div className={styles.container}>
+    <AuthCard className={styles.centered}>
       <h2 className={styles.title}>{dict.auth.verifyEmailTitle}</h2>
 
       {status === 'loading' && (
@@ -73,6 +74,6 @@ export default function VerifyEmailPage() {
           </Link>
         </div>
       )}
-    </div>
+    </AuthCard>
   );
 }

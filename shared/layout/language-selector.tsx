@@ -1,8 +1,12 @@
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
-import { useDictionary } from '@/shared/i18n/dictionary-context';
 import styles from './language-selector.module.css';
+
+const TOGGLE: Record<string, { target: string; label: string }> = {
+  es: { target: 'cat', label: 'Català' },
+  cat: { target: 'es', label: 'Español' },
+};
 
 export default function LanguageSelector({
   currentLocale,
@@ -11,22 +15,22 @@ export default function LanguageSelector({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const dict = useDictionary();
 
-  const handleLanguageChange = (newLocale: string) => {
-    const newPath = pathname.replace(`/${currentLocale}`, `/${newLocale}`);
+  const toggle = TOGGLE[currentLocale] ?? TOGGLE.es;
+
+  const handleToggle = () => {
+    const newPath = pathname.replace(`/${currentLocale}`, `/${toggle.target}`);
     router.push(newPath);
   };
 
   return (
-    <select
-      aria-label={dict.common.selectLanguage}
-      value={currentLocale}
-      onChange={(e) => handleLanguageChange(e.target.value)}
-      className={styles.select}
+    <button
+      type="button"
+      onClick={handleToggle}
+      className={styles.button}
+      aria-label={toggle.label}
     >
-      <option value="es">{dict.common.languageEs}</option>
-      <option value="cat">{dict.common.languageCat}</option>
-    </select>
+      {toggle.label}
+    </button>
   );
 }

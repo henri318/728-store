@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { container } from '@/composition-root/container';
 import { NotFoundError } from '@/shared/kernel/app-error';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
@@ -10,28 +9,18 @@ import { LocalizedDate } from '@/shared/kernel/domain/value-objects/localized-da
 import { PaginationDefaults } from '@/shared/kernel/domain/value-objects/pagination';
 import type { PaginatedResult } from '@/shared/kernel/domain/value-objects/pagination';
 import { SearchForm } from '@/shared/ui/search-form';
+import { DataTable } from '@/shared/ui/data-table';
+import type { DataTableColumn } from '@/shared/ui/data-table';
+import { StatusBadge } from '@/shared/ui/status-badge';
+import { Pagination } from '@/shared/ui/pagination';
+import { Card } from '@/shared/ui/card';
 import { ProductActions } from '@/modules/products/presentation/components/product-actions';
+import { buildPageUrl } from '@/shared/presentation/build-page-url';
+import {
+  resolveStatusLabel,
+  PRODUCT_STATUS_LABELS,
+} from '@/shared/presentation/status-labels';
 import styles from './page.module.css';
-
-function buildPageUrl(
-  locale: string,
-  filter: {
-    q?: string;
-    pageSize: number;
-  },
-  page: number,
-): string {
-  const search = new URLSearchParams();
-
-  if (filter.q) search.set('q', filter.q);
-  if (page > 1) search.set('page', String(page));
-  if (filter.pageSize !== PaginationDefaults.pageSize) {
-    search.set('pageSize', String(filter.pageSize));
-  }
-
-  const query = search.toString();
-  return `/${locale}/seller/products${query ? `?${query}` : ''}`;
-}
 
 export default async function SellerProductsPage({
   params,
@@ -95,20 +84,51 @@ export default async function SellerProductsPage({
       ? result.totalPages
       : result.page;
 
-  function getStatusLabel(status: string): string {
-    switch (status) {
-      case 'DRAFT':
-        return dict.admin.status_draft;
-      case 'ACTIVE':
-        return dict.admin.status_active;
-      case 'ARCHIVED':
-        return dict.admin.status_archived;
-      case 'ELIMINATED':
-        return dict.admin.status_eliminated;
-      default:
-        return status;
-    }
-  }
+  const columns: DataTableColumn<ProductEntity>[] = [
+    {
+      key: 'name',
+      header: dict.admin.productName,
+      render: (product) => (
+        <span className={styles.nameCell}>
+          {product.translations.find(
+            (translation) => translation.locale === locale,
+          )?.name ?? dict.admin.untranslatedProduct}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      header: dict.admin.productStatus,
+      render: (product) => (
+        <StatusBadge
+          status={product.status}
+          label={resolveStatusLabel(
+            product.status,
+            PRODUCT_STATUS_LABELS,
+            dict.admin,
+          )}
+        />
+      ),
+    },
+    {
+      key: 'price',
+      header: dict.admin.productPrice,
+      render: (product) => product.basePrice.format(),
+    },
+    {
+      key: 'updated',
+      header: dict.admin.productUpdated,
+      render: (product) =>
+        LocalizedDate.create(product.updatedAt, locale).toString(),
+    },
+    {
+      key: 'actions',
+      header: dict.admin.actions,
+      render: (product) => (
+        <ProductActions productId={product.id} currentStatus={product.status} />
+      ),
+    },
+  ];
 
   return (
     <div className={styles.container}>
@@ -129,86 +149,31 @@ export default async function SellerProductsPage({
       {hasProducts ? (
         <>
           <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>{dict.admin.productName}</th>
-                  <th>{dict.admin.productStatus}</th>
-                  <th>{dict.admin.productPrice}</th>
-                  <th>{dict.admin.productUpdated}</th>
-                  <th>{dict.admin.actions}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.items.map((product) => (
-                  <tr key={product.id}>
-                    <td className={styles.nameCell}>
-                      {product.translations.find(
-                        (translation) => translation.locale === locale,
-                      )?.name ?? dict.admin.untranslatedProduct}
-                    </td>
-                    <td>
-                      <span
-                        className={styles.statusBadge}
-                        data-status={product.status.toLowerCase()}
-                      >
-                        {getStatusLabel(product.status)}
-                      </span>
-                    </td>
-                    <td>{product.basePrice.format()}</td>
-                    <td>
-                      {LocalizedDate.create(
-                        product.updatedAt,
-                        locale,
-                      ).toString()}
-                    </td>
-                    <td>
-                      <ProductActions
-                        productId={product.id}
-                        currentStatus={product.status}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <DataTable
+              columns={columns}
+              rows={result.items}
+              rowKey={(p) => p.id}
+            />
           </div>
-          <nav
-            className={styles.pagination}
-            aria-label={dict.admin.paginationAriaLabel}
-          >
-            {currentPage > 1 ? (
-              <Link
-                href={buildPageUrl(locale, filter, currentPage - 1)}
-                className={styles.pageButton}
-              >
-                {dict.admin.pagePrev}
-              </Link>
-            ) : (
-              <span
-                className={`${styles.pageButton} ${styles.pageButtonDisabled}`}
-              >
-                {dict.admin.pagePrev}
-              </span>
-            )}
-            {currentPage < result.totalPages ? (
-              <Link
-                href={buildPageUrl(locale, filter, currentPage + 1)}
-                className={styles.pageButton}
-              >
-                {dict.admin.pageNext}
-              </Link>
-            ) : (
-              <span
-                className={`${styles.pageButton} ${styles.pageButtonDisabled}`}
-              >
-                {dict.admin.pageNext}
-              </span>
-            )}
-          </nav>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={result.totalPages}
+            buildPageUrl={(page) =>
+              buildPageUrl(`/${locale}/seller/products`, page, {
+                q: filter.q,
+                pageSize: filter.pageSize,
+                defaultPageSize: PaginationDefaults.pageSize,
+              })
+            }
+            prevLabel={dict.admin.pagePrev}
+            nextLabel={dict.admin.pageNext}
+            ariaLabel={dict.admin.paginationAriaLabel}
+          />
         </>
       ) : (
-        <p className={styles.noProducts}>{dict.sellerDashboard.noProducts}</p>
+        <Card className={styles.noProducts}>
+          {dict.sellerDashboard.noProducts}
+        </Card>
       )}
     </div>
   );

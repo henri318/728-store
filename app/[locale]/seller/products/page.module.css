@@ -20,41 +20,8 @@
 
 .tableWrap {
   overflow-x: auto;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgb(0 0 0 / 0.08);
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--color-white);
-}
-
-.table th {
-  text-align: left;
-  padding: var(--spacing-md);
-  background: var(--color-green-dark);
-  color: var(--color-white);
-  font-weight: var(--font-weight-semibold);
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  white-space: nowrap;
-}
-
-.table td {
-  padding: var(--spacing-md);
-  border-bottom: 1px solid var(--color-lila);
-  font-size: 0.9rem;
-  vertical-align: middle;
-}
-
-.table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.table tbody tr:hover {
-  background: rgb(193 224 140 / 0.15);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
 }
 
 .nameCell {
@@ -67,76 +34,6 @@
   padding: var(--spacing-xl);
   color: var(--color-lila);
   font-size: 1rem;
-  background: var(--color-white);
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgb(0 0 0 / 0.08);
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-lg);
-}
-
-.pageButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--color-green-dark);
-  border-radius: 6px;
-  color: var(--color-green-dark);
-  font-size: 0.85rem;
-  font-weight: var(--font-weight-medium);
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-}
-
-.pageButton:hover {
-  background: var(--color-green-dark);
-  color: var(--color-white);
-}
-
-.pageButtonDisabled {
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-.pageInfo {
-  font-size: 0.85rem;
-  color: #666;
-}
-
-.statusBadge {
-  display: inline-block;
-  padding: 0.2rem 0.6rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: var(--font-weight-medium);
-}
-
-.statusBadge[data-status='active'] {
-  background: var(--color-green-light);
-  color: var(--color-green-dark);
-}
-
-.statusBadge[data-status='draft'] {
-  background: var(--color-lila);
-  color: var(--color-white);
-}
-
-.statusBadge[data-status='archived'] {
-  background: var(--color-cream);
-  color: var(--color-green-dark);
-}
-
-.statusBadge[data-status='eliminated'] {
-  background: var(--color-coral);
-  color: var(--color-white);
 }
 
 .searchWrap {

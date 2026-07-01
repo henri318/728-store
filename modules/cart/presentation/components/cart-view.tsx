@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
 import { Money } from '@/shared/kernel/domain/value-objects/money';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
+import { QuantityControls } from '@/shared/ui/quantity-controls';
 import styles from './cart-view.module.css';
 
 // --- Types ---
@@ -251,25 +252,12 @@ export function CartView({
             </div>
 
             <div className={styles.itemActions}>
-              <div className={styles.quantityControls}>
-                <button
-                  aria-label="−"
-                  className={styles.qtyButton}
-                  onClick={() => handleUpdateQuantity(item, -1)}
-                  disabled={item.quantity <= 1}
-                >
-                  −
-                </button>
-                <span className={styles.quantity}>{item.quantity}</span>
-                <button
-                  aria-label="+"
-                  className={styles.qtyButton}
-                  onClick={() => handleUpdateQuantity(item, +1)}
-                  disabled={item.quantity >= 99}
-                >
-                  +
-                </button>
-              </div>
+              <QuantityControls
+                value={item.quantity}
+                onChange={(newQty) =>
+                  handleUpdateQuantity(item, newQty - item.quantity)
+                }
+              />
 
               <span className={styles.unitPrice}>
                 {Money.format(item.unitPrice, Currency.EUR)}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 import styles from './seller-actions.module.css';
 
@@ -11,6 +12,7 @@ interface SellerActionsProps {
 
 export function SellerActions({ sellerId, currentStatus }: SellerActionsProps) {
   const dict = useDictionary();
+  const router = useRouter();
   const [status, setStatus] = useState(currentStatus);
   const [loading, setLoading] = useState(false);
 
@@ -31,6 +33,7 @@ export function SellerActions({ sellerId, currentStatus }: SellerActionsProps) {
       }
       const data = await res.json();
       setStatus(data.status);
+      router.refresh();
     } catch {
       console.error('Failed to change seller status');
     } finally {

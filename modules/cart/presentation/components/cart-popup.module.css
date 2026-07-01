@@ -70,12 +70,12 @@
   background: var(--color-green-dark);
   color: var(--color-white);
   border: none;
-  border-radius: 24px;
+  border-radius: var(--radius-pill);
   cursor: pointer;
   font-weight: 500;
 }
 .cta:hover {
-  background: #0a4a38;
+  background: var(--color-green-dark-hover);
 }
 .items {
   list-style: none;
@@ -103,7 +103,7 @@
   flex: 1;
 }
 .thumb {
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   object-fit: cover;
   flex-shrink: 0;
 }
@@ -125,43 +125,7 @@
   gap: 0.5rem;
   flex-shrink: 0;
 }
-.qty {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  background: var(--color-bg-secondary, #f5f5f5);
-  border-radius: 16px;
-  padding: 0.15rem 0.3rem;
-}
-.qty button {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: none;
-  background: var(--color-green-dark);
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  padding: 0;
-}
-.qty button:hover:not(:disabled) {
-  background: #0a4a38;
-}
-.qty button:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-.qty span {
-  min-width: 1.25rem;
-  text-align: center;
-  font-weight: 600;
-  font-size: 0.8rem;
-}
+
 .lineTotal {
   font-weight: 600;
   font-size: 0.82rem;
@@ -204,13 +168,13 @@
   background: var(--color-green-dark);
   color: #fff;
   border: none;
-  border-radius: 24px;
+  border-radius: var(--radius-pill);
   cursor: pointer;
   font-weight: 600;
   font-size: 0.95rem;
 }
 .checkoutBtn:hover {
-  background: #0a4a38;
+  background: var(--color-green-dark-hover);
 }
 .fullCartBtn {
   background: none;
@@ -222,5 +186,5 @@
   padding: 0;
 }
 .fullCartBtn:hover {
-  color: #0a4a38;
+  color: var(--color-green-dark-hover);
 }
