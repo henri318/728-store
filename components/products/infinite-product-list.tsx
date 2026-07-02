@@ -163,10 +163,14 @@ export function InfiniteProductList({
       </div>
       <div className={styles.productGrid}>
         {items.map((product) => {
-          const translation = product.translations[0] || {
-            name: 'Untranslated',
-            description: '',
-          };
+          const translation = product.translations.find(
+            (t) => t.locale === locale,
+          ) ??
+            product.translations.find((t) => t.locale === 'es') ??
+            product.translations[0] ?? {
+              name: 'Untranslated',
+              description: '',
+            };
           return (
             <div
               key={product.id}
