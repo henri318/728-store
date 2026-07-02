@@ -106,6 +106,7 @@ describe('GET /api/admin/sellers/[sellerId]/products', () => {
       lang: 'cat',
       sortBy: 'createdAt',
       sortDir: 'asc',
+      audience: 'admin',
     });
     expect(parseSpy).toHaveBeenCalledWith(
       expect.objectContaining({

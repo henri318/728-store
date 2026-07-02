@@ -241,6 +241,21 @@ model Tag {
   createdAt DateTime  @default(now())
 }
 
+/// Persisted recent-search history for authenticated users.
+///
+/// v1 spec: only authenticated users are recorded. The composition root
+/// guards this — the event-bus subscriber no-ops for null `userId`.
+model SearchHistory {
+  id         String   @id @default(cuid())
+  userId     String
+  term       String
+  locale     String
+  searchedAt DateTime @default(now())
+
+  @@unique([userId, term, locale])
+  @@index([userId, locale, searchedAt(sort: Desc)])
+}
+
 model Category {
   id        String     @id @default(cuid())
   name      String

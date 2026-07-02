@@ -46,6 +46,14 @@ export const GlobalEvents = {
   PRODUCT_PUBLISHED: 'product.published',
   /** Product archived (ACTIVE → ARCHIVED) */
   PRODUCT_ARCHIVED: 'product.archived',
+  /**
+   * A public storefront search was executed (with a non-empty term).
+   *
+   * Consumed by the search-history module to record recent searches for
+   * authenticated users. Guests are emitted with `userId: null`; the
+   * subscriber no-ops in that case.
+   */
+  PRODUCT_SEARCH_EXECUTED: 'product.search-executed',
   /** File uploaded and confirmed */
   FILE_UPLOADED: 'file.uploaded',
   /** File deleted from storage */

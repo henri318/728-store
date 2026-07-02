@@ -52,6 +52,7 @@ import type { ProductRepository as CartProductRepository } from '@/modules/cart/
 import type { PaidOrderCountPort } from '@/modules/cart/domain/paid-order-count-port';
 import type { CustomizationLookupPort as CartCustomizationLookupPort } from '@/modules/cart/domain/customization-lookup-port';
 import type { CustomizationRepository } from '@/modules/customizations/domain/customization-repository';
+import type { SearchHistoryRepository } from '@/modules/search-history/domain/search-history-repository';
 
 import { BrevoEmailSender } from '@/modules/email/infrastructure/brevo-email-sender';
 import { ConsoleEmailSender } from '@/modules/email/infrastructure/console-email-sender';
@@ -86,6 +87,9 @@ import { CustomizationLookupAdapter } from '@/modules/cart/infrastructure/custom
 import { PrismaPaidOrderCountAdapter } from '@/modules/orders/infrastructure/prisma-paid-order-count-adapter';
 import { HandleCartCheckedOut } from '@/modules/orders/application/handle-cart-checked-out';
 import { PrismaCustomizationRepository } from '@/modules/customizations/infrastructure/prisma-customization-repository';
+import { PrismaSearchHistoryRepository } from '@/modules/search-history/infrastructure/prisma-search-history-repository';
+import { HandleProductSearchExecuted } from '@/modules/search-history/application/handle-product-search-executed';
+import { RecordSearchUseCase } from '@/modules/search-history/application/record-search-use-case';
 
 // ---------------------------------------------------------------------------
 // State
@@ -118,10 +122,12 @@ let _cartProductRepository: CartProductRepository | null = null;
 let _paidOrderCountPort: PaidOrderCountPort | null = null;
 let _customizationLookup: CartCustomizationLookupPort | null = null;
 let _customizationRepository: CustomizationRepository | null = null;
+let _searchHistoryRepository: SearchHistoryRepository | null = null;
 
 // Idempotency flag for event subscriptions — prevents double registration
 // during HMR in development.
 let _cartEventsSubscribed = false;
+let _searchHistoryEventsSubscribed = false;
 
 // ---------------------------------------------------------------------------
 // Initialization
@@ -279,6 +285,11 @@ export function initContainer(): void {
     );
   }
 
+  // --- SearchHistoryRepository: Prisma adapter ---
+  if (!_searchHistoryRepository) {
+    _searchHistoryRepository = new PrismaSearchHistoryRepository();
+  }
+
   // --- Cart event subscriptions (idempotent for HMR) ---
   if (!_cartEventsSubscribed) {
     const handler = new HandleCartCheckedOut(
@@ -289,6 +300,15 @@ export function initContainer(): void {
     );
     HandleCartCheckedOut.subscribe(_eventBus!, handler);
     _cartEventsSubscribed = true;
+  }
+
+  // --- Search-history event subscriptions (idempotent for HMR) ---
+  if (!_searchHistoryEventsSubscribed) {
+    const subscriber = new HandleProductSearchExecuted(
+      new RecordSearchUseCase(_searchHistoryRepository!),
+    );
+    HandleProductSearchExecuted.subscribe(_eventBus!, subscriber);
+    _searchHistoryEventsSubscribed = true;
   }
 }
 
@@ -548,6 +568,15 @@ export function getCustomizationRepository(): CustomizationRepository {
   return _customizationRepository!;
 }
 
+/**
+ * Returns the SearchHistoryRepository bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ */
+export function getSearchHistoryRepository(): SearchHistoryRepository {
+  if (!_searchHistoryRepository) initContainer();
+  return _searchHistoryRepository!;
+}
+
 // ---------------------------------------------------------------------------
 // Testing helpers
 // ---------------------------------------------------------------------------
@@ -587,6 +616,7 @@ export const container = {
   getPaidOrderCountPort,
   getCustomizationLookup,
   getCustomizationRepository,
+  getSearchHistoryRepository,
   /** Override — useful in tests to inject a mock without touching env vars. */
   setEmailSender(sender: EmailSender): void {
     _emailSender = sender;
@@ -695,7 +725,14 @@ export const container = {
   setCustomizationRepository(repo: CustomizationRepository): void {
     _customizationRepository = repo;
   },
-  /** Reset the event subscription flag — useful in tests to allow re-subscription. */
+  /** Override — useful in tests to inject an in-memory search-history repository. */
+  setSearchHistoryRepository(repo: SearchHistoryRepository): void {
+    _searchHistoryRepository = repo;
+  },
+  /** Reset the search-history event subscription flag — useful in tests to allow re-subscription. */
+  resetSearchHistoryEventSubscriptions(): void {
+    _searchHistoryEventsSubscribed = false;
+  } /** Reset the event subscription flag — useful in tests to allow re-subscription. */,
   resetCartEventSubscriptions(): void {
     _cartEventsSubscribed = false;
   },
