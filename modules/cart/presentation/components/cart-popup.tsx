@@ -9,7 +9,10 @@ import {
   type GuestCartItem,
 } from '@/modules/cart/presentation/guest-cart-context';
 import { useCartPopup } from './cart-popup-context';
-import { DesignPreview, type DesignPositionData } from './design-preview';
+import {
+  DesignPreview,
+  type DesignPositionData,
+} from '@/modules/presentation/components/design-preview';
 import { Money } from '@/shared/kernel/domain/value-objects/money';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import { QuantityControls } from '@/shared/ui/quantity-controls';
