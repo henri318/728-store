@@ -183,6 +183,7 @@ describe('PrismaCustomizationRepository — Integration', () => {
         color: null,
         size: null,
         imageUrl: null,
+        designPosition: null,
         createdAt: new Date(),
       });
 
@@ -200,6 +201,7 @@ describe('PrismaCustomizationRepository — Integration', () => {
         color: 'blue',
         size: null,
         imageUrl: null,
+        designPosition: null,
         createdAt: new Date(),
       });
 

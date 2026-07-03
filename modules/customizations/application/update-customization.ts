@@ -1,6 +1,9 @@
 import type { CustomizationRepository } from '../domain/customization-repository';
 import type { CustomizationEntity } from '../domain/entities/customization';
-import { CustomizationOptions } from '../domain/value-objects/customization-options';
+import {
+  CustomizationOptions,
+  type CustomizationDesignPosition,
+} from '../domain/value-objects/customization-options';
 import {
   CustomizationNotFoundError,
   CustomizationForbiddenError,
@@ -13,6 +16,7 @@ export interface UpdateCustomizationDTO {
   color?: string | null;
   size?: string | null;
   imageUrl?: string | null;
+  designPosition?: CustomizationDesignPosition | null;
 }
 
 /**
@@ -47,12 +51,15 @@ export class UpdateCustomization {
     }
 
     // Build merged entity with only provided fields changed
-    const merged = {
+    const merged: CustomizationEntity = {
       ...existing,
       ...(dto.text !== undefined ? { text: dto.text ?? null } : {}),
       ...(dto.color !== undefined ? { color: dto.color ?? null } : {}),
       ...(dto.size !== undefined ? { size: dto.size ?? null } : {}),
       ...(dto.imageUrl !== undefined ? { imageUrl: dto.imageUrl ?? null } : {}),
+      ...(dto.designPosition !== undefined
+        ? { designPosition: dto.designPosition ?? null }
+        : {}),
     };
 
     // Re-validate via VO (throws on invalid input)
@@ -61,6 +68,7 @@ export class UpdateCustomization {
       color: merged.color,
       size: merged.size,
       imageUrl: merged.imageUrl,
+      designPosition: merged.designPosition,
     });
 
     return this.repo.save(merged);

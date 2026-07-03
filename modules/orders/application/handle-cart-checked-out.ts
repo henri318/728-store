@@ -192,5 +192,6 @@ function toFrozenCustomizationSnapshot(
     color: customization.color,
     size: customization.size,
     imageUrl: customization.imageUrl,
+    designPosition: customization.designPosition,
   };
 }

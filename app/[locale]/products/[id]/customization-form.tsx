@@ -1,199 +1,153 @@
 'use client';
 
+import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
 import type { ProductCustomizationConfigJson } from '@/modules/products/domain/value-objects/product-customization-config';
-import { PhotoUploadField } from './photo-upload-field';
 import { useCustomizationDraft } from './customization-draft-context';
+import type { ProductImageItem } from './customization-experience';
+import formStyles from './customization-form.module.css';
 
 interface CustomizationFormLabels {
   customizationDesign: string;
   customizationPhrase: string;
   customizationColor: string;
   customizationSize: string;
+  customizationSizePlaceholder: string;
   customizationUpload: string;
   customizationReplaceImage: string;
   customizationRemoveImage: string;
+  customizationUploading: string;
   customizationInvalidImage: string;
   customizationImageTooLarge: string;
   customizationPreview: string;
   customizationPreviewUnavailable: string;
   customizationLimitedToDescription: string;
   customizationPreviewDisclaimer: string;
+  customizationCanvasLabel: string;
+  customizationCanvasHelp: string;
+  customizationProductImageAlt: string;
+  customizationDesignImageAlt: string;
+  customizationUploadDesign: string;
+  customizationReplaceDesign: string;
+  customizationRemoveDesign: string;
+  customizationDesignUploading: string;
+  customizationDesignInvalid: string;
+  customizationDesignTooLarge: string;
+  customizationScaleLabel: string;
+  customizationRotationLabel: string;
+  customizationOpacityLabel: string;
+  customizationPositionReadoutLabel: string;
+  customizationPositionXLabel: string;
+  customizationPositionYLabel: string;
+  customizationCanvasReset: string;
 }
 
 interface CustomizationFormProps {
   customizationConfig: ProductCustomizationConfigJson;
+  productImages: ProductImageItem[];
   labels: CustomizationFormLabels;
   onValidate?: () => void;
 }
 
 export function CustomizationForm({
   customizationConfig,
+  productImages,
   labels,
   onValidate,
 }: CustomizationFormProps) {
-  const {
-    draft,
-    errors,
-    setText,
-    setColor,
-    setSize,
-    setImage,
-    clearImage,
-    validateDraft,
-  } = useCustomizationDraft();
+  const { draft, errors, setText, setColor, setSize, validateDraft } =
+    useCustomizationDraft();
 
-  const allowsText = customizationConfig.mode !== 'photo';
-  const allowsStyleOptions =
-    customizationConfig.mode === 'text' ||
-    customizationConfig.mode === 'text_photo';
-  const allowsPhoto =
-    customizationConfig.mode === 'photo' ||
-    customizationConfig.mode === 'text_photo';
+  const config = ProductCustomizationConfig.fromJson(customizationConfig);
 
   const textErrorId = errors.text ? 'customization-text-error' : undefined;
-  const colorErrorId = errors.color ? 'customization-color-error' : undefined;
+  const _colorErrorId = errors.color ? 'customization-color-error' : undefined;
   const sizeErrorId = errors.size ? 'customization-size-error' : undefined;
 
   return (
     <form
       className="customization-form"
+      id="customization-form"
       onSubmit={(event) => {
         event.preventDefault();
+        if (validateDraft()) {
+          onValidate?.();
+        }
       }}
     >
-      {customizationConfig.mode === 'description' ? (
-        <label>
-          <span>{labels.customizationDesign}</span>
-          <textarea
-            maxLength={500}
-            aria-invalid={errors.text ? 'true' : undefined}
-            aria-describedby={textErrorId}
-            value={draft.text ?? ''}
-            onChange={(event) => setText(event.target.value || null)}
-          />
-          {errors.text && (
-            <p id={textErrorId} role="alert">
-              {errors.text}
-            </p>
-          )}
-        </label>
-      ) : allowsText ? (
-        <label>
-          <span>{labels.customizationPhrase}</span>
-          <input
-            type="text"
-            maxLength={500}
-            value={draft.text ?? ''}
-            onChange={(event) => setText(event.target.value || null)}
-            aria-describedby={textErrorId}
-            aria-invalid={errors.text ? 'true' : undefined}
-          />
-          {errors.text && (
-            <p id={textErrorId} role="alert">
-              {errors.text}
-            </p>
-          )}
-        </label>
-      ) : null}
-
-      {allowsStyleOptions && (
-        <>
-          <label>
-            <span>{labels.customizationColor}</span>
-            <input
-              type="text"
-              maxLength={50}
-              value={draft.color ?? ''}
-              onChange={(event) => setColor(event.target.value || null)}
-              aria-invalid={errors.color ? 'true' : undefined}
-              aria-describedby={colorErrorId}
-            />
-            {errors.color && (
-              <p id={colorErrorId} role="alert">
-                {errors.color}
-              </p>
-            )}
-          </label>
-          <label>
-            <span>{labels.customizationSize}</span>
-            <input
-              type="text"
-              maxLength={50}
-              value={draft.size ?? ''}
-              onChange={(event) => setSize(event.target.value || null)}
-              aria-invalid={errors.size ? 'true' : undefined}
-              aria-describedby={sizeErrorId}
-            />
-            {errors.size && (
-              <p id={sizeErrorId} role="alert">
-                {errors.size}
-              </p>
-            )}
-          </label>
-        </>
-      )}
-
-      {allowsPhoto && (
-        <PhotoUploadField
-          label={labels.customizationUpload}
-          replaceLabel={labels.customizationReplaceImage}
-          removeLabel={labels.customizationRemoveImage}
-          invalidImageLabel={labels.customizationInvalidImage}
-          imageTooLargeLabel={labels.customizationImageTooLarge}
-          value={draft.imageUrl}
-          onRemove={clearImage}
-          onUpload={async (file) => {
-            const response = await fetch('/api/uploads/guest/presigned-url', {
-              method: 'POST',
-              body: JSON.stringify({
-                fileName: file.name,
-                mimeType: file.type,
-                size: file.size,
-              }),
-              headers: { 'content-type': 'application/json' },
-            });
-
-            if (!response.ok) {
-              throw new Error('Upload failed');
-            }
-
-            const result = (await response.json()) as {
-              id: string;
-              uploadUrl: string;
-              storageKey: string;
-            };
-
-            await fetch(result.uploadUrl, {
-              method: 'PUT',
-              headers: { 'content-type': file.type },
-              body: file,
-            });
-
-            const imageUrl = URL.createObjectURL(file);
-            const uploadResult = {
-              imageUploadId: result.id,
-              imageUrl,
-            };
-            setImage(uploadResult);
-            return uploadResult;
-          }}
-          onUploaded={(result) => setImage(result)}
+      <label className={formStyles.fieldLabel}>
+        <span>{labels.customizationDesign}</span>
+        <textarea
+          maxLength={500}
+          aria-invalid={errors.text ? 'true' : undefined}
+          aria-describedby={textErrorId}
+          value={draft.text ?? ''}
+          onChange={(event) => setText(event.target.value || null)}
         />
+        {errors.text && (
+          <p id={textErrorId} role="alert">
+            {errors.text}
+          </p>
+        )}
+      </label>
+
+      {productImages.length > 0 && (
+        <div className={formStyles.colorSection}>
+          <span className={formStyles.colorLabel}>
+            {labels.customizationColor}
+          </span>
+          <div className={formStyles.colorCarousel}>
+            {productImages.map((img) => {
+              const selected = draft.color === img.alt;
+              return (
+                <div
+                  key={img.url}
+                  role="button"
+                  tabIndex={0}
+                  className={`${formStyles.colorItem} ${selected ? formStyles.colorItemSelected : ''}`}
+                  onClick={() => setColor(img.alt)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setColor(img.alt);
+                    }
+                  }}
+                  title={img.alt}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={img.url}
+                    alt={img.alt}
+                    className={formStyles.colorThumb}
+                  />
+                  <span className={formStyles.colorAlt}>{img.alt}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => {
-          validateDraft();
-          onValidate?.();
-        }}
-      >
-        {labels.customizationPreview}
-      </button>
-
-      {customizationConfig.mode === 'description' && (
-        <p>{labels.customizationLimitedToDescription}</p>
-      )}
+      <label className={formStyles.fieldLabel}>
+        <span>{labels.customizationSize}</span>
+        <select
+          value={draft.size ?? ''}
+          onChange={(event) => setSize(event.target.value || null)}
+          aria-invalid={errors.size ? 'true' : undefined}
+          aria-describedby={sizeErrorId}
+        >
+          <option value="">{labels.customizationSizePlaceholder}</option>
+          {config.getSizeOptions().map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+        {errors.size && (
+          <p id={sizeErrorId} role="alert">
+            {errors.size}
+          </p>
+        )}
+      </label>
     </form>
   );
 }

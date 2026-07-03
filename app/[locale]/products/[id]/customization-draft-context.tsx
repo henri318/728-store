@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import type { DesignPosition } from '@/modules/products/domain/value-objects/product-customization-config';
 
 export interface CustomizationDraft {
   text: string | null;
@@ -15,12 +16,20 @@ export interface CustomizationDraft {
   size: string | null;
   imageUploadId: string | null;
   imageUrl: string | null;
+  designPosition: DesignPosition | null;
   error: string | null;
 }
 
 export type CustomizationDraftErrors = Partial<
   Record<'text' | 'color' | 'size' | 'imageUrl', string>
 >;
+
+export interface CustomizationValidationLabels {
+  textTooLong: string;
+  colorTooLong: string;
+  sizeTooLong: string;
+  invalidImageUrl: string;
+}
 
 export interface CustomizationDraftContextType {
   draft: CustomizationDraft;
@@ -33,6 +42,7 @@ export interface CustomizationDraftContextType {
     imageUrl: string | null;
   }) => void;
   clearImage: () => void;
+  setDesignPosition: (value: DesignPosition | null) => void;
   setError: (value: string | null) => void;
   validateDraft: () => boolean;
 }
@@ -43,6 +53,7 @@ const defaultDraft: CustomizationDraft = {
   size: null,
   imageUploadId: null,
   imageUrl: null,
+  designPosition: null,
   error: null,
 };
 
@@ -52,9 +63,11 @@ const CustomizationDraftContext =
 export function CustomizationDraftProvider({
   children,
   initialDraft,
+  validationLabels,
 }: {
   children: ReactNode;
   initialDraft?: Partial<Omit<CustomizationDraft, 'error'>>;
+  validationLabels: CustomizationValidationLabels;
 }) {
   const [draft, setDraft] = useState<CustomizationDraft>({
     ...defaultDraft,
@@ -101,10 +114,20 @@ export function CustomizationDraftProvider({
       ...current,
       imageUploadId: null,
       imageUrl: null,
+      designPosition: null,
       error: null,
     }));
     clearValidationErrors();
   }, [clearValidationErrors]);
+
+  const setDesignPosition = useCallback((value: DesignPosition | null) => {
+    setDraft((current) => {
+      if (!value) {
+        return { ...current, designPosition: null };
+      }
+      return { ...current, designPosition: value };
+    });
+  }, []);
 
   const setError = useCallback((value: string | null) => {
     setDraft((current) => ({ ...current, error: value }));
@@ -119,15 +142,15 @@ export function CustomizationDraftProvider({
     const imageUrl = draft.imageUrl?.trim() ?? '';
 
     if (text.length > 500) {
-      nextErrors.text = 'Customization text must be at most 500 characters.';
+      nextErrors.text = validationLabels.textTooLong;
     }
 
     if (color.length > 50) {
-      nextErrors.color = 'Customization color must be at most 50 characters.';
+      nextErrors.color = validationLabels.colorTooLong;
     }
 
     if (size.length > 50) {
-      nextErrors.size = 'Customization size must be at most 50 characters.';
+      nextErrors.size = validationLabels.sizeTooLong;
     }
 
     if (
@@ -135,14 +158,24 @@ export function CustomizationDraftProvider({
       !/^https?:\/\//.test(imageUrl) &&
       !imageUrl.startsWith('/')
     ) {
-      nextErrors.imageUrl = 'Customization image must be a valid URL.';
+      nextErrors.imageUrl = validationLabels.invalidImageUrl;
     }
 
     setErrors(nextErrors);
     setError(Object.values(nextErrors)[0] ?? null);
 
     return Object.keys(nextErrors).length === 0;
-  }, [draft.color, draft.imageUrl, draft.size, draft.text, setError]);
+  }, [
+    draft.color,
+    draft.imageUrl,
+    draft.size,
+    draft.text,
+    setError,
+    validationLabels.colorTooLong,
+    validationLabels.invalidImageUrl,
+    validationLabels.sizeTooLong,
+    validationLabels.textTooLong,
+  ]);
 
   const value = useMemo<CustomizationDraftContextType>(
     () => ({
@@ -153,6 +186,7 @@ export function CustomizationDraftProvider({
       setSize,
       setImage,
       clearImage,
+      setDesignPosition,
       setError,
       validateDraft,
     }),
@@ -164,6 +198,7 @@ export function CustomizationDraftProvider({
       setSize,
       setImage,
       clearImage,
+      setDesignPosition,
       setError,
       validateDraft,
     ],

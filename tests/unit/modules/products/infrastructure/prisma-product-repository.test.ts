@@ -20,6 +20,8 @@ const mocks = vi.hoisted(() => {
     product: {
       create: vi.fn(),
       update: vi.fn(),
+      findMany: vi.fn(),
+      count: vi.fn(),
     },
     productTranslation: {
       upsert: vi.fn(),
@@ -49,6 +51,7 @@ function makeProduct(overrides: Partial<ProductEntity> = {}): ProductEntity {
       mode: 'text_photo',
       previewEnabled: true,
       previewTemplateUrl: 'https://cdn.example.com/mock.png',
+      sizeOptions: ['S', 'M', 'L'],
       textOffset: { x: 12, y: 20 },
       imageOffset: { x: 18, y: 30 },
     }),
@@ -73,7 +76,18 @@ describe('PrismaProductRepository', () => {
   });
 
   it('persists translations and customization config when saving', async () => {
-    const product = makeProduct();
+    const product = makeProduct({
+      images: [
+        {
+          id: 'img-1',
+          url: 'http://localhost:8081/products/taza.png',
+          alt: 'Azul cielo',
+          position: 0,
+          productId: 'product-1',
+          createdAt: new Date('2025-01-01T00:00:00.000Z'),
+        },
+      ],
+    });
     mocks.prismaMock.product.create.mockResolvedValue({ id: product.id });
 
     await repo.save(product);
@@ -86,17 +100,28 @@ describe('PrismaProductRepository', () => {
         sellerId: 'seller-1',
         status: ProductStatus.DRAFT,
         categoryId: 'category-1',
-        customizationConfig: {
+        customizationConfig: expect.objectContaining({
           mode: 'text_photo',
           previewEnabled: true,
           previewTemplateUrl: 'https://cdn.example.com/mock.png',
+          sizeOptions: ['S', 'M', 'L'],
           textOffset: { x: 12, y: 20 },
           imageOffset: { x: 18, y: 30 },
-        },
+        }),
         translations: {
           create: [
             { locale: 'es', name: 'Camiseta', description: 'Camiseta base' },
             { locale: 'cat', name: 'Samarreta', description: 'Samarreta base' },
+          ],
+        },
+        images: {
+          create: [
+            {
+              id: 'img-1',
+              url: 'http://localhost:8081/products/taza.png',
+              alt: 'Azul cielo',
+              position: 0,
+            },
           ],
         },
       }),
@@ -125,14 +150,19 @@ describe('PrismaProductRepository', () => {
         currency: 'EUR',
         status: ProductStatus.ACTIVE,
         categoryId: 'category-1',
-        customizationConfig: {
+        customizationConfig: expect.objectContaining({
           mode: 'text_photo',
           previewEnabled: true,
           previewTemplateUrl: 'https://cdn.example.com/mock.png',
+          sizeOptions: ['S', 'M', 'L'],
           textOffset: { x: 12, y: 20 },
           imageOffset: { x: 18, y: 30 },
-        },
+        }),
         updatedAt: product.updatedAt,
+        images: {
+          deleteMany: {},
+          create: [],
+        },
       }),
     });
     expect(mocks.txMock.productTranslation.upsert).toHaveBeenCalledWith({
@@ -150,5 +180,65 @@ describe('PrismaProductRepository', () => {
         description: 'Nueva',
       },
     });
+  });
+
+  it('replaces product images on update', async () => {
+    const product = makeProduct({
+      images: [
+        {
+          id: 'img-old',
+          url: 'http://localhost:8081/products/old.png',
+          alt: 'Old',
+          position: 0,
+          productId: 'product-1',
+          createdAt: new Date('2025-01-01T00:00:00.000Z'),
+        },
+      ],
+    });
+
+    mocks.txMock.product.update.mockResolvedValue({ id: product.id });
+    mocks.txMock.productTranslation.upsert.mockResolvedValue({ id: 't-1' });
+
+    await repo.update({
+      ...product,
+      images: [
+        {
+          id: 'img-new',
+          url: 'http://localhost:8081/products/new.png',
+          alt: 'Nuevo color',
+          position: 0,
+          productId: 'product-1',
+          createdAt: new Date('2025-02-01T00:00:00.000Z'),
+        },
+      ],
+    });
+
+    expect(mocks.txMock.product.update).toHaveBeenCalledWith({
+      where: { id: 'product-1' },
+      data: expect.objectContaining({
+        images: {
+          deleteMany: {},
+          create: [
+            {
+              id: 'img-new',
+              url: 'http://localhost:8081/products/new.png',
+              alt: 'Nuevo color',
+              position: 0,
+            },
+          ],
+        },
+      }),
+    });
+  });
+
+  it('loads paginated products without concurrent transaction queries', async () => {
+    mocks.prismaMock.product.findMany.mockResolvedValue([]);
+    mocks.prismaMock.product.count.mockResolvedValue(0);
+
+    await repo.findPaginated({ lang: 'es', page: 1, pageSize: 20 });
+
+    expect(mocks.prismaMock.$transaction).not.toHaveBeenCalled();
+    expect(mocks.prismaMock.product.findMany).toHaveBeenCalledTimes(1);
+    expect(mocks.prismaMock.product.count).toHaveBeenCalledTimes(1);
   });
 });

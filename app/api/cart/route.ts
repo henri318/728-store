@@ -101,12 +101,18 @@ function enrichCartItem(
     unitPrice,
     lineTotal,
     customizationIdList: item.customizationIdList,
+    colorImageUrl:
+      product && customizations[0]?.color
+        ? (product.images?.find((img) => img.alt === customizations[0].color)
+            ?.url ?? null)
+        : null,
     customizations: customizations.map((c) => ({
       id: c.id,
       text: c.text,
       color: c.color,
       size: c.size,
       imageUrl: c.imageUrl,
+      designPosition: c.designPosition,
     })),
   };
 }

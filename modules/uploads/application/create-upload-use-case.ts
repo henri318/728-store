@@ -23,6 +23,8 @@ export interface CreateUploadResult {
   id: string;
   uploadUrl: string;
   storageKey: string;
+  readUrl: string;
+  publicUrl: string;
 }
 
 export class CreateUploadUseCase {
@@ -81,12 +83,12 @@ export class CreateUploadUseCase {
     };
     await this.uploadRepo.save(upload);
 
-    // 6. Generate presigned upload URL
-    const uploadUrl = await this.storage.generateUploadUrl(
-      storageKey,
-      input.mimeType,
-    );
+    const [uploadUrl, readUrl, publicUrl] = await Promise.all([
+      this.storage.generateUploadUrl(storageKey, input.mimeType),
+      this.storage.generateReadUrl(storageKey),
+      this.storage.getPublicUrl(storageKey),
+    ]);
 
-    return { id, uploadUrl, storageKey };
+    return { id, uploadUrl, storageKey, readUrl, publicUrl };
   }
 }

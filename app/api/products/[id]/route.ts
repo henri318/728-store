@@ -3,6 +3,7 @@ import { container } from '@/composition-root/container';
 import { requireRole } from '@/shared/authorization/authorization';
 import { handleApiError } from '@/shared/presentation/error-handler';
 import { productFormSchema } from '@/modules/products/presentation/schemas/product-form-schema';
+import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
 import { UpdateProductUseCase } from '@/modules/products/application/update-product-use-case';
 import { serializeProduct } from '@/modules/products/presentation/product-response';
 
@@ -54,8 +55,9 @@ async function patchHandler(
       name: body.name,
       description: body.description,
       price: body.price,
-      status: body.status,
+      status: body.status as ProductStatus,
       customizationConfig: body.customizationConfig,
+      images: body.images,
     });
 
     return NextResponse.json(serializeProduct(updated), { status: 200 });

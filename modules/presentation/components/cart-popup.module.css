@@ -103,6 +103,8 @@
   flex: 1;
 }
 .thumb {
+  width: 40px;
+  height: 40px;
   border-radius: 4px;
   object-fit: cover;
   flex-shrink: 0;
@@ -117,6 +119,34 @@
   font-size: 0.72rem;
   color: var(--color-text-secondary, #666);
   display: block;
+  margin-top: 2px;
+}
+.popupItemDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.popupCustLine {
+  font-size: 0.72rem;
+  color: #555;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.popupCustText {
+  font-size: 0.7rem;
+  color: #777;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.popupDesignThumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
   margin-top: 2px;
 }
 .itemCtrls {

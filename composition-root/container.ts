@@ -79,6 +79,7 @@ import {
 import { UserVerificationAdapter } from '@/modules/users/infrastructure/user-verification-adapter';
 import { RoleValidatorAdapter } from '@/modules/roles/infrastructure/role-validator-adapter';
 import { R2StorageAdapter } from '@/modules/uploads/infrastructure/r2-storage-adapter';
+import { LocalStorageAdapter } from '@/modules/uploads/infrastructure/local-storage-adapter';
 import { PrismaUploadRepository } from '@/modules/uploads/infrastructure/prisma-upload-repository';
 import { PrismaCartRepository } from '@/modules/cart/infrastructure/prisma-cart-repository';
 import { CartProductRepositoryAdapter } from '@/modules/cart/infrastructure/cart-product-repository-adapter';
@@ -242,7 +243,10 @@ export function initContainer(): void {
 
   // --- StoragePort: R2 adapter for uploads ---
   if (!_storagePort) {
-    _storagePort = new R2StorageAdapter();
+    _storagePort =
+      process.env.NODE_ENV === 'production'
+        ? new R2StorageAdapter()
+        : new LocalStorageAdapter();
   }
 
   // --- UploadRepository: Prisma adapter ---

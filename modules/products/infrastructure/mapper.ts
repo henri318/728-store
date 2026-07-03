@@ -71,6 +71,7 @@ export interface PrismaProductCustomizationConfigJson {
   mode: 'description' | 'text' | 'photo' | 'text_photo';
   previewEnabled: boolean;
   previewTemplateUrl: string | null;
+  sizeOptions: string[] | null;
   textOffset: PrismaPreviewOffsetJson | null;
   imageOffset: PrismaPreviewOffsetJson | null;
 }
@@ -88,6 +89,7 @@ export interface PrismaProductCustomizationConfigRow {
   mode?: 'description' | 'text' | 'photo' | 'text_photo';
   previewEnabled?: boolean;
   previewTemplateUrl?: string | null;
+  sizeOptions?: string[] | null;
   textOffset?: PrismaPreviewOffsetJson | null;
   imageOffset?: PrismaPreviewOffsetJson | null;
 }

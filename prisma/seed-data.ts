@@ -8,6 +8,7 @@ export interface SeedProductCustomizationConfigData {
   mode: 'description' | 'text' | 'photo' | 'text_photo';
   previewEnabled: boolean;
   previewTemplateUrl: string | null;
+  sizeOptions: string[] | null;
   textOffset: {
     x: number;
     y: number;
@@ -64,6 +65,7 @@ export function buildSeedProducts(sellerId: string): SeedProductData[] {
         mode: 'text_photo',
         previewEnabled: true,
         previewTemplateUrl: '/img/products/customizable-tshirt.svg',
+        sizeOptions: ['S', 'M', 'L', 'XL'],
         textOffset: { x: 118, y: 186, maxWidth: 220 },
         imageOffset: { x: 96, y: 124, scale: 0.9 },
       },
@@ -105,6 +107,7 @@ export function buildSeedProducts(sellerId: string): SeedProductData[] {
         mode: 'text_photo',
         previewEnabled: true,
         previewTemplateUrl: mugImageUrl,
+        sizeOptions: ['S', 'M', 'L'],
         textOffset: { x: 76, y: 146, rotate: -2 },
         imageOffset: { x: 102, y: 110, scale: 0.72 },
       },
@@ -146,6 +149,7 @@ export function buildSeedProducts(sellerId: string): SeedProductData[] {
         mode: 'description',
         previewEnabled: false,
         previewTemplateUrl: null,
+        sizeOptions: null,
         textOffset: null,
         imageOffset: null,
       },

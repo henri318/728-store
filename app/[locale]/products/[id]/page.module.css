@@ -207,6 +207,70 @@
   box-shadow: 0 18px 36px rgba(13, 92, 70, 0.08);
 }
 
+.customizationCard :global(.customization-form) {
+  display: grid;
+  gap: 0.95rem;
+  color: var(--color-green-dark);
+}
+
+.customizationCard :global(.customization-form label) {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.92rem;
+  font-weight: var(--font-weight-medium);
+}
+
+.customizationCard :global(.customization-form input[type='text']),
+.customizationCard :global(.customization-form textarea),
+.customizationCard :global(.customization-form select) {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(13, 92, 70, 0.14);
+  padding: 0.65rem 0.8rem;
+  background: var(--color-white);
+  color: var(--color-black);
+  font-family: inherit;
+  font-size: 0.94rem;
+  font-weight: var(--font-weight-regular);
+}
+
+.customizationCard :global(.customization-form textarea) {
+  resize: vertical;
+  min-height: 96px;
+}
+
+.customizationCard :global(.customization-form button[type='button']),
+.customizationCard :global(.customization-form button[type='submit']) {
+  min-height: 44px;
+  padding: 0.7rem 1.1rem;
+  border-radius: 999px;
+  border: none;
+  background: var(--color-green-dark);
+  color: var(--color-white);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
+}
+
+.customizationCard :global(.customization-form button:hover) {
+  transform: translateY(-1px);
+  background: #0a4a38;
+}
+
+.customizationCard :global(.customization-canvas-title) {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--color-green-dark);
+}
+
+.customizationCard :global(.customization-canvas-help) {
+  margin: 0 0 0.85rem;
+  color: rgba(13, 92, 70, 0.74);
+  font-size: 0.9rem;
+}
+
 @media (max-width: 900px) {
   .grid {
     grid-template-columns: 1fr;

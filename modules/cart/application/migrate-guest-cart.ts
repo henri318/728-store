@@ -25,6 +25,19 @@ export interface GuestCartItem {
   customizationColor?: string | null;
   customizationSize?: string | null;
   customizationImageUrl?: string | null;
+  /**
+   * Buyer-side design position captured by the mockup canvas. Optional —
+   * text-only and legacy guest items do not have one.
+   */
+  customizationDesignPosition?: {
+    imageUrl: string;
+    x: number;
+    y: number;
+    scale: number;
+    rotation_deg: number;
+    opacity: number;
+    blend_mode: string;
+  } | null;
 }
 
 export type MergeStrategy = 'merge' | 'keep-server' | 'keep-guest';
@@ -288,6 +301,7 @@ type CustomizationRecord = {
   color: string | null;
   size: string | null;
   imageUrl: string | null;
+  designPosition: unknown;
 };
 
 function resolveGuestCustomizationIds(
@@ -300,10 +314,16 @@ function resolveGuestCustomizationIds(
     (g.customizationText !== undefined && g.customizationText !== null) ||
     (g.customizationColor !== undefined && g.customizationColor !== null) ||
     (g.customizationSize !== undefined && g.customizationSize !== null) ||
-    (g.customizationImageUrl !== undefined && g.customizationImageUrl !== null);
+    (g.customizationImageUrl !== undefined &&
+      g.customizationImageUrl !== null) ||
+    (g.customizationDesignPosition !== undefined &&
+      g.customizationDesignPosition !== null);
 
   if (!hasCustomization) return Promise.resolve([]);
 
+  // Canvas-only customizations are matched by the imageUrl baked into
+  // designPosition. We still keep the text/color/size matchers so legacy
+  // guest items continue to dedupe.
   const matches = customizations.filter(
     (customization) =>
       customization.text === (g.customizationText ?? null) &&
@@ -326,6 +346,7 @@ function resolveGuestCustomizationIds(
       color: g.customizationColor ?? null,
       size: g.customizationSize ?? null,
       imageUrl: g.customizationImageUrl ?? null,
+      designPosition: g.customizationDesignPosition ?? null,
     })
     .then((created) => {
       createdCustomizationCache.set(cacheKey, created.id);
@@ -340,6 +361,9 @@ function guestCustomizationKey(g: GuestCartItem): string {
     g.customizationColor ?? '',
     g.customizationSize ?? '',
     g.customizationImageUrl ?? '',
+    g.customizationDesignPosition
+      ? JSON.stringify(g.customizationDesignPosition)
+      : '',
   ].join('|');
 }
 

@@ -1,6 +1,9 @@
 import type { CustomizationRepository } from '../domain/customization-repository';
 import type { CustomizationEntity } from '../domain/entities/customization';
-import { CustomizationOptions } from '../domain/value-objects/customization-options';
+import {
+  CustomizationOptions,
+  type CustomizationDesignPosition,
+} from '../domain/value-objects/customization-options';
 import { ValidationError } from '@/shared/kernel/app-error';
 import type { ProductCapabilityPort } from '@/modules/products/domain/product-capability-port';
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
@@ -11,6 +14,7 @@ export interface CreateCustomerCustomizationDTO {
   color?: string | null;
   size?: string | null;
   imageUrl?: string | null;
+  designPosition?: CustomizationDesignPosition | null;
 }
 
 export class CreateCustomerCustomization {
@@ -41,6 +45,7 @@ export class CreateCustomerCustomization {
       color: dto.color ?? null,
       size: dto.size ?? null,
       imageUrl: dto.imageUrl ?? null,
+      designPosition: dto.designPosition ?? null,
       createdAt: new Date(),
     };
 
@@ -53,6 +58,12 @@ export class CreateCustomerCustomization {
   ): void {
     const hasText = dto.text !== undefined && dto.text !== null;
     const hasImage = dto.imageUrl !== undefined && dto.imageUrl !== null;
+    const hasDesignPosition =
+      dto.designPosition !== undefined && dto.designPosition !== null;
+    // A canvas-only customization is also a "has image" signal — the
+    // mockup canvas embeds imageUrl inside designPosition, so a
+    // canvas-only draft must satisfy the photo requirement.
+    const hasImageForCapability = hasImage || hasDesignPosition;
     const hasStyle =
       (dto.color !== undefined && dto.color !== null) ||
       (dto.size !== undefined && dto.size !== null);
@@ -64,7 +75,7 @@ export class CreateCustomerCustomization {
       );
     }
 
-    if (hasImage && !config.allowsPhoto()) {
+    if (hasImageForCapability && !config.allowsPhoto()) {
       throw new ValidationError(
         'This product does not support photo customization',
         'Customization is not allowed for this product',
@@ -89,7 +100,7 @@ export class CreateCustomerCustomization {
         }
         break;
       case 'photo':
-        if (!hasImage) {
+        if (!hasImageForCapability) {
           throw new ValidationError(
             'Photo customization is required for this product',
             'Customization is not allowed for this product',
@@ -97,7 +108,7 @@ export class CreateCustomerCustomization {
         }
         break;
       case 'text_photo':
-        if (!hasText && !hasImage) {
+        if (!hasText && !hasImageForCapability) {
           throw new ValidationError(
             'Text or photo customization is required for this product',
             'Customization is not allowed for this product',

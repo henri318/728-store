@@ -1,6 +1,9 @@
 import type { CustomizationRepository } from '../domain/customization-repository';
 import type { CustomizationEntity } from '../domain/entities/customization';
-import { CustomizationOptions } from '../domain/value-objects/customization-options';
+import {
+  CustomizationOptions,
+  type CustomizationDesignPosition,
+} from '../domain/value-objects/customization-options';
 import { CustomizationNotFoundError } from '../domain/errors';
 
 export interface CreateCustomizationDTO {
@@ -9,6 +12,7 @@ export interface CreateCustomizationDTO {
   color?: string | null;
   size?: string | null;
   imageUrl?: string | null;
+  designPosition?: CustomizationDesignPosition | null;
 }
 
 /**
@@ -48,6 +52,7 @@ export class CreateCustomization {
       color: dto.color,
       size: dto.size,
       imageUrl: dto.imageUrl,
+      designPosition: dto.designPosition,
     });
 
     const entity: CustomizationEntity = {
@@ -57,6 +62,7 @@ export class CreateCustomization {
       color: dto.color ?? null,
       size: dto.size ?? null,
       imageUrl: dto.imageUrl ?? null,
+      designPosition: dto.designPosition ?? null,
       createdAt: new Date(),
     };
 

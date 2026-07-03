@@ -19,6 +19,7 @@ describe('ProductCustomizationConfig', () => {
       mode: 'text_photo',
       previewEnabled: true,
       previewTemplateUrl: 'https://cdn.example.com/mug.png',
+      sizeOptions: ['XS', 'S', 'M'],
       textOffset: { x: 12, y: 34, rotate: 4 },
       imageOffset: { x: 5, y: 6, scale: 0.8 },
     });
@@ -26,12 +27,19 @@ describe('ProductCustomizationConfig', () => {
     expect(config.mode).toBe('text_photo');
     expect(config.previewEnabled).toBe(true);
     expect(config.previewTemplateUrl).toBe('https://cdn.example.com/mug.png');
+    expect(config.sizeOptions).toEqual(['XS', 'S', 'M']);
     expect(config.textOffset).toEqual({ x: 12, y: 34, rotate: 4 });
     expect(config.imageOffset).toEqual({ x: 5, y: 6, scale: 0.8 });
     expect(config.isPreviewCapable()).toBe(true);
     expect(config.allowsText()).toBe(true);
     expect(config.allowsPhoto()).toBe(true);
     expect(config.allowsStyleOptions()).toBe(true);
+  });
+
+  it('falls back to sensible default size options when none are configured', () => {
+    const config = ProductCustomizationConfig.default();
+
+    expect(config.getSizeOptions()).toEqual(['S', 'M', 'L']);
   });
 
   it('falls back to description-only for invalid JSON', () => {

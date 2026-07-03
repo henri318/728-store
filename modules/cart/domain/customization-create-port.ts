@@ -1,4 +1,7 @@
-import type { CustomizationSnapshot } from './customization-lookup-port';
+import type {
+  CustomizationDesignPositionSnapshot,
+  CustomizationSnapshot,
+} from './customization-lookup-port';
 
 export interface CustomizationCreatePort {
   create(input: {
@@ -7,5 +10,6 @@ export interface CustomizationCreatePort {
     color?: string | null;
     size?: string | null;
     imageUrl?: string | null;
+    designPosition?: CustomizationDesignPositionSnapshot | null;
   }): Promise<CustomizationSnapshot>;
 }

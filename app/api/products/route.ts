@@ -69,8 +69,8 @@ async function postHandler(req: NextRequest): Promise<NextResponse> {
       name: body.name,
       description: body.description,
       price: body.price,
-      status: body.status,
       customizationConfig: body.customizationConfig,
+      images: body.images,
     });
 
     return NextResponse.json(serializeProduct(created), { status: 201 });

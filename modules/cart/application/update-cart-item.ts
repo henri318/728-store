@@ -19,6 +19,7 @@ export interface UpdateCartItemQuantityDTO {
   userId: string;
   itemId: string;
   quantity: number;
+  customizationIdList?: string[];
 }
 
 // --- Use Case ---
@@ -81,6 +82,9 @@ export class UpdateCartItemQuantity {
     const updatedItem: CartItemEntity = {
       ...item,
       quantity: quantity.value,
+      ...(dto.customizationIdList !== undefined
+        ? { customizationIdList: dto.customizationIdList }
+        : {}),
     };
     const updatedItems = cart.items.map((i) =>
       i.id === item.id ? updatedItem : i,

@@ -11,6 +11,14 @@
   margin-bottom: var(--spacing-lg);
 }
 
+.headerLead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
 .headerActions {
   display: flex;
   align-items: center;

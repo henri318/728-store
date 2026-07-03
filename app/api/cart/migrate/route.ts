@@ -189,6 +189,7 @@ function enrichCartItem(
       color: c.color,
       size: c.size,
       imageUrl: c.imageUrl,
+      designPosition: c.designPosition,
     })),
   };
 }

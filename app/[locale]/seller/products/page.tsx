@@ -113,16 +113,16 @@ export default async function SellerProductsPage({
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <div>
+        <div className={styles.headerLead}>
           <h2 className={styles.title}>{dict.sellerDashboard.title}</h2>
-        </div>
-        <div className={styles.headerActions}>
           <Link
             href={`/${locale}/seller/products/new`}
             className={styles.pageButton}
           >
             {dict.sellerDashboard.createProduct}
           </Link>
+        </div>
+        <div className={styles.headerActions}>
           <div className={styles.searchWrap}>
             <SearchForm
               placeholder={dict.sellerDashboard.searchPlaceholder}

@@ -6,9 +6,15 @@
 
 .previewFigure {
   position: relative;
+  isolation: isolate;
   overflow: hidden;
   border-radius: 1.5rem;
-  background: radial-gradient(circle at top, #f7f0ea, #e7ddd2 55%, #cbbfb3 100%);
+  background: radial-gradient(
+    circle at top,
+    #f7f0ea,
+    #e7ddd2 55%,
+    #cbbfb3 100%
+  );
   box-shadow: 0 30px 70px rgba(41, 27, 16, 0.18);
 }
 
@@ -16,6 +22,21 @@
   display: block;
   width: 100%;
   height: auto;
+  position: relative;
+  z-index: 0;
+}
+
+.templateLayer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  opacity: 1;
+  mix-blend-mode: normal;
+  pointer-events: none;
+  z-index: 2;
 }
 
 .overlayLayer {
@@ -23,6 +44,7 @@
   inset: 0;
   display: grid;
   place-items: center;
+  z-index: 3;
 }
 
 .textLayer {
@@ -32,15 +54,18 @@
   font-weight: 700;
   color: #3b2213;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+  z-index: 4;
 }
 
 .photoLayer {
   position: absolute;
-  width: 42%;
-  height: auto;
-  object-fit: cover;
-  border-radius: 999px;
-  mix-blend-mode: multiply;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 1;
+  mix-blend-mode: normal;
+  z-index: 4;
 }
 
 .previewShell::before {
@@ -49,7 +74,12 @@
   inset: auto 20% 10% 20%;
   height: 55%;
   border-radius: 999px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.45),
+    transparent
+  );
   pointer-events: none;
 }
 

@@ -13,14 +13,23 @@ vi.mock('next/image', () => ({
 }));
 
 describe('CustomizationForm', () => {
+  const validationLabels = {
+    textTooLong: 'Customization text is too long.',
+    colorTooLong: 'Customization color is too long.',
+    sizeTooLong: 'Customization size is too long.',
+    invalidImageUrl: 'Customization image must be a valid URL.',
+  };
+
   const labels = {
     customizationDesign: 'Design description',
     customizationPhrase: 'Phrase',
     customizationColor: 'Color',
     customizationSize: 'Size',
+    customizationSizePlaceholder: 'Choose a size',
     customizationUpload: 'Upload image',
     customizationReplaceImage: 'Replace image',
     customizationRemoveImage: 'Remove image',
+    customizationUploading: 'Uploading image...',
     customizationInvalidImage: 'Please upload a PNG or JPEG image.',
     customizationImageTooLarge: 'The image is too large.',
     customizationPreviewUnavailable: 'Preview unavailable',
@@ -28,52 +37,80 @@ describe('CustomizationForm', () => {
     customizationPreview: 'Customization preview',
     customizationPreviewDisclaimer:
       'Preview is a buying aid only — final product may vary.',
+    customizationCanvasLabel: 'Canvas',
+    customizationCanvasHelp: 'Drag to position',
+    customizationProductImageAlt: 'Product photo',
+    customizationDesignImageAlt: 'Design image',
+    customizationUploadDesign: 'Upload design',
+    customizationReplaceDesign: 'Replace design',
+    customizationRemoveDesign: 'Remove design',
+    customizationDesignUploading: 'Uploading...',
+    customizationDesignInvalid: 'Invalid image',
+    customizationDesignTooLarge: 'Image too large',
+    customizationScaleLabel: 'Scale',
+    customizationRotationLabel: 'Rotation',
+    customizationOpacityLabel: 'Opacity',
+    customizationPositionReadoutLabel: 'Position',
+    customizationPositionXLabel: 'X',
+    customizationPositionYLabel: 'Y',
+    customizationCanvasReset: 'Reset',
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('renders only the description field for description-only products', () => {
+  it('renders the design textarea, color carousel (with images), and size select', () => {
+    const productImages = [
+      { url: '/red.png', alt: 'Red' },
+      { url: '/blue.png', alt: 'Blue' },
+    ];
+
     render(
-      <CustomizationDraftProvider>
+      <CustomizationDraftProvider validationLabels={validationLabels}>
         <CustomizationForm
           customizationConfig={ProductCustomizationConfig.default().toJson()}
+          productImages={productImages}
           labels={labels}
         />
       </CustomizationDraftProvider>,
     );
 
     expect(screen.getByLabelText(labels.customizationDesign)).toBeTruthy();
-    expect(screen.queryByLabelText(labels.customizationPhrase)).toBeNull();
-    expect(screen.queryByLabelText(labels.customizationColor)).toBeNull();
-    expect(screen.queryByLabelText(labels.customizationSize)).toBeNull();
-    expect(screen.queryByLabelText(labels.customizationUpload)).toBeNull();
+    expect(screen.getByText(labels.customizationColor)).toBeTruthy();
+    expect(screen.getByText('Red')).toBeTruthy();
+    expect(screen.getByText('Blue')).toBeTruthy();
+    expect(
+      screen.getByRole('combobox', { name: labels.customizationSize }),
+    ).toBeTruthy();
   });
 
-  it('renders text, style, and photo controls for combined capabilities', () => {
+  it('renders custom size options from the config', () => {
     const config = ProductCustomizationConfig.fromJson({
       mode: 'text_photo',
       previewEnabled: true,
       previewTemplateUrl: '/mug.png',
+      sizeOptions: ['XS', 'S', 'M', 'L'],
     });
 
     render(
-      <CustomizationDraftProvider>
+      <CustomizationDraftProvider validationLabels={validationLabels}>
         <CustomizationForm
           customizationConfig={config.toJson()}
+          productImages={[]}
           labels={labels}
         />
       </CustomizationDraftProvider>,
     );
 
-    expect(screen.getByLabelText(labels.customizationPhrase)).toBeTruthy();
-    expect(screen.getByLabelText(labels.customizationColor)).toBeTruthy();
-    expect(screen.getByLabelText(labels.customizationSize)).toBeTruthy();
-    expect(screen.getByLabelText(labels.customizationUpload)).toBeTruthy();
+    expect(
+      screen.getByRole('combobox', { name: labels.customizationSize }),
+    ).toHaveDisplayValue(labels.customizationSizePlaceholder);
+    expect(screen.getByRole('option', { name: 'XS' })).toBeTruthy();
+    expect(screen.getByRole('option', { name: 'L' })).toBeTruthy();
   });
 
-  it('marks invalid text input with aria-invalid and an error description after validation', async () => {
+  it('falls back to default size options when the config omits them', () => {
     const config = ProductCustomizationConfig.fromJson({
       mode: 'text',
       previewEnabled: true,
@@ -81,22 +118,43 @@ describe('CustomizationForm', () => {
     });
 
     render(
-      <CustomizationDraftProvider>
+      <CustomizationDraftProvider validationLabels={validationLabels}>
         <CustomizationForm
           customizationConfig={config.toJson()}
+          productImages={[]}
           labels={labels}
         />
       </CustomizationDraftProvider>,
     );
 
-    const input = screen.getByLabelText(labels.customizationPhrase);
-    fireEvent.change(input, { target: { value: 'x'.repeat(501) } });
-    fireEvent.click(
-      screen.getByRole('button', { name: labels.customizationPreview }),
+    const sizeSelect = screen.getByRole('combobox', {
+      name: labels.customizationSize,
+    });
+
+    expect(sizeSelect).toBeTruthy();
+    expect(screen.getByRole('option', { name: 'S' })).toBeTruthy();
+    expect(screen.getByRole('option', { name: 'M' })).toBeTruthy();
+    expect(screen.getByRole('option', { name: 'L' })).toBeTruthy();
+  });
+
+  it('marks invalid text input with aria-invalid and an error description after validation', async () => {
+    const config = ProductCustomizationConfig.default();
+    const { container } = render(
+      <CustomizationDraftProvider validationLabels={validationLabels}>
+        <CustomizationForm
+          customizationConfig={config.toJson()}
+          productImages={[]}
+          labels={labels}
+        />
+      </CustomizationDraftProvider>,
     );
 
-    expect(input).toHaveAttribute('aria-invalid', 'true');
-    expect(input).toHaveAttribute('aria-describedby');
-    expect(screen.getByText(/500/i)).toBeTruthy();
+    const textarea = screen.getByLabelText(labels.customizationDesign);
+    fireEvent.change(textarea, { target: { value: 'x'.repeat(501) } });
+    fireEvent.submit(container.querySelector('form')!);
+
+    expect(textarea).toHaveAttribute('aria-invalid', 'true');
+    expect(textarea).toHaveAttribute('aria-describedby');
+    expect(screen.getByText(validationLabels.textTooLong)).toBeTruthy();
   });
 });

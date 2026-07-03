@@ -20,6 +20,10 @@ export interface CreateProductDTO {
   price: number;
   status?: ProductStatus;
   customizationConfig?: unknown;
+  images?: Array<{
+    url: string;
+    alt: string;
+  }>;
 }
 
 export class CreateProductUseCase {
@@ -35,8 +39,9 @@ export class CreateProductUseCase {
 
     const price = ProductPrice.create(dto.price, 'EUR' as Currency);
     const now = new Date();
+    const productId = randomUUID();
     const product: ProductEntity = {
-      id: randomUUID(),
+      id: productId,
       basePrice: price,
       sellerId: dto.sellerId,
       sellerName: dto.sellerName,
@@ -55,7 +60,14 @@ export class CreateProductUseCase {
           description: dto.description?.trim() || null,
         },
       ],
-      images: [],
+      images: (dto.images ?? []).map((image, index) => ({
+        id: randomUUID(),
+        url: image.url,
+        alt: image.alt,
+        position: index,
+        productId,
+        createdAt: now,
+      })),
       tags: [],
     };
 

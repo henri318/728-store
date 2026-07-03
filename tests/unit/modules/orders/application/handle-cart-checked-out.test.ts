@@ -4,6 +4,7 @@ import { MemoryOrderRepository } from '@/tests/doubles/memory-order-repository';
 import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
 import { MemoryTransactionRunner } from '@/tests/doubles/memory-transaction-runner';
 import { MemoryOrderCustomizationLookup } from '@/tests/doubles/memory-order-customization-lookup';
+import type { CustomizationDesignPositionSnapshot } from '@/modules/orders/domain/customization-lookup-port';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 
 /**
@@ -64,6 +65,7 @@ describe('HandleCartCheckedOut', () => {
           color: string | null;
           size: string | null;
           imageUrl: string | null;
+          designPosition: CustomizationDesignPositionSnapshot | null;
         }> | null;
       }>;
       subtotal: number;
@@ -301,6 +303,7 @@ describe('HandleCartCheckedOut', () => {
               color: 'red',
               size: 'M',
               imageUrl: null,
+              designPosition: null,
             },
           ],
         },
@@ -321,6 +324,7 @@ describe('HandleCartCheckedOut', () => {
         color: 'red',
         size: 'M',
         imageUrl: null,
+        designPosition: null,
       },
     ]);
   });
@@ -359,6 +363,7 @@ describe('HandleCartCheckedOut', () => {
         color: 'blue',
         size: 'L',
         imageUrl: null,
+        designPosition: null,
       },
     ]);
   });
@@ -426,6 +431,7 @@ describe('HandleCartCheckedOut', () => {
         color: 'blue',
         size: null,
         imageUrl: null,
+        designPosition: null,
       },
     ]);
   });
@@ -497,6 +503,7 @@ describe('HandleCartCheckedOut', () => {
               color: 'red',
               size: 'M',
               imageUrl: null,
+              designPosition: null,
             },
           ],
         },

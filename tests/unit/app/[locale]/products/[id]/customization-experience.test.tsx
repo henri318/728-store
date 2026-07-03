@@ -2,6 +2,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { ImgHTMLAttributes } from 'react';
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
+import { CustomizationDraftProvider } from '@/app/[locale]/products/[id]/customization-draft-context';
 import { CustomizationExperience } from '@/app/[locale]/products/[id]/customization-experience';
 
 const addToCartButtonMock = vi.fn((props: Record<string, unknown>) => (
@@ -17,8 +18,12 @@ vi.mock('@/components/cart/add-to-cart-button', () => ({
 
 vi.mock('next/image', () => ({
   default: (props: ImgHTMLAttributes<HTMLImageElement>) => {
+    const { unoptimized: _unoptimized, ...rest } =
+      props as ImgHTMLAttributes<HTMLImageElement> & {
+        unoptimized?: boolean;
+      };
     // eslint-disable-next-line @next/next/no-img-element
-    return <img {...props} />;
+    return <img {...rest} />;
   },
 }));
 
@@ -33,9 +38,11 @@ describe('CustomizationExperience', () => {
     customizationPhrase: 'Phrase',
     customizationColor: 'Color',
     customizationSize: 'Size',
+    customizationSizePlaceholder: 'Choose a size',
     customizationUpload: 'Upload image',
     customizationReplaceImage: 'Replace image',
     customizationRemoveImage: 'Remove image',
+    customizationUploading: 'Uploading image...',
     customizationInvalidImage: 'Please upload a PNG or JPEG image.',
     customizationImageTooLarge: 'The image is too large.',
     customizationPreview: 'Customization preview',
@@ -43,6 +50,48 @@ describe('CustomizationExperience', () => {
       'Preview is a buying aid only — final product may vary.',
     customizationPreviewUnavailable: 'Preview unavailable',
     customizationLimitedToDescription: 'Customization is limited to text only.',
+    customizationTextTooLong: 'Customization text is too long.',
+    customizationColorTooLong: 'Customization color is too long.',
+    customizationSizeTooLong: 'Customization size is too long.',
+    customizationInvalidImageUrl: 'Customization image must be a valid URL.',
+    customizationCanvasLabel: 'Canvas',
+    customizationCanvasHelp: 'Position the design',
+    customizationProductImageAlt: 'Product image',
+    customizationDesignImageAlt: 'Design preview',
+    customizationUploadDesign: 'Upload design',
+    customizationReplaceDesign: 'Replace design',
+    customizationRemoveDesign: 'Remove design',
+    customizationDesignUploading: 'Uploading...',
+    customizationDesignInvalid: 'Invalid image',
+    customizationDesignTooLarge: 'Image too large',
+    customizationScaleLabel: 'Scale',
+    customizationRotationLabel: 'Rotation',
+    customizationOpacityLabel: 'Opacity',
+    customizationPositionReadoutLabel: 'Position',
+    customizationPositionXLabel: 'X',
+    customizationPositionYLabel: 'Y',
+    customizationCanvasReset: 'Reset',
+    saveDesign: 'Save design',
+    alreadyInCartDifferent: 'Already in cart',
+  };
+
+  const validationLabels = {
+    textTooLong: 'Customization text is too long.',
+    colorTooLong: 'Customization color is too long.',
+    sizeTooLong: 'Customization size is too long.',
+    invalidImageUrl: 'Customization image must be a valid URL.',
+  };
+
+  const commonProps = {
+    productId: 'prod-1',
+    productName: 'Mug',
+    productDescription: 'A nice mug',
+    sellerId: 'seller-1',
+    sellerName: 'Test Seller',
+    price: 12.5,
+    formattedPrice: '$12.50',
+    previewBaseImageUrl: '/mug.png',
+    productImages: [] as { url: string; alt: string }[],
   };
 
   beforeEach(() => {
@@ -58,23 +107,19 @@ describe('CustomizationExperience', () => {
     });
 
     render(
-      <CustomizationExperience
-        productId="prod-1"
-        productName="Mug"
-        sellerId="seller-1"
-        sellerName="Test Seller"
-        price={12.5}
-        previewBaseImageUrl="/mug.png"
-        customizationConfig={config.toJson()}
-        labels={labels}
+      <CustomizationDraftProvider
+        validationLabels={validationLabels}
         initialDraft={{ text: 'Hello', imageUrl: '/upload.png' }}
-      />,
+      >
+        <CustomizationExperience
+          {...commonProps}
+          customizationConfig={config.toJson()}
+          labels={labels}
+        />
+      </CustomizationDraftProvider>,
     );
 
-    expect(screen.getByLabelText(labels.customizationPhrase)).toBeTruthy();
-    expect(
-      screen.getByText(labels.customizationPreviewDisclaimer),
-    ).toBeTruthy();
+    expect(screen.getByLabelText(labels.customizationDesign)).toBeTruthy();
     const props = addToCartButtonMock.mock.calls[0][0] as {
       customization: { text: string | null; imageUrl: string | null };
     };
@@ -87,12 +132,7 @@ describe('CustomizationExperience', () => {
 
     render(
       <CustomizationExperience
-        productId="prod-1"
-        productName="Mug"
-        sellerId="seller-1"
-        sellerName="Test Seller"
-        price={12.5}
-        previewBaseImageUrl="/mug.png"
+        {...commonProps}
         customizationConfig={ProductCustomizationConfig.default().toJson()}
         labels={labels}
       />,
@@ -109,21 +149,15 @@ describe('CustomizationExperience', () => {
     delete process.env.NEXT_PUBLIC_CUSTOMIZATION_FRONTEND_ENABLED;
 
     render(
-      <CustomizationExperience
-        productId="prod-1"
-        productName="Mug"
-        sellerId="seller-1"
-        sellerName="Test Seller"
-        price={12.5}
-        previewBaseImageUrl="/mug.png"
-        customizationConfig={ProductCustomizationConfig.default().toJson()}
-        labels={labels}
-      />,
+      <CustomizationDraftProvider validationLabels={validationLabels}>
+        <CustomizationExperience
+          {...commonProps}
+          customizationConfig={ProductCustomizationConfig.default().toJson()}
+          labels={labels}
+        />
+      </CustomizationDraftProvider>,
     );
 
     expect(screen.getByLabelText(labels.customizationDesign)).toBeTruthy();
-    expect(
-      screen.getByText(labels.customizationPreviewDisclaimer),
-    ).toBeTruthy();
   });
 });
