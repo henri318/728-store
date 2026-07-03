@@ -1,13 +1,66 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { type ZodError } from 'zod';
-import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
-import { productFormSchema } from '@/modules/products/presentation/schemas/product-form-schema';
+import { ProductCustomizationConfigEditor } from '@/modules/products/presentation/components/product-customization-config-editor';
+import { toAbsoluteUrl } from '@/shared/presentation/lib/to-absolute-url';
+import { UploadType } from '@/modules/uploads/domain/value-objects/upload-type';
+import {
+  productFormSchema,
+  type ProductCustomizationConfigInput,
+} from '@/modules/products/presentation/schemas/product-form-schema';
+import type { ProductPhotoDraft } from './product-photo-gallery';
+import { ProductPhotoGallery } from './product-photo-gallery';
+import styles from './product-form.module.css';
 
 type ProductFormMode = 'create' | 'edit';
+
+interface CategoryOption {
+  id: string;
+  name: string;
+}
+
+interface ProductFormLabels {
+  title: string;
+  backToProducts: string;
+  nameLabel: string;
+  descriptionLabel: string;
+  priceLabel: string;
+  save: string;
+  saved: string;
+  error: string;
+  customization: {
+    label: string;
+    hint: string;
+    editor: {
+      sizeOptionsLabel: string;
+      sizeOptionsPlaceholder: string;
+      allowPhotoDesignLabel: string;
+      designChangeDescriptionLabel: string;
+      designChangeDescriptionPlaceholder: string;
+      categoryLabel: string;
+      categoryPlaceholder: string;
+      tagsLabel: string;
+      tagsPlaceholder: string;
+      tagsHelp: string;
+    };
+  };
+  gallery: {
+    title: string;
+    hint: string;
+    addPhotoLabel: string;
+    photoDisplayNameLabel: string;
+    photoDisplayNamePlaceholder: string;
+    selectForPreviewLabel: string;
+    removePhotoLabel: string;
+    uploadingLabel: string;
+    emptyState: string;
+    uploadError: string;
+    defaultPhotoName: string;
+  };
+}
 
 interface ProductFormProps {
   locale: string;
@@ -17,56 +70,61 @@ interface ProductFormProps {
     name: string;
     description: string;
     price: number;
-    status: ProductStatus;
-    customizationConfig: string;
+    customizationConfig: ProductCustomizationConfigInput;
+    images: Array<{
+      url: string;
+      alt: string | null;
+    }>;
   };
-  labels: {
-    title: string;
-    backToProducts: string;
-    nameLabel: string;
-    descriptionLabel: string;
-    priceLabel: string;
-    statusLabel: string;
-    customizationConfigLabel: string;
-    customizationConfigHint: string;
-    save: string;
-    saved: string;
-    error: string;
-    statusDraft: string;
-    statusActive: string;
-    statusArchived: string;
-    statusEliminated: string;
-  };
+  labels: ProductFormLabels;
+  categories?: CategoryOption[];
 }
 
 interface FormState {
   name: string;
   description: string;
   price: string;
-  status: ProductStatus;
-  customizationConfig: string;
+  customizationConfig: ProductCustomizationConfigInput;
+  images: ProductPhotoDraft[];
+  selectedPhotoId: string | null;
 }
 
 interface FormErrors {
   name?: string;
   description?: string;
   price?: string;
-  status?: string;
   customizationConfig?: string;
 }
 
-function buildPayload(locale: string, form: FormState) {
-  const customizationConfig = form.customizationConfig.trim()
-    ? JSON.parse(form.customizationConfig)
-    : undefined;
+function buildDefaultPhotoName(labels: ProductFormLabels, index: number) {
+  return `${labels.gallery.defaultPhotoName} ${index + 1}`;
+}
 
+function normalizePhotoName(value: string, fallback: string) {
+  const trimmed = value.trim();
+  if (trimmed.length > 0) return trimmed;
+
+  return fallback;
+}
+
+function createPhotoId() {
+  return (
+    globalThis.crypto?.randomUUID?.() ?? `photo-${Date.now()}-${Math.random()}`
+  );
+}
+
+function buildPayload(locale: string, form: FormState) {
   const payload = {
     locale,
     name: form.name.trim(),
     description: form.description.trim() || undefined,
     price: form.price,
-    status: form.status,
-    customizationConfig,
+    customizationConfig: form.customizationConfig,
+    images: form.images.map((image, index) => ({
+      url: image.url,
+      alt: image.alt.trim(),
+      position: index,
+    })),
   };
 
   const result = productFormSchema.safeParse(payload);
@@ -81,39 +139,94 @@ function buildPayload(locale: string, form: FormState) {
   return { success: true as const, payload: result.data };
 }
 
+async function uploadPhoto(file: File, defaultName: string) {
+  const response = await fetch('/api/uploads/presigned-url', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      type: UploadType.product,
+      fileName: file.name,
+      mimeType: file.type,
+      size: file.size,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Upload failed');
+  }
+
+  const result = (await response.json()) as {
+    id: string;
+    uploadUrl: string;
+    storageKey: string;
+    publicUrl: string;
+  };
+
+  await fetch(result.uploadUrl, {
+    method: 'PUT',
+    headers: { 'content-type': file.type },
+    body: file,
+  });
+
+  return {
+    id: result.id,
+    url: toAbsoluteUrl(result.publicUrl),
+    alt: normalizePhotoName(
+      file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' '),
+      defaultName,
+    ),
+    size: file.size,
+    previewSelected: false,
+  } satisfies ProductPhotoDraft;
+}
+
 export function ProductForm({
   locale,
   mode,
   productId,
   initialValues,
   labels,
+  categories = [],
 }: ProductFormProps) {
   const router = useRouter();
-  const nameId = 'product-name';
-  const descriptionId = 'product-description';
-  const priceId = 'product-price';
-  const statusId = 'product-status';
-  const customizationConfigId = 'product-customization-config';
-  const [form, setForm] = useState<FormState>({
-    name: initialValues.name,
-    description: initialValues.description,
-    price: String(initialValues.price),
-    status: initialValues.status,
-    customizationConfig: initialValues.customizationConfig,
+  const [form, setForm] = useState<FormState>(() => {
+    const images = initialValues.images.map((image, index) => ({
+      id: createPhotoId(),
+      url: image.url,
+      alt: normalizePhotoName(
+        image.alt ?? '',
+        buildDefaultPhotoName(labels, index),
+      ),
+      previewSelected: index === 0,
+    }));
+
+    return {
+      name: initialValues.name,
+      description: initialValues.description,
+      price: String(initialValues.price),
+      customizationConfig: initialValues.customizationConfig,
+      images,
+      selectedPhotoId: images[0]?.id ?? null,
+    };
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
 
   const endpoint = useMemo(
     () => (mode === 'create' ? '/api/products' : `/api/products/${productId}`),
     [mode, productId],
   );
 
-  const submitLabel = labels.save;
-
-  const updateField = <K extends keyof FormState>(
+  const updateField = <
+    K extends keyof Pick<
+      FormState,
+      'name' | 'description' | 'price' | 'customizationConfig'
+    >,
+  >(
     field: K,
     value: FormState[K],
   ) => {
@@ -124,6 +237,85 @@ export function ProductForm({
       delete next[field];
       return next;
     });
+  };
+
+  const updatePhoto = (photoId: string, patch: Partial<ProductPhotoDraft>) => {
+    setForm((current) => ({
+      ...current,
+      images: current.images.map((photo) =>
+        photo.id === photoId ? { ...photo, ...patch } : photo,
+      ),
+    }));
+  };
+
+  const removePhoto = (photoId: string) => {
+    setForm((current) => {
+      const nextImages = current.images.filter((photo) => photo.id !== photoId);
+      const nextSelected =
+        current.selectedPhotoId === photoId
+          ? (nextImages[0]?.id ?? null)
+          : current.selectedPhotoId;
+
+      return {
+        ...current,
+        images: nextImages,
+        selectedPhotoId: nextSelected,
+      };
+    });
+  };
+
+  const selectPhoto = (photoId: string) => {
+    setForm((current) => ({
+      ...current,
+      selectedPhotoId: photoId,
+      images: current.images.map((photo) => ({
+        ...photo,
+        previewSelected: photo.id === photoId,
+      })),
+    }));
+  };
+
+  const handleUpload = async (files: File[]) => {
+    if (files.length === 0) return;
+
+    setUploading(true);
+    setPhotoError(null);
+
+    try {
+      const uploads = await Promise.all(
+        files.map((file, index) =>
+          uploadPhoto(
+            file,
+            buildDefaultPhotoName(labels, form.images.length + index),
+          ),
+        ),
+      );
+
+      setForm((current) => {
+        const nextImages = [...current.images, ...uploads].map(
+          (photo, index) => ({
+            ...photo,
+            previewSelected:
+              current.selectedPhotoId === photo.id ||
+              (!current.selectedPhotoId && index === 0),
+          }),
+        );
+
+        return {
+          ...current,
+          images: nextImages,
+          selectedPhotoId:
+            current.selectedPhotoId ??
+            uploads[0]?.id ??
+            current.images[0]?.id ??
+            null,
+        };
+      });
+    } catch {
+      setPhotoError(labels.gallery.uploadError);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const mapErrors = (error: ZodError): FormErrors => {
@@ -145,15 +337,7 @@ export function ProductForm({
     setSaved(null);
     setErrors({});
 
-    let parsed;
-    try {
-      parsed = buildPayload(locale, form);
-    } catch {
-      setErrors({
-        customizationConfig: 'Customization config must be valid JSON',
-      });
-      return;
-    }
+    const parsed = buildPayload(locale, form);
 
     if (!parsed.success) {
       setErrors(mapErrors(parsed.error));
@@ -187,92 +371,128 @@ export function ProductForm({
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>{labels.title}</h2>
+    <form className={styles.form} onSubmit={handleSubmit}>
+      <header className={styles.header}>
+        <div>
+          <p className={styles.kicker}>{labels.customization.label}</p>
+          <h1 className={styles.title}>{labels.title}</h1>
+          <p className={styles.subtitle}>{labels.customization.hint}</p>
+        </div>
 
-      <p>
-        <Link href={`/${locale}/seller/products`}>{labels.backToProducts}</Link>
-      </p>
+        <Link className={styles.backLink} href={`/${locale}/seller/products`}>
+          {labels.backToProducts}
+        </Link>
+      </header>
 
-      {serverError ? <p role="alert">{serverError}</p> : null}
-      {saved ? <p role="status">{saved}</p> : null}
+      {serverError ? (
+        <p className={styles.alert} role="alert">
+          {serverError}
+        </p>
+      ) : null}
+      {saved ? (
+        <p className={styles.success} role="status">
+          {saved}
+        </p>
+      ) : null}
 
-      <label htmlFor={nameId}>
-        <span>{labels.nameLabel}</span>
-        <input
-          id={nameId}
-          value={form.name}
-          onChange={(event) => updateField('name', event.target.value)}
-          required
-        />
-        {errors.name ? <p role="alert">{errors.name}</p> : null}
-      </label>
+      <div className={styles.layout}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div>
+              <h2 className={styles.cardTitle}>{labels.title}</h2>
+              <p className={styles.cardHint}>{labels.customization.hint}</p>
+            </div>
+          </div>
 
-      <label htmlFor={descriptionId}>
-        <span>{labels.descriptionLabel}</span>
-        <textarea
-          id={descriptionId}
-          value={form.description}
-          onChange={(event) => updateField('description', event.target.value)}
-          rows={4}
-        />
-        {errors.description ? <p role="alert">{errors.description}</p> : null}
-      </label>
+          <label className={styles.field} htmlFor="product-name">
+            <span>{labels.nameLabel}</span>
+            <input
+              id="product-name"
+              className={styles.input}
+              value={form.name}
+              onChange={(event) => updateField('name', event.target.value)}
+              required
+            />
+            {errors.name ? <p className={styles.error}>{errors.name}</p> : null}
+          </label>
 
-      <label htmlFor={priceId}>
-        <span>{labels.priceLabel}</span>
-        <input
-          id={priceId}
-          type="number"
-          step="0.01"
-          value={form.price}
-          onChange={(event) => updateField('price', event.target.value)}
-          required
-        />
-        {errors.price ? <p role="alert">{errors.price}</p> : null}
-      </label>
+          <label className={styles.field} htmlFor="product-description">
+            <span>{labels.descriptionLabel}</span>
+            <textarea
+              id="product-description"
+              className={styles.textarea}
+              value={form.description}
+              onChange={(event) =>
+                updateField('description', event.target.value)
+              }
+              rows={4}
+            />
+            {errors.description ? (
+              <p className={styles.error}>{errors.description}</p>
+            ) : null}
+          </label>
 
-      <label htmlFor={statusId}>
-        <span>{labels.statusLabel}</span>
-        <select
-          id={statusId}
-          value={form.status}
-          onChange={(event) =>
-            updateField('status', event.target.value as ProductStatus)
-          }
+          <label className={styles.field} htmlFor="product-price">
+            <span>{labels.priceLabel}</span>
+            <input
+              id="product-price"
+              className={styles.input}
+              type="number"
+              step="0.01"
+              value={form.price}
+              onChange={(event) => updateField('price', event.target.value)}
+              required
+            />
+            {errors.price ? (
+              <p className={styles.error}>{errors.price}</p>
+            ) : null}
+          </label>
+        </section>
+
+        <section className={styles.card}>
+          <ProductPhotoGallery
+            photos={form.images}
+            selectedPhotoId={form.selectedPhotoId}
+            labels={labels.gallery}
+            onFilesSelected={handleUpload}
+            onPhotoLabelChange={(photoId, alt) => updatePhoto(photoId, { alt })}
+            onSelectPhoto={selectPhoto}
+            onRemovePhoto={removePhoto}
+            uploading={uploading}
+            error={photoError}
+          />
+        </section>
+
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div>
+              <h2 className={styles.cardTitle}>{labels.customization.label}</h2>
+              <p className={styles.cardHint}>{labels.customization.hint}</p>
+            </div>
+          </div>
+
+          <ProductCustomizationConfigEditor
+            value={form.customizationConfig}
+            labels={labels.customization.editor}
+            categories={categories}
+            onChange={(value) => updateField('customizationConfig', value)}
+          />
+
+          {errors.customizationConfig ? (
+            <p className={styles.error}>{errors.customizationConfig}</p>
+          ) : null}
+        </section>
+      </div>
+
+      <footer className={styles.footer}>
+        <button
+          className={styles.saveButton}
+          type="submit"
+          disabled={loading || uploading}
         >
-          <option value={ProductStatus.DRAFT}>{labels.statusDraft}</option>
-          <option value={ProductStatus.ACTIVE}>{labels.statusActive}</option>
-          <option value={ProductStatus.ARCHIVED}>
-            {labels.statusArchived}
-          </option>
-          <option value={ProductStatus.ELIMINATED}>
-            {labels.statusEliminated}
-          </option>
-        </select>
-        {errors.status ? <p role="alert">{errors.status}</p> : null}
-      </label>
-
-      <label htmlFor={customizationConfigId}>
-        <span>{labels.customizationConfigLabel}</span>
-        <textarea
-          id={customizationConfigId}
-          aria-label={labels.customizationConfigLabel}
-          value={form.customizationConfig}
-          onChange={(event) =>
-            updateField('customizationConfig', event.target.value)
-          }
-          rows={8}
-        />
-        <small>{labels.customizationConfigHint}</small>
-        {errors.customizationConfig ? (
-          <p role="alert">{errors.customizationConfig}</p>
-        ) : null}
-      </label>
-
-      <button type="submit" disabled={loading}>
-        {loading ? labels.save : submitLabel}
-      </button>
+          {labels.save}
+        </button>
+      </footer>
     </form>
   );
 }

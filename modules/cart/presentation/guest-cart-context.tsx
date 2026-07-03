@@ -13,6 +13,8 @@ import {
 // --- Types ---
 
 export interface GuestCartItem {
+  /** Unique identifier — always present after hydration. */
+  id?: string;
   productId: string;
   sellerId: string;
   quantity: number;
@@ -23,6 +25,20 @@ export interface GuestCartItem {
   customizationSize?: string | null;
   customizationImageUrl?: string | null;
   customizationImageUploadId?: string | null;
+  /**
+   * Buyer-side design position captured by the mockup canvas. Survives
+   * localStorage round-trips so the next page can restore the placement
+   * the user chose before adding to cart.
+   */
+  customizationDesignPosition?: {
+    imageUrl: string;
+    x: number;
+    y: number;
+    scale: number;
+    rotation_deg: number;
+    opacity: number;
+    blend_mode: string;
+  } | null;
   /** Display metadata — populated by the Add to Cart flow. */
   productName?: string;
   productImageUrl?: string | null;
@@ -37,8 +53,38 @@ interface GuestCartShape {
 export interface GuestCartContextType {
   items: GuestCartItem[];
   addItem: (item: GuestCartItem) => void;
+  /** Update quantity by productId (affects all items matching productId). */
   updateQuantity: (productId: string, quantity: number) => void;
+  /** Remove ALL items with the given productId. */
   removeItem: (productId: string) => void;
+  /** Update customization on ALL items matching productId. */
+  updateCustomization: (
+    productId: string,
+    customization: {
+      text?: string | null;
+      color?: string | null;
+      size?: string | null;
+      imageUrl?: string | null;
+      imageUploadId?: string | null;
+      designPosition?: Record<string, unknown> | null;
+    },
+  ) => void;
+  /** Update quantity for a specific item by ID. */
+  updateItemQuantity: (itemId: string, quantity: number) => void;
+  /** Remove a specific item by ID. */
+  removeItemById: (itemId: string) => void;
+  /** Update customization on a specific item by ID. */
+  updateItemCustomization: (
+    itemId: string,
+    customization: {
+      text?: string | null;
+      color?: string | null;
+      size?: string | null;
+      imageUrl?: string | null;
+      imageUploadId?: string | null;
+      designPosition?: Record<string, unknown> | null;
+    },
+  ) => void;
   clearCart: () => void;
   /** Sum of all item quantities. */
   itemCount: number;
@@ -86,11 +132,15 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<GuestCartItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
-  // Hydrate from localStorage after mount.
+  // Hydrate from localStorage after mount, assigning IDs to legacy items.
   /* eslint-disable react-hooks/set-state-in-effect, @eslint-react/set-state-in-effect -- intentional hydration from localStorage */
   useEffect(() => {
     const stored = readFromStorage();
-    setItems(stored);
+    setItems(
+      stored.map((item) =>
+        item.id ? item : { ...item, id: crypto.randomUUID() },
+      ),
+    );
     setHydrated(true);
   }, []);
 
@@ -106,7 +156,10 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
   /* eslint-enable react-hooks/set-state-in-effect, @eslint-react/set-state-in-effect */
 
   const addItem = useCallback((item: GuestCartItem) => {
-    setItems((prev) => [...prev, item]);
+    setItems((prev) => [
+      ...prev,
+      { ...item, id: item.id ?? crypto.randomUUID() },
+    ]);
   }, []);
 
   const updateQuantity = useCallback((productId: string, quantity: number) => {
@@ -122,6 +175,115 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
     setItems((prev) => prev.filter((i) => i.productId !== productId));
   }, []);
 
+  const updateCustomization = useCallback(
+    (
+      productId: string,
+      customization: {
+        text?: string | null;
+        color?: string | null;
+        size?: string | null;
+        imageUrl?: string | null;
+        imageUploadId?: string | null;
+        designPosition?: Record<string, unknown> | null;
+      },
+    ) => {
+      setItems((prev) =>
+        prev.map((item) =>
+          item.productId === productId
+            ? {
+                ...item,
+                customizationText:
+                  customization.text !== undefined
+                    ? customization.text
+                    : item.customizationText,
+                customizationColor:
+                  customization.color !== undefined
+                    ? customization.color
+                    : item.customizationColor,
+                customizationSize:
+                  customization.size !== undefined
+                    ? customization.size
+                    : item.customizationSize,
+                customizationImageUrl:
+                  customization.imageUrl !== undefined
+                    ? customization.imageUrl
+                    : item.customizationImageUrl,
+                customizationImageUploadId:
+                  customization.imageUploadId !== undefined
+                    ? customization.imageUploadId
+                    : item.customizationImageUploadId,
+                customizationDesignPosition:
+                  customization.designPosition !== undefined
+                    ? (customization.designPosition as GuestCartItem['customizationDesignPosition'])
+                    : item.customizationDesignPosition,
+              }
+            : item,
+        ),
+      );
+    },
+    [],
+  );
+
+  const updateItemQuantity = useCallback((itemId: string, quantity: number) => {
+    const clamped = Math.max(1, Math.min(99, Math.floor(quantity)));
+    setItems((prev) =>
+      prev.map((i) => (i.id === itemId ? { ...i, quantity: clamped } : i)),
+    );
+  }, []);
+
+  const removeItemById = useCallback((itemId: string) => {
+    setItems((prev) => prev.filter((i) => i.id !== itemId));
+  }, []);
+
+  const updateItemCustomization = useCallback(
+    (
+      itemId: string,
+      customization: {
+        text?: string | null;
+        color?: string | null;
+        size?: string | null;
+        imageUrl?: string | null;
+        imageUploadId?: string | null;
+        designPosition?: Record<string, unknown> | null;
+      },
+    ) => {
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === itemId
+            ? {
+                ...item,
+                customizationText:
+                  customization.text !== undefined
+                    ? customization.text
+                    : item.customizationText,
+                customizationColor:
+                  customization.color !== undefined
+                    ? customization.color
+                    : item.customizationColor,
+                customizationSize:
+                  customization.size !== undefined
+                    ? customization.size
+                    : item.customizationSize,
+                customizationImageUrl:
+                  customization.imageUrl !== undefined
+                    ? customization.imageUrl
+                    : item.customizationImageUrl,
+                customizationImageUploadId:
+                  customization.imageUploadId !== undefined
+                    ? customization.imageUploadId
+                    : item.customizationImageUploadId,
+                customizationDesignPosition:
+                  customization.designPosition !== undefined
+                    ? (customization.designPosition as GuestCartItem['customizationDesignPosition'])
+                    : item.customizationDesignPosition,
+              }
+            : item,
+        ),
+      );
+    },
+    [],
+  );
+
   const clearCart = useCallback(() => {
     setItems([]);
   }, []);
@@ -132,13 +294,28 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
       addItem,
       updateQuantity,
       removeItem,
+      updateCustomization,
+      updateItemQuantity,
+      removeItemById,
+      updateItemCustomization,
       clearCart,
       itemCount: items
         .filter((i) => i.quantity > 0)
         .reduce((sum, i) => sum + i.quantity, 0),
       hydrated,
     }),
-    [items, addItem, updateQuantity, removeItem, clearCart, hydrated],
+    [
+      items,
+      addItem,
+      updateQuantity,
+      removeItem,
+      updateCustomization,
+      updateItemQuantity,
+      removeItemById,
+      updateItemCustomization,
+      clearCart,
+      hydrated,
+    ],
   );
 
   return <GuestCartContext value={value}>{children}</GuestCartContext>;

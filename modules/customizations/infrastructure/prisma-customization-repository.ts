@@ -1,11 +1,18 @@
 import { prisma } from '@/shared/infrastructure/prisma';
 import type { CustomizationRepository } from '../domain/customization-repository';
-import type { CustomizationEntity } from '../domain/entities/customization';
+import type {
+  CustomizationEntity,
+  DesignPositionValue,
+} from '../domain/entities/customization';
 
 /**
  * PrismaCustomizationRepository — Prisma adapter for the CustomizationRepository port.
  *
  * No business logic here — pure delegation to Prisma.
+ *
+ * `designPosition` is stored as JSONB. We deliberately accept the
+ * Prisma `JsonValue` shape and coerce to our `DesignPositionValue`
+ * type at the boundary so the domain layer never depends on Prisma.
  */
 export class PrismaCustomizationRepository implements CustomizationRepository {
   async save(entity: CustomizationEntity): Promise<CustomizationEntity> {
@@ -18,6 +25,8 @@ export class PrismaCustomizationRepository implements CustomizationRepository {
         color: entity.color,
         size: entity.size,
         imageUrl: entity.imageUrl,
+        designPosition:
+          (entity.designPosition as unknown as object | null) ?? undefined,
         createdAt: entity.createdAt,
       },
       update: {
@@ -25,6 +34,8 @@ export class PrismaCustomizationRepository implements CustomizationRepository {
         color: entity.color,
         size: entity.size,
         imageUrl: entity.imageUrl,
+        designPosition:
+          (entity.designPosition as unknown as object | null) ?? undefined,
       },
     });
 
@@ -82,6 +93,7 @@ export class PrismaCustomizationRepository implements CustomizationRepository {
     color: string | null;
     size: string | null;
     imageUrl: string | null;
+    designPosition: unknown;
     createdAt: Date;
   }): CustomizationEntity {
     return {
@@ -91,7 +103,32 @@ export class PrismaCustomizationRepository implements CustomizationRepository {
       color: row.color,
       size: row.size,
       imageUrl: row.imageUrl,
+      designPosition: coerceDesignPosition(row.designPosition),
       createdAt: row.createdAt,
     };
   }
+}
+
+function coerceDesignPosition(value: unknown): DesignPositionValue | null {
+  if (!value || typeof value !== 'object') return null;
+  const candidate = value as Record<string, unknown>;
+  if (
+    typeof candidate.imageUrl !== 'string' ||
+    candidate.imageUrl.length === 0
+  ) {
+    return null;
+  }
+  return {
+    imageUrl: candidate.imageUrl,
+    x: typeof candidate.x === 'number' ? candidate.x : 0.5,
+    y: typeof candidate.y === 'number' ? candidate.y : 0.5,
+    scale: typeof candidate.scale === 'number' ? candidate.scale : 100,
+    rotation_deg:
+      typeof candidate.rotation_deg === 'number' ? candidate.rotation_deg : 0,
+    opacity: typeof candidate.opacity === 'number' ? candidate.opacity : 100,
+    blend_mode:
+      typeof candidate.blend_mode === 'string'
+        ? candidate.blend_mode
+        : 'source-over',
+  };
 }

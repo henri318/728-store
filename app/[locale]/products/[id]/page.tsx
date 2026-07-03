@@ -1,10 +1,12 @@
-import Image from 'next/image';
+import { notFound } from 'next/navigation';
 import { container } from '@/composition-root/container';
 import { GetProductByIdUseCase } from '@/modules/products/application/get-product-by-id-use-case';
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
+import type { ProductImageEntity } from '@/modules/products/domain/entities/product-image';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import Link from 'next/link';
 import { CustomizationExperience } from './customization-experience';
+import { CustomizationDraftProvider } from './customization-draft-context';
 import styles from './page.module.css';
 
 export default async function ProductDetailPage({
@@ -31,19 +33,36 @@ export default async function ProductDetailPage({
   }
 
   if (error || !product) {
-    return (
-      <div>Error loading product details. Please check the server logs.</div>
-    );
+    return <div>{dict.common.productDetailsError}</div>;
+  }
+
+  if (product.status !== 'ACTIVE') {
+    notFound();
   }
 
   const getValue = (value: string | string[] | undefined): string | null =>
     Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
 
-  const primaryImage = product.images?.[0] ?? null;
   const customizationConfig =
     product.customizationConfig ?? ProductCustomizationConfig.default();
-  const previewBaseImageUrl =
-    primaryImage?.url ?? customizationConfig.previewTemplateUrl ?? '';
+  const previewBaseImageUrl = product.images?.[0]?.url ?? '';
+  const productImages = (product.images ?? []).map(
+    (img: ProductImageEntity) => ({
+      url: img.url,
+      alt: img.alt ?? '',
+    }),
+  );
+
+  const rawDesignPosition = getValue(query.customizationDesignPosition);
+  const designPosition = rawDesignPosition
+    ? (() => {
+        try {
+          return JSON.parse(rawDesignPosition);
+        } catch {
+          return null;
+        }
+      })()
+    : null;
 
   const initialDraft = {
     text: getValue(query.customizationText),
@@ -51,6 +70,62 @@ export default async function ProductDetailPage({
     size: getValue(query.customizationSize),
     imageUploadId: getValue(query.customizationImageUploadId),
     imageUrl: getValue(query.customizationImageUrl),
+    designPosition,
+  };
+
+  const labels = {
+    addToCart: dict.common.addToCart,
+    removeFromCart: dict.common.removeFromCart,
+    adding: dict.common.addingToCart,
+    added: dict.common.addedToCart,
+    error: dict.common.cartError,
+    customizeProduct: dict.common.customizeProduct,
+    addWithoutCustomization: dict.common.addWithoutCustomization,
+    customizationChoiceBadge: dict.common.customizable,
+    customizationChoiceMessage: dict.common.customizationChoiceMessage,
+    decreaseQuantity: dict.common.decreaseQuantity,
+    increaseQuantity: dict.common.increaseQuantity,
+    customizationDesign: dict.common.customizationDesign,
+    customizationPhrase: dict.common.customizationPhrase,
+    customizationColor: dict.common.customizationColor,
+    customizationSize: dict.common.customizationSize,
+    customizationSizePlaceholder: dict.common.customizationSizePlaceholder,
+    customizationUpload: dict.common.customizationUpload,
+    customizationReplaceImage: dict.common.customizationReplaceImage,
+    customizationRemoveImage: dict.common.customizationRemoveImage,
+    customizationUploading: dict.common.customizationUploading,
+    customizationInvalidImage: dict.common.customizationInvalidImage,
+    customizationImageTooLarge: dict.common.customizationImageTooLarge,
+    customizationPreview: dict.common.customizationPreview,
+    customizationPreviewDisclaimer: dict.common.customizationPreviewDisclaimer,
+    customizationPreviewUnavailable:
+      dict.common.customizationPreviewUnavailable,
+    customizationLimitedToDescription:
+      dict.common.customizationLimitedToDescription,
+    customizationTextTooLong: dict.common.customizationTextTooLong,
+    customizationColorTooLong: dict.common.customizationColorTooLong,
+    customizationSizeTooLong: dict.common.customizationSizeTooLong,
+    customizationInvalidImageUrl: dict.common.customizationInvalidImageUrl,
+    customizationCanvasLabel: dict.common.customizationCanvasLabel,
+    customizationCanvasHelp: dict.common.customizationCanvasHelp,
+    customizationProductImageAlt: dict.common.customizationProductImageAlt,
+    customizationDesignImageAlt: dict.common.customizationDesignImageAlt,
+    customizationUploadDesign: dict.common.customizationUploadDesign,
+    customizationReplaceDesign: dict.common.customizationReplaceDesign,
+    customizationRemoveDesign: dict.common.customizationRemoveDesign,
+    customizationDesignUploading: dict.common.customizationDesignUploading,
+    customizationDesignInvalid: dict.common.customizationDesignInvalid,
+    customizationDesignTooLarge: dict.common.customizationDesignTooLarge,
+    customizationScaleLabel: dict.common.customizationScaleLabel,
+    customizationRotationLabel: dict.common.customizationRotationLabel,
+    customizationOpacityLabel: dict.common.customizationOpacityLabel,
+    customizationPositionReadoutLabel:
+      dict.common.customizationPositionReadoutLabel,
+    customizationPositionXLabel: dict.common.customizationPositionXLabel,
+    customizationPositionYLabel: dict.common.customizationPositionYLabel,
+    customizationCanvasReset: dict.common.customizationCanvasReset,
+    saveDesign: dict.common.saveDesign,
+    alreadyInCartDifferent: dict.common.alreadyInCartDifferent,
   };
 
   return (
@@ -58,93 +133,35 @@ export default async function ProductDetailPage({
       <Link href={`/${locale}`} className={styles.backLink}>
         ← {dict.common.home}
       </Link>
-      <div className={styles.grid}>
-        <section className={styles.visualCard} aria-label={product.displayName}>
-          {previewBaseImageUrl ? (
-            <div className={styles.visualFrame}>
-              <Image
-                src={previewBaseImageUrl}
-                alt={primaryImage?.alt ?? product.displayName}
-                fill
-                priority
-                sizes="(max-width: 768px) 100vw, 48vw"
-                className={styles.productImage}
+      <CustomizationDraftProvider
+        initialDraft={initialDraft}
+        validationLabels={{
+          textTooLong: dict.common.customizationTextTooLong,
+          colorTooLong: dict.common.customizationColorTooLong,
+          sizeTooLong: dict.common.customizationSizeTooLong,
+          invalidImageUrl: dict.common.customizationInvalidImageUrl,
+        }}
+      >
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <div className={styles.contentColumn}>
+            <div className={styles.customizationCard}>
+              <CustomizationExperience
+                productId={product.id}
+                productName={product.displayName}
+                productDescription={product.displayDescription ?? ''}
+                sellerId={product.sellerId}
+                sellerName={product.sellerName}
+                price={product.basePrice.amount}
+                formattedPrice={product.basePrice.format()}
+                previewBaseImageUrl={previewBaseImageUrl}
+                customizationConfig={customizationConfig.toJson()}
+                productImages={productImages}
+                labels={labels}
               />
-              <div className={styles.visualWash} aria-hidden="true" />
             </div>
-          ) : (
-            <div
-              className={styles.imagePlaceholder}
-              role="img"
-              aria-label={product.displayName}
-            >
-              <Image
-                src="/img/decorations/formas-15.svg"
-                alt=""
-                fill
-                aria-hidden="true"
-                sizes="100vw"
-                className={styles.placeholderArtwork}
-              />
-              <span className={styles.imagePlaceholderText}>
-                Customizable preview coming soon
-              </span>
-            </div>
-          )}
-          <div className={styles.visualMeta}>
-            <span className={styles.badge}>Customizable</span>
-            <p className={styles.visualHint}>
-              Seeded with a preview-ready product image.
-            </p>
-          </div>
-        </section>
-
-        <div className={styles.contentColumn}>
-          <span className={styles.seller}>{product.sellerName}</span>
-          <h1 className={styles.title}>{product.displayName}</h1>
-          <p className={styles.description}>{product.displayDescription}</p>
-          <p className={styles.price}>{product.basePrice.format()}</p>
-
-          <div className={styles.customizationCard}>
-            <CustomizationExperience
-              productId={product.id}
-              productName={product.displayName}
-              sellerId={product.sellerId}
-              sellerName={product.sellerName}
-              price={product.basePrice.amount}
-              previewBaseImageUrl={previewBaseImageUrl}
-              customizationConfig={customizationConfig.toJson()}
-              initialDraft={initialDraft}
-              labels={{
-                addToCart: dict.common.addToCart,
-                removeFromCart: dict.common.removeFromCart,
-                adding: '...',
-                added: '✓',
-                error: 'Error',
-                customizationDesign: dict.common.customizationDesign,
-                customizationPhrase: dict.common.customizationPhrase,
-                customizationColor: dict.common.customizationColor,
-                customizationSize: dict.common.customizationSize,
-                customizationUpload: dict.common.customizationUpload,
-                customizationReplaceImage:
-                  dict.common.customizationReplaceImage,
-                customizationRemoveImage: dict.common.customizationRemoveImage,
-                customizationInvalidImage:
-                  dict.common.customizationInvalidImage,
-                customizationImageTooLarge:
-                  dict.common.customizationImageTooLarge,
-                customizationPreview: dict.common.customizationPreview,
-                customizationPreviewDisclaimer:
-                  dict.common.customizationPreviewDisclaimer,
-                customizationPreviewUnavailable:
-                  dict.common.customizationPreviewUnavailable,
-                customizationLimitedToDescription:
-                  dict.common.customizationLimitedToDescription,
-              }}
-            />
           </div>
         </div>
-      </div>
+      </CustomizationDraftProvider>
     </div>
   );
 }

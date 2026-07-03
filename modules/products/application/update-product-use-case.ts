@@ -1,4 +1,5 @@
 import { NotFoundError, ValidationError } from '@/shared/kernel/app-error';
+import { randomUUID } from 'node:crypto';
 import type {
   ProductEntity,
   ProductRepository,
@@ -22,6 +23,10 @@ export interface UpdateProductDTO {
   price?: number;
   status?: ProductStatus;
   customizationConfig?: unknown;
+  images?: Array<{
+    url: string;
+    alt: string;
+  }>;
 }
 
 export class UpdateProductUseCase {
@@ -65,7 +70,8 @@ export class UpdateProductUseCase {
       dto.description !== undefined ||
       dto.price !== undefined ||
       dto.status !== undefined ||
-      dto.customizationConfig !== undefined;
+      dto.customizationConfig !== undefined ||
+      dto.images !== undefined;
 
     if (!hasUpdates) {
       throw new ValidationError('At least one field must be provided');
@@ -89,6 +95,8 @@ export class UpdateProductUseCase {
         )
       : [...product.translations, nextTranslation];
 
+    const now = new Date();
+
     const updated: ProductEntity = {
       ...product,
       basePrice: nextPrice,
@@ -97,7 +105,18 @@ export class UpdateProductUseCase {
         dto.customizationConfig !== undefined
           ? ProductCustomizationConfig.fromJson(dto.customizationConfig)
           : product.customizationConfig,
-      updatedAt: new Date(),
+      images:
+        dto.images !== undefined
+          ? dto.images.map((image, index) => ({
+              id: randomUUID(),
+              url: image.url,
+              alt: image.alt,
+              position: index,
+              productId: product.id,
+              createdAt: now,
+            }))
+          : product.images,
+      updatedAt: now,
       translations,
     };
 

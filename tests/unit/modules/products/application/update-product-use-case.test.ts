@@ -56,6 +56,12 @@ describe('UpdateProductUseCase', () => {
       description: 'Nueva descripción',
       price: 14.5,
       status: ProductStatus.ARCHIVED,
+      images: [
+        {
+          url: 'http://localhost:8081/products/taza-nueva.png',
+          alt: 'Verde bosque',
+        },
+      ],
       customizationConfig: {
         mode: 'photo',
         previewEnabled: true,
@@ -76,6 +82,12 @@ describe('UpdateProductUseCase', () => {
     });
     expect(saved?.basePrice.amount).toBe(14.5);
     expect(saved?.customizationConfig?.mode).toBe('photo');
+    expect(saved?.images).toHaveLength(1);
+    expect(saved?.images[0]).toMatchObject({
+      url: 'http://localhost:8081/products/taza-nueva.png',
+      alt: 'Verde bosque',
+      position: 0,
+    });
     expect(outbox.events).toEqual([
       {
         eventType: GlobalEvents.PRODUCT_UPDATED,

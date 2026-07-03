@@ -18,6 +18,7 @@ describe('PhotoUploadField accessibility', () => {
         label="Upload image"
         replaceLabel="Replace image"
         removeLabel="Remove image"
+        uploadingLabel="Uploading image..."
         invalidImageLabel="Please upload a PNG or JPEG image."
         imageTooLargeLabel="The image is too large."
         onUpload={vi.fn(async () => ({
@@ -29,6 +30,6 @@ describe('PhotoUploadField accessibility', () => {
       />,
     );
 
-    expect(screen.getByRole('status').textContent).toBe('Uploading...');
+    expect(screen.getByRole('status').textContent).toBe('Uploading image...');
   });
 });

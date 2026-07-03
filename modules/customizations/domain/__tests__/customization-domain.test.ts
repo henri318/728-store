@@ -20,6 +20,7 @@ describe('CustomizationEntity', () => {
       color: 'red',
       size: 'M',
       imageUrl: 'https://x.com/y.png',
+      designPosition: null,
       createdAt: new Date(),
     };
 
@@ -40,6 +41,7 @@ describe('CustomizationEntity', () => {
       color: null,
       size: null,
       imageUrl: null,
+      designPosition: null,
       createdAt: new Date(),
     };
 

@@ -17,8 +17,12 @@ vi.mock('@/components/cart/add-to-cart-button', () => ({
 
 vi.mock('next/image', () => ({
   default: (props: ImgHTMLAttributes<HTMLImageElement>) => {
+    const { unoptimized: _unoptimized, ...rest } =
+      props as ImgHTMLAttributes<HTMLImageElement> & {
+        unoptimized?: boolean;
+      };
     // eslint-disable-next-line @next/next/no-img-element
-    return <img {...props} />;
+    return <img {...rest} />;
   },
 }));
 
@@ -33,9 +37,11 @@ describe('CustomizationExperience', () => {
     customizationPhrase: 'Phrase',
     customizationColor: 'Color',
     customizationSize: 'Size',
+    customizationSizePlaceholder: 'Choose a size',
     customizationUpload: 'Upload image',
     customizationReplaceImage: 'Replace image',
     customizationRemoveImage: 'Remove image',
+    customizationUploading: 'Uploading image...',
     customizationInvalidImage: 'Please upload a PNG or JPEG image.',
     customizationImageTooLarge: 'The image is too large.',
     customizationPreview: 'Customization preview',
@@ -43,6 +49,10 @@ describe('CustomizationExperience', () => {
       'Preview is a buying aid only — final product may vary.',
     customizationPreviewUnavailable: 'Preview unavailable',
     customizationLimitedToDescription: 'Customization is limited to text only.',
+    customizationTextTooLong: 'Customization text is too long.',
+    customizationColorTooLong: 'Customization color is too long.',
+    customizationSizeTooLong: 'Customization size is too long.',
+    customizationInvalidImageUrl: 'Customization image must be a valid URL.',
   };
 
   beforeEach(() => {

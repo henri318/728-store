@@ -79,26 +79,24 @@ export class PrismaProductRepository implements ProductRepository {
 
     const where = this.buildWhere(filter, locale);
 
-    const [products, total] = await prisma.$transaction([
-      prisma.product.findMany({
-        where,
-        include: {
-          seller: true,
-          category: true,
-          translations: {
-            where: { locale: { in: [locale, 'es'] } },
-          },
-          images: {
-            orderBy: { position: 'asc' },
-          },
-          tags: true,
+    const products = await prisma.product.findMany({
+      where,
+      include: {
+        seller: true,
+        category: true,
+        translations: {
+          where: { locale: { in: [locale, 'es'] } },
         },
-        orderBy: { createdAt: sortDir },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-      }),
-      prisma.product.count({ where }),
-    ]);
+        images: {
+          orderBy: { position: 'asc' },
+        },
+        tags: true,
+      },
+      orderBy: { createdAt: sortDir },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
+    const total = await prisma.product.count({ where });
 
     return {
       items: products.map((product) => toDomainProduct(product)),
@@ -162,7 +160,6 @@ export class PrismaProductRepository implements ProductRepository {
             url: img.url,
             alt: img.alt,
             position: img.position,
-            productId: img.productId,
           })),
         },
         tags: {
@@ -184,6 +181,15 @@ export class PrismaProductRepository implements ProductRepository {
           categoryId: data.categoryId,
           customizationConfig: data.customizationConfig,
           updatedAt: data.updatedAt,
+          images: {
+            deleteMany: {},
+            create: entity.images.map((img) => ({
+              id: img.id,
+              url: img.url,
+              alt: img.alt,
+              position: img.position,
+            })),
+          },
         },
       });
 

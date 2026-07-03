@@ -26,6 +26,7 @@ export interface CustomizationLookupSnapshot {
   color: string | null;
   size: string | null;
   imageUrl: string | null;
+  designPosition: CustomizationDesignPositionSnapshot | null;
 }
 
 /**
@@ -37,4 +38,19 @@ export interface CustomizationSnapshot {
   color: string | null;
   size: string | null;
   imageUrl: string | null;
+  designPosition: CustomizationDesignPositionSnapshot | null;
+}
+
+/**
+ * Lightweight design position shape — kept as primitives so the orders
+ * module never depends on the products module's `DesignPosition` VO.
+ */
+export interface CustomizationDesignPositionSnapshot {
+  imageUrl: string;
+  x: number;
+  y: number;
+  scale: number;
+  rotation_deg: number;
+  opacity: number;
+  blend_mode: string;
 }

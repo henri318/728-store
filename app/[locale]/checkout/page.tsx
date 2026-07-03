@@ -29,6 +29,7 @@ interface CheckoutItem {
     color: string | null;
     size: string | null;
     imageUrl: string | null;
+    designPosition: CustomizationSnapshot['designPosition'];
   }>;
 }
 
@@ -111,6 +112,7 @@ export default async function CheckoutPage({
         color: c.color,
         size: c.size,
         imageUrl: c.imageUrl,
+        designPosition: c.designPosition,
       }));
 
     return {

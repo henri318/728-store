@@ -54,8 +54,8 @@ async function patchHandler(
       name: body.name,
       description: body.description,
       price: body.price,
-      status: body.status,
       customizationConfig: body.customizationConfig,
+      images: body.images,
     });
 
     return NextResponse.json(serializeProduct(updated), { status: 200 });

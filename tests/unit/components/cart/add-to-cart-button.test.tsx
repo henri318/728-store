@@ -28,12 +28,18 @@ describe('AddToCartButton', () => {
     sellerId: 'seller-1',
     sellerName: 'Test Seller',
     price: 29.99,
+    customizationAvailable: false,
     labels: {
       addToCart: 'Add to Cart',
       removeFromCart: 'Remove',
       adding: '...',
       added: '✓',
       error: 'Error',
+      customizeProduct: 'Customize',
+      addWithoutCustomization: 'Add without customization',
+      customizationChoiceBadge: 'Customizable product',
+      customizationChoiceMessage:
+        'You can customize this product first or add it as-is.',
     },
   };
 
@@ -379,6 +385,100 @@ describe('AddToCartButton', () => {
             quantity: 1,
             customizationIdList: ['cust-1'],
           }),
+        }),
+      );
+    });
+  });
+
+  describe('customization choice modal', () => {
+    beforeEach(() => {
+      mockUseSession.mockReturnValue({
+        data: null,
+        status: 'unauthenticated',
+        update: vi.fn(),
+      } as never);
+    });
+
+    it('opens a modal with customize and add-without-customization actions', async () => {
+      render(
+        <AddToCartButton
+          {...defaultProps}
+          customizationAvailable
+          customizeHref="/es/products/prod-1"
+        />,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /add to cart/i }));
+
+      expect(
+        screen.getByRole('dialog', { name: /customize product/i }),
+      ).toBeTruthy();
+      expect(screen.getByRole('link', { name: /customize/i })).toHaveAttribute(
+        'href',
+        '/es/products/prod-1',
+      );
+      expect(
+        screen.getByRole('button', {
+          name: /add without customization/i,
+        }),
+      ).toBeTruthy();
+
+      const dialog = screen.getByRole('dialog', { name: /customize product/i });
+      const actions = dialog.querySelectorAll('a,button');
+      expect(actions[0]).toHaveTextContent(/customize/i);
+      expect(actions[1]).toHaveTextContent(/add without customization/i);
+    });
+
+    it('adds the product without customization from the modal', async () => {
+      render(
+        <AddToCartButton
+          {...defaultProps}
+          customizationAvailable
+          customizeHref="/es/products/prod-1"
+        />,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /add to cart/i }));
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: /add without customization/i,
+        }),
+      );
+
+      expect(mockAddItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          productId: 'prod-1',
+          sellerId: 'seller-1',
+          quantity: 1,
+        }),
+      );
+    });
+
+    it('adds a customized item directly when a customization draft exists', async () => {
+      render(
+        <AddToCartButton
+          {...defaultProps}
+          customizationAvailable
+          customization={{
+            text: 'Hello mug',
+            color: 'Blue',
+            size: 'M',
+            imageUrl: '/preview.png',
+            imageUploadId: 'upload-1',
+          }}
+        />,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /add to cart/i }));
+
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(mockAddItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          customizationText: 'Hello mug',
+          customizationColor: 'Blue',
+          customizationSize: 'M',
+          customizationImageUrl: '/preview.png',
+          customizationImageUploadId: 'upload-1',
         }),
       );
     });

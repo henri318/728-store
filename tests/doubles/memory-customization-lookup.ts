@@ -1,4 +1,5 @@
 import type {
+  CustomizationDesignPositionSnapshot,
   CustomizationLookupPort,
   CustomizationSnapshot,
 } from '@/modules/cart/domain/customization-lookup-port';
@@ -37,6 +38,7 @@ export class MemoryCustomizationLookup implements CustomizationLookupPort {
       color?: string | null;
       size?: string | null;
       imageUrl?: string | null;
+      designPosition?: CustomizationDesignPositionSnapshot | null;
     }>,
   ): void {
     for (const c of customizations) {
@@ -47,6 +49,7 @@ export class MemoryCustomizationLookup implements CustomizationLookupPort {
         color: c.color ?? null,
         size: c.size ?? null,
         imageUrl: c.imageUrl ?? null,
+        designPosition: c.designPosition ?? null,
       });
     }
   }

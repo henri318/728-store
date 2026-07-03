@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef, useCallback, useReducer } from 'react';
 import { createPortal } from 'react-dom';
-import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
@@ -10,6 +9,7 @@ import {
   type GuestCartItem,
 } from '@/modules/cart/presentation/guest-cart-context';
 import { useCartPopup } from './cart-popup-context';
+import { DesignPreview, type DesignPositionData } from './design-preview';
 import { Money } from '@/shared/kernel/domain/value-objects/money';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import styles from './cart-popup.module.css';
@@ -30,6 +30,14 @@ interface CartItemDTO {
   quantity: number;
   unitPrice: number;
   lineTotal: number;
+  customization?: {
+    text: string | null;
+    color: string | null;
+    size: string | null;
+    imageUrl: string | null;
+    colorImageUrl?: string | null;
+    designPosition?: Record<string, unknown> | null;
+  } | null;
 }
 
 interface CartPopupLabels {
@@ -55,7 +63,7 @@ function guestItemToDTO(
   fallback: { productName: string; sellerName: string },
 ): CartItemDTO {
   return {
-    id: item.productId,
+    id: item.id ?? item.productId,
     productId: item.productId,
     productName: item.productName ?? fallback.productName,
     productImageUrl: item.productImageUrl ?? null,
@@ -64,6 +72,13 @@ function guestItemToDTO(
     quantity: item.quantity,
     unitPrice: item.unitPriceSnapshot,
     lineTotal: +(item.unitPriceSnapshot * item.quantity).toFixed(2),
+    customization: {
+      text: item.customizationText ?? null,
+      color: item.customizationColor ?? null,
+      size: item.customizationSize ?? null,
+      imageUrl: item.customizationImageUrl ?? null,
+      colorImageUrl: item.productImageUrl ?? null,
+    },
   };
 }
 
@@ -96,10 +111,38 @@ export function CartPopup({ labels }: CartPopupProps) {
       .then((data) => {
         if (!ctrl.signal.aborted) {
           setAuthItems(
-            (data.items ?? []).map((i: CartItemDTO) => ({
-              ...i,
-              lineTotal: +(i.unitPrice * i.quantity).toFixed(2),
-            })),
+            (data.items ?? []).map((i: Record<string, unknown>) => {
+              const customizations =
+                (i.customizations as Array<Record<string, unknown>>) ?? [];
+              const firstC = customizations[0] ?? null;
+              return {
+                id: i.id as string,
+                productId: i.productId as string,
+                productName: i.productName as string,
+                productImageUrl:
+                  (i.colorImageUrl as string | null) ??
+                  (i.productImageUrl as string | null) ??
+                  null,
+                sellerId: i.sellerId as string,
+                sellerName: i.sellerName as string,
+                quantity: i.quantity as number,
+                unitPrice: i.unitPrice as number,
+                lineTotal: +(
+                  (i.unitPrice as number) * (i.quantity as number)
+                ).toFixed(2),
+                customization: firstC
+                  ? {
+                      text: (firstC.text as string | null) ?? null,
+                      color: (firstC.color as string | null) ?? null,
+                      size: (firstC.size as string | null) ?? null,
+                      imageUrl: (firstC.imageUrl as string | null) ?? null,
+                      designPosition: firstC.designPosition
+                        ? (firstC.designPosition as Record<string, unknown>)
+                        : null,
+                    }
+                  : null,
+              } as CartItemDTO;
+            }),
           );
           setLoading(false);
         }
@@ -135,7 +178,7 @@ export function CartPopup({ labels }: CartPopupProps) {
       const nq = Math.max(1, Math.min(99, item.quantity + delta));
       if (nq === item.quantity) return;
       if (!isAuthenticated) {
-        guestCart.updateQuantity(item.productId, nq);
+        guestCart.updateItemQuantity(item.id, nq);
         return;
       }
       setAuthItems((p) =>
@@ -176,7 +219,7 @@ export function CartPopup({ labels }: CartPopupProps) {
   const handleRemove = useCallback(
     async (item: CartItemDTO) => {
       if (!isAuthenticated) {
-        guestCart.removeItem(item.productId);
+        guestCart.removeItemById(item.id);
         return;
       }
       setAuthItems((p) => p.filter((i) => i.id !== item.id));
@@ -242,22 +285,44 @@ export function CartPopup({ labels }: CartPopupProps) {
                 {items.map((item) => (
                   <li key={item.id} className={styles.item}>
                     <div className={styles.itemInfo}>
-                      {item.productImageUrl && (
-                        <Image
-                          src={item.productImageUrl}
-                          alt={item.productName}
+                      {item.customization?.imageUrl &&
+                      item.customization?.designPosition ? (
+                        <DesignPreview
+                          productImageUrl={item.productImageUrl ?? ''}
+                          designImageUrl={item.customization.imageUrl}
+                          designPosition={
+                            item.customization
+                              .designPosition as DesignPositionData
+                          }
                           width={40}
                           height={40}
+                          borderRadius={4}
+                        />
+                      ) : item.productImageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={item.productImageUrl}
+                          alt={item.productName}
                           className={styles.thumb}
                         />
-                      )}
-                      <div>
+                      ) : null}
+                      <div className={styles.popupItemDetails}>
                         <span className={styles.name}>
                           {item.productName ?? unknownProduct}
                         </span>
                         <span className={styles.seller}>
                           {labels.soldBy} {item.sellerName ?? unknownSeller}
                         </span>
+                        {item.customization?.size && (
+                          <span className={styles.popupCustLine}>
+                            {item.customization.size}
+                          </span>
+                        )}
+                        {item.customization?.text && (
+                          <span className={styles.popupCustText}>
+                            {item.customization.text}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className={styles.itemCtrls}>

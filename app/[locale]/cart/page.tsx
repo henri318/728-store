@@ -67,6 +67,13 @@ export default async function CartPage({
                 customization != null,
             ) ?? null;
 
+        const colorImageUrl =
+          product && firstCustomization?.color
+            ? (product.images?.find(
+                (img) => img.alt === firstCustomization.color,
+              )?.url ?? null)
+            : null;
+
         return {
           id: item.id,
           productId: item.productId.value,
@@ -86,6 +93,8 @@ export default async function CartPage({
                 size: firstCustomization.size,
                 imageUrl: firstCustomization.imageUrl,
                 imageUploadId: null,
+                colorImageUrl,
+                designPosition: firstCustomization.designPosition ?? null,
               }
             : {
                 text: null,
@@ -93,6 +102,8 @@ export default async function CartPage({
                 size: null,
                 imageUrl: null,
                 imageUploadId: null,
+                colorImageUrl: null,
+                designPosition: null,
               },
         };
       });

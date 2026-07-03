@@ -30,6 +30,12 @@ describe('CreateProductUseCase', () => {
       name: 'Camiseta personalizada',
       description: 'Camiseta para diseñar',
       price: 19.99,
+      images: [
+        {
+          url: 'http://localhost:8081/products/camiseta-roja.png',
+          alt: 'Rojo cereza',
+        },
+      ],
       customizationConfig: {
         mode: 'text_photo',
         previewEnabled: true,
@@ -50,6 +56,12 @@ describe('CreateProductUseCase', () => {
       description: 'Camiseta para diseñar',
     });
     expect(saved?.customizationConfig?.mode).toBe('text_photo');
+    expect(saved?.images).toHaveLength(1);
+    expect(saved?.images[0]).toMatchObject({
+      url: 'http://localhost:8081/products/camiseta-roja.png',
+      alt: 'Rojo cereza',
+      position: 0,
+    });
     expect(outbox.events).toEqual([
       {
         eventType: GlobalEvents.PRODUCT_CREATED,

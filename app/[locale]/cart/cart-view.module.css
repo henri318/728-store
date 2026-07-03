@@ -45,7 +45,7 @@
 
 .itemRow {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 1rem;
   border: 1px solid #e0e0e0;
@@ -53,26 +53,35 @@
   gap: 1rem;
 }
 
-.itemInfo {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex: 1;
-  min-width: 0;
-}
-
-.thumbnail {
-  width: 64px;
-  height: 64px;
-  object-fit: cover;
-  border-radius: 4px;
+.itemPreview {
+  position: relative;
   flex-shrink: 0;
+  width: 100px;
+  height: 100px;
 }
 
-.itemDetails {
+.previewImage {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.designThumb {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.itemInfo {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+  flex: 1;
   min-width: 0;
 }
 
@@ -88,16 +97,25 @@
   color: #666;
 }
 
-.customization {
-  font-size: 0.8rem;
-  color: #888;
+.customizationLine {
+  font-size: 0.82rem;
+  color: #555;
+}
+
+.customizationText {
+  font-size: 0.82rem;
+  color: #555;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .itemActions {
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  align-items: flex-start;
+  gap: 0.75rem;
   flex-shrink: 0;
+  padding-top: 0.1rem;
 }
 
 .quantityControls {
@@ -145,6 +163,15 @@
   color: #666;
   min-width: 5rem;
   text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+}
+
+.unitPriceLabel {
+  font-size: 0.72rem;
+  color: #999;
 }
 
 .removeButton {
@@ -190,4 +217,11 @@
 
 .checkoutButton:hover {
   opacity: 0.9;
+}
+
+.editLink {
+  font-size: 0.8rem;
+  color: var(--color-coral, #df8072);
+  text-decoration: underline;
+  margin-top: 0.15rem;
 }

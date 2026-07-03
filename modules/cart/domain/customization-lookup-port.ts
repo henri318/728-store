@@ -31,6 +31,9 @@ export interface CustomizationLookupPort {
  * checkout presentation. No value objects — plain primitives so
  * the cart module never depends on the customizations module's
  * internal types.
+ *
+ * `designPosition` is included so the cart/order layers can persist
+ * the buyer-side design placement alongside the rest of the snapshot.
  */
 export interface CustomizationSnapshot {
   id: string;
@@ -39,4 +42,20 @@ export interface CustomizationSnapshot {
   color: string | null;
   size: string | null;
   imageUrl: string | null;
+  designPosition: CustomizationDesignPositionSnapshot | null;
+}
+
+/**
+ * Lightweight design position shape — the cart module does not depend
+ * on the products module's `DesignPosition` VO. The shape is stable
+ * and validated upstream by the customizations module.
+ */
+export interface CustomizationDesignPositionSnapshot {
+  imageUrl: string;
+  x: number;
+  y: number;
+  scale: number;
+  rotation_deg: number;
+  opacity: number;
+  blend_mode: string;
 }

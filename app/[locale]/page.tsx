@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { container } from '@/composition-root/container';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
@@ -17,6 +18,9 @@ export default async function HomePage({
   const dict = await getDictionary(locale as 'es' | 'cat');
 
   const products = await container.getProductRepository().findAll(locale);
+  const activeProducts = products.filter(
+    (product) => product.status === 'ACTIVE',
+  );
 
   return (
     <div>
@@ -27,27 +31,50 @@ export default async function HomePage({
 
       <MiddleSection ariaLabel={dict.common.products}>
         <div className={styles.productGrid}>
-          {products.length === 0 ? (
+          {activeProducts.length === 0 ? (
             <p className={styles.emptyMessage}>{dict.common.noProducts}</p>
           ) : (
-            products.map((product) => {
+            activeProducts.map((product) => {
               const translation = product.translations[0] || {
                 name: 'Untranslated',
                 description: '',
               };
+              const primaryImage = product.images[0] ?? null;
+              const customizationHref = `/${locale}/products/${product.id}`;
               return (
                 <div key={product.id} className={styles.productCard}>
-                  <h3 className={styles.productName}>{translation.name}</h3>
-                  <p className={styles.productDescription}>
-                    {translation.description}
-                  </p>
-                  <p className={styles.productPrice}>
-                    {product.basePrice.format()}
-                  </p>
-                  <p className={styles.productSeller}>{product.sellerName}</p>
+                  <div className={styles.productImageWrap}>
+                    {primaryImage ? (
+                      <Image
+                        src={primaryImage.url}
+                        alt={primaryImage.alt ?? translation.name}
+                        fill
+                        unoptimized
+                        sizes="(max-width: 768px) 100vw, 25vw"
+                        className={styles.productImage}
+                      />
+                    ) : (
+                      <div
+                        className={styles.productImageFallback}
+                        aria-hidden="true"
+                      >
+                        {translation.name}
+                      </div>
+                    )}
+                  </div>
+                  <div className={styles.productCopy}>
+                    <h3 className={styles.productName}>{translation.name}</h3>
+                    <p className={styles.productDescription}>
+                      {translation.description}
+                    </p>
+                    <p className={styles.productSeller}>{product.sellerName}</p>
+                    <p className={styles.productPrice}>
+                      {product.basePrice.format()}
+                    </p>
+                  </div>
                   <div className={styles.productActions}>
                     <Link
-                      href={`/${locale}/products/${product.id}`}
+                      href={customizationHref}
                       className={styles.productLink}
                     >
                       {dict.common.viewDetails}
@@ -58,12 +85,25 @@ export default async function HomePage({
                       sellerId={product.sellerId}
                       sellerName={product.sellerName}
                       price={product.basePrice.amount}
+                      imageUrl={primaryImage?.url ?? null}
+                      customizationAvailable={
+                        !product.customizationConfig?.isDefault()
+                      }
+                      customizeHref={customizationHref}
                       labels={{
                         addToCart: dict.common.addToCart,
                         removeFromCart: dict.common.removeFromCart,
-                        adding: '...',
-                        added: '✓',
-                        error: 'Error',
+                        adding: dict.common.addingToCart,
+                        added: dict.common.addedToCart,
+                        error: dict.common.cartError,
+                        customizeProduct: dict.common.customizeProduct,
+                        addWithoutCustomization:
+                          dict.common.addWithoutCustomization,
+                        customizationChoiceBadge: dict.common.customizable,
+                        customizationChoiceMessage:
+                          dict.common.customizationChoiceMessage,
+                        decreaseQuantity: dict.common.decreaseQuantity,
+                        increaseQuantity: dict.common.increaseQuantity,
                       }}
                     />
                   </div>

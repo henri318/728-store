@@ -82,14 +82,19 @@ model ProductTranslation {
 }
 
 model Customization {
-  id        String   @id @default(cuid())
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  text      String?
-  color     String?
-  size      String?
-  imageUrl  String?
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  text           String?
+  color          String?
+  size           String?
+  imageUrl       String?
+  /// Buyer-side design position captured by the mockup canvas.
+  /// Stored as JSONB so we can preserve the full shape (x, y, scale,
+  /// rotation_deg, opacity, blend_mode, imageUrl) without a wide row.
+  /// Nullable — older rows and text-only customizations have no design.
+  designPosition Json?
+  createdAt      DateTime @default(now())
 
   @@index([productId])
 }

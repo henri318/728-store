@@ -14,6 +14,7 @@ interface CustomizationPreviewLabels {
 
 interface CustomizationPreviewProps {
   baseImageUrl: string;
+  overlayImageUrl?: string | null;
   customizationConfig: ProductCustomizationConfigJson;
   draft: CustomizationDraft;
   labels: CustomizationPreviewLabels;
@@ -21,6 +22,7 @@ interface CustomizationPreviewProps {
 
 export function CustomizationPreview({
   baseImageUrl,
+  overlayImageUrl,
   customizationConfig,
   draft,
   labels,
@@ -42,14 +44,15 @@ export function CustomizationPreview({
       }
     : undefined;
 
-  const imageStyle = customizationConfig.imageOffset
+  const templateStyle = customizationConfig.imageOffset
     ? {
         left: `${customizationConfig.imageOffset.x}px`,
         top: `${customizationConfig.imageOffset.y}px`,
-        transform: `rotate(${customizationConfig.imageOffset.rotate ?? 0}deg) scale(${customizationConfig.imageOffset.scale ?? 1})`,
-        maxWidth: customizationConfig.imageOffset.maxWidth
+        transform: `rotate(${customizationConfig.imageOffset.rotate ?? 0}deg)`,
+        width: customizationConfig.imageOffset.maxWidth
           ? `${customizationConfig.imageOffset.maxWidth}px`
           : undefined,
+        height: 'auto',
       }
     : undefined;
 
@@ -73,8 +76,21 @@ export function CustomizationPreview({
             alt={labels.customizationPreview}
             width={640}
             height={640}
+            unoptimized
             className={styles.baseImage}
           />
+          {overlayImageUrl ? (
+            <Image
+              src={overlayImageUrl}
+              alt=""
+              width={640}
+              height={640}
+              unoptimized
+              aria-hidden="true"
+              className={styles.templateLayer}
+              style={templateStyle}
+            />
+          ) : null}
           <div className={styles.overlayLayer}>
             {draft.text && (
               <span className={styles.textLayer} style={textStyle}>
@@ -87,8 +103,8 @@ export function CustomizationPreview({
                 alt={labels.customizationPreview}
                 width={240}
                 height={240}
+                unoptimized
                 className={styles.photoLayer}
-                style={imageStyle}
               />
             )}
           </div>

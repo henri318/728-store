@@ -65,6 +65,7 @@ describe('GetCustomizationById', () => {
       color: 'red',
       size: 'M',
       imageUrl: null,
+      designPosition: null,
       createdAt: new Date(),
     });
   });
@@ -97,6 +98,7 @@ describe('GetCustomizationByIds', () => {
       color: 'red',
       size: null,
       imageUrl: null,
+      designPosition: null,
       createdAt: new Date(),
     });
     await repo.save({
@@ -106,6 +108,7 @@ describe('GetCustomizationByIds', () => {
       color: null,
       size: 'L',
       imageUrl: null,
+      designPosition: null,
       createdAt: new Date(),
     });
     await repo.save({
@@ -115,6 +118,7 @@ describe('GetCustomizationByIds', () => {
       color: null,
       size: null,
       imageUrl: null,
+      designPosition: null,
       createdAt: new Date(),
     });
   });

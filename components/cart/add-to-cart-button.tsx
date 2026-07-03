@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
+import { AddToCartChoiceModal } from './add-to-cart-choice-modal';
 import {
   customizationDraftSchema,
   normalizeCustomizationDraft,
@@ -16,6 +17,16 @@ export interface CartButtonLabels {
   adding: string;
   added: string;
   error: string;
+  customizeProduct?: string;
+  addWithoutCustomization?: string;
+  customizationChoiceBadge?: string;
+  customizationChoiceTitle?: string;
+  customizationChoiceMessage?: string;
+  decreaseQuantity?: string;
+  increaseQuantity?: string;
+  saveDesign?: string;
+  alreadyInCart?: string;
+  alreadyInCartDifferent?: string;
 }
 
 interface AddToCartButtonProps {
@@ -26,6 +37,8 @@ interface AddToCartButtonProps {
   price: number;
   imageUrl?: string | null;
   customization?: CustomizationDraftPayload | null;
+  customizationAvailable?: boolean;
+  customizeHref?: string;
   disabled?: boolean;
   labels: CartButtonLabels;
 }
@@ -38,6 +51,43 @@ interface CartItemInfo {
 type ButtonState = 'idle' | 'adding' | 'success' | 'error';
 const MAX_QUANTITY = 99;
 const CART_UPDATED_EVENT = 'cart:updated';
+
+function guestCustomizationMatches(
+  item: {
+    customizationText?: string | null;
+    customizationColor?: string | null;
+    customizationSize?: string | null;
+    customizationImageUrl?: string | null;
+  },
+  draft: CustomizationDraftPayload | null,
+): boolean {
+  const norm = normalizeCustomizationDraft(draft);
+  return (
+    (item.customizationText ?? null) === (norm.text ?? null) &&
+    (item.customizationColor ?? null) === (norm.color ?? null) &&
+    (item.customizationSize ?? null) === (norm.size ?? null) &&
+    (item.customizationImageUrl ?? null) === (norm.imageUrl ?? null)
+  );
+}
+
+function authCustomizationMatches(
+  customizations: Array<{
+    text?: string | null;
+    color?: string | null;
+    size?: string | null;
+    imageUrl?: string | null;
+  }>,
+  draft: CustomizationDraftPayload | null,
+): boolean {
+  const norm = normalizeCustomizationDraft(draft);
+  return customizations.some(
+    (c) =>
+      (c.text ?? null) === (norm.text ?? null) &&
+      (c.color ?? null) === (norm.color ?? null) &&
+      (c.size ?? null) === (norm.size ?? null) &&
+      (c.imageUrl ?? null) === (norm.imageUrl ?? null),
+  );
+}
 
 function dispatchCartUpdated() {
   window.dispatchEvent(new Event(CART_UPDATED_EVENT));
@@ -59,15 +109,39 @@ export function AddToCartButton({
   price,
   imageUrl = null,
   customization = null,
+  customizationAvailable = false,
+  customizeHref,
   disabled = false,
   labels,
 }: AddToCartButtonProps) {
   const { status } = useSession();
-  const { items, addItem, updateQuantity, removeItem } = useGuestCart();
+  const {
+    items,
+    addItem,
+    updateItemQuantity,
+    removeItemById,
+    updateItemCustomization,
+  } = useGuestCart();
   const isAuthenticated = status === 'authenticated';
 
   const [state, setState] = useState<ButtonState>('idle');
   const [cartItemInfo, setCartItemInfo] = useState<CartItemInfo | null>(null);
+  const [hasDifferentCustomization, setHasDifferentCustomization] =
+    useState(false);
+  const [showCustomizationChoice, setShowCustomizationChoice] = useState(false);
+  const [savingDesign, setSavingDesign] = useState(false);
+
+  const normalizedCustomization = useMemo(
+    () => normalizeCustomizationDraft(customization),
+    [customization],
+  );
+  const customizationHasContent = Boolean(
+    normalizedCustomization.text ||
+    normalizedCustomization.color ||
+    normalizedCustomization.size ||
+    normalizedCustomization.imageUrl ||
+    normalizedCustomization.designPosition,
+  );
 
   // Fetch cart for authenticated users.
   useEffect(() => {
@@ -80,12 +154,30 @@ export function AddToCartButton({
         if (cancelled || !res.ok) return;
         const data = await res.json();
         if (cancelled) return;
-        const found = data.items?.find(
+        const items = data.items ?? [];
+        const anyInCart = items.find(
           (item: { productId: string }) => item.productId === productId,
+        );
+        const found = items.find(
+          (item: {
+            productId: string;
+            customizations?: Array<{
+              text?: string | null;
+              color?: string | null;
+              size?: string | null;
+              imageUrl?: string | null;
+            }>;
+          }) =>
+            item.productId === productId &&
+            authCustomizationMatches(
+              item.customizations ?? [],
+              normalizedCustomization,
+            ),
         );
         setCartItemInfo(
           found ? { cartItemId: found.id, quantity: found.quantity } : null,
         );
+        setHasDifferentCustomization(!!anyInCart && !found);
       } catch {
         /* fallback to "Add to Cart" */
       }
@@ -95,14 +187,42 @@ export function AddToCartButton({
     return () => {
       cancelled = true;
     };
-  }, [isAuthenticated, productId]);
+  }, [isAuthenticated, productId, normalizedCustomization]);
 
-  // Determine current quantity.
+  // Determine current quantity (match by productId + customization).
+  const guestMatch = !isAuthenticated
+    ? items.find(
+        (i) =>
+          i.productId === productId &&
+          guestCustomizationMatches(i, normalizedCustomization),
+      )
+    : undefined;
+  const guestDiffMatch =
+    !isAuthenticated && !guestMatch
+      ? items.find((i) => i.productId === productId)
+      : undefined;
   const currentQuantity = !isAuthenticated
-    ? (items.find((i) => i.productId === productId)?.quantity ?? 0)
+    ? (guestMatch?.quantity ?? 0)
     : (cartItemInfo?.quantity ?? 0);
 
   const isInCart = currentQuantity > 0;
+  const alreadyInCartDifferent = !isAuthenticated
+    ? !!guestDiffMatch
+    : hasDifferentCustomization;
+
+  const customizeProductLabel = labels.customizeProduct ?? 'Customize';
+  const addWithoutCustomizationLabel =
+    labels.addWithoutCustomization ?? 'Add without customization';
+  const customizationChoiceBadgeLabel =
+    labels.customizationChoiceBadge ?? 'Customizable product';
+  const customizationChoiceTitle =
+    labels.customizationChoiceTitle ??
+    `${customizeProductLabel} ${productName}`;
+  const customizationChoiceMessage =
+    labels.customizationChoiceMessage ??
+    'You can customize this product first or add it as-is.';
+  const decreaseQuantityLabel = labels.decreaseQuantity ?? 'Decrease quantity';
+  const increaseQuantityLabel = labels.increaseQuantity ?? 'Increase quantity';
 
   // Refresh cart after add (authenticated).
   const refreshCartForProduct = useCallback(async () => {
@@ -111,32 +231,116 @@ export function AddToCartButton({
       const res = await fetch('/api/cart');
       if (!res.ok) return;
       const data = await res.json();
-      const found = data.items?.find(
+      const items = data.items ?? [];
+      const anyInCart = items.find(
         (item: { productId: string }) => item.productId === productId,
+      );
+      const found = items.find(
+        (item: {
+          productId: string;
+          customizations?: Array<{
+            text?: string | null;
+            color?: string | null;
+            size?: string | null;
+            imageUrl?: string | null;
+          }>;
+        }) =>
+          item.productId === productId &&
+          authCustomizationMatches(
+            item.customizations ?? [],
+            normalizedCustomization,
+          ),
       );
       setCartItemInfo(
         found ? { cartItemId: found.id, quantity: found.quantity } : null,
       );
+      setHasDifferentCustomization(!!anyInCart && !found);
     } catch {
       /* ignore */
     }
-  }, [isAuthenticated, productId]);
+  }, [isAuthenticated, productId, normalizedCustomization]);
 
-  const handleAdd = useCallback(
-    async (e: React.MouseEvent) => {
-      e.preventDefault();
-      if (state === 'adding' || disabled) return;
+  const handleSaveDesign = useCallback(async () => {
+    const draft = normalizeCustomizationDraft(customization);
+    const validation = customizationDraftSchema.safeParse(draft);
+    if (!validation.success) return;
+
+    setSavingDesign(true);
+
+    try {
+      if (isAuthenticated) {
+        const customizationResponse = await fetch(
+          '/api/customizations/customer',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              productId,
+              text: draft.text,
+              color: draft.color,
+              size: draft.size,
+              imageUrl: draft.imageUrl,
+              designPosition: draft.designPosition ?? null,
+            }),
+          },
+        );
+
+        if (!customizationResponse.ok) {
+          setSavingDesign(false);
+          return;
+        }
+
+        const customizationData = (await customizationResponse.json()) as {
+          id?: string;
+        };
+        const newId = customizationData.id;
+
+        if (newId && cartItemInfo) {
+          await fetch(`/api/cart/items/${cartItemInfo.cartItemId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              quantity: cartItemInfo.quantity,
+              customizationIdList: [newId],
+            }),
+          });
+          dispatchCartUpdated();
+        }
+      } else if (guestMatch?.id) {
+        updateItemCustomization(guestMatch.id, {
+          text: draft.text,
+          color: draft.color,
+          size: draft.size,
+          imageUrl: draft.imageUrl,
+          imageUploadId: draft.imageUploadId,
+          designPosition: draft.designPosition ?? null,
+        });
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      setSavingDesign(false);
+    }
+  }, [
+    isAuthenticated,
+    customization,
+    productId,
+    cartItemInfo,
+    guestMatch,
+    updateItemCustomization,
+  ]);
+
+  const performAdd = useCallback(
+    async (draft: CustomizationDraftPayload | null) => {
       setState('adding');
 
       try {
         if (isAuthenticated) {
-          const normalizedCustomization =
-            normalizeCustomizationDraft(customization);
-          const validation = customizationDraftSchema.safeParse(
-            normalizedCustomization,
+          const customizationValidation = customizationDraftSchema.safeParse(
+            draft ?? normalizeCustomizationDraft(null),
           );
 
-          if (!validation.success) {
+          if (!customizationValidation.success) {
             setState('error');
             setTimeout(() => setState('idle'), 3000);
             return;
@@ -145,10 +349,12 @@ export function AddToCartButton({
           let customizationIdList: string[] = [];
 
           if (
-            normalizedCustomization.text ||
-            normalizedCustomization.color ||
-            normalizedCustomization.size ||
-            normalizedCustomization.imageUrl
+            draft &&
+            (draft.text ||
+              draft.color ||
+              draft.size ||
+              draft.imageUrl ||
+              draft.designPosition)
           ) {
             const customizationResponse = await fetch(
               '/api/customizations/customer',
@@ -157,10 +363,11 @@ export function AddToCartButton({
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   productId,
-                  text: normalizedCustomization.text,
-                  color: normalizedCustomization.color,
-                  size: normalizedCustomization.size,
-                  imageUrl: normalizedCustomization.imageUrl,
+                  text: draft.text,
+                  color: draft.color,
+                  size: draft.size,
+                  imageUrl: draft.imageUrl,
+                  designPosition: draft.designPosition ?? null,
                 }),
               },
             );
@@ -194,11 +401,8 @@ export function AddToCartButton({
             return;
           }
         } else {
-          const normalizedCustomization =
-            normalizeCustomizationDraft(customization);
-          const validation = customizationDraftSchema.safeParse(
-            normalizedCustomization,
-          );
+          const normalized = draft ?? normalizeCustomizationDraft(null);
+          const validation = customizationDraftSchema.safeParse(normalized);
 
           if (!validation.success) {
             setState('error');
@@ -214,11 +418,12 @@ export function AddToCartButton({
             productName,
             sellerName,
             productImageUrl: imageUrl,
-            customizationText: normalizedCustomization.text,
-            customizationColor: normalizedCustomization.color,
-            customizationSize: normalizedCustomization.size,
-            customizationImageUrl: normalizedCustomization.imageUrl,
-            customizationImageUploadId: normalizedCustomization.imageUploadId,
+            customizationText: normalized.text,
+            customizationColor: normalized.color,
+            customizationSize: normalized.size,
+            customizationImageUrl: normalized.imageUrl,
+            customizationImageUploadId: normalized.imageUploadId,
+            customizationDesignPosition: normalized.designPosition ?? null,
           });
         }
         setState('success');
@@ -231,8 +436,6 @@ export function AddToCartButton({
       }
     },
     [
-      state,
-      disabled,
       isAuthenticated,
       productId,
       sellerId,
@@ -240,11 +443,37 @@ export function AddToCartButton({
       productName,
       sellerName,
       imageUrl,
-      customization,
       addItem,
       refreshCartForProduct,
     ],
   );
+
+  const handleAdd = useCallback(
+    async (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (state === 'adding' || disabled) return;
+
+      if (customizationAvailable && !customizationHasContent) {
+        setShowCustomizationChoice(true);
+        return;
+      }
+
+      await performAdd(normalizedCustomization);
+    },
+    [
+      state,
+      disabled,
+      customizationAvailable,
+      customizationHasContent,
+      normalizedCustomization,
+      performAdd,
+    ],
+  );
+
+  const handleAddWithoutCustomization = useCallback(async () => {
+    setShowCustomizationChoice(false);
+    await performAdd(null);
+  }, [performAdd]);
 
   const handleIncrement = useCallback(async () => {
     if (!isInCart || currentQuantity >= MAX_QUANTITY) return;
@@ -265,16 +494,16 @@ export function AddToCartButton({
       } catch {
         setCartItemInfo(cartItemInfo);
       }
-    } else {
-      updateQuantity(productId, newQty);
+    } else if (guestMatch?.id) {
+      updateItemQuantity(guestMatch.id, newQty);
     }
   }, [
     isInCart,
     currentQuantity,
     isAuthenticated,
     cartItemInfo,
-    productId,
-    updateQuantity,
+    guestMatch,
+    updateItemQuantity,
   ]);
 
   const handleDecrement = useCallback(async () => {
@@ -298,16 +527,16 @@ export function AddToCartButton({
       } catch {
         setCartItemInfo(cartItemInfo);
       }
-    } else {
-      updateQuantity(productId, newQty);
+    } else if (guestMatch?.id) {
+      updateItemQuantity(guestMatch.id, newQty);
     }
   }, [
     isInCart,
     currentQuantity,
     isAuthenticated,
     cartItemInfo,
-    productId,
-    updateQuantity,
+    guestMatch,
+    updateItemQuantity,
   ]);
 
   const handleRemove = useCallback(async () => {
@@ -326,10 +555,10 @@ export function AddToCartButton({
       } catch {
         setCartItemInfo(prev);
       }
-    } else {
-      removeItem(productId);
+    } else if (guestMatch?.id) {
+      removeItemById(guestMatch.id);
     }
-  }, [isAuthenticated, cartItemInfo, productId, removeItem]);
+  }, [isAuthenticated, cartItemInfo, guestMatch, removeItemById]);
 
   const feedbackLabel =
     state === 'adding'
@@ -354,7 +583,7 @@ export function AddToCartButton({
     );
   }
 
-  // In cart: quantity controls + remove button.
+  // In cart: quantity controls + save design + remove button.
   if (isInCart) {
     return (
       <div className={styles.quantityRow}>
@@ -364,7 +593,7 @@ export function AddToCartButton({
             className={styles.quantityButton}
             onClick={handleDecrement}
             disabled={currentQuantity <= 1}
-            aria-label="Decrease quantity"
+            aria-label={decreaseQuantityLabel}
           >
             −
           </button>
@@ -376,11 +605,21 @@ export function AddToCartButton({
             className={styles.quantityButton}
             onClick={handleIncrement}
             disabled={currentQuantity >= MAX_QUANTITY}
-            aria-label="Increase quantity"
+            aria-label={increaseQuantityLabel}
           >
             +
           </button>
         </div>
+        {customizationHasContent && labels.saveDesign && (
+          <button
+            type="button"
+            className={styles.saveButton}
+            onClick={handleSaveDesign}
+            disabled={savingDesign}
+          >
+            {savingDesign ? '...' : labels.saveDesign}
+          </button>
+        )}
         <button
           type="button"
           className={styles.iconButton}
@@ -395,18 +634,38 @@ export function AddToCartButton({
     );
   }
 
-  // Default: "Add to Cart".
+  // Default: "Add to Cart" (with optional "already in cart" label).
   return (
-    <button
-      type="button"
-      className={`${styles.iconButton} ${state === 'adding' ? styles.loading : ''}`}
-      onClick={handleAdd}
-      disabled={disabled || state === 'adding'}
-      aria-label={feedbackLabel}
-    >
-      <svg aria-hidden="true" width="40" height="40">
-        <use href="/img/icons/sprites.svg#icon-add" />
-      </svg>
-    </button>
+    <>
+      <AddToCartChoiceModal
+        open={showCustomizationChoice}
+        badgeLabel={customizationChoiceBadgeLabel}
+        title={customizationChoiceTitle}
+        message={customizationChoiceMessage}
+        customizeLabel={customizeProductLabel}
+        addWithoutCustomizationLabel={addWithoutCustomizationLabel}
+        customizeHref={customizeHref}
+        onAddWithoutCustomization={handleAddWithoutCustomization}
+        onClose={() => setShowCustomizationChoice(false)}
+      />
+      <div className={styles.addRow}>
+        <button
+          type="button"
+          className={`${styles.iconButton} ${state === 'adding' ? styles.loading : ''}`}
+          onClick={handleAdd}
+          disabled={disabled || state === 'adding'}
+          aria-label={feedbackLabel}
+        >
+          <svg aria-hidden="true" width="40" height="40">
+            <use href="/img/icons/sprites.svg#icon-add" />
+          </svg>
+        </button>
+        {alreadyInCartDifferent && labels.alreadyInCartDifferent && (
+          <span className={styles.alreadyInCartLabel}>
+            {labels.alreadyInCartDifferent}
+          </span>
+        )}
+      </div>
+    </>
   );
 }

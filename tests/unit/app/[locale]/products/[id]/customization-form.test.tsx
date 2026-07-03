@@ -13,14 +13,23 @@ vi.mock('next/image', () => ({
 }));
 
 describe('CustomizationForm', () => {
+  const validationLabels = {
+    textTooLong: 'Customization text is too long.',
+    colorTooLong: 'Customization color is too long.',
+    sizeTooLong: 'Customization size is too long.',
+    invalidImageUrl: 'Customization image must be a valid URL.',
+  };
+
   const labels = {
     customizationDesign: 'Design description',
     customizationPhrase: 'Phrase',
     customizationColor: 'Color',
     customizationSize: 'Size',
+    customizationSizePlaceholder: 'Choose a size',
     customizationUpload: 'Upload image',
     customizationReplaceImage: 'Replace image',
     customizationRemoveImage: 'Remove image',
+    customizationUploading: 'Uploading image...',
     customizationInvalidImage: 'Please upload a PNG or JPEG image.',
     customizationImageTooLarge: 'The image is too large.',
     customizationPreviewUnavailable: 'Preview unavailable',
@@ -36,7 +45,7 @@ describe('CustomizationForm', () => {
 
   it('renders only the description field for description-only products', () => {
     render(
-      <CustomizationDraftProvider>
+      <CustomizationDraftProvider validationLabels={validationLabels}>
         <CustomizationForm
           customizationConfig={ProductCustomizationConfig.default().toJson()}
           labels={labels}
@@ -56,10 +65,11 @@ describe('CustomizationForm', () => {
       mode: 'text_photo',
       previewEnabled: true,
       previewTemplateUrl: '/mug.png',
+      sizeOptions: ['XS', 'S', 'M', 'L'],
     });
 
     render(
-      <CustomizationDraftProvider>
+      <CustomizationDraftProvider validationLabels={validationLabels}>
         <CustomizationForm
           customizationConfig={config.toJson()}
           labels={labels}
@@ -69,8 +79,41 @@ describe('CustomizationForm', () => {
 
     expect(screen.getByLabelText(labels.customizationPhrase)).toBeTruthy();
     expect(screen.getByLabelText(labels.customizationColor)).toBeTruthy();
-    expect(screen.getByLabelText(labels.customizationSize)).toBeTruthy();
+    expect(
+      screen.getByRole('combobox', { name: labels.customizationSize }),
+    ).toHaveDisplayValue(labels.customizationSizePlaceholder);
+    expect(
+      screen.getByRole('combobox', { name: labels.customizationSize }),
+    ).toBeTruthy();
+    expect(screen.getByRole('option', { name: 'XS' })).toBeTruthy();
+    expect(screen.getByRole('option', { name: 'L' })).toBeTruthy();
     expect(screen.getByLabelText(labels.customizationUpload)).toBeTruthy();
+  });
+
+  it('falls back to default size options when the config omits them', () => {
+    const config = ProductCustomizationConfig.fromJson({
+      mode: 'text',
+      previewEnabled: true,
+      previewTemplateUrl: '/mug.png',
+    });
+
+    render(
+      <CustomizationDraftProvider validationLabels={validationLabels}>
+        <CustomizationForm
+          customizationConfig={config.toJson()}
+          labels={labels}
+        />
+      </CustomizationDraftProvider>,
+    );
+
+    const sizeSelect = screen.getByRole('combobox', {
+      name: labels.customizationSize,
+    });
+
+    expect(sizeSelect).toBeTruthy();
+    expect(screen.getByRole('option', { name: 'S' })).toBeTruthy();
+    expect(screen.getByRole('option', { name: 'M' })).toBeTruthy();
+    expect(screen.getByRole('option', { name: 'L' })).toBeTruthy();
   });
 
   it('marks invalid text input with aria-invalid and an error description after validation', async () => {
@@ -81,7 +124,7 @@ describe('CustomizationForm', () => {
     });
 
     render(
-      <CustomizationDraftProvider>
+      <CustomizationDraftProvider validationLabels={validationLabels}>
         <CustomizationForm
           customizationConfig={config.toJson()}
           labels={labels}
@@ -97,6 +140,6 @@ describe('CustomizationForm', () => {
 
     expect(input).toHaveAttribute('aria-invalid', 'true');
     expect(input).toHaveAttribute('aria-describedby');
-    expect(screen.getByText(/500/i)).toBeTruthy();
+    expect(screen.getByText(validationLabels.textTooLong)).toBeTruthy();
   });
 });

@@ -14,6 +14,7 @@ interface PhotoUploadFieldProps {
   label: string;
   replaceLabel: string;
   removeLabel: string;
+  uploadingLabel: string;
   invalidImageLabel: string;
   imageTooLargeLabel: string;
   value: string | null;
@@ -26,6 +27,7 @@ export function PhotoUploadField({
   label,
   replaceLabel,
   removeLabel,
+  uploadingLabel,
   invalidImageLabel,
   imageTooLargeLabel,
   value,
@@ -89,7 +91,7 @@ export function PhotoUploadField({
       )}
       {isPending && !error && (
         <p id="customization-photo-status" role="status" aria-live="polite">
-          Uploading...
+          {uploadingLabel}
         </p>
       )}
     </div>
