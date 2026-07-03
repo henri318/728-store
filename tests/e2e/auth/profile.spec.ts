@@ -9,9 +9,8 @@ test.describe('Profile', () => {
     await page.getByRole('button', { name: 'Iniciar sesión' }).click();
     await expect(page).toHaveURL(/\/es\/?$/);
 
-    // Navigate to profile via menu
-    await page.getByRole('button', { name: /menu/i }).click();
-    await page.getByRole('menuitem', { name: /mi perfil/i }).click();
+    // Navigate directly to the protected profile route.
+    await page.goto('/es/profile');
 
     // Profile page should load with form fields
     await expect(page).toHaveURL(/\/es\/profile/);

@@ -18,14 +18,21 @@ test.describe('Products', () => {
   test('product detail page shows product info', async ({ page }) => {
     await page.goto('/es');
 
-    await page
-      .getByRole('link', { name: /ver detalles/i })
+    const detailsHref = await page
+      .locator('a[href*="/products/"]')
       .first()
-      .click();
+      .getAttribute('href');
+    expect(detailsHref).toBeTruthy();
 
-    await expect(page).toHaveURL(/\/es\/products\//);
+    await page.goto(detailsHref!);
 
+    const productTitle = await page.locator('h1').first().textContent();
+    expect(productTitle).toBeTruthy();
     await expect(page.locator('h1').first()).toBeVisible();
+    await expect(page.getByRole('img', { name: productTitle! })).toBeVisible();
+    await expect(
+      page.getByText('Vista previa de personalización'),
+    ).toBeVisible();
   });
 
   test('navigates between locales', async ({ page }) => {

@@ -4,6 +4,7 @@ import type { TagEntity } from './tag';
 import type { CategoryEntity } from './category';
 import type { ProductStatus } from '../value-objects/product-status';
 import type { ProductPrice } from '../value-objects/product-price';
+import type { ProductCustomizationConfig } from '../value-objects/product-customization-config';
 
 export interface ProductEntity {
   readonly id: string;
@@ -13,6 +14,7 @@ export interface ProductEntity {
   readonly status: ProductStatus;
   readonly categoryId: string | null;
   readonly category: CategoryEntity | null;
+  readonly customizationConfig?: ProductCustomizationConfig;
   readonly createdAt: Date;
   readonly updatedAt: Date;
   readonly translations: ProductTranslationEntity[];

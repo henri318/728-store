@@ -1,5 +1,24 @@
 import { z } from 'zod';
 
+const designBlendModeSchema = z.enum([
+  'source-over',
+  'multiply',
+  'overlay',
+  'soft-light',
+]);
+
+export const designPositionSchema = z
+  .object({
+    imageUrl: z.string().min(1),
+    x: z.number().min(0).max(1),
+    y: z.number().min(0).max(1),
+    scale: z.number().min(10).max(200),
+    rotation_deg: z.number().min(-45).max(45),
+    opacity: z.number().min(0).max(100),
+    blend_mode: designBlendModeSchema,
+  })
+  .strict();
+
 const customizationFieldsSchema = z.object({
   text: z.string().max(500).nullable().optional(),
   color: z
@@ -23,9 +42,16 @@ const customizationFieldsSchema = z.object({
     .regex(/^https?:\/\/.+/, 'Image URL must start with http:// or https://')
     .nullable()
     .optional(),
+  designPosition: designPositionSchema.nullable().optional(),
 });
 
 export const createCustomizationSchema = customizationFieldsSchema
+  .extend({
+    productId: z.string().min(1, 'Product ID is required'),
+  })
+  .strict();
+
+export const createCustomerCustomizationSchema = customizationFieldsSchema
   .extend({
     productId: z.string().min(1, 'Product ID is required'),
   })
@@ -44,6 +70,7 @@ export const customizationResponseSchema = z.object({
   color: z.string().nullable(),
   size: z.string().nullable(),
   imageUrl: z.string().nullable(),
+  designPosition: designPositionSchema.nullable(),
   createdAt: z.string(),
 });
 
@@ -54,7 +81,11 @@ export const customizationListResponseSchema = z.object({
 export type CreateCustomizationInput = z.infer<
   typeof createCustomizationSchema
 >;
+export type CreateCustomerCustomizationInput = z.infer<
+  typeof createCustomerCustomizationSchema
+>;
 export type UpdateCustomizationInput = z.infer<
   typeof updateCustomizationSchema
 >;
 export type CustomizationResponse = z.infer<typeof customizationResponseSchema>;
+export type DesignPositionInput = z.infer<typeof designPositionSchema>;

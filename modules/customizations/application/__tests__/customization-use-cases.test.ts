@@ -184,6 +184,7 @@ describe('UpdateCustomization', () => {
       color: 'red',
       size: 'M',
       imageUrl: null,
+      designPosition: null,
       createdAt: new Date(),
     });
 
@@ -265,6 +266,7 @@ describe('DeleteCustomization', () => {
       color: null,
       size: null,
       imageUrl: null,
+      designPosition: null,
       createdAt: new Date(),
     });
 

@@ -11,11 +11,51 @@
   margin-bottom: var(--spacing-lg);
 }
 
+.headerLead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.createButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 0.6rem 1.2rem;
+  background: var(--color-green-dark);
+  color: var(--color-white);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: var(--font-weight-medium);
+  transition: opacity 0.15s ease;
+}
+
+.createButton:hover {
+  opacity: 0.85;
+}
+
 .title {
   margin: 0;
   font-size: 1.5rem;
   font-weight: var(--font-weight-semibold);
   color: var(--color-green-dark);
+}
+
+.rowActions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
 }
 
 .tableWrap {

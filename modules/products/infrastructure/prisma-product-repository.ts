@@ -99,26 +99,24 @@ export class PrismaProductRepository implements ProductRepository {
       }
     }
 
-    const [products, total] = await prisma.$transaction([
-      prisma.product.findMany({
-        where,
-        include: {
-          seller: true,
-          category: true,
-          translations: {
-            where: { locale: { in: [locale, 'es'] } },
-          },
-          images: {
-            orderBy: { position: 'asc' },
-          },
-          tags: true,
+    const products = await prisma.product.findMany({
+      where,
+      include: {
+        seller: true,
+        category: true,
+        translations: {
+          where: { locale: { in: [locale, 'es'] } },
         },
-        orderBy: { createdAt: sortDir },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-      }),
-      prisma.product.count({ where }),
-    ]);
+        images: {
+          orderBy: { position: 'asc' },
+        },
+        tags: true,
+      },
+      orderBy: { createdAt: sortDir },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
+    const total = await prisma.product.count({ where });
 
     return {
       items: products.map((product) => toDomainProduct(product)),
@@ -232,13 +230,19 @@ export class PrismaProductRepository implements ProductRepository {
     await prisma.product.create({
       data: {
         ...data,
+        translations: {
+          create: entity.translations.map((translation) => ({
+            locale: translation.locale,
+            name: translation.name,
+            description: translation.description,
+          })),
+        },
         images: {
           create: entity.images.map((img) => ({
             id: img.id,
             url: img.url,
             alt: img.alt,
             position: img.position,
-            productId: img.productId,
           })),
         },
         tags: {
@@ -250,16 +254,50 @@ export class PrismaProductRepository implements ProductRepository {
 
   async update(entity: ProductEntity): Promise<boolean> {
     const data = toPersistenceProduct(entity);
-    const result = await prisma.product.update({
-      where: { id: entity.id },
-      data: {
-        basePrice: data.basePrice,
-        currency: data.currency,
-        status: data.status,
-        categoryId: data.categoryId,
-        updatedAt: data.updatedAt,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.product.update({
+        where: { id: entity.id },
+        data: {
+          basePrice: data.basePrice,
+          currency: data.currency,
+          status: data.status,
+          categoryId: data.categoryId,
+          customizationConfig: data.customizationConfig,
+          updatedAt: data.updatedAt,
+          images: {
+            deleteMany: {},
+            create: entity.images.map((img) => ({
+              id: img.id,
+              url: img.url,
+              alt: img.alt,
+              position: img.position,
+            })),
+          },
+        },
+      });
+
+      for (const translation of entity.translations) {
+        await tx.productTranslation.upsert({
+          where: {
+            productId_locale: {
+              productId: entity.id,
+              locale: translation.locale,
+            },
+          },
+          create: {
+            productId: entity.id,
+            locale: translation.locale,
+            name: translation.name,
+            description: translation.description,
+          },
+          update: {
+            name: translation.name,
+            description: translation.description,
+          },
+        });
+      }
     });
-    return result !== null;
+
+    return true;
   }
 }

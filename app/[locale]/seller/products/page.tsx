@@ -134,18 +134,26 @@ export default async function SellerProductsPage({
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <div>
+        <div className={styles.headerLead}>
           <h2 className={styles.title}>{dict.sellerDashboard.title}</h2>
-        </div>
-        <div className={styles.searchWrap}>
-          <SearchForm
-            placeholder={dict.sellerDashboard.searchPlaceholder}
-            ariaLabel={dict.sellerDashboard.searchProducts}
-            defaultValue={filter.q ?? ''}
-            hiddenFields={{
-              pageSize: String(filter.pageSize ?? PaginationDefaults.pageSize),
-            }}
-          />
+          <div className={styles.headerActions}>
+            <a
+              href={`/${locale}/seller/products/new`}
+              className={styles.createButton}
+            >
+              + {dict.sellerDashboard.createProduct}
+            </a>
+            <SearchForm
+              placeholder={dict.sellerDashboard.searchPlaceholder}
+              ariaLabel={dict.sellerDashboard.searchProducts}
+              defaultValue={filter.q ?? ''}
+              hiddenFields={{
+                pageSize: String(
+                  filter.pageSize ?? PaginationDefaults.pageSize,
+                ),
+              }}
+            />
+          </div>
         </div>
       </div>
 

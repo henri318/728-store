@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:env": "docker compose up -d db product-assets",
+    "dev:full": "npm run dev:env && prisma db push && prisma db seed && npm run dev",
+    "dev:down": "docker compose down",
     "build": "next build",
     "build:analyze": "next experimental-analyze",
     "deploy": "prisma migrate deploy && next build",

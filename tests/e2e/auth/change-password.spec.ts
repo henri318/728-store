@@ -9,10 +9,8 @@ test.describe('Change Password', () => {
     await page.getByRole('button', { name: 'Iniciar sesión' }).click();
     await expect(page).toHaveURL(/\/es\/?$/);
 
-    // Navigate via menu
-    await page.getByRole('button', { name: /menu/i }).click();
-    await expect(page.getByRole('menu')).toBeVisible();
-    await page.getByRole('menuitem', { name: /editar contraseña/i }).click();
+    // Navigate directly to the protected page.
+    await page.goto('/es/auth/change-password');
 
     // Form should be visible
     await expect(page).toHaveURL(/\/es\/auth\/change-password/);

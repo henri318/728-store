@@ -7,7 +7,7 @@ if (existsSync('.env')) {
   process.loadEnvFile();
 }
 
-const adapter = new PrismaPg(process.env.DATABASE_URL!);
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
 const BCRYPT_COST = 12;
@@ -30,34 +30,27 @@ async function main() {
   await prisma.role.deleteMany();
 
   // 2. Seed roles (ADMIN, SUPPORT, DESIGNER, CUSTOMER)
-  const roles = await Promise.all([
-    prisma.role.upsert({
-      where: { name: 'ADMIN' },
-      update: {},
-      create: {
-        name: 'ADMIN',
-        description: 'System administrator with full access',
-      },
-    }),
-    prisma.role.upsert({
-      where: { name: 'SUPPORT' },
-      update: {},
-      create: { name: 'SUPPORT', description: 'Customer support agent' },
-    }),
-    prisma.role.upsert({
-      where: { name: 'DESIGNER' },
-      update: {},
-      create: {
-        name: 'DESIGNER',
-        description: 'Product designer with customization access',
-      },
-    }),
-    prisma.role.upsert({
-      where: { name: 'CUSTOMER' },
-      update: {},
-      create: { name: 'CUSTOMER', description: 'Registered customer' },
-    }),
-  ]);
+  const roles: Array<{ name: string }> = [];
+  for (const role of [
+    {
+      name: 'ADMIN',
+      description: 'System administrator with full access',
+    },
+    { name: 'SUPPORT', description: 'Customer support agent' },
+    {
+      name: 'DESIGNER',
+      description: 'Product designer with customization access',
+    },
+    { name: 'CUSTOMER', description: 'Registered customer' },
+  ]) {
+    roles.push(
+      await prisma.role.upsert({
+        where: { name: role.name },
+        update: {},
+        create: role,
+      }),
+    );
+  }
   console.log(`  ✓ Roles seeded: ${roles.map((r) => r.name).join(', ')}`);
 
   // 2. Create Admin user with ADMIN role
@@ -123,15 +116,16 @@ async function main() {
     { name: 'Premium', slug: 'premium' },
     { name: 'Básico', slug: 'basico' },
   ];
-  const tags = await Promise.all(
-    tagData.map((t) =>
-      prisma.tag.upsert({
-        where: { slug: t.slug },
+  const tags: Array<{ id: string; name: string; slug: string }> = [];
+  for (const tag of tagData) {
+    tags.push(
+      await prisma.tag.upsert({
+        where: { slug: tag.slug },
         update: {},
-        create: { name: t.name, slug: t.slug },
+        create: { name: tag.name, slug: tag.slug },
       }),
-    ),
-  );
+    );
+  }
   console.log(`  ✓ Tags seeded: ${tags.map((t) => t.name).join(', ')}`);
 
   // 6. Create 25 Products with i18n translations
@@ -518,6 +512,15 @@ async function main() {
           description:
             'Motxilla lleugera i resistent feta amb cotó orgànic tenyit natural.',
         },
+      },
+      images: {
+        create: [
+          {
+            url: '/img/products/customizable-hoodie.svg',
+            alt: 'Mochila de Algodón Orgánico',
+            position: 0,
+          },
+        ],
       },
     },
   ];

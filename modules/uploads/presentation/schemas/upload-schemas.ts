@@ -15,6 +15,15 @@ export const presignedUrlSchema = z.object({
   size: z.number().int().positive(),
 });
 
+/** POST /api/uploads/guest/presigned-url */
+export const guestPresignedUrlSchema = z.object({
+  fileName: z.string().min(1),
+  mimeType: z.string().min(1),
+  size: z.number().int().positive(),
+});
+
+export type GuestPresignedUrlInput = z.infer<typeof guestPresignedUrlSchema>;
+
 /** POST /api/uploads/[id]/confirm */
 export const confirmUploadSchema = z.object({});
 

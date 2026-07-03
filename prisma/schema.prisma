@@ -60,6 +60,7 @@ model Product {
   status         String                 @default("ACTIVE") // DRAFT | ACTIVE | ARCHIVED
   categoryId     String?
   category       Category?              @relation(fields: [categoryId], references: [id])
+  customizationConfig Json?
   images         ProductImage[]
   tags           Tag[]                  @relation("ProductTags")
   translations   ProductTranslation[]
@@ -80,15 +81,31 @@ model ProductTranslation {
   @@unique([productId, locale])
 }
 
+model SearchHistory {
+  id         String   @id @default(cuid())
+  userId     String
+  term       String
+  locale     String
+  searchedAt DateTime @default(now())
+
+  @@unique([userId, term, locale])
+  @@index([userId, locale, searchedAt(sort: Desc)])
+}
+
 model Customization {
-  id        String   @id @default(cuid())
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  text      String?
-  color     String?
-  size      String?
-  imageUrl  String?
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  text           String?
+  color          String?
+  size           String?
+  imageUrl       String?
+  /// Buyer-side design position captured by the mockup canvas.
+  /// Stored as JSONB so we can preserve the full shape (x, y, scale,
+  /// rotation_deg, opacity, blend_mode, imageUrl) without a wide row.
+  /// Nullable — older rows and text-only customizations have no design.
+  designPosition Json?
+  createdAt      DateTime @default(now())
 
   @@index([productId])
 }
@@ -193,6 +210,7 @@ enum UploadType {
   avatar
   ticket
   general
+  customization
 }
 
 enum UploadStatus {
@@ -239,21 +257,6 @@ model Tag {
   slug      String    @unique
   products  Product[] @relation("ProductTags")
   createdAt DateTime  @default(now())
-}
-
-/// Persisted recent-search history for authenticated users.
-///
-/// v1 spec: only authenticated users are recorded. The composition root
-/// guards this — the event-bus subscriber no-ops for null `userId`.
-model SearchHistory {
-  id         String   @id @default(cuid())
-  userId     String
-  term       String
-  locale     String
-  searchedAt DateTime @default(now())
-
-  @@unique([userId, term, locale])
-  @@index([userId, locale, searchedAt(sort: Desc)])
 }
 
 model Category {

@@ -1,6 +1,7 @@
 import type { CartRepository } from '../domain/cart-repository';
 import type { ProductRepository } from '../domain/product-repository';
 import type { CustomizationLookupPort } from '../domain/customization-lookup-port';
+import type { CustomizationCreatePort } from '../domain/customization-create-port';
 import { CartStatus } from '../domain/value-objects/cart-status';
 import { ProductId } from '@/shared/kernel/domain/value-objects/product-id';
 import { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
@@ -10,6 +11,8 @@ import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import type { CartEntity } from '../domain/entities/cart';
 import type { CartItemEntity } from '../domain/entities/cart-item';
+import type { ProductCapabilityPort } from '@/modules/products/domain/product-capability-port';
+import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
 
 // --- Types ---
 
@@ -22,6 +25,19 @@ export interface GuestCartItem {
   customizationColor?: string | null;
   customizationSize?: string | null;
   customizationImageUrl?: string | null;
+  /**
+   * Buyer-side design position captured by the mockup canvas. Optional —
+   * text-only and legacy guest items do not have one.
+   */
+  customizationDesignPosition?: {
+    imageUrl: string;
+    x: number;
+    y: number;
+    scale: number;
+    rotation_deg: number;
+    opacity: number;
+    blend_mode: string;
+  } | null;
 }
 
 export type MergeStrategy = 'merge' | 'keep-server' | 'keep-guest';
@@ -47,6 +63,8 @@ export class MigrateGuestCart {
     private productRepository: ProductRepository,
     private outboxRepository: OutboxRepository,
     private customizationLookup: CustomizationLookupPort,
+    private productCapability?: ProductCapabilityPort,
+    private customizationCreator?: CustomizationCreatePort,
   ) {}
 
   async execute(dto: MigrateGuestCartDTO): Promise<MigrateGuestCartResult> {
@@ -66,17 +84,27 @@ export class MigrateGuestCart {
     const productMap = await this.productRepository.findByIds(uniqueIds);
 
     const customizationByProductId = new Map<string, CustomizationRecord[]>();
+    const capabilityByProductId = new Map<string, ProductCustomizationConfig>();
+    const createdCustomizationCache = new Map<string, string>();
     const availableProductIds = [
       ...new Set(dto.guestItems.map((g) => g.productId)),
     ].filter((productId) => productMap.has(productId));
-    await Promise.all(
-      availableProductIds.map(async (productId) => {
-        customizationByProductId.set(
+    for (const productId of availableProductIds) {
+      customizationByProductId.set(
+        productId,
+        await this.customizationLookup.findByProductId(productId),
+      );
+    }
+
+    if (this.productCapability) {
+      for (const productId of availableProductIds) {
+        capabilityByProductId.set(
           productId,
-          await this.customizationLookup.findByProductId(productId),
+          (await this.productCapability?.getConfig(productId)) ??
+            ProductCustomizationConfig.default(),
         );
-      }),
-    );
+      }
+    }
 
     const availableGuest: Array<{
       item: GuestCartItem;
@@ -93,9 +121,19 @@ export class MigrateGuestCart {
         continue;
       }
 
-      const customizationIdList = resolveGuestCustomizationIds(
+      const capability = capabilityByProductId.get(g.productId);
+      if (capability && !isCustomizationAllowed(g, capability)) {
+        if (!skippedCustomizationProductIds.includes(g.productId)) {
+          skippedCustomizationProductIds.push(g.productId);
+        }
+        continue;
+      }
+
+      const customizationIdList = await resolveGuestCustomizationIds(
         g,
         customizationByProductId.get(g.productId) ?? [],
+        this.customizationCreator,
+        createdCustomizationCache,
       );
       if (customizationIdList === null) {
         if (!skippedCustomizationProductIds.includes(g.productId)) {
@@ -263,20 +301,29 @@ type CustomizationRecord = {
   color: string | null;
   size: string | null;
   imageUrl: string | null;
+  designPosition: unknown;
 };
 
 function resolveGuestCustomizationIds(
   g: GuestCartItem,
   customizations: CustomizationRecord[],
-): string[] | null {
+  customizationCreator: CustomizationCreatePort | undefined,
+  createdCustomizationCache: Map<string, string>,
+): Promise<string[] | null> {
   const hasCustomization =
     (g.customizationText !== undefined && g.customizationText !== null) ||
     (g.customizationColor !== undefined && g.customizationColor !== null) ||
     (g.customizationSize !== undefined && g.customizationSize !== null) ||
-    (g.customizationImageUrl !== undefined && g.customizationImageUrl !== null);
+    (g.customizationImageUrl !== undefined &&
+      g.customizationImageUrl !== null) ||
+    (g.customizationDesignPosition !== undefined &&
+      g.customizationDesignPosition !== null);
 
-  if (!hasCustomization) return [];
+  if (!hasCustomization) return Promise.resolve([]);
 
+  // Canvas-only customizations are matched by the imageUrl baked into
+  // designPosition. We still keep the text/color/size matchers so legacy
+  // guest items continue to dedupe.
   const matches = customizations.filter(
     (customization) =>
       customization.text === (g.customizationText ?? null) &&
@@ -285,8 +332,57 @@ function resolveGuestCustomizationIds(
       customization.imageUrl === (g.customizationImageUrl ?? null),
   );
 
-  if (matches.length !== 1) return null;
-  return [matches[0].id];
+  if (matches.length === 1) return Promise.resolve([matches[0].id]);
+  if (matches.length > 1 || !customizationCreator) return Promise.resolve(null);
+
+  const cacheKey = guestCustomizationKey(g);
+  const cached = createdCustomizationCache.get(cacheKey);
+  if (cached) return Promise.resolve([cached]);
+
+  return customizationCreator
+    .create({
+      productId: g.productId,
+      text: g.customizationText ?? null,
+      color: g.customizationColor ?? null,
+      size: g.customizationSize ?? null,
+      imageUrl: g.customizationImageUrl ?? null,
+      designPosition: g.customizationDesignPosition ?? null,
+    })
+    .then((created) => {
+      createdCustomizationCache.set(cacheKey, created.id);
+      return [created.id];
+    });
+}
+
+function guestCustomizationKey(g: GuestCartItem): string {
+  return [
+    g.productId,
+    g.customizationText ?? '',
+    g.customizationColor ?? '',
+    g.customizationSize ?? '',
+    g.customizationImageUrl ?? '',
+    g.customizationDesignPosition
+      ? JSON.stringify(g.customizationDesignPosition)
+      : '',
+  ].join('|');
+}
+
+function isCustomizationAllowed(
+  g: GuestCartItem,
+  capability: ProductCustomizationConfig,
+): boolean {
+  const hasText =
+    g.customizationText !== undefined && g.customizationText !== null;
+  const hasStyle =
+    (g.customizationColor !== undefined && g.customizationColor !== null) ||
+    (g.customizationSize !== undefined && g.customizationSize !== null);
+  const hasPhoto =
+    g.customizationImageUrl !== undefined && g.customizationImageUrl !== null;
+
+  if (hasPhoto && !capability.allowsPhoto()) return false;
+  if (hasStyle && !capability.allowsStyleOptions()) return false;
+  if (hasText && !capability.allowsText()) return false;
+  return true;
 }
 
 function isSameVariant(

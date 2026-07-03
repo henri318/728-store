@@ -151,8 +151,9 @@ async function buildLineItems(
   items: CartLineSnapshot[],
   customizationLookup: CustomizationLookupPort,
 ): Promise<OrderLineItemEntity[]> {
-  return Promise.all(
-    items.map(async (item) => ({
+  const lineItems: OrderLineItemEntity[] = [];
+  for (const item of items) {
+    lineItems.push({
       id: crypto.randomUUID(),
       orderId,
       productId: item.productId,
@@ -162,8 +163,10 @@ async function buildLineItems(
         item,
         customizationLookup,
       ),
-    })),
-  );
+    });
+  }
+
+  return lineItems;
 }
 
 async function resolveCustomizationSnapshot(
@@ -189,5 +192,6 @@ function toFrozenCustomizationSnapshot(
     color: customization.color,
     size: customization.size,
     imageUrl: customization.imageUrl,
+    designPosition: customization.designPosition,
   };
 }

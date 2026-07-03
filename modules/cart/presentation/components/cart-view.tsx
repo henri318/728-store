@@ -1,11 +1,10 @@
 'use client';
 
 import { useReducer, useCallback, useEffect } from 'react';
-import Image from 'next/image';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
+import { DesignPreview } from '@/modules/presentation/components/design-preview';
 import { Money } from '@/shared/kernel/domain/value-objects/money';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
-import { QuantityControls } from '@/shared/ui/quantity-controls';
 import styles from './cart-view.module.css';
 
 // --- Types ---
@@ -25,6 +24,17 @@ export interface CartItemDTO {
     color: string | null;
     size: string | null;
     imageUrl: string | null;
+    imageUploadId?: string | null;
+    colorImageUrl?: string | null;
+    designPosition?: {
+      imageUrl: string;
+      x: number;
+      y: number;
+      scale: number;
+      rotation_deg: number;
+      opacity: number;
+      blend_mode: string;
+    } | null;
   };
 }
 
@@ -57,9 +67,46 @@ interface CartViewProps {
     customizationSize: string;
     customizationColor: string;
     customizationText: string;
-    increaseQuantity: string;
     decreaseQuantity: string;
+    increaseQuantity: string;
+    customizationEditFromCart?: string;
   };
+}
+
+function buildCustomizationHref(
+  locale: string,
+  productId: string,
+  customization: CartItemDTO['customization'],
+): string | null {
+  const hasCustomization =
+    customization.text ||
+    customization.color ||
+    customization.size ||
+    customization.imageUrl ||
+    customization.imageUploadId ||
+    customization.designPosition;
+
+  if (!hasCustomization) {
+    return null;
+  }
+
+  const params = new URLSearchParams();
+  if (customization.text) params.set('customizationText', customization.text);
+  if (customization.color)
+    params.set('customizationColor', customization.color);
+  if (customization.size) params.set('customizationSize', customization.size);
+  if (customization.imageUrl)
+    params.set('customizationImageUrl', customization.imageUrl);
+  if (customization.imageUploadId)
+    params.set('customizationImageUploadId', customization.imageUploadId);
+  if (customization.designPosition)
+    params.set(
+      'customizationDesignPosition',
+      JSON.stringify(customization.designPosition),
+    );
+
+  const query = params.toString();
+  return `/${locale}/products/${productId}${query ? `?${query}` : ''}`;
 }
 
 /**
@@ -109,6 +156,9 @@ export function CartView({
           color: gi.customizationColor ?? null,
           size: gi.customizationSize ?? null,
           imageUrl: gi.customizationImageUrl ?? null,
+          imageUploadId: gi.customizationImageUploadId ?? null,
+          colorImageUrl: gi.productImageUrl ?? null,
+          designPosition: gi.customizationDesignPosition ?? null,
         },
       }));
 
@@ -217,77 +267,136 @@ export function CartView({
       <h2 className={styles.title}>{labels.title}</h2>
 
       <div className={styles.items}>
-        {items.map((item) => (
-          <div key={item.id} className={styles.itemRow}>
-            <div className={styles.itemInfo}>
-              {item.productImageUrl && (
-                <Image
-                  src={item.productImageUrl}
-                  alt={item.productName}
-                  width={64}
-                  height={64}
-                  className={styles.thumbnail}
-                />
-              )}
-              <div className={styles.itemDetails}>
+        {items.map((item) => {
+          const previewUrl =
+            item.customization.colorImageUrl ?? item.productImageUrl;
+          const designPos = item.customization.designPosition;
+          const showCombined =
+            item.customization.imageUrl && designPos && previewUrl;
+
+          return (
+            <div key={item.id} className={styles.itemRow}>
+              <div className={styles.itemPreview}>
+                {showCombined ? (
+                  <DesignPreview
+                    productImageUrl={previewUrl!}
+                    designImageUrl={item.customization.imageUrl!}
+                    designPosition={designPos!}
+                    width={100}
+                    height={100}
+                    borderRadius={6}
+                  />
+                ) : previewUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={previewUrl}
+                    alt={item.productName}
+                    className={styles.previewImage}
+                  />
+                ) : null}
+                {!showCombined && item.customization.imageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={item.customization.imageUrl}
+                    alt="Dise\u00f1o subido"
+                    className={styles.designThumb}
+                  />
+                )}
+              </div>
+
+              <div className={styles.itemInfo}>
                 <span className={styles.productName}>{item.productName}</span>
                 <span className={styles.sellerName}>
                   {labels.soldBy} {item.sellerName}
                 </span>
-                {(item.customization.text ||
-                  item.customization.color ||
-                  item.customization.size) && (
-                  <span className={styles.customization}>
-                    {[
-                      item.customization.size &&
-                        `${labels.customizationSize}: ${item.customization.size}`,
-                      item.customization.color &&
-                        `${labels.customizationColor}: ${item.customization.color}`,
-                      item.customization.text &&
-                        `${labels.customizationText}: ${item.customization.text}`,
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')}
+
+                {item.customization.size && (
+                  <span className={styles.customizationLine}>
+                    {labels.customizationSize}: {item.customization.size}
                   </span>
                 )}
+
+                {item.customization.color && (
+                  <span className={styles.customizationLine}>
+                    Estilo: {item.customization.color}
+                  </span>
+                )}
+
+                {item.customization.text && (
+                  <span className={styles.customizationText}>
+                    {item.customization.text}
+                  </span>
+                )}
+
+                {labels.customizationEditFromCart &&
+                  buildCustomizationHref(
+                    locale,
+                    item.productId,
+                    item.customization,
+                  ) && (
+                    <a
+                      href={
+                        buildCustomizationHref(
+                          locale,
+                          item.productId,
+                          item.customization,
+                        ) ?? '#'
+                      }
+                      className={styles.editLink}
+                    >
+                      {labels.customizationEditFromCart}
+                    </a>
+                  )}
+              </div>
+
+              <div className={styles.itemActions}>
+                <span className={styles.unitPrice}>
+                  <span className={styles.unitPriceLabel}>Precio:</span>{' '}
+                  {Money.format(item.unitPrice, Currency.EUR)}
+                </span>
+
+                <div className={styles.quantityControls}>
+                  <button
+                    aria-label={labels.decreaseQuantity}
+                    className={styles.qtyButton}
+                    onClick={() => handleUpdateQuantity(item, -1)}
+                    disabled={item.quantity <= 1}
+                  >
+                    −
+                  </button>
+                  <span className={styles.quantity}>{item.quantity}</span>
+                  <button
+                    aria-label={labels.increaseQuantity}
+                    className={styles.qtyButton}
+                    onClick={() => handleUpdateQuantity(item, +1)}
+                    disabled={item.quantity >= 99}
+                  >
+                    +
+                  </button>
+                </div>
+
+                <span className={styles.lineTotal}>
+                  {Money.format(item.lineTotal, Currency.EUR)}
+                </span>
+
+                <button
+                  aria-label={labels.remove}
+                  className={styles.removeButton}
+                  onClick={() => handleRemove(item)}
+                >
+                  <svg
+                    className={styles.iconTrash}
+                    aria-hidden="true"
+                    width="18"
+                    height="18"
+                  >
+                    <use href="/img/icons/sprites.svg#icon-trash" />
+                  </svg>
+                </button>
               </div>
             </div>
-
-            <div className={styles.itemActions}>
-              <QuantityControls
-                value={item.quantity}
-                onChange={(newQty) =>
-                  handleUpdateQuantity(item, newQty - item.quantity)
-                }
-                decrementLabel={labels.decreaseQuantity}
-                incrementLabel={labels.increaseQuantity}
-              />
-
-              <span className={styles.unitPrice}>
-                {Money.format(item.unitPrice, Currency.EUR)}
-              </span>
-
-              <span className={styles.lineTotal}>
-                {Money.format(item.lineTotal, Currency.EUR)}
-              </span>
-
-              <button
-                aria-label={labels.remove}
-                className={styles.removeButton}
-                onClick={() => handleRemove(item)}
-              >
-                <svg
-                  className={styles.iconTrash}
-                  aria-hidden="true"
-                  width="18"
-                  height="18"
-                >
-                  <use href="/img/icons/sprites.svg#icon-trash" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className={styles.summary}>

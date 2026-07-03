@@ -18,7 +18,7 @@ describe('CreateUploadUseCase', () => {
 
   // ── Happy Path ──────────────────────────────────────────────
 
-  it('should create a PENDING upload and return presigned URL + storageKey + id', async () => {
+  it('should create a PENDING upload and return local/public read URLs', async () => {
     const result = await useCase.execute({
       userId: 'user-1',
       type: UploadType.product,
@@ -31,6 +31,8 @@ describe('CreateUploadUseCase', () => {
     expect(result.id.length).toBeGreaterThan(0);
     expect(result.storageKey).toMatch(/^product\/user-1\/[\w-]+\.webp$/);
     expect(result.uploadUrl).toContain(result.storageKey);
+    expect(result.readUrl).toContain(result.storageKey);
+    expect(result.publicUrl).toContain(result.storageKey);
   });
 
   it('should save the upload with PENDING status and all fields', async () => {

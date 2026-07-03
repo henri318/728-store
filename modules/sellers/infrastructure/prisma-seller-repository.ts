@@ -84,15 +84,13 @@ export class PrismaSellerRepository implements SellerRepository {
 
     const where = this.buildWhere(filter);
 
-    const [rows, total] = await prisma.$transaction([
-      prisma.seller.findMany({
-        where,
-        orderBy: { [sortBy]: sortDir },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-      }),
-      prisma.seller.count({ where }),
-    ]);
+    const rows = await prisma.seller.findMany({
+      where,
+      orderBy: { [sortBy]: sortDir },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
+    const total = await prisma.seller.count({ where });
 
     return {
       items: rows.map(toDomain),

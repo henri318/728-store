@@ -49,6 +49,7 @@ export const PATCH = requireRole('CUSTOMER')(async function PATCH(
       userId,
       itemId,
       quantity: validated.quantity,
+      customizationIdList: validated.customizationIdList,
     });
 
     // Enrich the item with product display data + resolved customizations.
@@ -143,6 +144,7 @@ function enrichCartItem(
       color: c.color,
       size: c.size,
       imageUrl: c.imageUrl,
+      designPosition: c.designPosition,
     })),
   };
 }

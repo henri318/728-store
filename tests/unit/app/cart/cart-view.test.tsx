@@ -296,8 +296,8 @@ describe('CartView', () => {
     });
 
     await waitFor(() => {
-      expect(screen.queryByText('3')).toBeNull();
-      expect(screen.getAllByText('2').length).toBeGreaterThan(0);
+      expect(screen.queryByText(/^3$/)).toBeNull();
+      expect(screen.getAllByText(/^2$/).length).toBeGreaterThan(0);
     });
   });
 
