@@ -37,6 +37,23 @@ describe('CustomizationForm', () => {
     customizationPreview: 'Customization preview',
     customizationPreviewDisclaimer:
       'Preview is a buying aid only — final product may vary.',
+    customizationCanvasLabel: 'Canvas',
+    customizationCanvasHelp: 'Drag to position',
+    customizationProductImageAlt: 'Product photo',
+    customizationDesignImageAlt: 'Design image',
+    customizationUploadDesign: 'Upload design',
+    customizationReplaceDesign: 'Replace design',
+    customizationRemoveDesign: 'Remove design',
+    customizationDesignUploading: 'Uploading...',
+    customizationDesignInvalid: 'Invalid image',
+    customizationDesignTooLarge: 'Image too large',
+    customizationScaleLabel: 'Scale',
+    customizationRotationLabel: 'Rotation',
+    customizationOpacityLabel: 'Opacity',
+    customizationPositionReadoutLabel: 'Position',
+    customizationPositionXLabel: 'X',
+    customizationPositionYLabel: 'Y',
+    customizationCanvasReset: 'Reset',
   };
 
   beforeEach(() => {
@@ -54,7 +71,6 @@ describe('CustomizationForm', () => {
         <CustomizationForm
           customizationConfig={ProductCustomizationConfig.default().toJson()}
           productImages={productImages}
-          productImageUrl=""
           labels={labels}
         />
       </CustomizationDraftProvider>,
@@ -82,7 +98,6 @@ describe('CustomizationForm', () => {
         <CustomizationForm
           customizationConfig={config.toJson()}
           productImages={[]}
-          productImageUrl=""
           labels={labels}
         />
       </CustomizationDraftProvider>,
@@ -107,7 +122,6 @@ describe('CustomizationForm', () => {
         <CustomizationForm
           customizationConfig={config.toJson()}
           productImages={[]}
-          productImageUrl=""
           labels={labels}
         />
       </CustomizationDraftProvider>,
@@ -124,12 +138,12 @@ describe('CustomizationForm', () => {
   });
 
   it('marks invalid text input with aria-invalid and an error description after validation', async () => {
+    const config = ProductCustomizationConfig.default();
     const { container } = render(
       <CustomizationDraftProvider validationLabels={validationLabels}>
         <CustomizationForm
-          customizationConfig={ProductCustomizationConfig.default().toJson()}
+          customizationConfig={config.toJson()}
           productImages={[]}
-          productImageUrl=""
           labels={labels}
         />
       </CustomizationDraftProvider>,

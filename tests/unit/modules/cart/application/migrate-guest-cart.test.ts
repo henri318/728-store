@@ -84,6 +84,7 @@ describe('MigrateGuestCart', () => {
           color: input.color ?? null,
           size: input.size ?? null,
           imageUrl: input.imageUrl ?? null,
+          designPosition: null,
         };
       },
     };

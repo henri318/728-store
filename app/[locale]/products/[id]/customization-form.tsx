@@ -43,7 +43,6 @@ interface CustomizationFormLabels {
 
 interface CustomizationFormProps {
   customizationConfig: ProductCustomizationConfigJson;
-  productImageUrl: string;
   productImages: ProductImageItem[];
   labels: CustomizationFormLabels;
   onValidate?: () => void;
@@ -53,7 +52,6 @@ export function CustomizationForm({
   customizationConfig,
   productImages,
   labels,
-  _productImageUrl,
   onValidate,
 }: CustomizationFormProps) {
   const { draft, errors, setText, setColor, setSize, validateDraft } =

@@ -44,6 +44,7 @@ describe('CustomizationPreview', () => {
           imageUploadId: 'upload-1',
           imageUrl: '/upload-preview.png',
           error: null,
+          designPosition: null,
         }}
         labels={labels}
       />,
@@ -85,6 +86,7 @@ describe('CustomizationPreview', () => {
           imageUploadId: null,
           imageUrl: null,
           error: null,
+          designPosition: null,
         }}
         labels={labels}
       />,
@@ -117,6 +119,7 @@ describe('CustomizationPreview', () => {
           imageUploadId: null,
           imageUrl: null,
           error: null,
+          designPosition: null,
         }}
         labels={labels}
       />,

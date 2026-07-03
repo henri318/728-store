@@ -180,7 +180,6 @@ function CustomizationExperienceInner({
         <div className={styles.formCol}>
           <CustomizationForm
             customizationConfig={customizationConfig}
-            productImageUrl={previewBaseImageUrl}
             productImages={productImages}
             labels={labels}
           />

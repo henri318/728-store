@@ -292,7 +292,7 @@ export function CartPopup({ labels }: CartPopupProps) {
                           designImageUrl={item.customization.imageUrl}
                           designPosition={
                             item.customization
-                              .designPosition as DesignPositionData
+                              .designPosition as unknown as DesignPositionData
                           }
                           width={40}
                           height={40}

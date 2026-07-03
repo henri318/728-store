@@ -112,6 +112,7 @@ describe('HandleCartCheckedOut — Integration', () => {
               color: 'red',
               size: 'M',
               imageUrl: null,
+              designPosition: null,
             },
           ],
         },
