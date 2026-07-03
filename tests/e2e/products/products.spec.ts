@@ -26,10 +26,10 @@ test.describe('Products', () => {
 
     await page.goto(detailsHref!);
 
+    const productTitle = await page.locator('h1').first().textContent();
+    expect(productTitle).toBeTruthy();
     await expect(page.locator('h1').first()).toBeVisible();
-    await expect(
-      page.getByRole('img', { name: 'Camiseta Personalizada' }),
-    ).toBeVisible();
+    await expect(page.getByRole('img', { name: productTitle! })).toBeVisible();
     await expect(
       page.getByText('Vista previa de personalización'),
     ).toBeVisible();

@@ -513,6 +513,15 @@ async function main() {
             'Motxilla lleugera i resistent feta amb cotó orgànic tenyit natural.',
         },
       },
+      images: {
+        create: [
+          {
+            url: '/img/products/customizable-hoodie.svg',
+            alt: 'Mochila de Algodón Orgánico',
+            position: 0,
+          },
+        ],
+      },
     },
   ];
 
