@@ -1,26 +1,79 @@
-import Image from 'next/image';
-import Link from 'next/link';
 import { container } from '@/composition-root/container';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
-import { HeroSection } from '@/shared/presentation/components/hero-section';
-import { MiddleSection } from '@/shared/presentation/components/middle-section';
-import { WaveTransition } from '@/shared/presentation/components/wave-transition';
-import { BottomSection } from '@/shared/presentation/components/bottom-section';
-import { AddToCartButton } from '@/components/cart/add-to-cart-button';
-import styles from './page.module.css';
+import { HeroSection } from '@/shared/ui/hero-section';
+import { MiddleSection } from '@/shared/ui/middle-section';
+import { WaveTransition } from '@/shared/ui/wave-transition';
+import { BottomSection } from '@/shared/ui/bottom-section';
+import { InfiniteProductList } from '@/components/products/infinite-product-list';
+import {
+  SearchInputWithSuggestions,
+  type RecentSearchSuggestion,
+} from '@/components/products/search-input-with-suggestions';
+import { GetRecentSearchesUseCase } from '@/modules/search-history/application/get-recent-searches-use-case';
+import { ProductListQueryUseCase } from '@/modules/products/application/product-list-query-use-case';
+
+const PUBLIC_PAGE_SIZE = 10;
 
 export default async function HomePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ q?: string }>;
 }) {
   const { locale } = await params;
+  const { q: qParam } = await searchParams;
+  const q = (qParam ?? '').trim();
   const dict = await getDictionary(locale as 'es' | 'cat');
 
-  const products = await container.getProductRepository().findAll(locale);
-  const activeProducts = products.filter(
-    (product) => product.status === 'ACTIVE',
+  // SSR first page — the storefront never renders a blank shell.
+  // The outbox is required so that PUBLIC searches with a non-empty q
+  // emit PRODUCT_SEARCH_EXECUTED and the search-history module records
+  // the term for authenticated users.
+  const session = await container.getSession().getSession();
+  const useCase = new ProductListQueryUseCase(
+    container.getProductRepository(),
+    container.getOutboxRepository(), // needed for the event emission
   );
+  const initial = await useCase.execute({
+    audience: 'public',
+    pageSize: PUBLIC_PAGE_SIZE,
+    page: 1,
+    q: q || undefined,
+    lang: locale as 'es' | 'cat',
+    userId: session?.id ?? null,
+  });
+
+  // Server-backed recent suggestions for authenticated users only.
+  // v1 spec: guests receive null; no localStorage / sessionStorage / cookies
+  // are ever written by the search feature.
+  const recent: RecentSearchSuggestion[] | null = session
+    ? await new GetRecentSearchesUseCase(container.getSearchHistoryRepository())
+        .execute({ userId: session.id, locale })
+        .then((entries) =>
+          entries.map((e) => ({
+            term: e.term,
+            searchedAt: e.searchedAt.toISOString(),
+          })),
+        )
+    : null;
+
+  // Client island receives a stable JSON shape. We pre-format
+  // the price string on the server so the client never receives
+  // a function reference (React cannot serialize functions).
+  const initialItems = initial.items.map((product) => ({
+    id: product.id,
+    basePrice: {
+      amount: product.basePrice.amount,
+      currency: product.basePrice.currency,
+      formattedPrice: product.basePrice.format(),
+    },
+    sellerId: product.sellerId,
+    sellerName: product.sellerName,
+    translations: product.translations,
+    images: product.images,
+    tags: product.tags,
+  }));
 
   return (
     <div>
@@ -30,88 +83,37 @@ export default async function HomePage({
       />
 
       <MiddleSection ariaLabel={dict.common.products}>
-        <div className={styles.productGrid}>
-          {activeProducts.length === 0 ? (
-            <p className={styles.emptyMessage}>{dict.common.noProducts}</p>
-          ) : (
-            activeProducts.map((product) => {
-              const translation = product.translations[0] || {
-                name: 'Untranslated',
-                description: '',
-              };
-              const primaryImage = product.images[0] ?? null;
-              const customizationHref = `/${locale}/products/${product.id}`;
-              return (
-                <div key={product.id} className={styles.productCard}>
-                  <div className={styles.productImageWrap}>
-                    {primaryImage ? (
-                      <Image
-                        src={primaryImage.url}
-                        alt={primaryImage.alt ?? translation.name}
-                        fill
-                        unoptimized
-                        sizes="(max-width: 768px) 100vw, 25vw"
-                        className={styles.productImage}
-                      />
-                    ) : (
-                      <div
-                        className={styles.productImageFallback}
-                        aria-hidden="true"
-                      >
-                        {translation.name}
-                      </div>
-                    )}
-                  </div>
-                  <div className={styles.productCopy}>
-                    <h3 className={styles.productName}>{translation.name}</h3>
-                    <p className={styles.productDescription}>
-                      {translation.description}
-                    </p>
-                    <p className={styles.productSeller}>{product.sellerName}</p>
-                    <p className={styles.productPrice}>
-                      {product.basePrice.format()}
-                    </p>
-                  </div>
-                  <div className={styles.productActions}>
-                    <Link
-                      href={customizationHref}
-                      className={styles.productLink}
-                    >
-                      {dict.common.viewDetails}
-                    </Link>
-                    <AddToCartButton
-                      productId={product.id}
-                      productName={translation.name}
-                      sellerId={product.sellerId}
-                      sellerName={product.sellerName}
-                      price={product.basePrice.amount}
-                      imageUrl={primaryImage?.url ?? null}
-                      customizationAvailable={
-                        !product.customizationConfig?.isDefault()
-                      }
-                      customizeHref={customizationHref}
-                      labels={{
-                        addToCart: dict.common.addToCart,
-                        removeFromCart: dict.common.removeFromCart,
-                        adding: dict.common.addingToCart,
-                        added: dict.common.addedToCart,
-                        error: dict.common.cartError,
-                        customizeProduct: dict.common.customizeProduct,
-                        addWithoutCustomization:
-                          dict.common.addWithoutCustomization,
-                        customizationChoiceBadge: dict.common.customizable,
-                        customizationChoiceMessage:
-                          dict.common.customizationChoiceMessage,
-                        decreaseQuantity: dict.common.decreaseQuantity,
-                        increaseQuantity: dict.common.increaseQuantity,
-                      }}
-                    />
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
+        <SearchInputWithSuggestions
+          initialValue={q}
+          recent={recent}
+          locale={locale}
+          labels={{
+            placeholder: dict.common.searchPlaceholder,
+            ariaLabel: dict.common.searchAriaLabel,
+            submitLabel: dict.common.searchSubmitLabel,
+            recentSearchesLabel: dict.common.recentSearchesLabel,
+            noRecentSearches: dict.common.noRecentSearches,
+          }}
+        />
+        <InfiniteProductList
+          key={q || 'all-products'}
+          initialItems={initialItems}
+          pageSize={PUBLIC_PAGE_SIZE}
+          q={q}
+          locale={locale}
+          labels={{
+            viewDetails: dict.common.viewDetails,
+            addToCart: dict.common.addToCart,
+            removeFromCart: dict.common.removeFromCart,
+            increaseQuantity: dict.common.increaseQuantity,
+            decreaseQuantity: dict.common.decreaseQuantity,
+            loadingMore: dict.common.loadingMore,
+            noSearchResults: dict.common.noSearchResults,
+            noProducts: dict.common.noProducts,
+            itemsLoadedOne: dict.common.itemsLoadedOne,
+            itemsLoadedMany: dict.common.itemsLoadedMany,
+          }}
+        />
       </MiddleSection>
 
       <WaveTransition animatedText={dict.common.slogan} />

@@ -17,7 +17,9 @@
 .icon-email,
 .icon-add,
 .icon-search,
-.icon-trash {
+.icon-trash,
+.icon-eye,
+.icon-eye-off {
   display: inline-block;
   vertical-align: middle;
   width: 24px;

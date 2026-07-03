@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { RoleNavLinks } from '@/modules/presentation/components/role-nav-links';
+import { RoleNavLinks } from '@/shared/layout/role-nav-links';
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({

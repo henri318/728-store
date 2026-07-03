@@ -20,6 +20,10 @@ vi.mock('@/composition-root/container', () => ({
   },
 }));
 
+vi.mock('@/modules/cart/presentation/components/add-to-cart-button', () => ({
+  AddToCartButton: () => <div data-testid="add-to-cart-button" />,
+}));
+
 vi.mock('@/app/[locale]/products/[id]/customization-experience', () => ({
   CustomizationExperience: () => <div data-testid="customization-experience" />,
 }));
@@ -71,11 +75,10 @@ describe('ProductDetailPage', () => {
 
     const element = await ProductDetailPage({
       params: Promise.resolve({ locale: 'es', id: 'p-1' }),
-      searchParams: Promise.resolve({}),
     });
 
     render(element);
 
-    expect(screen.getByTestId('customization-experience')).toBeInTheDocument();
+    expect(screen.getByTestId('add-to-cart-button')).toBeInTheDocument();
   });
 });

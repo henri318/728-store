@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { EyeToggleWrapper } from '@/modules/presentation/components/eye-toggle-wrapper';
+import { EyeToggleWrapper } from '@/shared/ui/eye-toggle-wrapper';
 
 describe('EyeToggleWrapper component', () => {
   it('renders with password input type by default', () => {

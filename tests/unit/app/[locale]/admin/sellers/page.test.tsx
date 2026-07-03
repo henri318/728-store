@@ -35,7 +35,7 @@ vi.mock('@/composition-root/container', () => ({
   },
 }));
 
-vi.mock('@/app/[locale]/admin/sellers/seller-actions', () => ({
+vi.mock('@/modules/sellers/presentation/components/seller-actions', () => ({
   SellerActions: ({
     sellerId,
     currentStatus,
@@ -45,7 +45,7 @@ vi.mock('@/app/[locale]/admin/sellers/seller-actions', () => ({
   }) => <span data-testid={`actions-${sellerId}`}>{currentStatus}</span>,
 }));
 
-vi.mock('@/app/[locale]/admin/sellers/seller-delete', () => ({
+vi.mock('@/modules/sellers/presentation/components/seller-delete', () => ({
   SellerDelete: ({ sellerId }: { sellerId: string; sellerName: string }) => (
     <span data-testid={`delete-${sellerId}`}>Delete</span>
   ),

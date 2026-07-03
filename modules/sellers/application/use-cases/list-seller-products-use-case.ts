@@ -1,6 +1,7 @@
 import { NotFoundError } from '@/shared/kernel/app-error';
 import type { PaginatedResult } from '@/shared/kernel/domain/value-objects/pagination';
 import type { SellerRepository } from '@/modules/sellers/domain/seller-repository';
+import type { ProductAudience } from '@/modules/products/domain/product-repository';
 
 export interface ListSellerProductsDTO {
   userId: string;
@@ -10,6 +11,7 @@ export interface ListSellerProductsDTO {
   lang?: string;
   sortBy?: 'createdAt';
   sortDir?: 'asc' | 'desc';
+  audience?: ProductAudience;
 }
 
 export interface ProductQuery {
@@ -20,6 +22,7 @@ export interface ProductQuery {
     lang?: string;
     sortBy?: 'createdAt';
     sortDir?: 'asc' | 'desc';
+    audience?: ProductAudience;
     sellerId: string;
   }): Promise<PaginatedResult<unknown>>;
 }

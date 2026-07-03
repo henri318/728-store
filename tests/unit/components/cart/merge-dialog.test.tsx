@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { MergeDialog } from '@/components/cart/merge-dialog';
+import { MergeDialog } from '@/modules/cart/presentation/components/merge-dialog';
 
 // Mock the guest cart context
 const mockClearCart = vi.fn();

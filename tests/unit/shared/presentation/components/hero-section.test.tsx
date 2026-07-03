@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { HeroSection } from '@/shared/presentation/components/hero-section';
+import { HeroSection } from '@/shared/ui/hero-section';
 
 describe('HeroSection', () => {
   it('renders the image with correct alt text', () => {

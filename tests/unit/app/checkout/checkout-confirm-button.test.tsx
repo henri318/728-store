@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { CheckoutConfirmButton } from '@/app/[locale]/checkout/checkout-confirm-button';
+import { CheckoutConfirmButton } from '@/modules/cart/presentation/components/checkout-confirm-button';
 
 // Mock fetch globally
 const mockFetch = vi.fn();

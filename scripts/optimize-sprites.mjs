@@ -14,7 +14,7 @@ import { fileURLToPath } from 'url';
 import { optimize } from 'svgo';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ICONS_DIR = join(__dirname, '../icons');
+const ICONS_DIR = join(__dirname, '../devresources/icons');
 const OUTPUT_SVG = join(__dirname, '../public/img/icons/sprites.svg');
 const OUTPUT_CSS = join(__dirname, '../shared/presentation/sprites.css');
 
@@ -31,6 +31,8 @@ const ICON_MAP = {
   'Añadir.svg': 'add',
   'Buscar.svg': 'search',
   'Papelera.svg': 'trash',
+  'Ojo visible.svg': 'eye',
+  'Ojo invisible.svg': 'eye-off',
 };
 
 const files = Object.keys(ICON_MAP);

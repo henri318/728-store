@@ -49,10 +49,20 @@
 @media (max-width: 768px) {
   .header {
     height: 100px;
+    padding: 10px 15px;
+  }
+
+  .logo {
+    position: static;
+    transform: none;
   }
 
   .logoImg {
     width: 80px;
     height: 80px;
+  }
+
+  .spacer {
+    display: none;
   }
 }

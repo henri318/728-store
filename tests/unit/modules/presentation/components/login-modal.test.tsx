@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { LoginModal } from '@/modules/presentation/components/login-modal';
+import { LoginModal } from '@/shared/layout/login-modal';
 
 // Mock next-auth/react
 vi.mock('next-auth/react', () => ({

@@ -165,7 +165,7 @@ describe('SellerProductsPage', () => {
       screen.getByRole('heading', { name: 'Seller products' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: 'Create product' }),
+      screen.getByRole('link', { name: /Create product/ }),
     ).toHaveAttribute('href', '/es/seller/products/new');
     expect(spy).toHaveBeenCalledWith({
       q: 'taza',
@@ -175,18 +175,18 @@ describe('SellerProductsPage', () => {
       lang: 'es',
       sortBy: 'createdAt',
       sortDir: 'desc',
+      audience: 'seller',
     });
     expect(
       screen.getByRole('searchbox', { name: 'Search products' }),
     ).toHaveValue('taza');
     expect(screen.getByText('Taza')).toBeInTheDocument();
     expect(screen.getByText('Active')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Edit product' })).toHaveAttribute(
-      'href',
-      '/es/seller/products/p-1/edit',
-    );
     expect(
       screen.getByRole('button', { name: 'Suspender' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Eliminar' }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Search products' }),

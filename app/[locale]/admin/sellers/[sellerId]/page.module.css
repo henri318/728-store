@@ -31,14 +31,9 @@
   color: var(--color-green-dark);
 }
 
-.summary {
-  display: grid;
-  gap: var(--spacing-md);
+.surface {
+  border-radius: var(--radius-lg);
   margin-bottom: var(--spacing-xl);
-  padding: var(--spacing-lg);
-  border-radius: 12px;
-  background: var(--color-white);
-  box-shadow: 0 1px 4px rgb(0 0 0 / 0.08);
 }
 
 .summaryRow {
@@ -64,9 +59,9 @@
   display: grid;
   gap: var(--spacing-md);
   padding: var(--spacing-lg);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   background: var(--color-white);
-  box-shadow: 0 1px 4px rgb(0 0 0 / 0.08);
+  box-shadow: var(--shadow-card);
 }
 
 .sectionTitle {
@@ -91,7 +86,7 @@
   width: 100%;
   padding: 0.8rem 0.95rem;
   border: 1px solid var(--color-lila);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--color-white);
   color: #222;
 }
@@ -103,7 +98,7 @@
 
 .successMessage {
   padding: 0.75rem 1rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: rgb(193 224 140 / 0.25);
   color: var(--color-green-dark);
 }

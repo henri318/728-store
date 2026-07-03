@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Modal } from '@/modules/presentation/components/modal';
-import { Button } from '@/modules/presentation/components/button';
+import { Modal } from '@/shared/ui/modal';
+import { Button } from '@/shared/ui/button';
 import styles from './add-to-cart-choice-modal.module.css';
 
 interface AddToCartChoiceModalProps {

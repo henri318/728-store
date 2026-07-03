@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { VerifyBanner } from '@/modules/presentation/components/verify-banner';
+import { VerifyBanner } from '@/shared/layout/verify-banner';
 
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);

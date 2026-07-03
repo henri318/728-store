@@ -80,6 +80,18 @@ function authCustomizationMatches(
   draft: CustomizationDraftPayload | null,
 ): boolean {
   const norm = normalizeCustomizationDraft(draft);
+  const hasDraftContent = Boolean(
+    norm.text ||
+    norm.color ||
+    norm.size ||
+    norm.imageUrl ||
+    norm.designPosition,
+  );
+
+  if (!hasDraftContent) {
+    return customizations.length === 0;
+  }
+
   return customizations.some(
     (c) =>
       (c.text ?? null) === (norm.text ?? null) &&

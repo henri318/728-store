@@ -1,6 +1,6 @@
 'use client';
 
-import { AddToCartButton } from '@/components/cart/add-to-cart-button';
+import { AddToCartButton } from '@/modules/cart/presentation/components/add-to-cart-button';
 import type { ProductCustomizationConfigJson } from '@/modules/products/domain/value-objects/product-customization-config';
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
 import {

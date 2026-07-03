@@ -11,7 +11,7 @@ const addToCartButtonMock = vi.fn((props: Record<string, unknown>) => (
   </button>
 ));
 
-vi.mock('@/components/cart/add-to-cart-button', () => ({
+vi.mock('@/modules/cart/presentation/components/add-to-cart-button', () => ({
   AddToCartButton: (props: Record<string, unknown>) =>
     addToCartButtonMock(props),
 }));

@@ -14,6 +14,10 @@ vi.mock('@/modules/cart/presentation/guest-cart-context', () => ({
     addItem: vi.fn(),
     updateQuantity: vi.fn(),
     removeItem: vi.fn(),
+    updateCustomization: vi.fn(),
+    updateItemQuantity: vi.fn(),
+    removeItemById: vi.fn(),
+    updateItemCustomization: vi.fn(),
     clearCart: vi.fn(),
     hydrated: true,
   }),
@@ -36,6 +40,8 @@ describe('CartView customization links', () => {
       customizationSize: 'Talla',
       customizationColor: 'Color',
       customizationText: 'Texto',
+      decreaseQuantity: 'Reducir cantidad',
+      increaseQuantity: 'Aumentar cantidad',
       customizationEditFromCart: 'Editar personalización',
     };
 

@@ -4,13 +4,15 @@ import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import { type ZodError } from 'zod';
-import { Input } from '@/modules/presentation/components/input';
-import { Button } from '@/modules/presentation/components/button';
-import { ErrorMessage } from '@/modules/presentation/components/error-message';
-import { EyeToggleWrapper } from '@/modules/presentation/components/eye-toggle-wrapper';
-import { PasswordStrengthIndicator } from '@/modules/presentation/components/password-strength-indicator';
+import { Input } from '@/shared/ui/input';
+import { Button } from '@/shared/ui/button';
+import { ErrorMessage } from '@/shared/ui/error-message';
+import { EyeToggleWrapper } from '@/shared/ui/eye-toggle-wrapper';
+import { PasswordStrengthIndicator } from '@/shared/ui/password-strength-indicator';
+import { AuthCard } from '@/shared/ui/auth-card';
 import { signupSchema } from '@/modules/auth/presentation/schemas/auth-schemas';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
+import { checkPasswordMatch } from '@/shared/validation/password-match';
 import styles from './page.module.css';
 
 interface AddressFields {
@@ -43,9 +45,12 @@ function validateForm(
   passwordsDoNotMatch: string,
 ): FormErrors | null {
   // Check password match first
-  if (form.password !== form.confirmPassword) {
-    return { confirmPassword: passwordsDoNotMatch };
-  }
+  const mismatch = checkPasswordMatch(
+    form.password,
+    form.confirmPassword,
+    passwordsDoNotMatch,
+  );
+  if (mismatch) return mismatch;
 
   // Only validate address if user has expanded the section and filled at least one field
   const formToValidate = {
@@ -194,7 +199,7 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className={styles.container}>
+    <AuthCard>
       <h2 className={styles.title}>{dict.auth.signUpTitle}</h2>
       <form onSubmit={handleSubmit} className={styles.form}>
         {serverError && <ErrorMessage message={serverError} />}
@@ -288,6 +293,6 @@ export default function SignUpPage() {
           {dict.auth.loginButton}
         </a>
       </p>
-    </div>
+    </AuthCard>
   );
 }

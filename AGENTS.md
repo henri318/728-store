@@ -25,7 +25,6 @@ This document defines the mandatory rules and constraints for the AI agent worki
    - Use Fakes/Mocks for infrastructure dependencies.
 2. **Verification**:
    - All tests MUST pass after any development or refactor (`npm test`).
-   - Use the **Chrome DevTools MCP** to verify that the UI renders correctly and handles user interactions as expected.
 3. **Code Modification**: When editing code, focus on modifying only the erroneous or necessary parts. Avoid rewriting entire files if the change is localized and the rest of the code is correct. If a small code section needs modification, address only that section.
 
 ---
@@ -65,7 +64,6 @@ This document defines the mandatory rules and constraints for the AI agent worki
 # Reference Documentation
 
 - Architecture: `docs/architecture.md`
-- Folder Structure: `docs/folder-structure.md`
 - Event Bus: `docs/event-bus.md`
 - Entity Model: `docs/entities.md`
 - Modules: See `docs/module-*.md`

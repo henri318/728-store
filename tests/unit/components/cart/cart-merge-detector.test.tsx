@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { CartMergeDetector } from '@/components/cart/cart-merge-detector';
+import { CartMergeDetector } from '@/modules/cart/presentation/components/cart-merge-detector';
 
 const mockRefresh = vi.fn();
 const mockFetch = vi.fn();

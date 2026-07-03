@@ -1,9 +1,4 @@
-.container {
-  max-width: 480px;
-  margin: 4rem auto;
-  padding: 2rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+.centered {
   text-align: center;
 }
 
@@ -12,11 +7,11 @@
 }
 
 .loadingText {
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .successText {
-  color: #52c41a;
+  color: var(--color-success);
 }
 
 .successMessage {
@@ -29,9 +24,9 @@
 }
 
 .invalidText {
-  color: #ff4d4f;
+  color: var(--color-danger);
 }
 
 .link {
-  color: #0070f3;
+  color: var(--color-link);
 }

@@ -80,7 +80,6 @@ import {
 import { UserVerificationAdapter } from '@/modules/users/infrastructure/user-verification-adapter';
 import { RoleValidatorAdapter } from '@/modules/roles/infrastructure/role-validator-adapter';
 import { R2StorageAdapter } from '@/modules/uploads/infrastructure/r2-storage-adapter';
-import { LocalStorageAdapter } from '@/modules/uploads/infrastructure/local-storage-adapter';
 import { PrismaUploadRepository } from '@/modules/uploads/infrastructure/prisma-upload-repository';
 import { PrismaCartRepository } from '@/modules/cart/infrastructure/prisma-cart-repository';
 import { CartProductRepositoryAdapter } from '@/modules/cart/infrastructure/cart-product-repository-adapter';
@@ -249,10 +248,7 @@ export function initContainer(): void {
 
   // --- StoragePort: R2 adapter for uploads ---
   if (!_storagePort) {
-    _storagePort =
-      process.env.NODE_ENV === 'production'
-        ? new R2StorageAdapter()
-        : new LocalStorageAdapter();
+    _storagePort = new R2StorageAdapter();
   }
 
   // --- UploadRepository: Prisma adapter ---
@@ -282,16 +278,16 @@ export function initContainer(): void {
     _customizationRepository = new PrismaCustomizationRepository();
   }
 
-  // --- SearchHistoryRepository: Prisma adapter ---
-  if (!_searchHistoryRepository) {
-    _searchHistoryRepository = new PrismaSearchHistoryRepository();
-  }
-
   // --- CustomizationLookupPort: shared adapter for cart and orders ports ---
   if (!_customizationLookup) {
     _customizationLookup = new CustomizationLookupAdapter(
       _customizationRepository!,
     );
+  }
+
+  // --- SearchHistoryRepository: Prisma adapter ---
+  if (!_searchHistoryRepository) {
+    _searchHistoryRepository = new PrismaSearchHistoryRepository();
   }
 
   // --- Cart event subscriptions (idempotent for HMR) ---
@@ -736,8 +732,7 @@ export const container = {
   /** Reset the search-history event subscription flag — useful in tests to allow re-subscription. */
   resetSearchHistoryEventSubscriptions(): void {
     _searchHistoryEventsSubscribed = false;
-  },
-  /** Reset the event subscription flag — useful in tests to allow re-subscription. */
+  } /** Reset the event subscription flag — useful in tests to allow re-subscription. */,
   resetCartEventSubscriptions(): void {
     _cartEventsSubscribed = false;
   },

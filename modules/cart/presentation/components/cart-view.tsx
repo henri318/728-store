@@ -67,6 +67,8 @@ interface CartViewProps {
     customizationSize: string;
     customizationColor: string;
     customizationText: string;
+    decreaseQuantity: string;
+    increaseQuantity: string;
     customizationEditFromCart?: string;
   };
 }
@@ -355,7 +357,7 @@ export function CartView({
 
                 <div className={styles.quantityControls}>
                   <button
-                    aria-label="−"
+                    aria-label={labels.decreaseQuantity}
                     className={styles.qtyButton}
                     onClick={() => handleUpdateQuantity(item, -1)}
                     disabled={item.quantity <= 1}
@@ -364,7 +366,7 @@ export function CartView({
                   </button>
                   <span className={styles.quantity}>{item.quantity}</span>
                   <button
-                    aria-label="+"
+                    aria-label={labels.increaseQuantity}
                     className={styles.qtyButton}
                     onClick={() => handleUpdateQuantity(item, +1)}
                     disabled={item.quantity >= 99}

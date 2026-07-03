@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { SocialFooter } from '@/shared/presentation/components/social-footer';
+import { SocialFooter } from '@/shared/ui/social-footer';
 
 describe('SocialFooter', () => {
   it('renders 5 social links', () => {

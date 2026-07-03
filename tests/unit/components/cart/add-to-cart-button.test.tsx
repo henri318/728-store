@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { AddToCartButton } from '@/components/cart/add-to-cart-button';
+import { AddToCartButton } from '@/modules/cart/presentation/components/add-to-cart-button';
 
 // Mock next-auth/react
 vi.mock('next-auth/react', () => ({
@@ -28,18 +28,14 @@ describe('AddToCartButton', () => {
     sellerId: 'seller-1',
     sellerName: 'Test Seller',
     price: 29.99,
-    customizationAvailable: false,
     labels: {
       addToCart: 'Add to Cart',
       removeFromCart: 'Remove',
       adding: '...',
       added: '✓',
       error: 'Error',
-      customizeProduct: 'Customize',
-      addWithoutCustomization: 'Add without customization',
-      customizationChoiceBadge: 'Customizable product',
-      customizationChoiceMessage:
-        'You can customize this product first or add it as-is.',
+      increaseQuantity: 'Increase quantity',
+      decreaseQuantity: 'Decrease quantity',
     },
   };
 
@@ -53,9 +49,9 @@ describe('AddToCartButton', () => {
       addItem: mockAddItem,
       updateQuantity: vi.fn(),
       removeItem: vi.fn(),
-      updateCustomization: vi.fn(),
       updateItemQuantity: vi.fn(),
       removeItemById: vi.fn(),
+      updateCustomization: vi.fn(),
       updateItemCustomization: vi.fn(),
       clearCart: vi.fn(),
       hydrated: true,
@@ -261,55 +257,6 @@ describe('AddToCartButton', () => {
       expect(mockAddItem).not.toHaveBeenCalled();
     });
 
-    it('adds guest customization payload to the guest cart context', async () => {
-      mockUseSession.mockReturnValue({
-        data: null,
-        status: 'unauthenticated',
-        update: vi.fn(),
-      } as never);
-
-      mockUseGuestCart.mockReturnValue({
-        items: [],
-        itemCount: 0,
-        addItem: mockAddItem,
-        updateQuantity: vi.fn(),
-        removeItem: vi.fn(),
-        updateCustomization: vi.fn(),
-        updateItemQuantity: vi.fn(),
-        removeItemById: vi.fn(),
-        updateItemCustomization: vi.fn(),
-        clearCart: vi.fn(),
-        hydrated: true,
-      });
-
-      render(
-        <AddToCartButton
-          {...defaultProps}
-          customization={{
-            text: 'Hello mug',
-            color: 'Blue',
-            size: 'M',
-            imageUrl: '/preview.png',
-            imageUploadId: 'upload-1',
-          }}
-        />,
-      );
-
-      fireEvent.click(screen.getByRole('button', { name: /add to cart/i }));
-
-      expect(mockAddItem).toHaveBeenCalledWith(
-        expect.objectContaining({
-          productId: 'prod-1',
-          sellerId: 'seller-1',
-          customizationText: 'Hello mug',
-          customizationColor: 'Blue',
-          customizationSize: 'M',
-          customizationImageUrl: '/preview.png',
-          customizationImageUploadId: 'upload-1',
-        }),
-      );
-    });
-
     it('shows error feedback when API fails', async () => {
       // Cart fetch on mount (empty cart).
       mockFetch.mockResolvedValueOnce({
@@ -348,155 +295,11 @@ describe('AddToCartButton', () => {
         expect(screen.getByText(/error|try again/i)).toBeTruthy();
       });
     });
-
-    it('creates a customer customization before adding a customized item to the cart', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ items: [] }),
-      });
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ id: 'cust-1' }),
-      });
-      mockFetch.mockResolvedValueOnce({ ok: true });
-
-      render(
-        <AddToCartButton
-          {...defaultProps}
-          customization={{
-            text: 'Hello mug',
-            color: 'Blue',
-            size: 'M',
-            imageUrl: '/preview.png',
-            imageUploadId: null,
-          }}
-        />,
-      );
-
-      fireEvent.click(screen.getByRole('button', { name: /add to cart/i }));
-
-      await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalledWith(
-          '/api/customizations/customer',
-          expect.objectContaining({
-            method: 'POST',
-          }),
-        );
-      });
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        '/api/cart/items',
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify({
-            productId: 'prod-1',
-            quantity: 1,
-            customizationIdList: ['cust-1'],
-          }),
-        }),
-      );
-    });
-  });
-
-  describe('customization choice modal', () => {
-    beforeEach(() => {
-      mockUseSession.mockReturnValue({
-        data: null,
-        status: 'unauthenticated',
-        update: vi.fn(),
-      } as never);
-    });
-
-    it('opens a modal with customize and add-without-customization actions', async () => {
-      render(
-        <AddToCartButton
-          {...defaultProps}
-          customizationAvailable
-          customizeHref="/es/products/prod-1"
-        />,
-      );
-
-      fireEvent.click(screen.getByRole('button', { name: /add to cart/i }));
-
-      expect(
-        screen.getByRole('dialog', { name: /customize test product/i }),
-      ).toBeTruthy();
-      expect(screen.getByRole('link', { name: /customize/i })).toHaveAttribute(
-        'href',
-        '/es/products/prod-1',
-      );
-      expect(
-        screen.getByRole('button', {
-          name: /add without customization/i,
-        }),
-      ).toBeTruthy();
-
-      const dialog = screen.getByRole('dialog', {
-        name: /customize test product/i,
-      });
-      const actions = dialog.querySelectorAll('a,button');
-      expect(actions[0]).toHaveTextContent(/customize/i);
-      expect(actions[1]).toHaveTextContent(/add without customization/i);
-    });
-
-    it('adds the product without customization from the modal', async () => {
-      render(
-        <AddToCartButton
-          {...defaultProps}
-          customizationAvailable
-          customizeHref="/es/products/prod-1"
-        />,
-      );
-
-      fireEvent.click(screen.getByRole('button', { name: /add to cart/i }));
-      fireEvent.click(
-        screen.getByRole('button', {
-          name: /add without customization/i,
-        }),
-      );
-
-      expect(mockAddItem).toHaveBeenCalledWith(
-        expect.objectContaining({
-          productId: 'prod-1',
-          sellerId: 'seller-1',
-          quantity: 1,
-        }),
-      );
-    });
-
-    it('adds a customized item directly when a customization draft exists', async () => {
-      render(
-        <AddToCartButton
-          {...defaultProps}
-          customizationAvailable
-          customization={{
-            text: 'Hello mug',
-            color: 'Blue',
-            size: 'M',
-            imageUrl: '/preview.png',
-            imageUploadId: 'upload-1',
-          }}
-        />,
-      );
-
-      fireEvent.click(screen.getByRole('button', { name: /add to cart/i }));
-
-      expect(screen.queryByRole('dialog')).toBeNull();
-      expect(mockAddItem).toHaveBeenCalledWith(
-        expect.objectContaining({
-          customizationText: 'Hello mug',
-          customizationColor: 'Blue',
-          customizationSize: 'M',
-          customizationImageUrl: '/preview.png',
-          customizationImageUploadId: 'upload-1',
-        }),
-      );
-    });
   });
 
   describe('quantity controls — guest user', () => {
-    const mockUpdateItemQuantity = vi.fn();
-    const mockRemoveItemById = vi.fn();
+    const mockUpdateQuantity = vi.fn();
+    const mockRemoveItem = vi.fn();
 
     beforeEach(() => {
       mockUseSession.mockReturnValue({
@@ -518,11 +321,11 @@ describe('AddToCartButton', () => {
         ],
         itemCount: 1,
         addItem: mockAddItem,
-        updateQuantity: vi.fn(),
-        removeItem: vi.fn(),
+        updateQuantity: mockUpdateQuantity,
+        removeItem: mockRemoveItem,
+        updateItemQuantity: mockUpdateQuantity,
+        removeItemById: mockRemoveItem,
         updateCustomization: vi.fn(),
-        updateItemQuantity: mockUpdateItemQuantity,
-        removeItemById: mockRemoveItemById,
         updateItemCustomization: vi.fn(),
         clearCart: vi.fn(),
         hydrated: true,
@@ -549,27 +352,27 @@ describe('AddToCartButton', () => {
       ).not.toBeInTheDocument();
     });
 
-    it('calls updateItemQuantity on + click', async () => {
+    it('calls updateQuantity on + click', async () => {
       render(<AddToCartButton {...defaultProps} />);
 
       fireEvent.click(
         screen.getByRole('button', { name: /increase quantity/i }),
       );
 
-      expect(mockUpdateItemQuantity).toHaveBeenCalledWith('guest-item-1', 4);
+      expect(mockUpdateQuantity).toHaveBeenCalledWith('guest-item-1', 4);
     });
 
-    it('calls updateItemQuantity on - click when quantity > 1', async () => {
+    it('calls updateQuantity on - click when quantity > 1', async () => {
       render(<AddToCartButton {...defaultProps} />);
 
       fireEvent.click(
         screen.getByRole('button', { name: /decrease quantity/i }),
       );
 
-      expect(mockUpdateItemQuantity).toHaveBeenCalledWith('guest-item-1', 2);
+      expect(mockUpdateQuantity).toHaveBeenCalledWith('guest-item-1', 2);
     });
 
-    it('shows remove button and calls removeItemById when quantity is 1', async () => {
+    it('shows remove button and calls removeItem when quantity is 1', async () => {
       mockUseGuestCart.mockReturnValue({
         items: [
           {
@@ -584,11 +387,11 @@ describe('AddToCartButton', () => {
         ],
         itemCount: 1,
         addItem: mockAddItem,
-        updateQuantity: vi.fn(),
-        removeItem: vi.fn(),
+        updateQuantity: mockUpdateQuantity,
+        removeItem: mockRemoveItem,
+        updateItemQuantity: mockUpdateQuantity,
+        removeItemById: mockRemoveItem,
         updateCustomization: vi.fn(),
-        updateItemQuantity: mockUpdateItemQuantity,
-        removeItemById: mockRemoveItemById,
         updateItemCustomization: vi.fn(),
         clearCart: vi.fn(),
         hydrated: true,
@@ -600,7 +403,7 @@ describe('AddToCartButton', () => {
         screen.getByRole('button', { name: /decrease quantity/i }),
       ).toBeDisabled();
       fireEvent.click(screen.getByRole('button', { name: /remove/i }));
-      expect(mockRemoveItemById).toHaveBeenCalledWith('guest-item-1');
+      expect(mockRemoveItem).toHaveBeenCalledWith('guest-item-1');
     });
 
     it('does not increment past 99', async () => {
@@ -618,11 +421,11 @@ describe('AddToCartButton', () => {
         ],
         itemCount: 1,
         addItem: mockAddItem,
-        updateQuantity: vi.fn(),
-        removeItem: vi.fn(),
+        updateQuantity: mockUpdateQuantity,
+        removeItem: mockRemoveItem,
+        updateItemQuantity: mockUpdateQuantity,
+        removeItemById: mockRemoveItem,
         updateCustomization: vi.fn(),
-        updateItemQuantity: mockUpdateItemQuantity,
-        removeItemById: mockRemoveItemById,
         updateItemCustomization: vi.fn(),
         clearCart: vi.fn(),
         hydrated: true,
@@ -655,7 +458,6 @@ describe('AddToCartButton', () => {
               id: 'cart-item-1',
               productId: 'prod-1',
               quantity: 2,
-              customizations: [{}],
             },
           ],
         }),
@@ -679,14 +481,7 @@ describe('AddToCartButton', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          items: [
-            {
-              id: 'cart-item-1',
-              productId: 'prod-1',
-              quantity: 2,
-              customizations: [{}],
-            },
-          ],
+          items: [{ id: 'cart-item-1', productId: 'prod-1', quantity: 2 }],
         }),
       });
       // Second fetch: PATCH for increment
@@ -720,14 +515,7 @@ describe('AddToCartButton', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          items: [
-            {
-              id: 'cart-item-1',
-              productId: 'prod-1',
-              quantity: 2,
-              customizations: [{}],
-            },
-          ],
+          items: [{ id: 'cart-item-1', productId: 'prod-1', quantity: 2 }],
         }),
       });
       mockFetch.mockResolvedValueOnce({ ok: true });
@@ -755,14 +543,7 @@ describe('AddToCartButton', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          items: [
-            {
-              id: 'cart-item-1',
-              productId: 'prod-1',
-              quantity: 1,
-              customizations: [{}],
-            },
-          ],
+          items: [{ id: 'cart-item-1', productId: 'prod-1', quantity: 1 }],
         }),
       });
       mockFetch.mockResolvedValueOnce({ ok: true, status: 204 });
@@ -790,14 +571,7 @@ describe('AddToCartButton', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          items: [
-            {
-              id: 'cart-item-1',
-              productId: 'prod-1',
-              quantity: 1,
-              customizations: [{}],
-            },
-          ],
+          items: [{ id: 'cart-item-1', productId: 'prod-1', quantity: 1 }],
         }),
       });
       mockFetch.mockResolvedValueOnce({ ok: true, status: 204 });

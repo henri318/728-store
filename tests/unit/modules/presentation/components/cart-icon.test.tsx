@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { CartIcon } from '@/modules/presentation/components/cart-icon';
-import { CartPopupProvider } from '@/modules/presentation/components/cart-popup-context';
+import { CartIcon } from '@/modules/cart/presentation/components/cart-icon';
+import { CartPopupProvider } from '@/modules/cart/presentation/components/cart-popup-context';
 
 // Mock next-auth/react
 vi.mock('next-auth/react', () => ({

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { UserMenuDropdown } from '@/modules/presentation/components/user-menu-dropdown';
+import { UserMenuDropdown } from '@/shared/layout/user-menu-dropdown';
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
