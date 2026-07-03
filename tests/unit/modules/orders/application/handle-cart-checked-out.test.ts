@@ -64,6 +64,7 @@ describe('HandleCartCheckedOut', () => {
           color: string | null;
           size: string | null;
           imageUrl: string | null;
+          designPosition?: Record<string, unknown> | null;
         }> | null;
       }>;
       subtotal: number;
@@ -301,6 +302,7 @@ describe('HandleCartCheckedOut', () => {
               color: 'red',
               size: 'M',
               imageUrl: null,
+              designPosition: null,
             },
           ],
         },
@@ -321,6 +323,7 @@ describe('HandleCartCheckedOut', () => {
         color: 'red',
         size: 'M',
         imageUrl: null,
+        designPosition: null,
       },
     ]);
   });
@@ -359,6 +362,7 @@ describe('HandleCartCheckedOut', () => {
         color: 'blue',
         size: 'L',
         imageUrl: null,
+        designPosition: null,
       },
     ]);
   });
@@ -426,6 +430,7 @@ describe('HandleCartCheckedOut', () => {
         color: 'blue',
         size: null,
         imageUrl: null,
+        designPosition: null,
       },
     ]);
   });

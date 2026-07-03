@@ -53,6 +53,9 @@ describe('AddToCartButton', () => {
       addItem: mockAddItem,
       updateQuantity: vi.fn(),
       removeItem: vi.fn(),
+      updateItemQuantity: vi.fn(),
+      removeItemById: vi.fn(),
+      updateItemCustomization: vi.fn(),
       clearCart: vi.fn(),
       hydrated: true,
     });
@@ -270,6 +273,9 @@ describe('AddToCartButton', () => {
         addItem: mockAddItem,
         updateQuantity: vi.fn(),
         removeItem: vi.fn(),
+        updateItemQuantity: vi.fn(),
+        removeItemById: vi.fn(),
+        updateItemCustomization: vi.fn(),
         clearCart: vi.fn(),
         hydrated: true,
       });
@@ -411,7 +417,7 @@ describe('AddToCartButton', () => {
       fireEvent.click(screen.getByRole('button', { name: /add to cart/i }));
 
       expect(
-        screen.getByRole('dialog', { name: /customize product/i }),
+        screen.getByRole('dialog', { name: /customize test product/i }),
       ).toBeTruthy();
       expect(screen.getByRole('link', { name: /customize/i })).toHaveAttribute(
         'href',
@@ -423,7 +429,9 @@ describe('AddToCartButton', () => {
         }),
       ).toBeTruthy();
 
-      const dialog = screen.getByRole('dialog', { name: /customize product/i });
+      const dialog = screen.getByRole('dialog', {
+        name: /customize test product/i,
+      });
       const actions = dialog.querySelectorAll('a,button');
       expect(actions[0]).toHaveTextContent(/customize/i);
       expect(actions[1]).toHaveTextContent(/add without customization/i);
@@ -485,8 +493,8 @@ describe('AddToCartButton', () => {
   });
 
   describe('quantity controls — guest user', () => {
-    const mockUpdateQuantity = vi.fn();
-    const mockRemoveItem = vi.fn();
+    const mockUpdateItemQuantity = vi.fn();
+    const mockRemoveItemById = vi.fn();
 
     beforeEach(() => {
       mockUseSession.mockReturnValue({
@@ -497,6 +505,7 @@ describe('AddToCartButton', () => {
       mockUseGuestCart.mockReturnValue({
         items: [
           {
+            id: 'guest-item-1',
             productId: 'prod-1',
             sellerId: 'seller-1',
             quantity: 3,
@@ -507,8 +516,11 @@ describe('AddToCartButton', () => {
         ],
         itemCount: 1,
         addItem: mockAddItem,
-        updateQuantity: mockUpdateQuantity,
-        removeItem: mockRemoveItem,
+        updateQuantity: vi.fn(),
+        removeItem: vi.fn(),
+        updateItemQuantity: mockUpdateItemQuantity,
+        removeItemById: mockRemoveItemById,
+        updateItemCustomization: vi.fn(),
         clearCart: vi.fn(),
         hydrated: true,
       });
@@ -534,30 +546,31 @@ describe('AddToCartButton', () => {
       ).not.toBeInTheDocument();
     });
 
-    it('calls updateQuantity on + click', async () => {
+    it('calls updateItemQuantity on + click', async () => {
       render(<AddToCartButton {...defaultProps} />);
 
       fireEvent.click(
         screen.getByRole('button', { name: /increase quantity/i }),
       );
 
-      expect(mockUpdateQuantity).toHaveBeenCalledWith('prod-1', 4);
+      expect(mockUpdateItemQuantity).toHaveBeenCalledWith('guest-item-1', 4);
     });
 
-    it('calls updateQuantity on - click when quantity > 1', async () => {
+    it('calls updateItemQuantity on - click when quantity > 1', async () => {
       render(<AddToCartButton {...defaultProps} />);
 
       fireEvent.click(
         screen.getByRole('button', { name: /decrease quantity/i }),
       );
 
-      expect(mockUpdateQuantity).toHaveBeenCalledWith('prod-1', 2);
+      expect(mockUpdateItemQuantity).toHaveBeenCalledWith('guest-item-1', 2);
     });
 
-    it('shows remove button and calls removeItem when quantity is 1', async () => {
+    it('shows remove button and calls removeItemById when quantity is 1', async () => {
       mockUseGuestCart.mockReturnValue({
         items: [
           {
+            id: 'guest-item-1',
             productId: 'prod-1',
             sellerId: 'seller-1',
             quantity: 1,
@@ -568,8 +581,11 @@ describe('AddToCartButton', () => {
         ],
         itemCount: 1,
         addItem: mockAddItem,
-        updateQuantity: mockUpdateQuantity,
-        removeItem: mockRemoveItem,
+        updateQuantity: vi.fn(),
+        removeItem: vi.fn(),
+        updateItemQuantity: mockUpdateItemQuantity,
+        removeItemById: mockRemoveItemById,
+        updateItemCustomization: vi.fn(),
         clearCart: vi.fn(),
         hydrated: true,
       });
@@ -580,13 +596,14 @@ describe('AddToCartButton', () => {
         screen.getByRole('button', { name: /decrease quantity/i }),
       ).toBeDisabled();
       fireEvent.click(screen.getByRole('button', { name: /remove/i }));
-      expect(mockRemoveItem).toHaveBeenCalledWith('prod-1');
+      expect(mockRemoveItemById).toHaveBeenCalledWith('guest-item-1');
     });
 
     it('does not increment past 99', async () => {
       mockUseGuestCart.mockReturnValue({
         items: [
           {
+            id: 'guest-item-1',
             productId: 'prod-1',
             sellerId: 'seller-1',
             quantity: 99,
@@ -597,8 +614,11 @@ describe('AddToCartButton', () => {
         ],
         itemCount: 1,
         addItem: mockAddItem,
-        updateQuantity: mockUpdateQuantity,
-        removeItem: mockRemoveItem,
+        updateQuantity: vi.fn(),
+        removeItem: vi.fn(),
+        updateItemQuantity: mockUpdateItemQuantity,
+        removeItemById: mockRemoveItemById,
+        updateItemCustomization: vi.fn(),
         clearCart: vi.fn(),
         hydrated: true,
       });
@@ -630,6 +650,7 @@ describe('AddToCartButton', () => {
               id: 'cart-item-1',
               productId: 'prod-1',
               quantity: 2,
+              customizations: [{}],
             },
           ],
         }),
@@ -653,7 +674,14 @@ describe('AddToCartButton', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          items: [{ id: 'cart-item-1', productId: 'prod-1', quantity: 2 }],
+          items: [
+            {
+              id: 'cart-item-1',
+              productId: 'prod-1',
+              quantity: 2,
+              customizations: [{}],
+            },
+          ],
         }),
       });
       // Second fetch: PATCH for increment
@@ -687,7 +715,14 @@ describe('AddToCartButton', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          items: [{ id: 'cart-item-1', productId: 'prod-1', quantity: 2 }],
+          items: [
+            {
+              id: 'cart-item-1',
+              productId: 'prod-1',
+              quantity: 2,
+              customizations: [{}],
+            },
+          ],
         }),
       });
       mockFetch.mockResolvedValueOnce({ ok: true });
@@ -715,7 +750,14 @@ describe('AddToCartButton', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          items: [{ id: 'cart-item-1', productId: 'prod-1', quantity: 1 }],
+          items: [
+            {
+              id: 'cart-item-1',
+              productId: 'prod-1',
+              quantity: 1,
+              customizations: [{}],
+            },
+          ],
         }),
       });
       mockFetch.mockResolvedValueOnce({ ok: true, status: 204 });
@@ -743,7 +785,14 @@ describe('AddToCartButton', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          items: [{ id: 'cart-item-1', productId: 'prod-1', quantity: 1 }],
+          items: [
+            {
+              id: 'cart-item-1',
+              productId: 'prod-1',
+              quantity: 1,
+              customizations: [{}],
+            },
+          ],
         }),
       });
       mockFetch.mockResolvedValueOnce({ ok: true, status: 204 });

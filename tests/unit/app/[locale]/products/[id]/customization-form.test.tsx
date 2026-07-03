@@ -43,24 +43,33 @@ describe('CustomizationForm', () => {
     vi.clearAllMocks();
   });
 
-  it('renders only the description field for description-only products', () => {
+  it('renders the design textarea, color carousel (with images), and size select', () => {
+    const productImages = [
+      { url: '/red.png', alt: 'Red' },
+      { url: '/blue.png', alt: 'Blue' },
+    ];
+
     render(
       <CustomizationDraftProvider validationLabels={validationLabels}>
         <CustomizationForm
           customizationConfig={ProductCustomizationConfig.default().toJson()}
+          productImages={productImages}
+          productImageUrl=""
           labels={labels}
         />
       </CustomizationDraftProvider>,
     );
 
     expect(screen.getByLabelText(labels.customizationDesign)).toBeTruthy();
-    expect(screen.queryByLabelText(labels.customizationPhrase)).toBeNull();
-    expect(screen.queryByLabelText(labels.customizationColor)).toBeNull();
-    expect(screen.queryByLabelText(labels.customizationSize)).toBeNull();
-    expect(screen.queryByLabelText(labels.customizationUpload)).toBeNull();
+    expect(screen.getByText(labels.customizationColor)).toBeTruthy();
+    expect(screen.getByText('Red')).toBeTruthy();
+    expect(screen.getByText('Blue')).toBeTruthy();
+    expect(
+      screen.getByRole('combobox', { name: labels.customizationSize }),
+    ).toBeTruthy();
   });
 
-  it('renders text, style, and photo controls for combined capabilities', () => {
+  it('renders custom size options from the config', () => {
     const config = ProductCustomizationConfig.fromJson({
       mode: 'text_photo',
       previewEnabled: true,
@@ -72,22 +81,18 @@ describe('CustomizationForm', () => {
       <CustomizationDraftProvider validationLabels={validationLabels}>
         <CustomizationForm
           customizationConfig={config.toJson()}
+          productImages={[]}
+          productImageUrl=""
           labels={labels}
         />
       </CustomizationDraftProvider>,
     );
 
-    expect(screen.getByLabelText(labels.customizationPhrase)).toBeTruthy();
-    expect(screen.getByLabelText(labels.customizationColor)).toBeTruthy();
     expect(
       screen.getByRole('combobox', { name: labels.customizationSize }),
     ).toHaveDisplayValue(labels.customizationSizePlaceholder);
-    expect(
-      screen.getByRole('combobox', { name: labels.customizationSize }),
-    ).toBeTruthy();
     expect(screen.getByRole('option', { name: 'XS' })).toBeTruthy();
     expect(screen.getByRole('option', { name: 'L' })).toBeTruthy();
-    expect(screen.getByLabelText(labels.customizationUpload)).toBeTruthy();
   });
 
   it('falls back to default size options when the config omits them', () => {
@@ -101,6 +106,8 @@ describe('CustomizationForm', () => {
       <CustomizationDraftProvider validationLabels={validationLabels}>
         <CustomizationForm
           customizationConfig={config.toJson()}
+          productImages={[]}
+          productImageUrl=""
           labels={labels}
         />
       </CustomizationDraftProvider>,
@@ -117,29 +124,23 @@ describe('CustomizationForm', () => {
   });
 
   it('marks invalid text input with aria-invalid and an error description after validation', async () => {
-    const config = ProductCustomizationConfig.fromJson({
-      mode: 'text',
-      previewEnabled: true,
-      previewTemplateUrl: '/mug.png',
-    });
-
-    render(
+    const { container } = render(
       <CustomizationDraftProvider validationLabels={validationLabels}>
         <CustomizationForm
-          customizationConfig={config.toJson()}
+          customizationConfig={ProductCustomizationConfig.default().toJson()}
+          productImages={[]}
+          productImageUrl=""
           labels={labels}
         />
       </CustomizationDraftProvider>,
     );
 
-    const input = screen.getByLabelText(labels.customizationPhrase);
-    fireEvent.change(input, { target: { value: 'x'.repeat(501) } });
-    fireEvent.click(
-      screen.getByRole('button', { name: labels.customizationPreview }),
-    );
+    const textarea = screen.getByLabelText(labels.customizationDesign);
+    fireEvent.change(textarea, { target: { value: 'x'.repeat(501) } });
+    fireEvent.submit(container.querySelector('form')!);
 
-    expect(input).toHaveAttribute('aria-invalid', 'true');
-    expect(input).toHaveAttribute('aria-describedby');
+    expect(textarea).toHaveAttribute('aria-invalid', 'true');
+    expect(textarea).toHaveAttribute('aria-describedby');
     expect(screen.getByText(validationLabels.textTooLong)).toBeTruthy();
   });
 });

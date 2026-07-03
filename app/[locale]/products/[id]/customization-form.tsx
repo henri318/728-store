@@ -54,9 +54,9 @@ export function CustomizationForm({
   productImages,
   labels,
   _productImageUrl,
-  _onValidate,
+  onValidate,
 }: CustomizationFormProps) {
-  const { draft, errors, setText, setColor, setSize, _validateDraft } =
+  const { draft, errors, setText, setColor, setSize, validateDraft } =
     useCustomizationDraft();
 
   const config = ProductCustomizationConfig.fromJson(customizationConfig);
@@ -71,6 +71,9 @@ export function CustomizationForm({
       id="customization-form"
       onSubmit={(event) => {
         event.preventDefault();
+        if (validateDraft()) {
+          onValidate?.();
+        }
       }}
     >
       <label className={formStyles.fieldLabel}>

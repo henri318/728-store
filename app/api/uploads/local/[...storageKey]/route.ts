@@ -58,13 +58,15 @@ function resolveStoragePath(storageKey: string[]): string | null {
   const root = resolve(STORAGE_ROOT);
   const decodedKey = decodeURIComponent(storageKey.join('/'));
   const segments = decodedKey.split('/').filter(Boolean);
-  const sanitized = segments.map((s) => s.replace(/[:*?"<>|]/g, '_'));
-  const filePath = resolve(root, ...sanitized);
-  const relativePath = relative(root, filePath);
 
-  if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
+  const rawPath = resolve(root, ...segments);
+  const rawRelative = relative(root, rawPath);
+  if (rawRelative.startsWith('..') || isAbsolute(rawRelative)) {
     return null;
   }
+
+  const sanitized = segments.map((s) => s.replace(/[:*?"<>|]/g, '_'));
+  const filePath = resolve(root, ...sanitized);
 
   return filePath;
 }

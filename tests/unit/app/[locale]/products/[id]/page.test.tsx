@@ -1,6 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import type { ImgHTMLAttributes } from 'react';
 import { ProductPrice } from '@/modules/products/domain/value-objects/product-price';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
@@ -10,13 +9,6 @@ const mocks = vi.hoisted(() => {
   const getProductRepositoryMock = vi.fn();
   return { getDictionaryMock, getProductRepositoryMock };
 });
-
-vi.mock('next/image', () => ({
-  default: (props: ImgHTMLAttributes<HTMLImageElement>) => {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img {...props} />;
-  },
-}));
 
 vi.mock('@/shared/i18n/get-dictionary', () => ({
   getDictionary: mocks.getDictionaryMock,
@@ -84,13 +76,6 @@ describe('ProductDetailPage', () => {
 
     render(element);
 
-    expect(
-      screen.getByRole('heading', { name: 'Taza personalizada' }),
-    ).toBeInTheDocument();
-    expect(screen.getByAltText('Taza personalizada')).toHaveAttribute(
-      'src',
-      'http://assets.example.test/products/taza.png',
-    );
     expect(screen.getByTestId('customization-experience')).toBeInTheDocument();
   });
 });
