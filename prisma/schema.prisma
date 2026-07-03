@@ -81,6 +81,17 @@ model ProductTranslation {
   @@unique([productId, locale])
 }
 
+model SearchHistory {
+  id         String   @id @default(cuid())
+  userId     String
+  term       String
+  locale     String
+  searchedAt DateTime @default(now())
+
+  @@unique([userId, term, locale])
+  @@index([userId, locale, searchedAt(sort: Desc)])
+}
+
 model Customization {
   id             String   @id @default(cuid())
   productId      String

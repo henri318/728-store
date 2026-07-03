@@ -42,6 +42,8 @@ export const GlobalEvents = {
   PRODUCT_CREATED: 'product.created',
   /** Product profile or fields updated */
   PRODUCT_UPDATED: 'product.updated',
+  /** Public product search executed */
+  PRODUCT_SEARCH_EXECUTED: 'product.search-executed',
   /** Product published (DRAFT → ACTIVE) */
   PRODUCT_PUBLISHED: 'product.published',
   /** Product archived (ACTIVE → ARCHIVED) */

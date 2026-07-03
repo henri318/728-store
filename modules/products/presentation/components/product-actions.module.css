@@ -1,0 +1,65 @@
+.actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.button {
+  padding: 0.35rem 0.8rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.activate {
+  background: var(--color-green-dark);
+  color: var(--color-white);
+}
+
+.activate:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.suspend {
+  background: var(--color-lila);
+  color: var(--color-white);
+}
+
+.suspend:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+/* Icon-only buttons — no text-button styling */
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  line-height: 0;
+  color: var(--color-coral);
+}
+.iconButton:hover:not(:disabled) {
+  opacity: 0.75;
+}
+.iconButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.iconTrash {
+  display: block;
+  width: 30px;
+  height: 30px;
+}

@@ -37,3 +37,35 @@ Each module is independent and contains:
 - Mandatory internal event bus.
 - No direct cross-module calls.
 - **Reliability**: Use the Outbox Pattern to ensure at-least-once delivery of events.
+
+---
+
+# Presentation Layer
+
+Each module's `presentation/` layer contains:
+
+- **`schemas/`** -- Zod validation schemas for the module's data.
+- **`components/`** (optional) -- React components specific to the module's domain.
+
+Module presentation components:
+
+- May import from `shared/ui/` for primitives.
+- May import from their own module's `domain/` and `application/` layers.
+- Must NOT import from other modules.
+- Must NOT contain business logic (delegate to application use cases).
+
+Shared UI components (`shared/ui/`):
+
+- Are domain-agnostic primitives.
+- Have ZERO dependencies on any module.
+- Are imported via barrel export: `import { Button } from '@/shared/ui'`.
+
+# Cross-Cutting Concerns
+
+| Concern              | Location                                | Purpose                              |
+| -------------------- | --------------------------------------- | ------------------------------------ |
+| Role-based access    | `shared/authorization/`                 | `assertRole`, `requireAdmin`         |
+| Validation helpers   | `shared/validation/`                    | `checkPasswordMatch`                 |
+| Presentation helpers | `shared/presentation/`                  | `buildPageUrl`, `resolveStatusLabel` |
+| Design system        | `shared/presentation/design-tokens.css` | CSS custom properties                |
+| i18n                 | `shared/i18n/`                          | Dictionary context, locale files     |

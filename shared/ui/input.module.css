@@ -1,0 +1,48 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.label {
+  font-size: 0.9rem;
+  font-weight: var(--font-weight-medium);
+}
+
+.inputRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-lila);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  outline: none;
+}
+
+.input.hasSuffix {
+  padding-right: 36px;
+}
+
+.suffix {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  line-height: 0;
+}
+
+.inputError {
+  border-color: var(--color-coral);
+}
+
+.errorText {
+  color: var(--color-coral);
+  font-size: 0.8rem;
+}

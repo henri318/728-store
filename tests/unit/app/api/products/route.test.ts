@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
+import { MemoryProductRepository } from '@/tests/doubles/memory-product-repository';
+import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
+import { ProductPrice } from '@/modules/products/domain/value-objects/product-price';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 
 const mocks = vi.hoisted(() => {
@@ -8,6 +11,7 @@ const mocks = vi.hoisted(() => {
     () => (handler: (req: NextRequest, context?: unknown) => unknown) =>
       handler,
   );
+  const getProductRepositoryMock = vi.fn();
   const getSessionMock = vi.fn();
   const findByUserIdMock = vi.fn();
   const saveMock = vi.fn();
@@ -15,6 +19,7 @@ const mocks = vi.hoisted(() => {
 
   return {
     requireRoleMock,
+    getProductRepositoryMock,
     getSessionMock,
     findByUserIdMock,
     saveMock,
@@ -31,11 +36,9 @@ vi.mock('@/composition-root/container', () => ({
     getSession: () => ({
       getSession: mocks.getSessionMock,
     }),
+    getProductRepository: mocks.getProductRepositoryMock,
     getSellerRepository: () => ({
       findByUserId: mocks.findByUserIdMock,
-    }),
-    getProductRepository: () => ({
-      save: mocks.saveMock,
     }),
     getOutboxRepository: () => ({
       saveEvent: mocks.saveEventMock,
@@ -44,6 +47,7 @@ vi.mock('@/composition-root/container', () => ({
 }));
 
 import { POST } from '@/app/api/products/route';
+import { GET } from '@/app/api/products/route';
 
 function makeRequest(body: unknown): NextRequest {
   return new NextRequest('http://localhost:3000/api/products', {
@@ -51,6 +55,38 @@ function makeRequest(body: unknown): NextRequest {
     body: JSON.stringify(body),
     headers: { 'content-type': 'application/json' },
   });
+}
+
+function makeGetRequest(url: string): NextRequest {
+  return new NextRequest(url);
+}
+
+function makeProduct(
+  id: string,
+  overrides: Partial<
+    Omit<
+      import('@/modules/products/domain/product-repository').ProductEntity,
+      'id'
+    >
+  > = {},
+): import('@/modules/products/domain/product-repository').ProductEntity {
+  return {
+    id,
+    basePrice: ProductPrice.create(10, Currency.EUR),
+    sellerId: 'seller-1',
+    sellerName: 'Test Shop',
+    status: ProductStatus.ACTIVE,
+    categoryId: null,
+    category: null,
+    createdAt: new Date('2025-01-01'),
+    updatedAt: new Date('2025-01-01'),
+    translations: [
+      { locale: 'es', name: 'Producto', description: 'Un producto' },
+    ],
+    images: [],
+    tags: [],
+    ...overrides,
+  };
 }
 
 describe('route authorization (module-load wiring)', () => {
@@ -67,6 +103,7 @@ describe('POST /api/products', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.getSessionMock.mockResolvedValue({ id: 'user-1' });
+    mocks.getProductRepositoryMock.mockReturnValue({ save: mocks.saveMock });
     mocks.findByUserIdMock.mockResolvedValue({
       sellerId: { value: 'seller-1' },
       name: 'Test Shop',
@@ -133,5 +170,42 @@ describe('POST /api/products', () => {
       description: 'Camiseta para diseñar',
     });
     expect(body.customizationConfig.mode).toBe('text_photo');
+  });
+});
+
+describe('GET /api/products', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.getSessionMock.mockResolvedValue(null);
+    mocks.getProductRepositoryMock.mockReturnValue(
+      new MemoryProductRepository(),
+    );
+  });
+
+  it('emits PRODUCT_SEARCH_EXECUTED for non-empty q', async () => {
+    const repo = new MemoryProductRepository();
+    repo.seed([makeProduct('p1')]);
+    mocks.getProductRepositoryMock.mockReturnValue(repo);
+
+    const res = await GET(
+      makeGetRequest('http://localhost:3000/api/products?q=ceramic&lang=es'),
+    );
+
+    expect(res.status).toBe(200);
+    expect(mocks.saveEventMock).toHaveBeenCalledWith(
+      GlobalEvents.PRODUCT_SEARCH_EXECUTED,
+      expect.objectContaining({
+        userId: null,
+        term: 'ceramic',
+        locale: 'es',
+      }),
+    );
+  });
+
+  it('does not emit when q is empty', async () => {
+    const res = await GET(makeGetRequest('http://localhost:3000/api/products'));
+
+    expect(res.status).toBe(200);
+    expect(mocks.saveEventMock).not.toHaveBeenCalled();
   });
 });

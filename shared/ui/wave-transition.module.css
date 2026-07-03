@@ -1,0 +1,13 @@
+.waveBottom {
+  display: block;
+  width: 100%;
+  height: auto;
+  background-color: var(--color-coral);
+  margin-top: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .waveBottom text {
+    display: none;
+  }
+}

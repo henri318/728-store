@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/composition-root/container';
 import { requireRole } from '@/shared/authorization/authorization';
 import { handleApiError } from '@/shared/presentation/error-handler';
+import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import { ProductListQueryUseCase } from '@/modules/products/application/product-list-query-use-case';
 import { productListQuerySchema } from '@/modules/products/presentation/schemas/product-list-query-schema';
 import { productFormSchema } from '@/modules/products/presentation/schemas/product-form-schema';
@@ -32,6 +33,23 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const productRepository = container.getProductRepository();
     const useCase = new ProductListQueryUseCase(productRepository);
     const result = await useCase.execute(filter);
+
+    const trimmedQ = filter.q?.trim() ?? '';
+    if (trimmedQ.length > 0) {
+      try {
+        const session = await container.getSession().getSession();
+        await container
+          .getOutboxRepository()
+          .saveEvent(GlobalEvents.PRODUCT_SEARCH_EXECUTED, {
+            userId: session?.id ?? null,
+            term: trimmedQ,
+            locale: filter.lang,
+            occurredAt: new Date().toISOString(),
+          });
+      } catch {
+        // Search results must not fail if outbox persistence is unavailable.
+      }
+    }
 
     return NextResponse.json(result, { status: 200 });
   } catch (error: unknown) {

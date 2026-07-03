@@ -1,0 +1,13 @@
+.middleSection {
+  background-color: var(--color-coral);
+  padding: 40px 0 80px 0;
+  position: relative;
+  min-height: 250px;
+}
+
+.decoration {
+  position: absolute;
+  right: 15%;
+  top: 10%;
+  width: 250px;
+}
