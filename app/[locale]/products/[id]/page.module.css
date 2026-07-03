@@ -30,6 +30,23 @@
   color: #ccc;
 }
 
+.imagePreview {
+  margin: 0;
+}
+
+.productImage {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  display: block;
+}
+
+.previewCaption {
+  margin-top: 0.75rem;
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+}
+
 .description {
   font-size: 1.2rem;
   color: var(--color-text-secondary);

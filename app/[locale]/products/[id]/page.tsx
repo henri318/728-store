@@ -2,6 +2,7 @@ import { container } from '@/composition-root/container';
 import { GetProductByIdUseCase } from '@/modules/products/application/get-product-by-id-use-case';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import Link from 'next/link';
+import Image from 'next/image';
 import { AddToCartButton } from '@/modules/cart/presentation/components/add-to-cart-button';
 import styles from './page.module.css';
 
@@ -37,11 +38,27 @@ export default async function ProductDetailPage({
         ← {dict.common.home}
       </Link>
       <div className={styles.grid}>
-        <div className={styles.imagePlaceholder}>
-          <span className={styles.imagePlaceholderText}>
-            Product Image Placeholder
-          </span>
-        </div>
+        <figure className={styles.imagePreview}>
+          {product.images?.[0]?.url ? (
+            <Image
+              src={product.images[0].url}
+              alt={product.displayName}
+              width={640}
+              height={640}
+              unoptimized
+              className={styles.productImage}
+            />
+          ) : (
+            <div className={styles.imagePlaceholder}>
+              <span className={styles.imagePlaceholderText}>
+                Product Image Placeholder
+              </span>
+            </div>
+          )}
+          <figcaption className={styles.previewCaption}>
+            {dict.common.customizationPreview}
+          </figcaption>
+        </figure>
         <div>
           <h1>{product.displayName}</h1>
           <p className={styles.description}>{product.displayDescription}</p>

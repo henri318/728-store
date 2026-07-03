@@ -57,6 +57,13 @@ export async function GET(
 function resolveStoragePath(storageKey: string[]): string | null {
   const root = resolve(STORAGE_ROOT);
   const decodedKey = decodeURIComponent(storageKey.join('/'));
+  if (
+    decodedKey.includes('\\') ||
+    /^[a-zA-Z]:/.test(decodedKey) ||
+    decodedKey.startsWith('/')
+  ) {
+    return null;
+  }
   const segments = decodedKey.split('/').filter(Boolean);
 
   const rawPath = resolve(root, ...segments);
