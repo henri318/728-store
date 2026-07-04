@@ -28,11 +28,18 @@ function makeDict() {
   return {
     common: {
       loading: 'Loading...',
+      genericError: 'Something went wrong',
+      cancel: 'Cancel',
     },
     admin: {
       suspendProduct: 'Suspend',
       activateProduct: 'Activate',
       eliminateProduct: 'Eliminate',
+      eliminateProductConfirm:
+        'Are you sure you want to eliminate this product?',
+    },
+    sellerDashboard: {
+      editProduct: 'Edit',
     },
   } as unknown as Awaited<
     ReturnType<typeof import('@/shared/i18n/get-dictionary').getDictionary>

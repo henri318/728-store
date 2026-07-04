@@ -66,6 +66,70 @@ describe('CreateUploadUseCase', () => {
     expect(result.storageKey).toMatch(/^avatar\/user-42\/[\w-]+\.png$/);
   });
 
+  // ── Public vs Private bucket routing ─────────────────────────
+  it('should use permanent publicUrl for product type (public bucket)', async () => {
+    const getPublicUrlSpy = vi.spyOn(storage, 'getPublicUrl');
+    const generateReadUrlSpy = vi.spyOn(storage, 'generateReadUrl');
+
+    const result = await useCase.execute({
+      userId: 'user-1',
+      type: UploadType.product,
+      fileName: 'photo.webp',
+      mimeType: 'image/webp',
+      size: 102400,
+    });
+
+    // publicUrl comes from getPublicUrl (permanent domain URL)
+    expect(getPublicUrlSpy).toHaveBeenCalledWith(result.storageKey);
+    expect(result.publicUrl).toContain(storage.publicDomain);
+    expect(result.publicUrl).toContain(result.storageKey);
+    // generateReadUrl was NOT called a second time for publicUrl
+    expect(generateReadUrlSpy).toHaveBeenCalledTimes(1); // only for readUrl
+  });
+
+  it('should use long-lived presigned URL for customization type (private bucket)', async () => {
+    const getPublicUrlSpy = vi.spyOn(storage, 'getPublicUrl');
+    const generateReadUrlSpy = vi.spyOn(storage, 'generateReadUrl');
+
+    const result = await useCase.execute({
+      userId: 'user-1',
+      type: UploadType.customization,
+      fileName: 'design.png',
+      mimeType: 'image/png',
+      size: 102400,
+    });
+
+    // publicUrl comes from generateReadUrl (presigned), NOT getPublicUrl
+    expect(getPublicUrlSpy).not.toHaveBeenCalled();
+    expect(generateReadUrlSpy).toHaveBeenCalledTimes(2); // readUrl + publicUrl
+    expect(result.publicUrl).toContain('mock-r2.read');
+    expect(result.publicUrl).toContain(result.storageKey);
+  });
+
+  it('should use long-lived presigned URL for ticket type (private bucket)', async () => {
+    const result = await useCase.execute({
+      userId: 'user-1',
+      type: UploadType.ticket,
+      fileName: 'screenshot.jpg',
+      mimeType: 'image/jpeg',
+      size: 102400,
+    });
+
+    expect(result.publicUrl).toContain('mock-r2.read');
+  });
+
+  it('should use long-lived presigned URL for general type (private bucket)', async () => {
+    const result = await useCase.execute({
+      userId: 'user-1',
+      type: UploadType.general,
+      fileName: 'doc.png',
+      mimeType: 'image/png',
+      size: 102400,
+    });
+
+    expect(result.publicUrl).toContain('mock-r2.read');
+  });
+
   it('should generate unique IDs for each upload', async () => {
     const r1 = await useCase.execute({
       userId: 'user-1',
