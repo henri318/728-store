@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { LoginModal } from '@/shared/layout/login-modal';
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}));
+
 // Mock next-auth/react
 vi.mock('next-auth/react', () => ({
   signIn: vi.fn(),

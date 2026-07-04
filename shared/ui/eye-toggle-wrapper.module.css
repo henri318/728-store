@@ -6,6 +6,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-lila);
-  border-radius: var(--radius-sm);
+  color: rgba(13, 92, 70, 0.5);
+  border-radius: 999px;
+}
+
+.toggleButton:hover {
+  color: rgba(13, 92, 70, 0.8);
 }

@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { BackLink } from '@/shared/ui/back-link';
 import { container } from '@/composition-root/container';
 import { ProductListQueryUseCase } from '@/modules/products/application/product-list-query-use-case';
 import { productListQuerySchema } from '@/modules/products/presentation/schemas/product-list-query-schema';
@@ -104,7 +104,11 @@ export default async function AdminSellerProductsPage({
       key: 'actions',
       header: dict.admin.actions,
       render: (product) => (
-        <ProductActions productId={product.id} currentStatus={product.status} />
+        <ProductActions
+          locale={locale}
+          productId={product.id}
+          currentStatus={product.status}
+        />
       ),
     },
   ];
@@ -113,10 +117,9 @@ export default async function AdminSellerProductsPage({
     <div className={styles.container}>
       <div className={styles.header}>
         <div>
-          <Link href={`/${locale}/admin/sellers`} className={styles.backLink}>
-            <span aria-hidden="true">&larr; </span>
-            <span>{dict.admin.backToSellers}</span>
-          </Link>
+          <BackLink href={`/${locale}/admin/sellers`}>
+            {dict.admin.backToSellers}
+          </BackLink>
           <h2 className={styles.title}>
             {dict.admin.sellerProductsTitle}: {sellerName}
           </h2>

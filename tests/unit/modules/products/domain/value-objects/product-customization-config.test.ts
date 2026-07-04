@@ -52,4 +52,26 @@ describe('ProductCustomizationConfig', () => {
     expect(config.previewEnabled).toBe(false);
     expect(config.isPreviewCapable()).toBe(false);
   });
+
+  it('ignores legacy designPosition data when parsing product config', () => {
+    const config = ProductCustomizationConfig.fromJson({
+      mode: 'text_photo',
+      previewEnabled: true,
+      previewTemplateUrl: null,
+      sizeOptions: null,
+      textOffset: null,
+      imageOffset: null,
+      designPosition: {
+        imageUrl: 'https://cdn.example.com/design.png',
+        x: 0.5,
+        y: 0.5,
+        scale: 100,
+        rotation_deg: 0,
+        opacity: 90,
+        blend_mode: 'multiply',
+      },
+    });
+
+    expect(config.toJson()).not.toHaveProperty('designPosition');
+  });
 });

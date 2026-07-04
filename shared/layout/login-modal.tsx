@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn, useSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { X } from 'lucide-react';
 import { Modal } from '@/shared/ui/modal';
-import { Input } from '@/shared/ui/input';
+import { TextField } from '@/shared/ui/text-field';
 import { Button } from '@/shared/ui/button';
 import { EyeToggleWrapper } from '@/shared/ui/eye-toggle-wrapper';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
@@ -21,7 +21,6 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const { update } = useSession();
   const dict = useDictionary();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,8 +38,16 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       if (result?.error) {
         setError(dict.auth.invalidCredentials);
       } else if (result?.ok) {
-        await update(); // Refresh session without page reload
         onClose();
+
+        const res = await fetch('/api/auth/session');
+        const role = (await res.json())?.user?.role;
+        const locale = window.location.pathname.split('/')[1] ?? 'es';
+        if (role === 'ADMIN') {
+          window.location.href = `/${locale}/admin/sellers`;
+        } else if (role === 'DESIGNER') {
+          window.location.href = `/${locale}/seller/products`;
+        }
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : '';
@@ -96,7 +103,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         </button>
 
         <form onSubmit={handleSubmit} className={styles.form}>
-          <Input
+          <TextField
             label={dict.auth.email}
             type="email"
             value={email}

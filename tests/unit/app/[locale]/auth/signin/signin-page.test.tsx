@@ -7,8 +7,10 @@ vi.mock('next-auth/react', () => ({
 }));
 
 // Mock next/navigation
+const mockPush = vi.fn();
 vi.mock('next/navigation', () => ({
   useParams: () => ({ locale: 'es' }),
+  useRouter: () => ({ push: mockPush }),
 }));
 
 import { signIn } from 'next-auth/react';
@@ -40,10 +42,16 @@ describe('SignInPage', () => {
     ).toBeInTheDocument();
   });
 
-  it('submits form with email and password via signIn', async () => {
-    const mockSignIn = vi
-      .mocked(signIn)
-      .mockResolvedValue({ ok: true, error: null, status: 200, url: '' });
+  it('submits and redirects CUSTOMER to home', async () => {
+    vi.mocked(signIn).mockResolvedValue({
+      ok: true,
+      error: null,
+      status: 200,
+      url: '',
+    });
+    global.fetch = vi.fn().mockResolvedValue({
+      json: () => Promise.resolve({ user: { role: 'CUSTOMER' } }),
+    });
 
     render(<SignInPage />);
 
@@ -59,8 +67,64 @@ describe('SignInPage', () => {
       expect(mockSignIn).toHaveBeenCalledWith('credentials', {
         email: 'user@test.com',
         password: 'pass123',
-        callbackUrl: '/es',
+        redirect: false,
       });
+    });
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/es');
+    });
+  });
+
+  it('redirects DESIGNER to seller/products', async () => {
+    vi.mocked(signIn).mockResolvedValue({
+      ok: true,
+      error: null,
+      status: 200,
+      url: '',
+    });
+    global.fetch = vi.fn().mockResolvedValue({
+      json: () => Promise.resolve({ user: { role: 'DESIGNER' } }),
+    });
+
+    render(<SignInPage />);
+
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), {
+      target: { value: 'designer@test.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Contraseña'), {
+      target: { value: 'pass123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Iniciar sesión' }));
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/es/seller/products');
+    });
+  });
+
+  it('redirects ADMIN to admin/sellers', async () => {
+    vi.mocked(signIn).mockResolvedValue({
+      ok: true,
+      error: null,
+      status: 200,
+      url: '',
+    });
+    global.fetch = vi.fn().mockResolvedValue({
+      json: () => Promise.resolve({ user: { role: 'ADMIN' } }),
+    });
+
+    render(<SignInPage />);
+
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), {
+      target: { value: 'admin@test.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Contraseña'), {
+      target: { value: 'pass123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Iniciar sesión' }));
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/es/admin/sellers');
     });
   });
 

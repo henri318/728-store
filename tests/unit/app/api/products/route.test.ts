@@ -6,8 +6,17 @@ const mocks = vi.hoisted(() => {
     getProductRepositoryMock: vi.fn(),
     getOutboxRepositoryMock: vi.fn(),
     getSessionMock: vi.fn(),
+    getSellerRepositoryMock: vi.fn(),
+    requireRoleMock: vi.fn(
+      () => (handler: (req: NextRequest, context?: unknown) => unknown) =>
+        handler,
+    ),
   };
 });
+
+vi.mock('@/shared/authorization/authorization', () => ({
+  requireRole: mocks.requireRoleMock,
+}));
 
 vi.mock('@/composition-root/container', () => ({
   container: {
@@ -16,11 +25,12 @@ vi.mock('@/composition-root/container', () => ({
     getSession: () => ({
       getSession: mocks.getSessionMock,
     }),
+    getSellerRepository: mocks.getSellerRepositoryMock,
   },
 }));
 
 // Import after mocks
-import { GET } from '@/app/api/products/route';
+import { GET, POST } from '@/app/api/products/route';
 import { MemoryProductRepository } from '@/tests/doubles/memory-product-repository';
 import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
@@ -28,6 +38,7 @@ import { ProductStatus } from '@/modules/products/domain/value-objects/product-s
 import { ProductPrice } from '@/modules/products/domain/value-objects/product-price';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
+import { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
 
 function makeProduct(
   id: string,
@@ -482,3 +493,94 @@ describe('GET /api/products', () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe('POST /api/products', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.getSessionMock.mockResolvedValue({ id: 'user-1' });
+    mocks.getSellerRepositoryMock.mockReturnValue({
+      findByUserId: vi.fn().mockResolvedValue({
+        sellerId: SellerId.create('seller-1'),
+        name: 'Test Shop',
+      }),
+    });
+  });
+
+  it('creates a product and returns 201', async () => {
+    const repo = new MemoryProductRepository();
+    mocks.getProductRepositoryMock.mockReturnValue(repo);
+    mocks.getOutboxRepositoryMock.mockReturnValue(new MemoryOutboxRepository());
+
+    const res = await fetchProductRoute(
+      {
+        locale: 'es',
+        name: 'Taza',
+        description: 'Con diseño',
+        price: 19.99,
+        customizationConfig: {
+          mode: 'text_photo',
+          previewEnabled: true,
+          previewTemplateUrl: null,
+          sizeOptions: ['S', 'M'],
+          textOffset: { x: 10, y: 20 },
+          imageOffset: { x: 30, y: 40 },
+        },
+        images: [],
+      },
+      'POST',
+    );
+
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.translations[0].name).toBe('Taza');
+    expect(body.sellerName).toBe('Test Shop');
+  });
+
+  it('accepts customization config with designChangeDescription only', async () => {
+    const repo = new MemoryProductRepository();
+    mocks.getProductRepositoryMock.mockReturnValue(repo);
+    mocks.getOutboxRepositoryMock.mockReturnValue(new MemoryOutboxRepository());
+
+    const res = await fetchProductRoute({
+      locale: 'es',
+      name: 'Taza',
+      description: 'Con diseño',
+      price: 19.99,
+      customizationConfig: {
+        mode: 'description',
+        previewEnabled: false,
+        previewTemplateUrl: null,
+        sizeOptions: null,
+        textOffset: null,
+        imageOffset: null,
+        designChangeDescription: 'Mi cambio de diseño',
+      },
+      images: [],
+    });
+
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.customizationConfig.designChangeDescription).toBe(
+      'Mi cambio de diseño',
+    );
+  });
+
+  it('returns 400 for invalid payload', async () => {
+    const res = await fetchProductRoute(
+      { locale: '', name: '', price: 0 },
+      'POST',
+    );
+
+    expect(res.status).toBe(400);
+  });
+});
+
+function fetchProductRoute(body: unknown) {
+  const request = new NextRequest('http://localhost:3000/api/products', {
+    method: 'POST',
+    body: JSON.stringify(body),
+    headers: { 'content-type': 'application/json' },
+  });
+
+  return POST(request);
+}

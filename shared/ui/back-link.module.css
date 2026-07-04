@@ -1,0 +1,24 @@
+.link {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgb(13 92 70 / 0.16);
+  color: var(--color-green-dark);
+  background: rgb(255 255 255 / 0.9);
+  font-weight: var(--font-weight-medium);
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.link:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgb(13 92 70 / 0.12);
+  background: rgb(255 255 255 / 1);
+}

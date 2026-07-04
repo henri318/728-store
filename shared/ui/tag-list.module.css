@@ -1,0 +1,93 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.label {
+  color: rgba(13, 92, 70, 0.82);
+  font-size: 0.88rem;
+  font-weight: var(--font-weight-medium);
+}
+
+.row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.input {
+  flex: 1;
+  height: 42px;
+  padding: 0 0.9rem;
+  border: 1px solid var(--color-lila);
+  border-radius: 999px;
+  background: var(--color-white);
+  color: var(--color-black);
+  font-family: inherit;
+  font-size: 0.82rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: var(--color-coral);
+}
+
+.addBtn {
+  background: var(--color-white);
+  color: var(--color-green-dark);
+  border: 1px solid var(--color-lila);
+  border-radius: 999px;
+  padding: 0 1.25rem;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.addBtn:hover {
+  border-color: var(--color-coral);
+}
+
+.list {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(13, 92, 70, 0.12);
+  color: var(--color-green-dark);
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+}
+
+.removeBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-green-dark);
+  font-size: 0.9rem;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.6;
+}
+
+.removeBtn:hover {
+  opacity: 1;
+}
+
+.empty {
+  font-size: 0.78rem;
+  color: #3d5a80;
+  margin: 0.5rem 0 0;
+}

@@ -80,6 +80,7 @@ import {
 import { UserVerificationAdapter } from '@/modules/users/infrastructure/user-verification-adapter';
 import { RoleValidatorAdapter } from '@/modules/roles/infrastructure/role-validator-adapter';
 import { R2StorageAdapter } from '@/modules/uploads/infrastructure/r2-storage-adapter';
+import { LocalStorageAdapter } from '@/modules/uploads/infrastructure/local-storage-adapter';
 import { PrismaUploadRepository } from '@/modules/uploads/infrastructure/prisma-upload-repository';
 import { PrismaCartRepository } from '@/modules/cart/infrastructure/prisma-cart-repository';
 import { CartProductRepositoryAdapter } from '@/modules/cart/infrastructure/cart-product-repository-adapter';
@@ -123,6 +124,10 @@ let _paidOrderCountPort: PaidOrderCountPort | null = null;
 let _customizationLookup: CartCustomizationLookupPort | null = null;
 let _customizationRepository: CustomizationRepository | null = null;
 let _searchHistoryRepository: SearchHistoryRepository | null = null;
+
+function isLocalUploadStorage(): boolean {
+  return process.env.SEED_PRODUCT_ASSET_LOCAL_STORAGE === 'true';
+}
 
 // Idempotency flag for event subscriptions — prevents double registration
 // during HMR in development.
@@ -246,9 +251,11 @@ export function initContainer(): void {
     _roleValidator = new RoleValidatorAdapter(_roleRepository!);
   }
 
-  // --- StoragePort: R2 adapter for uploads ---
+  // --- StoragePort: R2 or local adapter for uploads ---
   if (!_storagePort) {
-    _storagePort = new R2StorageAdapter();
+    _storagePort = isLocalUploadStorage()
+      ? new LocalStorageAdapter()
+      : new R2StorageAdapter();
   }
 
   // --- UploadRepository: Prisma adapter ---

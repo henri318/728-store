@@ -121,7 +121,7 @@ describe('ProductForm', () => {
       />,
     );
 
-    expect(screen.getAllByText(labels.title)).toHaveLength(2);
+    expect(screen.getAllByText(labels.title)).toHaveLength(1);
     expect(screen.getByLabelText(labels.nameLabel)).toBeTruthy();
     expect(screen.getByText(labels.gallery.title)).toBeTruthy();
     expect(screen.getByLabelText(labels.gallery.addPhotoLabel)).toBeTruthy();
@@ -190,6 +190,7 @@ describe('ProductForm', () => {
             sizeOptions: ['S', 'M', 'L'],
             textOffset: { x: 12, y: 18 },
             imageOffset: { x: 24, y: 40 },
+            designChangeDescription: null,
           },
           images: [
             {
@@ -268,6 +269,90 @@ describe('ProductForm', () => {
     fireEvent.click(checkbox);
 
     expect(checkbox).toBeChecked();
+  });
+
+  it('renders the category field as a select when category options are provided', () => {
+    render(
+      <ProductForm
+        locale="es"
+        mode="create"
+        categories={[
+          { id: 'cat-1', name: 'Ropa' },
+          { id: 'cat-2', name: 'Tazas' },
+        ]}
+        initialValues={{
+          name: 'Taza',
+          description: 'Base',
+          price: 19.99,
+          customizationConfig: ProductCustomizationConfig.default().toJson(),
+          images: [],
+        }}
+        labels={labels}
+      />,
+    );
+
+    const select = screen.getByLabelText(
+      labels.customization.editor.categoryLabel,
+    );
+
+    expect(select.tagName).toBe('SELECT');
+    expect(screen.getByRole('option', { name: 'Ropa' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Tazas' })).toBeInTheDocument();
+  });
+
+  it('does not submit legacy designPosition data from edit mode', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+
+      if (url === '/api/products/p-1') {
+        return new Response(JSON.stringify({ id: 'p-1' }), { status: 200 });
+      }
+
+      return new Response(null, { status: 200 });
+    });
+
+    render(
+      <ProductForm
+        locale="es"
+        mode="edit"
+        productId="p-1"
+        initialValues={{
+          name: 'Taza',
+          description: 'Base',
+          price: 19.99,
+          customizationConfig: {
+            ...ProductCustomizationConfig.default().toJson(),
+            designPosition: {
+              imageUrl: 'http://localhost:8081/design.png',
+              x: 0.5,
+              y: 0.4,
+              scale: 100,
+              rotation_deg: 0,
+              opacity: 90,
+              blend_mode: 'multiply',
+            },
+          } as never,
+          images: [],
+        }}
+        labels={labels}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: labels.save }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith('/api/products/p-1', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: expect.any(String),
+      });
+    });
+
+    const body = JSON.parse(
+      String(fetchMock.mock.calls.at(-1)?.[1]?.body ?? '{}'),
+    ) as { customizationConfig?: Record<string, unknown> };
+
+    expect(body.customizationConfig).not.toHaveProperty('designPosition');
   });
 
   it('uploads a photo and displays it in the photo gallery', async () => {

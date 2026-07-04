@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { container } from '@/composition-root/container';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
+import { prisma } from '@/shared/infrastructure/prisma';
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
 import { ProductForm } from '../../product-form';
 
@@ -11,6 +12,10 @@ export default async function SellerProductEditPage({
 }) {
   const { locale, id } = await params;
   const dict = await getDictionary(locale as 'es' | 'cat');
+  const categories = await prisma.category.findMany({
+    select: { id: true, name: true },
+    orderBy: { name: 'asc' },
+  });
   const session = await container.getSession().getSession();
   const seller = session?.id
     ? await container.getSellerRepository().findByUserId(session.id)
@@ -35,6 +40,7 @@ export default async function SellerProductEditPage({
       locale={locale}
       mode="edit"
       productId={id}
+      categories={categories}
       initialValues={{
         name: translation?.name ?? '',
         description: translation?.description ?? '',

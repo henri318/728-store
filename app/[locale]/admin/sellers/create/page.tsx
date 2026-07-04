@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import Link from 'next/link';
 import { type ZodError } from 'zod';
-import { Input } from '@/shared/ui/input';
+import { TextField } from '@/shared/ui/text-field';
+import { DescriptionField } from '@/shared/ui/description-field';
+import { BackLink } from '@/shared/ui/back-link';
+import { Card } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { ErrorMessage } from '@/shared/ui/error-message';
 import { EyeToggleWrapper } from '@/shared/ui/eye-toggle-wrapper';
@@ -141,70 +143,73 @@ export default function CreateSellerPage() {
   };
 
   return (
-    <div className={styles.container}>
-      <h2 className={styles.title}>{dict.admin.createSellerTitle}</h2>
-      <form onSubmit={handleSubmit} className={styles.form}>
-        {serverError && <ErrorMessage message={serverError} />}
+    <div className={styles.wrapper}>
+      <BackLink href={`/${locale}/admin/sellers`}>
+        {dict.admin.backToSellers}
+      </BackLink>
 
-        <Input
-          label={dict.auth.firstName}
-          value={form.firstName}
-          onChange={(v) => updateField('firstName', v)}
-          error={errors.firstName}
-          required
-        />
-        <Input
-          label={dict.auth.lastName}
-          value={form.lastName}
-          onChange={(v) => updateField('lastName', v)}
-          error={errors.lastName}
-          required
-        />
-        <Input
-          label={dict.auth.email}
-          type="email"
-          value={form.email}
-          onChange={(v) => updateField('email', v)}
-          error={errors.email}
-          required
-        />
-        <EyeToggleWrapper
-          label={dict.auth.password}
-          value={form.password}
-          onChange={(v) => updateField('password', v)}
-          error={errors.password}
-          required
-        />
-        <EyeToggleWrapper
-          label={dict.auth.confirmPassword}
-          value={form.confirmPassword}
-          onChange={(v) => updateField('confirmPassword', v)}
-          error={errors.confirmPassword}
-          required
-        />
-        <Input
-          label={dict.admin.sellerBusinessName}
-          value={form.name}
-          onChange={(v) => updateField('name', v)}
-          error={errors.name}
-          required
-        />
-        <Input
-          label={dict.admin.sellerDescription}
-          value={form.description}
-          onChange={(v) => updateField('description', v)}
-          error={errors.description}
-        />
+      <Card padding="lg">
+        <h2 className={styles.title}>{dict.admin.createSellerTitle}</h2>
+        <form onSubmit={handleSubmit} className={styles.form}>
+          {serverError && <ErrorMessage message={serverError} />}
 
-        <Button type="submit" loading={loading}>
-          {dict.admin.createSeller}
-        </Button>
-      </form>
-      <p className={styles.footer}>
-        <Link href={`/${locale}/admin/sellers`} className={styles.footerLink}>
-          {dict.admin.backToSellers}
-        </Link>
-      </p>
+          <TextField
+            label={dict.auth.firstName}
+            value={form.firstName}
+            onChange={(v) => updateField('firstName', v)}
+            error={errors.firstName}
+            required
+          />
+          <TextField
+            label={dict.auth.lastName}
+            value={form.lastName}
+            onChange={(v) => updateField('lastName', v)}
+            error={errors.lastName}
+            required
+          />
+          <TextField
+            label={dict.auth.email}
+            type="email"
+            value={form.email}
+            onChange={(v) => updateField('email', v)}
+            error={errors.email}
+            required
+          />
+          <EyeToggleWrapper
+            label={dict.auth.password}
+            value={form.password}
+            onChange={(v) => updateField('password', v)}
+            error={errors.password}
+            required
+          />
+          <EyeToggleWrapper
+            label={dict.auth.confirmPassword}
+            value={form.confirmPassword}
+            onChange={(v) => updateField('confirmPassword', v)}
+            error={errors.confirmPassword}
+            required
+          />
+          <TextField
+            label={dict.admin.sellerBusinessName}
+            value={form.name}
+            onChange={(v) => updateField('name', v)}
+            error={errors.name}
+            required
+          />
+          <DescriptionField
+            label={dict.admin.sellerDescription}
+            value={form.description}
+            onChange={(v) => updateField('description', v)}
+            error={errors.description}
+          />
+
+          <div className={styles.buttonRow}>
+            <Button type="submit" loading={loading}>
+              {dict.admin.createSeller}
+            </Button>
+          </div>
+        </form>
+      </Card>
     </div>
   );
 }

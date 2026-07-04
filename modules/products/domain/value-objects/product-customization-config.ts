@@ -2,25 +2,34 @@ import { z } from 'zod';
 
 export type CustomizationMode = 'description' | 'text' | 'photo' | 'text_photo';
 
-export type CustomizationBlendMode =
+export const DEFAULT_PRODUCT_SIZE_OPTIONS = Object.freeze(['S', 'M', 'L']);
+
+export type DesignBlendMode =
   | 'source-over'
   | 'multiply'
   | 'overlay'
   | 'soft-light';
 
-export const DEFAULT_PRODUCT_SIZE_OPTIONS = Object.freeze(['S', 'M', 'L']);
-
-export const DEFAULT_DESIGN_BLEND_MODE: CustomizationBlendMode = 'multiply';
-export const DEFAULT_DESIGN_SCALE_PERCENT = 100;
-export const DEFAULT_DESIGN_OPACITY_PERCENT = 90;
+export const DEFAULT_DESIGN_BLEND_MODE: DesignBlendMode = 'source-over';
+export const DEFAULT_DESIGN_OPACITY_PERCENT = 100;
 export const DEFAULT_DESIGN_ROTATION_DEG = 0;
-
-export const MIN_DESIGN_SCALE_PERCENT = 10;
-export const MAX_DESIGN_SCALE_PERCENT = 200;
-export const MIN_DESIGN_ROTATION_DEG = -45;
-export const MAX_DESIGN_ROTATION_DEG = 45;
-export const MIN_DESIGN_OPACITY_PERCENT = 0;
+export const DEFAULT_DESIGN_SCALE_PERCENT = 100;
 export const MAX_DESIGN_OPACITY_PERCENT = 100;
+export const MAX_DESIGN_ROTATION_DEG = 360;
+export const MAX_DESIGN_SCALE_PERCENT = 200;
+export const MIN_DESIGN_OPACITY_PERCENT = 0;
+export const MIN_DESIGN_ROTATION_DEG = -360;
+export const MIN_DESIGN_SCALE_PERCENT = 10;
+
+export interface DesignPosition {
+  imageUrl: string;
+  x: number;
+  y: number;
+  scale: number;
+  rotation_deg: number;
+  opacity: number;
+  blend_mode: DesignBlendMode;
+}
 
 export interface PreviewOffset {
   [key: string]: unknown;
@@ -29,21 +38,6 @@ export interface PreviewOffset {
   rotate?: number;
   scale?: number;
   maxWidth?: number;
-}
-
-/**
- * Buyer-side normalized design position.
- * Coordinates are normalized to the product image canvas (0..1 range).
- * `imageUrl` is the URL the user uploaded for their design.
- */
-export interface DesignPosition {
-  imageUrl: string;
-  x: number;
-  y: number;
-  scale: number;
-  rotation_deg: number;
-  opacity: number;
-  blend_mode: CustomizationBlendMode;
 }
 
 export interface ProductCustomizationConfigJson {
@@ -73,11 +67,6 @@ export interface ProductCustomizationConfigJson {
    * Free-form tag names. Slugs are derived on the fly.
    */
   tagNames?: string[] | null;
-  /**
-   * Latest buyer-side design position captured by the mockup canvas.
-   * Hidden from the UI — the cart/order layer reads it for fulfilment.
-   */
-  designPosition?: DesignPosition | null;
 }
 
 const customizationModeSchema = z.enum([
@@ -97,34 +86,6 @@ const previewOffsetSchema = z
   })
   .strict();
 
-const designBlendModeSchema = z.enum([
-  'source-over',
-  'multiply',
-  'overlay',
-  'soft-light',
-]);
-
-export const designPositionSchema = z
-  .object({
-    imageUrl: z.string().min(1),
-    x: z.number().min(0).max(1),
-    y: z.number().min(0).max(1),
-    scale: z
-      .number()
-      .min(MIN_DESIGN_SCALE_PERCENT)
-      .max(MAX_DESIGN_SCALE_PERCENT),
-    rotation_deg: z
-      .number()
-      .min(MIN_DESIGN_ROTATION_DEG)
-      .max(MAX_DESIGN_ROTATION_DEG),
-    opacity: z
-      .number()
-      .min(MIN_DESIGN_OPACITY_PERCENT)
-      .max(MAX_DESIGN_OPACITY_PERCENT),
-    blend_mode: designBlendModeSchema,
-  })
-  .strict();
-
 const productCustomizationConfigSchema = z
   .object({
     mode: customizationModeSchema.optional(),
@@ -137,9 +98,8 @@ const productCustomizationConfigSchema = z
     designChangeDescription: z.string().nullable().optional(),
     categoryId: z.string().nullable().optional(),
     tagNames: z.array(z.string().min(1)).nullable().optional(),
-    designPosition: designPositionSchema.nullable().optional(),
   })
-  .strict();
+  .strip();
 
 export class ProductCustomizationConfig {
   readonly mode: CustomizationMode;
@@ -152,7 +112,6 @@ export class ProductCustomizationConfig {
   readonly designChangeDescription: string | null;
   readonly categoryId: string | null;
   readonly tagNames: string[] | null;
-  readonly designPosition: DesignPosition | null;
 
   private constructor(data: ProductCustomizationConfigJson) {
     this.mode = data.mode;
@@ -165,7 +124,6 @@ export class ProductCustomizationConfig {
     this.designChangeDescription = data.designChangeDescription ?? null;
     this.categoryId = data.categoryId ?? null;
     this.tagNames = data.tagNames ?? null;
-    this.designPosition = data.designPosition ?? null;
   }
 
   static default(): ProductCustomizationConfig {
@@ -180,7 +138,6 @@ export class ProductCustomizationConfig {
       designChangeDescription: null,
       categoryId: null,
       tagNames: null,
-      designPosition: null,
     });
   }
 
@@ -202,7 +159,6 @@ export class ProductCustomizationConfig {
       designChangeDescription: data.designChangeDescription ?? null,
       categoryId: data.categoryId ?? null,
       tagNames: normalizeTagNames(data.tagNames ?? null),
-      designPosition: data.designPosition ?? null,
     });
   }
 
@@ -253,7 +209,6 @@ export class ProductCustomizationConfig {
       designChangeDescription: this.designChangeDescription,
       categoryId: this.categoryId,
       tagNames: this.tagNames,
-      designPosition: this.designPosition,
     };
   }
 }

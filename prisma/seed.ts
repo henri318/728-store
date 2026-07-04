@@ -128,7 +128,28 @@ async function main() {
   }
   console.log(`  ✓ Tags seeded: ${tags.map((t) => t.name).join(', ')}`);
 
-  // 6. Create 25 Products with i18n translations
+  // 6. Seed Categories
+  const categoryData = [
+    { name: 'Ropa', slug: 'ropa' },
+    { name: 'Tazas', slug: 'tazas' },
+    { name: 'Hogar', slug: 'hogar' },
+    { name: 'Oficina', slug: 'oficina' },
+  ];
+  const categories: Array<{ id: string; name: string; slug: string }> = [];
+  for (const category of categoryData) {
+    categories.push(
+      await prisma.category.upsert({
+        where: { slug: category.slug },
+        update: {},
+        create: { name: category.name, slug: category.slug },
+      }),
+    );
+  }
+  console.log(
+    `  ✓ Categories seeded: ${categories.map((category) => category.name).join(', ')}`,
+  );
+
+  // 7. Create 25 Products with i18n translations
   const productsData = [
     {
       basePrice: 25.0,
@@ -525,11 +546,13 @@ async function main() {
     },
   ];
 
-  for (const p of productsData) {
+  for (const [index, p] of productsData.entries()) {
     const { tags: tagSlugs, translations, ...productFields } = p;
+    const category = categories[index % categories.length];
     const product = await prisma.product.create({
       data: {
         ...productFields,
+        categoryId: category.id,
         translations: {
           create: [
             {

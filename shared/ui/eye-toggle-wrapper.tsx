@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type KeyboardEvent } from 'react';
-import { Input } from '@/shared/ui/input';
+import { TextField } from '@/shared/ui/text-field';
 import styles from './eye-toggle-wrapper.module.css';
 
 interface EyeToggleWrapperProps {
@@ -36,7 +36,7 @@ export function EyeToggleWrapper({
   const ariaLabel = showPassword ? 'Hide password' : 'Show password';
 
   return (
-    <Input
+    <TextField
       label={label}
       value={value}
       onChange={onChange}

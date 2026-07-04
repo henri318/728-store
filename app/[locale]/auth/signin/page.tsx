@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { Input } from '@/shared/ui/input';
+import { TextField } from '@/shared/ui/text-field';
 import { Button } from '@/shared/ui/button';
 import { EyeToggleWrapper } from '@/shared/ui/eye-toggle-wrapper';
 import { AuthCard } from '@/shared/ui/auth-card';
@@ -11,16 +11,39 @@ import { useDictionary } from '@/shared/i18n/dictionary-context';
 import styles from './page.module.css';
 
 export default function SignInPage() {
+  const router = useRouter();
   const { locale } = useParams<{ locale: string }>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const dict = useDictionary();
 
+  const redirectByRole = (role: string) => {
+    if (role === 'ADMIN') {
+      router.push(`/${locale}/admin/sellers`);
+    } else if (role === 'DESIGNER') {
+      router.push(`/${locale}/seller/products`);
+    } else {
+      router.push(`/${locale}`);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await signIn('credentials', { email, password, callbackUrl: `/${locale}` });
+    const result = await signIn('credentials', {
+      email,
+      password,
+      redirect: false,
+    });
+
+    if (result?.ok) {
+      const res = await fetch('/api/auth/session');
+      const session = await res.json();
+      const role = session?.user?.role ?? 'CUSTOMER';
+      redirectByRole(role);
+    }
+
     setLoading(false);
   };
 
@@ -55,7 +78,7 @@ export default function SignInPage() {
       </button>
 
       <form onSubmit={handleSubmit} className={styles.form}>
-        <Input
+        <TextField
           label={dict.auth.email}
           type="email"
           value={email}

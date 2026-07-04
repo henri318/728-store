@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const mocks = vi.hoisted(() => {
   const sellerRepositoryInstance = {
@@ -83,7 +83,10 @@ vi.mock('@/modules/users/infrastructure/bcrypt-password-hasher', () => ({
 }));
 
 vi.mock('@/modules/uploads/infrastructure/r2-storage-adapter', () => ({
-  R2StorageAdapter: class {},
+  R2StorageAdapter: class R2StorageAdapter {},
+}));
+vi.mock('@/modules/uploads/infrastructure/local-storage-adapter', () => ({
+  LocalStorageAdapter: class LocalStorageAdapter {},
 }));
 vi.mock('@/modules/uploads/infrastructure/prisma-upload-repository', () => ({
   PrismaUploadRepository: class {},
@@ -149,5 +152,39 @@ describe('container — SellerRepository binding', () => {
     // The container.getSellerRepository should still return our custom one
     // because initContainer only initializes null bindings.
     expect(container.getSellerRepository()).toBe(customRepo);
+  });
+});
+
+describe('container — StoragePort binding', () => {
+  const ORIGINAL_ENV = { ...process.env };
+
+  beforeEach(() => {
+    vi.resetAllMocks();
+    process.env = { ...ORIGINAL_ENV };
+    container.setStoragePort(null as never);
+  });
+
+  afterEach(() => {
+    process.env = ORIGINAL_ENV;
+  });
+
+  it('uses LocalStorageAdapter when SEED_PRODUCT_ASSET_LOCAL_STORAGE is true', () => {
+    process.env.SEED_PRODUCT_ASSET_LOCAL_STORAGE = 'true';
+
+    initContainer();
+
+    expect(container.getStoragePort().constructor.name).toBe(
+      'LocalStorageAdapter',
+    );
+  });
+
+  it('uses R2StorageAdapter by default', () => {
+    delete process.env.SEED_PRODUCT_ASSET_LOCAL_STORAGE;
+
+    initContainer();
+
+    expect(container.getStoragePort().constructor.name).toBe(
+      'R2StorageAdapter',
+    );
   });
 });

@@ -1,6 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
+import { TagList } from '@/shared/ui/tag-list';
+import { DescriptionField } from '@/shared/ui/description-field';
+import { SelectField } from '@/shared/ui/select-field';
 import type { ProductCustomizationConfigInput } from '../schemas/product-form-schema';
 import styles from './product-customization-config-editor.module.css';
 
@@ -30,107 +32,55 @@ export function ProductCustomizationConfigEditor({
   labels,
   categories = [],
 }: ProductCustomizationConfigEditorProps) {
-  const tagInput = useMemo(
-    () => (value.tagNames ?? []).join(', '),
-    [value.tagNames],
-  );
-
   const update = (patch: Partial<ProductCustomizationConfigInput>) => {
     onChange({ ...value, ...patch });
   };
 
   return (
-    <div className={styles.editor}>
-      <div className={styles.grid}>
-        <label className={styles.field}>
-          <span>{labels.designChangeDescriptionLabel}</span>
-          <textarea
-            value={value.designChangeDescription ?? ''}
-            onChange={(event) =>
-              update({
-                designChangeDescription: event.target.value.trim() || null,
-              })
-            }
-            placeholder={labels.designChangeDescriptionPlaceholder}
-            rows={3}
-          />
-        </label>
+    <div className={styles.grid}>
+      <DescriptionField
+        label={labels.designChangeDescriptionLabel}
+        value={value.designChangeDescription ?? ''}
+        onChange={(v) => update({ designChangeDescription: v || null })}
+        placeholder={labels.designChangeDescriptionPlaceholder}
+        rows={3}
+      />
 
-        <label className={styles.field}>
-          <span>{labels.sizeOptionsLabel}</span>
-          <input
-            type="text"
-            value={value.sizeOptions?.join(', ') ?? ''}
-            onChange={(event) => {
-              const options = event.target.value
-                .split(',')
-                .map((item) => item.trim())
-                .filter(Boolean);
-              update({ sizeOptions: options.length > 0 ? options : null });
-            }}
-            placeholder={labels.sizeOptionsPlaceholder}
-          />
-        </label>
+      <TagList
+        label={labels.sizeOptionsLabel}
+        placeholder={labels.sizeOptionsPlaceholder}
+        addLabel="+ Añadir"
+        value={value.sizeOptions ?? null}
+        onChange={(next) => update({ sizeOptions: next })}
+      />
 
-        <label className={styles.field}>
-          <span>{labels.categoryLabel}</span>
-          {categories.length > 0 ? (
-            <select
-              value={value.categoryId ?? ''}
-              onChange={(event) =>
-                update({ categoryId: event.target.value || null })
-              }
-            >
-              <option value="">{labels.categoryPlaceholder}</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <input
-              type="text"
-              value={value.categoryId ?? ''}
-              onChange={(event) =>
-                update({ categoryId: event.target.value || null })
-              }
-              placeholder={labels.categoryPlaceholder}
-            />
-          )}
-        </label>
+      <SelectField
+        label={labels.categoryLabel}
+        value={value.categoryId ?? ''}
+        onChange={(v) => update({ categoryId: v || null })}
+        options={categories.map((c) => ({ value: c.id, label: c.name }))}
+        placeholder={labels.categoryPlaceholder}
+      />
 
-        <label className={styles.field}>
-          <span>{labels.tagsLabel}</span>
-          <input
-            type="text"
-            value={tagInput}
-            onChange={(event) => {
-              const tags = event.target.value
-                .split(',')
-                .map((item) => item.trim())
-                .filter(Boolean);
-              update({ tagNames: tags.length > 0 ? tags : null });
-            }}
-            placeholder={labels.tagsPlaceholder}
-            aria-describedby="tags-help"
-          />
-          <span id="tags-help" className={styles.help}>
-            {labels.tagsHelp}
-          </span>
-        </label>
+      <TagList
+        label={labels.tagsLabel}
+        placeholder={labels.tagsPlaceholder}
+        addLabel="+ Añadir"
+        emptyLabel={labels.tagsHelp}
+        value={value.tagNames ?? null}
+        onChange={(next) => update({ tagNames: next })}
+      />
 
-        <label className={styles.checkbox}>
-          <input
-            type="checkbox"
-            checked={Boolean(value.allowPhotoDesign)}
-            onChange={(event) =>
-              update({ allowPhotoDesign: event.target.checked })
-            }
-          />
-          <span>{labels.allowPhotoDesignLabel}</span>
-        </label>
-      </div>
+      <label className={styles.checkbox}>
+        <input
+          type="checkbox"
+          checked={Boolean(value.allowPhotoDesign)}
+          onChange={(event) =>
+            update({ allowPhotoDesign: event.target.checked })
+          }
+        />
+        <span>{labels.allowPhotoDesignLabel}</span>
+      </label>
     </div>
   );
 }

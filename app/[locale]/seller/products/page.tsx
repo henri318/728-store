@@ -126,7 +126,11 @@ export default async function SellerProductsPage({
       key: 'actions',
       header: dict.admin.actions,
       render: (product) => (
-        <ProductActions productId={product.id} currentStatus={product.status} />
+        <ProductActions
+          locale={locale}
+          productId={product.id}
+          currentStatus={product.status}
+        />
       ),
     },
   ];

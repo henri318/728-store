@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
@@ -7,6 +8,7 @@ import { DeleteConfirmModal } from '@/shared/ui/delete-confirm-modal';
 import styles from './product-actions.module.css';
 
 interface ProductActionsProps {
+  locale: string;
   productId: string;
   currentStatus: string;
 }
@@ -17,6 +19,7 @@ const DRAFT_STATUS = 'DRAFT';
 const ELIMINATED_STATUS = 'ELIMINATED';
 
 export function ProductActions({
+  locale,
   productId,
   currentStatus,
 }: ProductActionsProps) {
@@ -89,6 +92,12 @@ export function ProductActions({
   return (
     <>
       <span className={styles.actions}>
+        <Link
+          href={`/${locale}/seller/products/${productId}/edit`}
+          className={styles.editButton}
+        >
+          {dict.sellerDashboard.editProduct}
+        </Link>
         {isDraft && (
           <>
             <button

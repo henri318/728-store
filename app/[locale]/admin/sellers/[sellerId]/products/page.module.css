@@ -11,17 +11,6 @@
   margin-bottom: var(--spacing-lg);
 }
 
-.backLink {
-  display: inline-flex;
-  margin-bottom: var(--spacing-sm);
-  color: var(--color-green-dark);
-  font-weight: var(--font-weight-medium);
-}
-
-.backLink:hover {
-  text-decoration: underline;
-}
-
 .title {
   margin: 0;
   font-size: 1.5rem;

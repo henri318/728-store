@@ -7,7 +7,8 @@ import { Button } from '@/shared/ui/button';
 import { ErrorMessage } from '@/shared/ui/error-message';
 import { EyeToggleWrapper } from '@/shared/ui/eye-toggle-wrapper';
 import { PasswordStrengthIndicator } from '@/shared/ui/password-strength-indicator';
-import { AuthCard } from '@/shared/ui/auth-card';
+import { BackLink } from '@/shared/ui/back-link';
+import { Card } from '@/shared/ui/card';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 import { checkPasswordMatch } from '@/shared/validation/password-match';
 import styles from './page.module.css';
@@ -74,38 +75,44 @@ export default function ChangePasswordPage() {
   };
 
   return (
-    <AuthCard>
-      <h2 className={styles.title}>{dict.auth.changePasswordTitle}</h2>
-      {error && <ErrorMessage message={error} />}
-      {success && (
-        <div role="alert" className={styles.successMessage}>
-          {success}
-        </div>
-      )}
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <EyeToggleWrapper
-          label={dict.auth.currentPassword}
-          value={currentPassword}
-          onChange={setCurrentPassword}
-          required
-        />
-        <EyeToggleWrapper
-          label={dict.auth.newPassword}
-          value={newPassword}
-          onChange={setNewPassword}
-          required
-        />
-        <PasswordStrengthIndicator password={newPassword} />
-        <EyeToggleWrapper
-          label={dict.auth.confirmPassword}
-          value={confirmPassword}
-          onChange={setConfirmPassword}
-          required
-        />
-        <Button type="submit" loading={loading}>
-          {dict.common.submit}
-        </Button>
-      </form>
-    </AuthCard>
+    <div className={styles.wrapper}>
+      <BackLink href={`/${locale}`}>{dict.common.backToHome}</BackLink>
+
+      <Card padding="lg">
+        <h2 className={styles.title}>{dict.auth.changePasswordTitle}</h2>
+        {error && <ErrorMessage message={error} />}
+        {success && (
+          <div role="alert" className={styles.successMessage}>
+            {success}
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <EyeToggleWrapper
+            label={dict.auth.currentPassword}
+            value={currentPassword}
+            onChange={setCurrentPassword}
+            required
+          />
+          <EyeToggleWrapper
+            label={dict.auth.newPassword}
+            value={newPassword}
+            onChange={setNewPassword}
+            required
+          />
+          <PasswordStrengthIndicator password={newPassword} />
+          <EyeToggleWrapper
+            label={dict.auth.confirmPassword}
+            value={confirmPassword}
+            onChange={setConfirmPassword}
+            required
+          />
+          <div className={styles.buttonRow}>
+            <Button type="submit" loading={loading}>
+              {dict.common.submit}
+            </Button>
+          </div>
+        </form>
+      </Card>
+    </div>
   );
 }

@@ -23,6 +23,8 @@ export function HeaderNav({ loginLabel, cartAlt }: HeaderNavProps) {
   const locale = pathname.split('/')[1] ?? 'es';
 
   if (status === 'authenticated' && session?.user) {
+    const isInternal =
+      session.user.role === 'ADMIN' || session.user.role === 'DESIGNER';
     return (
       <>
         <UserMenuDropdown user={session.user}>
@@ -30,7 +32,7 @@ export function HeaderNav({ loginLabel, cartAlt }: HeaderNavProps) {
             <use href="/img/icons/sprites.svg#icon-profile" />
           </svg>
         </UserMenuDropdown>
-        <CartIcon alt={cartAlt} />
+        {!isInternal && <CartIcon alt={cartAlt} />}
         <RoleNavLinks role={session.user.role} locale={locale} />
       </>
     );

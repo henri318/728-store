@@ -1,0 +1,58 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.label {
+  color: rgba(13, 92, 70, 0.82);
+  font-size: 0.88rem;
+  font-weight: var(--font-weight-medium);
+}
+
+.inputRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  width: 100%;
+  height: 42px;
+  padding: 0 0.9rem;
+  border: 1px solid var(--color-lila);
+  border-radius: 999px;
+  background: var(--color-white);
+  color: var(--color-black);
+  font-family: inherit;
+  font-size: 0.82rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.input.hasSuffix {
+  padding-right: 36px;
+}
+
+.suffix {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  line-height: 0;
+}
+
+.input:focus {
+  border-color: var(--color-coral);
+}
+
+.inputError {
+  border-color: var(--color-coral);
+}
+
+.errorText {
+  color: var(--color-coral);
+  font-size: 0.78rem;
+}

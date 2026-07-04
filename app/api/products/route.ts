@@ -1,24 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireRole } from '@/shared/authorization/authorization';
 import { container } from '@/composition-root/container';
 import { handleApiError } from '@/shared/presentation/error-handler';
 import { ProductListQueryUseCase } from '@/modules/products/application/product-list-query-use-case';
+import { CreateProductUseCase } from '@/modules/products/application/create-product-use-case';
 import { productListQuerySchema } from '@/modules/products/presentation/schemas/product-list-query-schema';
+import { productFormSchema } from '@/modules/products/presentation/schemas/product-form-schema';
+import { serializeProduct } from '@/modules/products/presentation/product-response';
 
-/**
- * GET /api/products
- *
- * Public catalog endpoint. Returns a paginated list of products with
- * optional filters (q, category, tags) and locale-scoped text search.
- *
- * Audience contract:
- *  - `audience=public` → only ACTIVE products; default pageSize 10.
- *  - `audience=seller` → own catalog, all statuses (legacy default).
- *  - `audience=admin`  → every product, every status.
- *
- * For `audience=public` with a non-empty `q`, a PRODUCT_SEARCH_EXECUTED
- * event is emitted via the outbox. The search-history module
- * subscribes to it and persists the term for authenticated users only.
- */
 export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     const params = req.nextUrl.searchParams;
@@ -37,23 +26,17 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     });
 
     const productRepository = container.getProductRepository();
-    // Outbox is only wired for public-audience searches (events are a
-    // no-op for other audiences). We read the current session user so
-    // the event payload can carry `userId: null` for guests.
     const session = await container.getSession().getSession();
     const useCase = new ProductListQueryUseCase(
       productRepository,
       container.getOutboxRepository(),
     );
+
     const result = await useCase.execute({
       ...filter,
       userId: session?.id ?? null,
     });
 
-    // Map items to a client-safe JSON shape: ProductPrice serializes
-    // as { money: { amount, currency } } via JSON.stringify, but the
-    // client expects { amount, currency, formattedPrice }. We also
-    // pre-format the price string so no function crosses the boundary.
     const mapped = {
       ...result,
       items: result.items.map((product) => ({
@@ -81,3 +64,47 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return handleApiError(error);
   }
 }
+
+export const POST = requireRole('DESIGNER')(async function POST(
+  request: NextRequest,
+) {
+  try {
+    const rawBody = await request.json();
+    const body = productFormSchema.parse(rawBody);
+    const session = await container.getSession().getSession();
+
+    if (!session?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const seller = await container
+      .getSellerRepository()
+      .findByUserId(session.id);
+    if (!seller) {
+      return NextResponse.json(
+        { error: 'No seller account found for this user' },
+        { status: 403 },
+      );
+    }
+
+    const useCase = new CreateProductUseCase(
+      container.getProductRepository(),
+      container.getOutboxRepository(),
+    );
+
+    const product = await useCase.execute({
+      sellerId: seller.sellerId.value,
+      sellerName: seller.name,
+      locale: body.locale,
+      name: body.name,
+      description: body.description,
+      price: body.price,
+      customizationConfig: body.customizationConfig,
+      images: body.images,
+    });
+
+    return NextResponse.json(serializeProduct(product), { status: 201 });
+  } catch (error: unknown) {
+    return handleApiError(error);
+  }
+});

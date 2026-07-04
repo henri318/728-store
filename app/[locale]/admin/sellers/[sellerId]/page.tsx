@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import { container } from '@/composition-root/container';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { NotFoundError } from '@/shared/kernel/app-error';
 import { GetSellerUseCase } from '@/modules/sellers/application/use-cases/get-seller-use-case';
 import { requireAdmin } from '@/shared/authorization/require-admin';
+import { BackLink } from '@/shared/ui/back-link';
 import { Card } from '@/shared/ui/card';
 import styles from './page.module.css';
 import { SellerDetailForm } from '@/modules/sellers/presentation/components/seller-detail-form';
@@ -37,9 +37,9 @@ export default async function AdminSellerDetailPage({
     <div className={styles.container}>
       <header className={styles.header}>
         <div>
-          <Link href={`/${locale}/admin/sellers`} className={styles.backLink}>
+          <BackLink href={`/${locale}/admin/sellers`}>
             {dict.admin.backToSellers}
-          </Link>
+          </BackLink>
           <h2 className={styles.title}>{dict.admin.sellerDetail.editTitle}</h2>
         </div>
       </header>

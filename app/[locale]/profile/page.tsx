@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
-import { Input } from '@/shared/ui/input';
+import { TextField } from '@/shared/ui/text-field';
+import { BackLink } from '@/shared/ui/back-link';
+import { Card } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { ErrorMessage } from '@/shared/ui/error-message';
 import { DeleteConfirmModal } from '@/shared/ui/delete-confirm-modal';
@@ -149,109 +151,115 @@ export default function ProfilePage() {
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>{dict.profile.title}</h2>
+      <BackLink href={`/${locale}`}>{dict.common.backToHome}</BackLink>
 
-      {error && <ErrorMessage message={error} />}
-      {success && (
-        <div role="alert" className={styles.successMessage}>
-          {success}
-        </div>
-      )}
+      <Card padding="lg">
+        <h2 className={styles.title}>{dict.profile.title}</h2>
 
-      <form onSubmit={handleSave} className={styles.form}>
-        <Input
-          label={dict.auth.firstName}
-          value={form.firstName}
-          onChange={(v) => setForm((prev) => ({ ...prev, firstName: v }))}
-          required
-        />
-        <Input
-          label={dict.auth.lastName}
-          value={form.lastName}
-          onChange={(v) => setForm((prev) => ({ ...prev, lastName: v }))}
-          required
-        />
-        <Input
-          label={dict.auth.email}
-          type="email"
-          value={form.email}
-          onChange={() => {}}
-          disabled
-        />
-
-        {showAddress && (
-          <div className={styles.addressSection}>
-            <h3 className={styles.addressTitle}>{dict.auth.address}</h3>
-            <div className={styles.addressFields}>
-              <Input
-                label={dict.auth.street}
-                value={form.address.street}
-                onChange={(v) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    address: { ...prev.address, street: v },
-                  }))
-                }
-              />
-              <Input
-                label={dict.auth.city}
-                value={form.address.city}
-                onChange={(v) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    address: { ...prev.address, city: v },
-                  }))
-                }
-              />
-              <Input
-                label={dict.auth.postalCode}
-                value={form.address.postalCode}
-                onChange={(v) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    address: { ...prev.address, postalCode: v },
-                  }))
-                }
-              />
-              <Input
-                label={dict.auth.country}
-                value={form.address.country}
-                onChange={(v) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    address: { ...prev.address, country: v },
-                  }))
-                }
-              />
-            </div>
+        {error && <ErrorMessage message={error} />}
+        {success && (
+          <div role="alert" className={styles.successMessage}>
+            {success}
           </div>
         )}
 
-        <Button type="submit" loading={saving}>
-          {dict.common.submit}
-        </Button>
-      </form>
+        <form onSubmit={handleSave} className={styles.form}>
+          <TextField
+            label={dict.auth.firstName}
+            value={form.firstName}
+            onChange={(v) => setForm((prev) => ({ ...prev, firstName: v }))}
+            required
+          />
+          <TextField
+            label={dict.auth.lastName}
+            value={form.lastName}
+            onChange={(v) => setForm((prev) => ({ ...prev, lastName: v }))}
+            required
+          />
+          <TextField
+            label={dict.auth.email}
+            type="email"
+            value={form.email}
+            onChange={() => {}}
+            disabled
+          />
 
-      <div className={styles.deleteSection}>
-        <Button
-          type="button"
-          variant="danger"
-          onClick={() => setShowDeleteModal(true)}
-        >
-          {dict.profile.deleteAccount}
-        </Button>
-      </div>
+          {showAddress && (
+            <div className={styles.addressSection}>
+              <h3 className={styles.addressTitle}>{dict.auth.address}</h3>
+              <div className={styles.addressFields}>
+                <TextField
+                  label={dict.auth.street}
+                  value={form.address.street}
+                  onChange={(v) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      address: { ...prev.address, street: v },
+                    }))
+                  }
+                />
+                <TextField
+                  label={dict.auth.city}
+                  value={form.address.city}
+                  onChange={(v) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      address: { ...prev.address, city: v },
+                    }))
+                  }
+                />
+                <TextField
+                  label={dict.auth.postalCode}
+                  value={form.address.postalCode}
+                  onChange={(v) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      address: { ...prev.address, postalCode: v },
+                    }))
+                  }
+                />
+                <TextField
+                  label={dict.auth.country}
+                  value={form.address.country}
+                  onChange={(v) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      address: { ...prev.address, country: v },
+                    }))
+                  }
+                />
+              </div>
+            </div>
+          )}
 
-      <DeleteConfirmModal
-        open={showDeleteModal}
-        title={dict.profile.deleteConfirmTitle}
-        message={dict.profile.deleteConfirmMessage}
-        confirmLabel={dict.profile.deleteAccount}
-        cancelLabel={dict.common.cancel}
-        loading={saving}
-        onConfirm={handleDelete}
-        onCancel={() => setShowDeleteModal(false)}
-      />
+          <div className={styles.buttonRow}>
+            <Button type="submit" loading={saving}>
+              {dict.common.submit}
+            </Button>
+          </div>
+        </form>
+
+        <div className={styles.deleteSection}>
+          <Button
+            type="button"
+            variant="danger"
+            onClick={() => setShowDeleteModal(true)}
+          >
+            {dict.profile.deleteAccount}
+          </Button>
+        </div>
+
+        <DeleteConfirmModal
+          open={showDeleteModal}
+          title={dict.profile.deleteConfirmTitle}
+          message={dict.profile.deleteConfirmMessage}
+          confirmLabel={dict.profile.deleteAccount}
+          cancelLabel={dict.common.cancel}
+          loading={saving}
+          onConfirm={handleDelete}
+          onCancel={() => setShowDeleteModal(false)}
+        />
+      </Card>
     </div>
   );
 }

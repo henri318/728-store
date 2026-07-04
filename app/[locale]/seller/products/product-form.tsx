@@ -1,9 +1,14 @@
 'use client';
 
-import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { type ZodError } from 'zod';
+import { Button } from '@/shared/ui/button';
+import { BackLink } from '@/shared/ui/back-link';
+import { Card } from '@/shared/ui/card';
+import { TextField } from '@/shared/ui/text-field';
+import { PriceField } from '@/shared/ui/price-field';
+import { DescriptionField } from '@/shared/ui/description-field';
 import { ProductCustomizationConfigEditor } from '@/modules/products/presentation/components/product-customization-config-editor';
 import { toAbsoluteUrl } from '@/shared/presentation/lib/to-absolute-url';
 import { UploadType } from '@/modules/uploads/domain/value-objects/upload-type';
@@ -114,12 +119,20 @@ function createPhotoId() {
 }
 
 function buildPayload(locale: string, form: FormState) {
+  const customizationConfig = form.customizationConfig
+    ? {
+        ...form.customizationConfig,
+        designChangeDescription:
+          form.customizationConfig.designChangeDescription ?? null,
+      }
+    : undefined;
+
   const payload = {
     locale,
     name: form.name.trim(),
     description: form.description.trim() || undefined,
     price: form.price,
-    customizationConfig: form.customizationConfig,
+    customizationConfig,
     images: form.images.map((image, index) => ({
       url: image.url,
       alt: image.alt.trim(),
@@ -152,7 +165,14 @@ async function uploadPhoto(file: File, defaultName: string) {
   });
 
   if (!response.ok) {
-    throw new Error('Upload failed');
+    let detail = 'Upload failed';
+    try {
+      const body = await response.json();
+      if (body.error) detail = body.error;
+    } catch {
+      /* empty */
+    }
+    throw new Error(detail);
   }
 
   const result = (await response.json()) as {
@@ -162,11 +182,15 @@ async function uploadPhoto(file: File, defaultName: string) {
     publicUrl: string;
   };
 
-  await fetch(result.uploadUrl, {
+  const uploadResponse = await fetch(result.uploadUrl, {
     method: 'PUT',
     headers: { 'content-type': file.type },
     body: file,
   });
+
+  if (!uploadResponse.ok) {
+    throw new Error('File storage failed');
+  }
 
   return {
     id: result.id,
@@ -311,8 +335,10 @@ export function ProductForm({
             null,
         };
       });
-    } catch {
-      setPhotoError(labels.gallery.uploadError);
+    } catch (e) {
+      setPhotoError(
+        e instanceof Error ? e.message : labels.gallery.uploadError,
+      );
     } finally {
       setUploading(false);
     }
@@ -372,16 +398,16 @@ export function ProductForm({
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
+      <BackLink href={`/${locale}/seller/products`}>
+        {labels.backToProducts}
+      </BackLink>
+
       <header className={styles.header}>
         <div>
           <p className={styles.kicker}>{labels.customization.label}</p>
           <h1 className={styles.title}>{labels.title}</h1>
           <p className={styles.subtitle}>{labels.customization.hint}</p>
         </div>
-
-        <Link className={styles.backLink} href={`/${locale}/seller/products`}>
-          {labels.backToProducts}
-        </Link>
       </header>
 
       {serverError ? (
@@ -395,61 +421,37 @@ export function ProductForm({
         </p>
       ) : null}
 
-      <div className={styles.layout}>
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div>
-              <h2 className={styles.cardTitle}>{labels.title}</h2>
-              <p className={styles.cardHint}>{labels.customization.hint}</p>
-            </div>
+      <Card padding="md">
+        <div className={styles.formBody}>
+          <div className={styles.fieldRow}>
+            <TextField
+              label={labels.nameLabel}
+              value={form.name}
+              onChange={(v) => updateField('name', v)}
+              error={errors.name}
+              required
+            />
+
+            <PriceField
+              label={labels.priceLabel}
+              value={form.price}
+              onChange={(v) => updateField('price', v)}
+              error={errors.price}
+              required
+            />
           </div>
 
-          <label className={styles.field} htmlFor="product-name">
-            <span>{labels.nameLabel}</span>
-            <input
-              id="product-name"
-              className={styles.input}
-              value={form.name}
-              onChange={(event) => updateField('name', event.target.value)}
-              required
-            />
-            {errors.name ? <p className={styles.error}>{errors.name}</p> : null}
-          </label>
+          <DescriptionField
+            label={labels.descriptionLabel}
+            value={form.description}
+            onChange={(v) => updateField('description', v)}
+            error={errors.description}
+          />
+        </div>
 
-          <label className={styles.field} htmlFor="product-description">
-            <span>{labels.descriptionLabel}</span>
-            <textarea
-              id="product-description"
-              className={styles.textarea}
-              value={form.description}
-              onChange={(event) =>
-                updateField('description', event.target.value)
-              }
-              rows={4}
-            />
-            {errors.description ? (
-              <p className={styles.error}>{errors.description}</p>
-            ) : null}
-          </label>
+        <hr className={styles.divider} />
 
-          <label className={styles.field} htmlFor="product-price">
-            <span>{labels.priceLabel}</span>
-            <input
-              id="product-price"
-              className={styles.input}
-              type="number"
-              step="0.01"
-              value={form.price}
-              onChange={(event) => updateField('price', event.target.value)}
-              required
-            />
-            {errors.price ? (
-              <p className={styles.error}>{errors.price}</p>
-            ) : null}
-          </label>
-        </section>
-
-        <section className={styles.card}>
+        <div className={styles.formBody}>
           <ProductPhotoGallery
             photos={form.images}
             selectedPhotoId={form.selectedPhotoId}
@@ -461,16 +463,11 @@ export function ProductForm({
             uploading={uploading}
             error={photoError}
           />
-        </section>
+        </div>
 
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div>
-              <h2 className={styles.cardTitle}>{labels.customization.label}</h2>
-              <p className={styles.cardHint}>{labels.customization.hint}</p>
-            </div>
-          </div>
+        <hr className={styles.divider} />
 
+        <div className={styles.formBody}>
           <ProductCustomizationConfigEditor
             value={form.customizationConfig}
             labels={labels.customization.editor}
@@ -479,20 +476,18 @@ export function ProductForm({
           />
 
           {errors.customizationConfig ? (
-            <p className={styles.error}>{errors.customizationConfig}</p>
+            <p className={styles.alert} role="alert">
+              {errors.customizationConfig}
+            </p>
           ) : null}
-        </section>
-      </div>
+        </div>
 
-      <footer className={styles.footer}>
-        <button
-          className={styles.saveButton}
-          type="submit"
-          disabled={loading || uploading}
-        >
-          {labels.save}
-        </button>
-      </footer>
+        <div className={styles.buttonRow}>
+          <Button type="submit" loading={loading || uploading}>
+            {labels.save}
+          </Button>
+        </div>
+      </Card>
     </form>
   );
 }

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { Button } from '@/shared/ui/button';
 import { ErrorMessage } from '@/shared/ui/error-message';
+import { TextField } from '@/shared/ui/text-field';
+import { DescriptionField } from '@/shared/ui/description-field';
 import styles from '@/app/[locale]/admin/sellers/[sellerId]/page.module.css';
 
 interface SellerDetailFormProps {
@@ -87,25 +89,13 @@ export function SellerDetailForm({
         </div>
       ) : null}
 
-      <label className={styles.field}>
-        <span className={styles.label}>{nameLabel}</span>
-        <input
-          className={styles.input}
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          required
-        />
-      </label>
+      <TextField label={nameLabel} value={name} onChange={setName} required />
 
-      <label className={styles.field}>
-        <span className={styles.label}>{descriptionLabel}</span>
-        <textarea
-          className={styles.textarea}
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
-          rows={4}
-        />
-      </label>
+      <DescriptionField
+        label={descriptionLabel}
+        value={description}
+        onChange={setDescription}
+      />
 
       <div className={styles.formActions}>
         <Button type="submit" loading={loading}>
