@@ -10,6 +10,10 @@ import { ValidationError } from '@/shared/kernel/app-error';
 import { randomUUID } from 'crypto';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const PRIVATE_READ_TTL = 7 * 24 * 3600; // 7 days — presigned URL for private buckets
+
+/** Upload types whose assets are publicly accessible with a permanent URL. */
+const PUBLIC_TYPES: readonly UploadType[] = [UploadType.product];
 
 export interface CreateUploadInput {
   userId: string;
@@ -83,11 +87,20 @@ export class CreateUploadUseCase {
     };
     await this.uploadRepo.save(upload);
 
-    const [uploadUrl, readUrl, publicUrl] = await Promise.all([
+    const isPublicType = (PUBLIC_TYPES as readonly UploadType[]).includes(
+      input.type,
+    );
+
+    const [uploadUrl, readUrl] = await Promise.all([
       this.storage.generateUploadUrl(storageKey, input.mimeType),
       this.storage.generateReadUrl(storageKey),
-      this.storage.getPublicUrl(storageKey),
     ]);
+
+    // Public items get a permanent public URL; private items get a
+    // long-lived presigned URL since the private bucket has no public domain.
+    const publicUrl = isPublicType
+      ? this.storage.getPublicUrl(storageKey)
+      : await this.storage.generateReadUrl(storageKey, PRIVATE_READ_TTL);
 
     return { id, uploadUrl, storageKey, readUrl, publicUrl };
   }

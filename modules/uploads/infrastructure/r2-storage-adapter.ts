@@ -10,25 +10,34 @@ import type { StoragePort } from '../domain/storage-port';
 /**
  * R2StorageAdapter — Cloudflare R2 implementation of the StoragePort.
  *
- * Uses AWS SDK S3-compatible API to generate presigned URLs and
- * delete objects. R2 is S3-compatible, so no special configuration
- * beyond the account-specific endpoint is needed.
+ * Routes uploads to TWO buckets: public (product images, avatars) and
+ * private (customization, ticket, general). The public bucket has a
+ * custom domain for permanent URLs; the private bucket is only
+ * accessible via presigned URLs.
  *
  * Environment variables:
- *   R2_BUCKET          — R2 bucket name
+ *   R2_PUBLIC_BUCKET   — R2 bucket for public assets (product images)
+ *   R2_PRIVATE_BUCKET  — R2 bucket for private assets (customization)
+ *   R2_BUCKET          — Fallback if R2_PUBLIC/PRIVATE_BUCKET are not set
  *   R2_ACCOUNT_ID      — Cloudflare account ID
  *   R2_ACCESS_KEY_ID   — R2 API token access key
  *   R2_SECRET_ACCESS_KEY — R2 API token secret key
  *   R2_PUBLIC_DOMAIN   — Public domain for permanent URLs
- *                         (e.g. "https://bucket.account.r2.dev" or custom domain)
+ *                         (e.g. "https://cdn.example.com")
  */
 export class R2StorageAdapter implements StoragePort {
   private readonly client: S3Client;
-  private readonly bucket: string;
+  private readonly publicBucket: string;
+  private readonly privateBucket: string;
   private readonly publicDomain: string;
 
+  /** Upload types that route to the public bucket. */
+  private static readonly PUBLIC_TYPES = new Set(['product', 'avatar']);
+
   constructor() {
-    this.bucket = requireEnv('R2_BUCKET', 'dummy-bucket');
+    const fallback = requireEnv('R2_BUCKET', 'dummy-bucket');
+    this.publicBucket = process.env.R2_PUBLIC_BUCKET || fallback;
+    this.privateBucket = process.env.R2_PRIVATE_BUCKET || fallback;
     const accountId = requireEnv('R2_ACCOUNT_ID', 'dummy-account');
     const accessKeyId = requireEnv('R2_ACCESS_KEY_ID', 'dummy-key');
     const secretAccessKey = requireEnv('R2_SECRET_ACCESS_KEY', 'dummy-secret');
@@ -47,6 +56,14 @@ export class R2StorageAdapter implements StoragePort {
     });
   }
 
+  /** Resolve which bucket to use based on the storage key prefix. */
+  private getBucket(key: string): string {
+    const type = key.split('/')[0];
+    return R2StorageAdapter.PUBLIC_TYPES.has(type)
+      ? this.publicBucket
+      : this.privateBucket;
+  }
+
   /**
    * Generate a presigned PUT URL for uploading a file directly to R2.
    *
@@ -60,7 +77,7 @@ export class R2StorageAdapter implements StoragePort {
     expiresIn = 300,
   ): Promise<string> {
     const command = new PutObjectCommand({
-      Bucket: this.bucket,
+      Bucket: this.getBucket(key),
       Key: key,
       ContentType: contentType,
     });
@@ -76,7 +93,7 @@ export class R2StorageAdapter implements StoragePort {
    */
   async generateReadUrl(key: string, expiresIn = 3600): Promise<string> {
     const command = new GetObjectCommand({
-      Bucket: this.bucket,
+      Bucket: this.getBucket(key),
       Key: key,
     });
 
@@ -86,9 +103,12 @@ export class R2StorageAdapter implements StoragePort {
   /**
    * Get a permanent public URL for the given key.
    *
-   * Uses the R2_PUBLIC_DOMAIN env var (e.g. "https://bucket.account.r2.dev"
+   * Uses the R2_PUBLIC_DOMAIN env var (e.g. "https://cdn.example.com"
    * or a custom domain). The URL is stable and does not expire — safe for
    * product images, avatars, SEO, social sharing, and CDN caching.
+   *
+   * NOTE: Only call this for keys that route to the public bucket.
+   * For private-bucket items, use generateReadUrl() instead.
    */
   getPublicUrl(key: string): string {
     const base = this.publicDomain.endsWith('/')
@@ -100,11 +120,12 @@ export class R2StorageAdapter implements StoragePort {
   /**
    * Delete an object from R2 by key.
    *
+   * Routes to the correct bucket based on the key prefix.
    * If the key doesn't exist, R2 returns success (no-op).
    */
   async delete(key: string): Promise<void> {
     const command = new DeleteObjectCommand({
-      Bucket: this.bucket,
+      Bucket: this.getBucket(key),
       Key: key,
     });
 
