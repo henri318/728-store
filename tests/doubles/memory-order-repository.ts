@@ -4,6 +4,7 @@ import {
   OrderLineItemEntity,
   OrderStatus,
 } from '@/modules/orders/domain/order-repository';
+import { ORDER_PAID_PURCHASE_STATUSES } from '@/modules/orders/domain/value-objects/order-lifecycle';
 
 export class MemoryOrderRepository implements OrderRepository {
   private orders: OrderEntity[] = [];
@@ -74,7 +75,9 @@ export class MemoryOrderRepository implements OrderRepository {
 
   async countPaidByUserId(userId: string): Promise<number> {
     return this.orders.filter(
-      (o) => o.userId === userId && o.status === 'completed',
+      (o) =>
+        o.userId === userId &&
+        ORDER_PAID_PURCHASE_STATUSES.some((status) => status === o.status),
     ).length;
   }
 

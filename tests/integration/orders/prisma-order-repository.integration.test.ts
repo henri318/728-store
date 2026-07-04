@@ -531,7 +531,7 @@ describe('PrismaOrderRepository — Integration', () => {
   });
 
   describe('countPaidByUserId and PrismaPaidOrderCountAdapter', () => {
-    it('counts completed orders and ignores non-completed orders', async () => {
+    it('counts completed and legacy paid orders and ignores non-paid orders', async () => {
       await ensurePrerequisites({
         userId: 'user-paid-count',
         sellerId: 'seller-paid-count-completed',
@@ -562,6 +562,16 @@ describe('PrismaOrderRepository — Integration', () => {
 
       await repo.save(
         makeOrder({
+          id: 'order-paid-count-legacy-paid',
+          userId: 'user-paid-count',
+          sellerId: 'seller-paid-count-completed',
+          total: 100,
+          status: 'paid',
+        }),
+      );
+
+      await repo.save(
+        makeOrder({
           id: 'order-paid-count-new',
           userId: 'user-paid-count',
           sellerId: 'seller-paid-count-new',
@@ -584,8 +594,8 @@ describe('PrismaOrderRepository — Integration', () => {
 
       await expect(
         adapter.countPaidOrdersByUserId('user-paid-count'),
-      ).resolves.toBe(1);
-      await expect(repo.countPaidByUserId('user-paid-count')).resolves.toBe(1);
+      ).resolves.toBe(2);
+      await expect(repo.countPaidByUserId('user-paid-count')).resolves.toBe(2);
     });
 
     it('returns zero when a user only has non-completed orders', async () => {
