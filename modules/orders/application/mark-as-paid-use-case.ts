@@ -3,6 +3,7 @@ import { TransactionalOrderPort } from '../domain/transactional-order-port';
 import { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import type { EventBusPort } from '@/modules/events/domain/event-bus-port';
+import { ORDER_LIFECYCLE_STATUSES } from '../domain/value-objects/order-lifecycle';
 
 /**
  * Data Transfer Object for marking an order as paid.
@@ -20,12 +21,12 @@ export interface MarkAsPaidDTO {
 /**
  * Use case for marking an order as paid when a PaymentCompleted event is received.
  *
- * This use case implements the state transition from 'pending' to 'paid' status.
+ * This use case implements the state transition from 'new' to 'in_progress' status.
  * It validates that the order exists and is in the correct initial state before
  * performing the transition. The operation is idempotent - if the order is already
- * paid, it skips silently without emitting duplicate events.
+ * in progress, it skips silently without emitting duplicate events.
  *
- * State Transition: pending → paid
+ * State Transition: new → in_progress
  *
  * @example
  * ```typescript
@@ -52,9 +53,9 @@ export class MarkAsPaidUseCase {
    *
    * This method:
    * 1. Validates the order exists
-   * 2. Checks idempotency (skips if already paid)
-   * 3. Validates state transition (only from 'pending')
-   * 4. Updates order status to 'paid'
+   * 2. Checks idempotency (skips if already in progress)
+   * 3. Validates state transition (only from 'new')
+   * 4. Updates order status to 'in_progress'
    * 5. Emits ORDER_PAID event via Outbox for downstream consumers
    *
    * @param data - The payment completion data containing orderId, paymentId, and amount
@@ -76,13 +77,13 @@ export class MarkAsPaidUseCase {
       throw new Error('Order not found');
     }
 
-    // Idempotency: if already paid, skip silently
-    if (order.status === 'paid') {
+    // Idempotency: if already in progress, skip silently
+    if (order.status === ORDER_LIFECYCLE_STATUSES.IN_PROGRESS) {
       return;
     }
 
-    // Validate state transition (only pending orders can be marked as paid)
-    if (order.status !== 'pending') {
+    // Validate state transition (only new orders can move into progress)
+    if (order.status !== ORDER_LIFECYCLE_STATUSES.NEW) {
       throw new Error('Invalid state transition');
     }
 
@@ -90,7 +91,7 @@ export class MarkAsPaidUseCase {
     if (this.transactionalService) {
       await this.transactionalService.updateStatusAndEmit(
         data.orderId,
-        'paid',
+        ORDER_LIFECYCLE_STATUSES.IN_PROGRESS,
         GlobalEvents.ORDER_PAID,
         {
           orderId: order.id,
@@ -102,8 +103,11 @@ export class MarkAsPaidUseCase {
       );
     } else {
       // Fallback to non-transactional mode (for testing with MemoryOutboxRepository)
-      // Update order status to paid
-      await this.orderRepository.updateStatus(data.orderId, 'paid');
+      // Update order status to in_progress
+      await this.orderRepository.updateStatus(
+        data.orderId,
+        ORDER_LIFECYCLE_STATUSES.IN_PROGRESS,
+      );
 
       // Emit ORDER_PAID event via Outbox
       await this.outboxRepository.saveEvent(GlobalEvents.ORDER_PAID, {

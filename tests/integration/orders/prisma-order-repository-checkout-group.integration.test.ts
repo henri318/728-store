@@ -74,7 +74,7 @@ describe('PrismaOrderRepository — checkout group contract', () => {
       sellerId: 'seller-checkout-group-contract',
       checkoutGroupId,
       total: 42,
-      status: 'pending',
+      status: 'new',
       lineItems: [],
     });
 

@@ -8,6 +8,7 @@ import { ProductSnapshot } from '../domain/product-snapshot';
 import { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import { NotFoundError } from '@/shared/kernel/app-error';
+import { ORDER_LIFECYCLE_STATUSES } from '../domain/value-objects/order-lifecycle';
 
 // --- Data Transfer Objects ---
 
@@ -105,7 +106,7 @@ export class CreateOrderUseCase {
           ? (productsMap.get(dto.items[0].productId)?.sellerId ?? '')
           : '',
       total: totalOrderPrice,
-      status: 'pending',
+      status: ORDER_LIFECYCLE_STATUSES.NEW,
       lineItems: [], // This will be populated after order is saved and line items are linked
     };
 

@@ -36,14 +36,14 @@ describe('CheckoutGroup contracts', () => {
         checkoutGroupId: 'checkout-group-1',
         sellerId: 'seller-1',
         total: Money.create(90, Currency.EUR),
-        status: 'pending',
+        status: 'new',
       },
       {
         orderId: 'order-2',
         checkoutGroupId: 'checkout-group-1',
         sellerId: 'seller-2',
         total: Money.create(59.9, Currency.EUR),
-        status: 'pending',
+        status: 'new',
       },
     ];
 
@@ -95,14 +95,14 @@ describe('CheckoutGroup contracts', () => {
           checkoutGroupId: 'checkout-group-1',
           sellerId: 'seller-1',
           total: Money.create(90, Currency.EUR),
-          status: 'pending',
+          status: 'new',
         },
         {
           orderId: 'order-2',
           checkoutGroupId: 'checkout-group-1',
           sellerId: 'seller-2',
           total: Money.create(59.9, Currency.EUR),
-          status: 'pending',
+          status: 'new',
         },
       ],
     });

@@ -73,8 +73,9 @@ export class MemoryOrderRepository implements OrderRepository {
   }
 
   async countPaidByUserId(userId: string): Promise<number> {
-    return this.orders.filter((o) => o.userId === userId && o.status === 'paid')
-      .length;
+    return this.orders.filter(
+      (o) => o.userId === userId && o.status === 'completed',
+    ).length;
   }
 
   // Add a method to retrieve line items if needed for testing or verification

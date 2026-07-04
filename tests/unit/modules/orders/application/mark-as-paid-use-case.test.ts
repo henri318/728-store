@@ -23,13 +23,13 @@ describe('MarkAsPaidUseCase', () => {
   // Happy path
   // ---------------------------------------------------------------------------
 
-  it('should transition order from pending to paid and emit ORDER_PAID event', async () => {
+  it('should transition order from new to in_progress and emit ORDER_PAID event', async () => {
     const testOrder: OrderEntity = {
       id: 'order-1',
       userId: 'user-1',
       sellerId: 'seller-1',
       total: 100,
-      status: 'pending',
+      status: 'new',
       lineItems: [],
     };
     await orderRepository.save(testOrder);
@@ -41,7 +41,7 @@ describe('MarkAsPaidUseCase', () => {
     });
 
     const updatedOrder = await orderRepository.findById('order-1');
-    expect(updatedOrder?.status).toBe('paid');
+    expect(updatedOrder?.status).toBe('in_progress');
 
     expect(outboxRepository.events.length).toBe(1);
     expect(outboxRepository.events[0].eventType).toBe(GlobalEvents.ORDER_PAID);
@@ -61,7 +61,7 @@ describe('MarkAsPaidUseCase', () => {
       userId: 'user-123',
       sellerId: 'seller-456',
       total: 350,
-      status: 'pending',
+      status: 'new',
       lineItems: [
         {
           id: 'item-1',
@@ -90,7 +90,7 @@ describe('MarkAsPaidUseCase', () => {
     });
 
     const updatedOrder = await orderRepository.findById('order-multi');
-    expect(updatedOrder?.status).toBe('paid');
+    expect(updatedOrder?.status).toBe('in_progress');
     expect(updatedOrder?.lineItems?.length).toBe(2);
 
     expect(outboxRepository.events[0].payload).toEqual({
@@ -108,7 +108,7 @@ describe('MarkAsPaidUseCase', () => {
       userId: 'u1',
       sellerId: 's1',
       total: 100,
-      status: 'pending',
+      status: 'new',
       lineItems: [],
     });
     await orderRepository.save({
@@ -116,7 +116,7 @@ describe('MarkAsPaidUseCase', () => {
       userId: 'u2',
       sellerId: 's2',
       total: 200,
-      status: 'pending',
+      status: 'new',
       lineItems: [],
     });
 
@@ -131,8 +131,12 @@ describe('MarkAsPaidUseCase', () => {
       amount: 200,
     });
 
-    expect((await orderRepository.findById('order-a'))?.status).toBe('paid');
-    expect((await orderRepository.findById('order-b'))?.status).toBe('paid');
+    expect((await orderRepository.findById('order-a'))?.status).toBe(
+      'in_progress',
+    );
+    expect((await orderRepository.findById('order-b'))?.status).toBe(
+      'in_progress',
+    );
     expect(outboxRepository.events.length).toBe(2);
   });
 
@@ -169,13 +173,13 @@ describe('MarkAsPaidUseCase', () => {
     expect(outboxRepository.events.length).toBe(0);
   });
 
-  it('should throw error when order is in ready-for-production state', async () => {
+  it('should throw error when order is in completed state', async () => {
     await orderRepository.save({
       id: 'o1',
       userId: 'u1',
       sellerId: 's1',
       total: 100,
-      status: 'ready-for-production',
+      status: 'completed',
       lineItems: [],
     });
 
@@ -202,13 +206,7 @@ describe('MarkAsPaidUseCase', () => {
   });
 
   it('should handle all possible order states correctly', async () => {
-    const states: OrderStatus[] = [
-      'pending',
-      'paid',
-      'ready-for-production',
-      'cancelled',
-      'completed',
-    ];
+    const states: OrderStatus[] = ['new', 'in_progress', 'completed'];
 
     for (const state of states) {
       orderRepository = new MemoryOrderRepository();
@@ -224,7 +222,7 @@ describe('MarkAsPaidUseCase', () => {
         lineItems: [],
       });
 
-      if (state === 'pending') {
+      if (state === 'new') {
         await expect(
           useCase.execute({
             orderId: `o-${state}`,
@@ -232,7 +230,7 @@ describe('MarkAsPaidUseCase', () => {
             amount: 100,
           }),
         ).resolves.not.toThrow();
-      } else if (state === 'paid') {
+      } else if (state === 'in_progress') {
         await expect(
           useCase.execute({
             orderId: `o-${state}`,
@@ -257,19 +255,19 @@ describe('MarkAsPaidUseCase', () => {
   // Idempotency
   // ---------------------------------------------------------------------------
 
-  it('should be idempotent — skip if order is already paid', async () => {
+  it('should be idempotent — skip if order is already in progress', async () => {
     await orderRepository.save({
       id: 'o1',
       userId: 'u1',
       sellerId: 's1',
       total: 100,
-      status: 'paid',
+      status: 'in_progress',
       lineItems: [],
     });
 
     await useCase.execute({ orderId: 'o1', paymentId: 'pay-1', amount: 100 });
 
-    expect((await orderRepository.findById('o1'))?.status).toBe('paid');
+    expect((await orderRepository.findById('o1'))?.status).toBe('in_progress');
     expect(outboxRepository.events.length).toBe(0);
   });
 
@@ -279,7 +277,7 @@ describe('MarkAsPaidUseCase', () => {
       userId: 'u1',
       sellerId: 's1',
       total: 100,
-      status: 'pending',
+      status: 'new',
       lineItems: [],
     });
 
@@ -289,7 +287,7 @@ describe('MarkAsPaidUseCase', () => {
     await useCase.execute({ orderId: 'o1', paymentId: 'pay-1', amount: 100 });
 
     expect(outboxRepository.events.length).toBe(countAfterFirst);
-    expect((await orderRepository.findById('o1'))?.status).toBe('paid');
+    expect((await orderRepository.findById('o1'))?.status).toBe('in_progress');
   });
 
   it('should handle multiple retries of same payment event', async () => {
@@ -298,7 +296,7 @@ describe('MarkAsPaidUseCase', () => {
       userId: 'u1',
       sellerId: 's1',
       total: 100,
-      status: 'pending',
+      status: 'new',
       lineItems: [],
     });
 
@@ -325,13 +323,13 @@ describe('MarkAsPaidUseCase', () => {
       userId: 'u1',
       sellerId: 's1',
       total: 100,
-      status: 'pending',
+      status: 'new',
       lineItems: [],
     });
 
     await useCase.execute({ orderId: 'o1', paymentId: '', amount: 100 });
 
-    expect((await orderRepository.findById('o1'))?.status).toBe('paid');
+    expect((await orderRepository.findById('o1'))?.status).toBe('in_progress');
   });
 
   it('should handle zero amount payment', async () => {
@@ -340,13 +338,13 @@ describe('MarkAsPaidUseCase', () => {
       userId: 'u1',
       sellerId: 's1',
       total: 0,
-      status: 'pending',
+      status: 'new',
       lineItems: [],
     });
 
     await useCase.execute({ orderId: 'o1', paymentId: 'pay-0', amount: 0 });
 
-    expect((await orderRepository.findById('o1'))?.status).toBe('paid');
+    expect((await orderRepository.findById('o1'))?.status).toBe('in_progress');
     expect(outboxRepository.events.length).toBe(1);
   });
 
@@ -356,7 +354,7 @@ describe('MarkAsPaidUseCase', () => {
       userId: 'u1',
       sellerId: 's1',
       total: 100,
-      status: 'pending',
+      status: 'new',
       lineItems: [],
     });
 
@@ -366,7 +364,7 @@ describe('MarkAsPaidUseCase', () => {
       amount: 50,
     });
 
-    expect((await orderRepository.findById('o1'))?.status).toBe('paid');
+    expect((await orderRepository.findById('o1'))?.status).toBe('in_progress');
   });
 
   // ---------------------------------------------------------------------------
@@ -379,7 +377,7 @@ describe('MarkAsPaidUseCase', () => {
       userId: 'u1',
       sellerId: 's1',
       total: 100,
-      status: 'pending',
+      status: 'new',
       lineItems: [],
     });
 
@@ -401,7 +399,7 @@ describe('MarkAsPaidUseCase', () => {
       userId: 'u-unique',
       sellerId: 's-unique',
       total: 999.99,
-      status: 'pending',
+      status: 'new',
       lineItems: [],
     });
 
