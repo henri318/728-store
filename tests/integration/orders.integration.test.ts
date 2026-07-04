@@ -30,14 +30,14 @@ describe('Orders Module - Integration Tests', () => {
   });
 
   describe('Complete Order Lifecycle', () => {
-    it('should handle complete flow: pending → paid → ready-for-production', async () => {
-      // Arrange - Create pending order
+    it('should handle complete flow: new → in_progress → completed', async () => {
+      // Arrange - Create new order
       const order: OrderEntity = {
         id: 'order-lifecycle-1',
         userId: 'user-1',
         sellerId: 'seller-1',
         total: 250,
-        status: 'pending',
+        status: 'new',
         lineItems: [
           {
             id: 'item-1',
@@ -58,9 +58,9 @@ describe('Orders Module - Integration Tests', () => {
         amount: 250,
       });
 
-      // Assert 1 - Order is paid
+      // Assert 1 - Order is in progress
       let updatedOrder = await orderRepository.findById('order-lifecycle-1');
-      expect(updatedOrder?.status).toBe('paid');
+      expect(updatedOrder?.status).toBe('in_progress');
       expect(outboxRepository.events.length).toBe(1);
       expect(outboxRepository.events[0].eventType).toBe(
         GlobalEvents.ORDER_PAID,
@@ -72,9 +72,9 @@ describe('Orders Module - Integration Tests', () => {
         customizationId: 'custom-001',
       });
 
-      // Assert 2 - Order in production
+      // Assert 2 - Order completed
       updatedOrder = await orderRepository.findById('order-lifecycle-1');
-      expect(updatedOrder?.status).toBe('ready-for-production');
+      expect(updatedOrder?.status).toBe('completed');
       expect(outboxRepository.events.length).toBe(2);
       expect(outboxRepository.events[1].eventType).toBe(
         GlobalEvents.ORDER_READY_FOR_PRODUCTION,
@@ -82,7 +82,7 @@ describe('Orders Module - Integration Tests', () => {
     });
 
     it('should handle multiple orders through complete lifecycle', async () => {
-      // Arrange - Create 3 pending orders
+      // Arrange - Create 3 new orders
       const orders = [
         { id: 'order-1', userId: 'user-1', sellerId: 'seller-1', total: 100 },
         { id: 'order-2', userId: 'user-2', sellerId: 'seller-2', total: 200 },
@@ -92,7 +92,7 @@ describe('Orders Module - Integration Tests', () => {
       for (const orderData of orders) {
         await orderRepository.save({
           ...orderData,
-          status: 'pending',
+          status: 'new',
           lineItems: [],
         } as OrderEntity);
       }
@@ -106,10 +106,10 @@ describe('Orders Module - Integration Tests', () => {
         });
       }
 
-      // Verify all paid
+      // Verify all in progress
       for (let i = 1; i <= 3; i++) {
         const order = await orderRepository.findById(`order-${i}`);
-        expect(order?.status).toBe('paid');
+        expect(order?.status).toBe('in_progress');
       }
       expect(
         outboxRepository.events.filter(
@@ -125,10 +125,10 @@ describe('Orders Module - Integration Tests', () => {
         });
       }
 
-      // Verify all in production
+      // Verify all completed
       for (let i = 1; i <= 3; i++) {
         const order = await orderRepository.findById(`order-${i}`);
-        expect(order?.status).toBe('ready-for-production');
+        expect(order?.status).toBe('completed');
       }
       expect(
         outboxRepository.events.filter(
@@ -146,7 +146,7 @@ describe('Orders Module - Integration Tests', () => {
         userId: 'user-1',
         sellerId: 'seller-1',
         total: 150,
-        status: 'pending',
+        status: 'new',
         lineItems: [],
       };
       await orderRepository.save(order);
@@ -193,7 +193,7 @@ describe('Orders Module - Integration Tests', () => {
           userId: 'user-1',
           sellerId: 'seller-1',
           total: 50,
-          status: 'pending',
+          status: 'new',
           lineItems: [],
         });
       }
@@ -241,13 +241,13 @@ describe('Orders Module - Integration Tests', () => {
     });
 
     it('should maintain consistency when production assignment fails', async () => {
-      // Arrange - Paid order
+      // Arrange - In-progress order
       const order: OrderEntity = {
         id: 'order-consistency',
         userId: 'user-1',
         sellerId: 'seller-1',
         total: 100,
-        status: 'paid',
+        status: 'in_progress',
         lineItems: [],
       };
       await orderRepository.save(order);
@@ -260,46 +260,46 @@ describe('Orders Module - Integration Tests', () => {
 
       // Order should be in production
       const updatedOrder = await orderRepository.findById('order-consistency');
-      expect(updatedOrder?.status).toBe('ready-for-production');
+      expect(updatedOrder?.status).toBe('completed');
       expect(outboxRepository.events.length).toBe(1);
     });
 
     it('should handle invalid state transitions without corrupting data', async () => {
-      // Arrange - Pending order
+      // Arrange - New order
       const order: OrderEntity = {
         id: 'order-invalid',
         userId: 'user-1',
         sellerId: 'seller-1',
         total: 100,
-        status: 'pending',
+        status: 'new',
         lineItems: [],
       };
       await orderRepository.save(order);
 
-      // Act - Try to assign to production (invalid from pending)
+      // Act - Try to assign to production (invalid from new)
       await expect(
         assignToProductionUseCase.execute({
           orderId: 'order-invalid',
           customizationId: 'custom-1',
         }),
-      ).rejects.toThrow('Order must be paid before production');
+      ).rejects.toThrow('Order must be in progress before production');
 
-      // Assert - Order still pending, no events
+      // Assert - Order still new, no events
       const updatedOrder = await orderRepository.findById('order-invalid');
-      expect(updatedOrder?.status).toBe('pending');
+      expect(updatedOrder?.status).toBe('new');
       expect(outboxRepository.events.length).toBe(0);
     });
   });
 
   describe('Idempotency at System Level', () => {
     it('should handle duplicate payment events after production assignment', async () => {
-      // Arrange - Start with pending order
+      // Arrange - Start with new order
       const order: OrderEntity = {
         id: 'order-dup',
         userId: 'user-1',
         sellerId: 'seller-1',
         total: 100,
-        status: 'pending',
+        status: 'new',
         lineItems: [],
       };
       await orderRepository.save(order);
@@ -311,9 +311,9 @@ describe('Orders Module - Integration Tests', () => {
         amount: 100,
       });
 
-      // Verify order is paid
+      // Verify order moved to in_progress
       let updatedOrder = await orderRepository.findById('order-dup');
-      expect(updatedOrder?.status).toBe('paid');
+      expect(updatedOrder?.status).toBe('in_progress');
       expect(outboxRepository.events.length).toBe(1);
 
       // Act 2 - Duplicate payment event (should be idempotent)
@@ -323,20 +323,20 @@ describe('Orders Module - Integration Tests', () => {
         amount: 100,
       });
 
-      // Assert - No new event, order still paid
+      // Assert - No new event, order still in_progress
       expect(outboxRepository.events.length).toBe(1); // No additional events
       updatedOrder = await orderRepository.findById('order-dup');
-      expect(updatedOrder?.status).toBe('paid');
+      expect(updatedOrder?.status).toBe('in_progress');
     });
 
     it('should handle repeated production assignment requests', async () => {
-      // Arrange - Paid order
+      // Arrange - In-progress order
       const order: OrderEntity = {
         id: 'order-repeat',
         userId: 'user-1',
         sellerId: 'seller-1',
         total: 100,
-        status: 'paid',
+        status: 'in_progress',
         lineItems: [],
       };
       await orderRepository.save(order);
@@ -352,7 +352,7 @@ describe('Orders Module - Integration Tests', () => {
       // Assert - Only first created event
       expect(outboxRepository.events.length).toBe(1);
       const updatedOrder = await orderRepository.findById('order-repeat');
-      expect(updatedOrder?.status).toBe('ready-for-production');
+      expect(updatedOrder?.status).toBe('completed');
     });
   });
 
@@ -364,7 +364,7 @@ describe('Orders Module - Integration Tests', () => {
         userId: 'user-test',
         sellerId: 'seller-test',
         total: 199.99,
-        status: 'pending',
+        status: 'new',
         lineItems: [],
       };
       await orderRepository.save(order);
@@ -398,7 +398,7 @@ describe('Orders Module - Integration Tests', () => {
         userId: 'user-test',
         sellerId: 'seller-test',
         total: 299.99,
-        status: 'paid',
+        status: 'in_progress',
         lineItems: [],
       };
       await orderRepository.save(order);
@@ -433,7 +433,7 @@ describe('Orders Module - Integration Tests', () => {
         userId: 'user-1',
         sellerId: 'seller-1',
         total: 9999999.99,
-        status: 'pending',
+        status: 'new',
         lineItems: [],
       };
       await orderRepository.save(order);
@@ -447,7 +447,7 @@ describe('Orders Module - Integration Tests', () => {
 
       // Assert
       const updatedOrder = await orderRepository.findById('order-large');
-      expect(updatedOrder?.status).toBe('paid');
+      expect(updatedOrder?.status).toBe('in_progress');
       expect(
         (outboxRepository.events[0].payload as Record<string, unknown>)
           .totalAmount,
@@ -461,7 +461,7 @@ describe('Orders Module - Integration Tests', () => {
         userId: 'user-ñandú-123',
         sellerId: 'seller-测试 -456',
         total: 100,
-        status: 'paid',
+        status: 'in_progress',
         lineItems: [],
       };
       await orderRepository.save(order);
@@ -474,7 +474,7 @@ describe('Orders Module - Integration Tests', () => {
 
       // Assert - Should handle special chars
       const updatedOrder = await orderRepository.findById('order-special');
-      expect(updatedOrder?.status).toBe('ready-for-production');
+      expect(updatedOrder?.status).toBe('completed');
       expect(
         (outboxRepository.events[0].payload as Record<string, unknown>)
           .customizationId,

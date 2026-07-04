@@ -3,6 +3,7 @@ import { TransactionalOrderPort } from '../domain/transactional-order-port';
 import { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import type { EventBusPort } from '@/modules/events/domain/event-bus-port';
+import { ORDER_LIFECYCLE_STATUSES } from '../domain/value-objects/order-lifecycle';
 
 /**
  * Data Transfer Object for assigning an order to production.
@@ -17,14 +18,14 @@ export interface AssignToProductionDTO {
 }
 
 /**
- * Use case for assigning a paid order to production.
+ * Use case for moving an in-progress order to completed.
  *
- * This use case implements the state transition from 'paid' to 'ready-for-production' status.
- * It validates that the order exists, is in 'paid' status, and all prerequisites are met
+ * This use case implements the state transition from 'in_progress' to 'completed' status.
+ * It validates that the order exists, is in 'in_progress' status, and all prerequisites are met
  * before transitioning. The operation is idempotent - if the order is already in production,
  * it skips silently without emitting duplicate events.
  *
- * State Transition: paid → ready-for-production
+ * State Transition: in_progress → completed
  *
  * @example
  * ```typescript
@@ -51,13 +52,13 @@ export class AssignToProductionUseCase {
    *
    * This method:
    * 1. Validates the order exists
-   * 2. Checks idempotency (skips if already in production)
-   * 3. Validates state transition (only from 'paid' status)
-   * 4. Updates order status to 'ready-for-production'
+   * 2. Checks idempotency (skips if already completed)
+   * 3. Validates state transition (only from 'in_progress' status)
+   * 4. Updates order status to 'completed'
    * 5. Emits ORDER_READY_FOR_PRODUCTION event via Outbox for production system
    *
    * @param data - The customization data containing orderId and customizationId
-   * @throws Error if order not found, order not paid, or invalid state transition
+   * @throws Error if order not found, order not in progress, or invalid state transition
    *
    * @example
    * ```typescript
@@ -74,15 +75,15 @@ export class AssignToProductionUseCase {
       throw new Error('Order not found');
     }
 
-    // Idempotency: if already in production, skip silently
-    if (order.status === 'ready-for-production') {
+    // Idempotency: if already completed, skip silently
+    if (order.status === ORDER_LIFECYCLE_STATUSES.COMPLETED) {
       return;
     }
 
-    // Validate state transition (only paid orders can go to production)
-    if (order.status !== 'paid') {
-      if (order.status === 'pending') {
-        throw new Error('Order must be paid before production');
+    // Validate state transition (only in-progress orders can complete)
+    if (order.status !== ORDER_LIFECYCLE_STATUSES.IN_PROGRESS) {
+      if (order.status === ORDER_LIFECYCLE_STATUSES.NEW) {
+        throw new Error('Order must be in progress before production');
       }
       throw new Error('Invalid state transition');
     }
@@ -91,7 +92,7 @@ export class AssignToProductionUseCase {
     if (this.transactionalService) {
       await this.transactionalService.updateStatusAndEmit(
         data.orderId,
-        'ready-for-production',
+        ORDER_LIFECYCLE_STATUSES.COMPLETED,
         GlobalEvents.ORDER_READY_FOR_PRODUCTION,
         {
           orderId: order.id,
@@ -103,10 +104,10 @@ export class AssignToProductionUseCase {
       );
     } else {
       // Fallback to non-transactional mode (for testing with MemoryOutboxRepository)
-      // Update order status to ready-for-production
+      // Update order status to completed
       await this.orderRepository.updateStatus(
         data.orderId,
-        'ready-for-production',
+        ORDER_LIFECYCLE_STATUSES.COMPLETED,
       );
 
       // Emit ORDER_READY_FOR_PRODUCTION event via Outbox

@@ -24,13 +24,13 @@ describe('AssignToProductionUseCase', () => {
   // Happy path
   // ---------------------------------------------------------------------------
 
-  it('should transition order from paid to ready-for-production and emit event', async () => {
+  it('should transition order from in_progress to completed and emit event', async () => {
     const testOrder: OrderEntity = {
       id: 'order-1',
       userId: 'user-1',
       sellerId: 'seller-1',
       total: 100,
-      status: 'paid',
+      status: 'in_progress',
       lineItems: [],
     };
     await orderRepository.save(testOrder);
@@ -38,7 +38,7 @@ describe('AssignToProductionUseCase', () => {
     await useCase.execute({ orderId: 'order-1', customizationId: 'custom-1' });
 
     const updatedOrder = await orderRepository.findById('order-1');
-    expect(updatedOrder?.status).toBe('ready-for-production');
+    expect(updatedOrder?.status).toBe('completed');
 
     expect(outboxRepository.events.length).toBe(1);
     expect(outboxRepository.events[0].eventType).toBe(
@@ -60,7 +60,7 @@ describe('AssignToProductionUseCase', () => {
       userId: 'user-123',
       sellerId: 'seller-456',
       total: 500,
-      status: 'paid',
+      status: 'in_progress',
       lineItems: [
         {
           id: 'item-1',
@@ -88,7 +88,7 @@ describe('AssignToProductionUseCase', () => {
     });
 
     const updatedOrder = await orderRepository.findById('order-multi');
-    expect(updatedOrder?.status).toBe('ready-for-production');
+    expect(updatedOrder?.status).toBe('completed');
     expect(updatedOrder?.lineItems?.length).toBe(2);
 
     expect(outboxRepository.events[0].payload).toEqual({
@@ -106,7 +106,7 @@ describe('AssignToProductionUseCase', () => {
       userId: 'u1',
       sellerId: 's1',
       total: 100,
-      status: 'paid',
+      status: 'in_progress',
       lineItems: [],
     });
     await orderRepository.save({
@@ -114,7 +114,7 @@ describe('AssignToProductionUseCase', () => {
       userId: 'u2',
       sellerId: 's2',
       total: 200,
-      status: 'paid',
+      status: 'in_progress',
       lineItems: [],
     });
 
@@ -122,10 +122,10 @@ describe('AssignToProductionUseCase', () => {
     await useCase.execute({ orderId: 'order-b', customizationId: 'c-b' });
 
     expect((await orderRepository.findById('order-a'))?.status).toBe(
-      'ready-for-production',
+      'completed',
     );
     expect((await orderRepository.findById('order-b'))?.status).toBe(
-      'ready-for-production',
+      'completed',
     );
     expect(outboxRepository.events.length).toBe(2);
   });
@@ -142,19 +142,19 @@ describe('AssignToProductionUseCase', () => {
     expect(outboxRepository.events.length).toBe(0);
   });
 
-  it('should throw error when order is not paid (pending)', async () => {
+  it('should throw error when order is not in progress (new)', async () => {
     await orderRepository.save({
       id: 'o1',
       userId: 'u1',
       sellerId: 's1',
       total: 100,
-      status: 'pending',
+      status: 'new',
       lineItems: [],
     });
 
     await expect(
       useCase.execute({ orderId: 'o1', customizationId: 'c-1' }),
-    ).rejects.toThrow('Order must be paid before production');
+    ).rejects.toThrow('Order must be in progress before production');
 
     expect(outboxRepository.events.length).toBe(0);
   });
@@ -176,7 +176,7 @@ describe('AssignToProductionUseCase', () => {
     expect(outboxRepository.events.length).toBe(0);
   });
 
-  it('should reject production assignment for completed order', async () => {
+  it('should skip production assignment for completed order', async () => {
     await orderRepository.save({
       id: 'o1',
       userId: 'u1',
@@ -188,25 +188,22 @@ describe('AssignToProductionUseCase', () => {
 
     await expect(
       useCase.execute({ orderId: 'o1', customizationId: 'c-1' }),
-    ).rejects.toThrow('Invalid state transition');
+    ).resolves.not.toThrow();
+
+    expect(outboxRepository.events.length).toBe(0);
   });
 
   it('should handle all possible order states correctly', async () => {
     const testCases = [
       {
-        state: 'pending',
+        state: 'new',
         shouldFail: true,
-        error: 'Order must be paid before production',
+        error: 'Order must be in progress before production',
       },
-      { state: 'paid', shouldFail: false },
-      { state: 'ready-for-production', shouldFail: false }, // idempotent
+      { state: 'in_progress', shouldFail: false },
+      { state: 'completed', shouldFail: false }, // idempotent
       {
         state: 'cancelled',
-        shouldFail: true,
-        error: 'Invalid state transition',
-      },
-      {
-        state: 'completed',
         shouldFail: true,
         error: 'Invalid state transition',
       },
@@ -233,7 +230,7 @@ describe('AssignToProductionUseCase', () => {
         await expect(
           useCase.execute({ orderId: `o-${tc.state}`, customizationId: 'c' }),
         ).rejects.toThrow(tc.error);
-      } else if (tc.state === 'ready-for-production') {
+      } else if (tc.state === 'completed') {
         await expect(
           useCase.execute({ orderId: `o-${tc.state}`, customizationId: 'c' }),
         ).resolves.not.toThrow();
@@ -250,21 +247,19 @@ describe('AssignToProductionUseCase', () => {
   // Idempotency
   // ---------------------------------------------------------------------------
 
-  it('should be idempotent — skip if order is already in ready-for-production', async () => {
+  it('should be idempotent — skip if order is already completed', async () => {
     await orderRepository.save({
       id: 'o1',
       userId: 'u1',
       sellerId: 's1',
       total: 100,
-      status: 'ready-for-production',
+      status: 'completed',
       lineItems: [],
     });
 
     await useCase.execute({ orderId: 'o1', customizationId: 'c-1' });
 
-    expect((await orderRepository.findById('o1'))?.status).toBe(
-      'ready-for-production',
-    );
+    expect((await orderRepository.findById('o1'))?.status).toBe('completed');
     expect(outboxRepository.events.length).toBe(0);
   });
 
@@ -274,7 +269,7 @@ describe('AssignToProductionUseCase', () => {
       userId: 'u1',
       sellerId: 's1',
       total: 100,
-      status: 'paid',
+      status: 'in_progress',
       lineItems: [],
     });
 
@@ -284,9 +279,7 @@ describe('AssignToProductionUseCase', () => {
     await useCase.execute({ orderId: 'o1', customizationId: 'c-1' });
 
     expect(outboxRepository.events.length).toBe(countAfterFirst);
-    expect((await orderRepository.findById('o1'))?.status).toBe(
-      'ready-for-production',
-    );
+    expect((await orderRepository.findById('o1'))?.status).toBe('completed');
   });
 
   it('should handle multiple retries of same customization event', async () => {
@@ -295,7 +288,7 @@ describe('AssignToProductionUseCase', () => {
       userId: 'u1',
       sellerId: 's1',
       total: 100,
-      status: 'paid',
+      status: 'in_progress',
       lineItems: [],
     });
 
@@ -320,15 +313,13 @@ describe('AssignToProductionUseCase', () => {
       userId: 'u1',
       sellerId: 's1',
       total: 100,
-      status: 'paid',
+      status: 'in_progress',
       lineItems: [],
     });
 
     await useCase.execute({ orderId: 'o1', customizationId: '' });
 
-    expect((await orderRepository.findById('o1'))?.status).toBe(
-      'ready-for-production',
-    );
+    expect((await orderRepository.findById('o1'))?.status).toBe('completed');
   });
 
   it('should handle order with no line items', async () => {
@@ -337,15 +328,13 @@ describe('AssignToProductionUseCase', () => {
       userId: 'u1',
       sellerId: 's1',
       total: 0,
-      status: 'paid',
+      status: 'in_progress',
       lineItems: [],
     });
 
     await useCase.execute({ orderId: 'o1', customizationId: 'c-empty' });
 
-    expect((await orderRepository.findById('o1'))?.status).toBe(
-      'ready-for-production',
-    );
+    expect((await orderRepository.findById('o1'))?.status).toBe('completed');
     expect(outboxRepository.events.length).toBe(1);
   });
 
@@ -356,15 +345,13 @@ describe('AssignToProductionUseCase', () => {
       userId: 'u1',
       sellerId: 's1',
       total: 100,
-      status: 'paid',
+      status: 'in_progress',
       lineItems: [],
     });
 
     await useCase.execute({ orderId: longId, customizationId: 'c-1' });
 
-    expect((await orderRepository.findById(longId))?.status).toBe(
-      'ready-for-production',
-    );
+    expect((await orderRepository.findById(longId))?.status).toBe('completed');
   });
 
   // ---------------------------------------------------------------------------
@@ -377,7 +364,7 @@ describe('AssignToProductionUseCase', () => {
       userId: 'u1',
       sellerId: 's1',
       total: 100,
-      status: 'paid',
+      status: 'in_progress',
       lineItems: [],
     });
 
@@ -399,7 +386,7 @@ describe('AssignToProductionUseCase', () => {
       userId: 'u-unique',
       sellerId: 's-unique',
       total: 999.99,
-      status: 'paid',
+      status: 'in_progress',
       lineItems: [],
     });
 
@@ -421,13 +408,13 @@ describe('AssignToProductionUseCase', () => {
   // Complex scenarios
   // ---------------------------------------------------------------------------
 
-  it('should handle full flow: pending → paid → ready-for-production', async () => {
+  it('should handle full flow: new → in_progress → completed', async () => {
     await orderRepository.save({
       id: 'o-full',
       userId: 'u1',
       sellerId: 's1',
       total: 200,
-      status: 'pending',
+      status: 'new',
       lineItems: [],
     });
 
@@ -438,13 +425,15 @@ describe('AssignToProductionUseCase', () => {
       amount: 200,
     });
 
-    expect((await orderRepository.findById('o-full'))?.status).toBe('paid');
+    expect((await orderRepository.findById('o-full'))?.status).toBe(
+      'in_progress',
+    );
     expect(outboxRepository.events.length).toBe(1);
 
     await useCase.execute({ orderId: 'o-full', customizationId: 'c-1' });
 
     expect((await orderRepository.findById('o-full'))?.status).toBe(
-      'ready-for-production',
+      'completed',
     );
     expect(outboxRepository.events.length).toBe(2);
     expect(outboxRepository.events[1].eventType).toBe(

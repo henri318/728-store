@@ -4,6 +4,11 @@ export const ORDER_LIFECYCLE_STATUSES = {
   COMPLETED: 'completed',
 } as const;
 
+export const ORDER_PAID_PURCHASE_STATUSES = [
+  ORDER_LIFECYCLE_STATUSES.COMPLETED,
+  'paid',
+] as const;
+
 export type OrderLifecycleStatus =
   (typeof ORDER_LIFECYCLE_STATUSES)[keyof typeof ORDER_LIFECYCLE_STATUSES];
 

@@ -9,6 +9,7 @@ import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import type { TransactionRunner } from '@/shared/kernel/transaction-runner';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import type { EventBusPort } from '@/modules/events/domain/event-bus-port';
+import { ORDER_LIFECYCLE_STATUSES } from '../domain/value-objects/order-lifecycle';
 
 // --- Payload shape (matches the CART_CHECKED_OUT event from cart) ---
 
@@ -93,7 +94,7 @@ export class HandleCartCheckedOut {
           userId: payload.userId,
           sellerId,
           total,
-          status: 'pending',
+          status: ORDER_LIFECYCLE_STATUSES.NEW,
           cartId: payload.cartId,
         };
 

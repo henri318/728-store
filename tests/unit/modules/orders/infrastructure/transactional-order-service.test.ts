@@ -64,21 +64,26 @@ describe('TransactionalOrderService', () => {
         userId: 'u1',
         sellerId: 's1',
         total: 100,
-        status: 'pending',
+        status: 'new',
         lineItems: [],
       };
       await orderRepo.save(order);
 
-      await service.updateStatusAndEmit('o1', 'paid', GlobalEvents.ORDER_PAID, {
-        orderId: 'o1',
-        userId: 'u1',
-        amount: 100,
-      });
+      await service.updateStatusAndEmit(
+        'o1',
+        'in_progress',
+        GlobalEvents.ORDER_PAID,
+        {
+          orderId: 'o1',
+          userId: 'u1',
+          amount: 100,
+        },
+      );
 
       // Both operations were called inside the transaction
       expect(txMock.order.update).toHaveBeenCalledWith({
         where: { id: 'o1' },
-        data: { status: 'paid' },
+        data: { status: 'in_progress' },
       });
       expect(saveEventSpy).toHaveBeenCalledWith(
         GlobalEvents.ORDER_PAID,
@@ -95,9 +100,14 @@ describe('TransactionalOrderService', () => {
   describe('updateStatusAndEmit — missing order', () => {
     it('should throw when the order does not exist', async () => {
       await expect(
-        service.updateStatusAndEmit('ghost', 'paid', GlobalEvents.ORDER_PAID, {
-          orderId: 'ghost',
-        }),
+        service.updateStatusAndEmit(
+          'ghost',
+          'in_progress',
+          GlobalEvents.ORDER_PAID,
+          {
+            orderId: 'ghost',
+          },
+        ),
       ).rejects.toThrow('Order not found');
 
       // No side effects
@@ -114,16 +124,21 @@ describe('TransactionalOrderService', () => {
         userId: 'u1',
         sellerId: 's1',
         total: 100,
-        status: 'pending',
+        status: 'new',
         lineItems: [],
       });
 
       txMock.order.update.mockRejectedValue(new Error('DB write failed'));
 
       await expect(
-        service.updateStatusAndEmit('o1', 'paid', GlobalEvents.ORDER_PAID, {
-          orderId: 'o1',
-        }),
+        service.updateStatusAndEmit(
+          'o1',
+          'in_progress',
+          GlobalEvents.ORDER_PAID,
+          {
+            orderId: 'o1',
+          },
+        ),
       ).rejects.toThrow('DB write failed');
 
       // saveEvent must NOT have been called because the transaction aborted

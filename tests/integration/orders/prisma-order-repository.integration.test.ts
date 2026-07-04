@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { cleanupDb } from '@/tests/helpers/test-db';
 import { PrismaOrderRepository } from '@/modules/orders/infrastructure/prisma-order-repository';
+import { PrismaPaidOrderCountAdapter } from '@/modules/orders/infrastructure/prisma-paid-order-count-adapter';
 import { prisma } from '@/shared/infrastructure/prisma';
 import type {
   OrderEntity,
@@ -90,7 +91,7 @@ describe('PrismaOrderRepository — Integration', () => {
       userId: 'user-order-1',
       sellerId: 'seller-order-1',
       total: 100,
-      status: 'pending',
+      status: 'new',
       lineItems: [],
       ...overrides,
     };
@@ -110,7 +111,7 @@ describe('PrismaOrderRepository — Integration', () => {
       expect(saved.id).toBe('order-int-1');
       expect(saved.userId).toBe('user-order-1');
       expect(saved.sellerId).toBe('seller-order-1');
-      expect(saved.status).toBe('pending');
+      expect(saved.status).toBe('new');
 
       const found = await repo.findById('order-int-1');
       expect(found).not.toBeNull();
@@ -165,6 +166,7 @@ describe('PrismaOrderRepository — Integration', () => {
           color: 'green',
           size: 'L',
           imageUrl: null,
+          designPosition: null,
         },
       ]);
     });
@@ -383,6 +385,7 @@ describe('PrismaOrderRepository — Integration', () => {
           color: 'blue',
           size: null,
           imageUrl: null,
+          designPosition: null,
         },
       ]);
     });
@@ -404,16 +407,16 @@ describe('PrismaOrderRepository — Integration', () => {
         }),
       );
 
-      await repo.updateStatus('order-int-3', 'paid');
+      await repo.updateStatus('order-int-3', 'in_progress');
 
       const found = await repo.findById('order-int-3');
-      expect(found!.status).toBe('paid');
+      expect(found!.status).toBe('in_progress');
     });
 
     it('should throw for non-existent order', async () => {
-      await expect(repo.updateStatus('non-existent', 'paid')).rejects.toThrow(
-        'Order not found',
-      );
+      await expect(
+        repo.updateStatus('non-existent', 'in_progress'),
+      ).rejects.toThrow('Order not found');
     });
   });
 
@@ -524,6 +527,118 @@ describe('PrismaOrderRepository — Integration', () => {
           }),
         ),
       ).rejects.toThrow();
+    });
+  });
+
+  describe('countPaidByUserId and PrismaPaidOrderCountAdapter', () => {
+    it('counts completed and legacy paid orders and ignores non-paid orders', async () => {
+      await ensurePrerequisites({
+        userId: 'user-paid-count',
+        sellerId: 'seller-paid-count-completed',
+        productId: 'prod-paid-count-completed',
+      });
+
+      await ensurePrerequisites({
+        userId: 'user-paid-count',
+        sellerId: 'seller-paid-count-new',
+        productId: 'prod-paid-count-new',
+      });
+
+      await ensurePrerequisites({
+        userId: 'user-paid-count',
+        sellerId: 'seller-paid-count-progress',
+        productId: 'prod-paid-count-progress',
+      });
+
+      await repo.save(
+        makeOrder({
+          id: 'order-paid-count-completed',
+          userId: 'user-paid-count',
+          sellerId: 'seller-paid-count-completed',
+          total: 100,
+          status: 'completed',
+        }),
+      );
+
+      await repo.save(
+        makeOrder({
+          id: 'order-paid-count-legacy-paid',
+          userId: 'user-paid-count',
+          sellerId: 'seller-paid-count-completed',
+          total: 100,
+          status: 'paid',
+        }),
+      );
+
+      await repo.save(
+        makeOrder({
+          id: 'order-paid-count-new',
+          userId: 'user-paid-count',
+          sellerId: 'seller-paid-count-new',
+          total: 100,
+          status: 'new',
+        }),
+      );
+
+      await repo.save(
+        makeOrder({
+          id: 'order-paid-count-progress',
+          userId: 'user-paid-count',
+          sellerId: 'seller-paid-count-progress',
+          total: 100,
+          status: 'in_progress',
+        }),
+      );
+
+      const adapter = new PrismaPaidOrderCountAdapter(repo);
+
+      await expect(
+        adapter.countPaidOrdersByUserId('user-paid-count'),
+      ).resolves.toBe(2);
+      await expect(repo.countPaidByUserId('user-paid-count')).resolves.toBe(2);
+    });
+
+    it('returns zero when a user only has non-completed orders', async () => {
+      await ensurePrerequisites({
+        userId: 'user-unpaid-count',
+        sellerId: 'seller-unpaid-count-new',
+        productId: 'prod-unpaid-count-new',
+      });
+
+      await ensurePrerequisites({
+        userId: 'user-unpaid-count',
+        sellerId: 'seller-unpaid-count-progress',
+        productId: 'prod-unpaid-count-progress',
+      });
+
+      await repo.save(
+        makeOrder({
+          id: 'order-unpaid-count-new',
+          userId: 'user-unpaid-count',
+          sellerId: 'seller-unpaid-count-new',
+          total: 100,
+          status: 'new',
+        }),
+      );
+
+      await repo.save(
+        makeOrder({
+          id: 'order-unpaid-count-progress',
+          userId: 'user-unpaid-count',
+          sellerId: 'seller-unpaid-count-progress',
+          total: 100,
+          status: 'in_progress',
+        }),
+      );
+
+      const adapter = new PrismaPaidOrderCountAdapter(repo);
+
+      await expect(
+        adapter.countPaidOrdersByUserId('user-unpaid-count'),
+      ).resolves.toBe(0);
+      await expect(repo.countPaidByUserId('user-unpaid-count')).resolves.toBe(
+        0,
+      );
     });
   });
 });

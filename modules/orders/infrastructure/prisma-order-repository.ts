@@ -7,6 +7,7 @@ import {
   OrderLineItemEntity,
   OrderStatus,
 } from '../domain/order-repository';
+import { ORDER_PAID_PURCHASE_STATUSES } from '../domain/value-objects/order-lifecycle';
 import { prisma } from '@/shared/infrastructure/prisma';
 
 type PrismaTx = Omit<
@@ -163,13 +164,14 @@ export class PrismaOrderRepository implements OrderRepository {
   }
 
   /**
-   * Returns the count of orders in 'paid' status for the given user.
+   * Returns the count of paid-purchase orders for the given user.
+   * Includes legacy `paid` rows for backward compatibility.
    * Used by the Cart module (via PaidOrderCountPort adapter) to determine
    * whether the first-purchase discount applies (spec REQ-CART-016).
    */
   async countPaidByUserId(userId: string): Promise<number> {
     return await prisma.order.count({
-      where: { userId, status: 'paid' },
+      where: { userId, status: { in: [...ORDER_PAID_PURCHASE_STATUSES] } },
     });
   }
 }

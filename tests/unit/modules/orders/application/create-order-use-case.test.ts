@@ -44,7 +44,7 @@ describe('CreateOrderUseCase', () => {
 
     expect(result.id).toBeDefined();
     expect(result.total).toBe(100);
-    expect(result.status).toBe('pending');
+    expect(result.status).toBe('new');
   });
 
   it('should record an ORDER_CREATED event in the outbox', async () => {
