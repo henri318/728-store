@@ -7,24 +7,25 @@ datasource db {
 }
 
 model User {
-  id                String    @id @default(cuid())
+  id                String          @id @default(cuid())
   name              String?
-  email             String?   @unique
+  email             String?         @unique
   emailVerified     DateTime?
   image             String?
   passwordHash      String?
-  role              String    @default("CUSTOMER") // ADMIN | SUPPORT | DESIGNER | CUSTOMER
+  role              String          @default("CUSTOMER") // ADMIN | SUPPORT | DESIGNER | CUSTOMER
   firstName         String
   lastName          String
   addressStreet     String?
   addressCity       String?
   addressPostalCode String?
   addressCountry    String?
-  preferredLanguage String    @default("es") // es, cat
+  preferredLanguage String          @default("es") // es, cat
   deletedAt         DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
   orders            Order[]
+  checkoutGroups    CheckoutGroup[]
   carts             Cart[]
   seller            Seller?
 }
@@ -43,8 +44,8 @@ model Seller {
   user        User      @relation(fields: [userId], references: [id])
   status      String    @default("active")
   deletedAt   DateTime?
-  products      Product[]
-  orders        Order[]
+  products    Product[]
+  orders      Order[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -52,22 +53,22 @@ model Seller {
 }
 
 model Product {
-  id             String                 @id @default(cuid())
-  basePrice      Decimal
-  currency       String                 @default("EUR")
-  sellerId       String
-  seller         Seller                 @relation(fields: [sellerId], references: [id])
-  status         String                 @default("ACTIVE") // DRAFT | ACTIVE | ARCHIVED
-  categoryId     String?
-  category       Category?              @relation(fields: [categoryId], references: [id])
+  id                  String               @id @default(cuid())
+  basePrice           Decimal
+  currency            String               @default("EUR")
+  sellerId            String
+  seller              Seller               @relation(fields: [sellerId], references: [id])
+  status              String               @default("ACTIVE") // DRAFT | ACTIVE | ARCHIVED
+  categoryId          String?
+  category            Category?            @relation(fields: [categoryId], references: [id])
   customizationConfig Json?
-  images         ProductImage[]
-  tags           Tag[]                  @relation("ProductTags")
-  translations   ProductTranslation[]
-  customizations Customization[]
-  lineItems      OrderLineItem[]
-  createdAt      DateTime               @default(now())
-  updatedAt      DateTime               @default(now()) @updatedAt
+  images              ProductImage[]
+  tags                Tag[]                @relation("ProductTags")
+  translations        ProductTranslation[]
+  customizations      Customization[]
+  lineItems           OrderLineItem[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @default(now()) @updatedAt
 }
 
 model ProductTranslation {
@@ -111,24 +112,59 @@ model Customization {
 }
 
 model Order {
-  id        String          @id @default(cuid())
-  userId    String
-  user      User            @relation(fields: [userId], references: [id])
-  sellerId  String
-  seller    Seller          @relation(fields: [sellerId], references: [id])
-  status    String          @default("PENDING")
-  total     Decimal
+  id              String          @id @default(cuid())
+  userId          String
+  user            User            @relation(fields: [userId], references: [id])
+  sellerId        String
+  seller          Seller          @relation(fields: [sellerId], references: [id])
+  checkoutGroupId String?
+  checkoutGroup   CheckoutGroup?  @relation(fields: [checkoutGroupId], references: [id])
+  status          String          @default("PENDING")
+  total           Decimal
   // Source cart id when the order was created by HandleCartCheckedOut
   // (spec REQ-ORD-001). Used for idempotency: the handler dedupes by
   // cartId so duplicate CART_CHECKED_OUT deliveries do not create a
   // second set of orders. Null for orders not created from a cart.
-  cartId    String?
-  lineItems OrderLineItem[]
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  cartId          String?
+  lineItems       OrderLineItem[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
-  @@index([cartId])
+  @@unique([checkoutGroupId, sellerId])
   @@unique([cartId, sellerId])
+  @@index([checkoutGroupId])
+  @@index([cartId])
+}
+
+model CheckoutGroup {
+  id                  String                        @id @default(cuid())
+  userId              String
+  user                User                          @relation(fields: [userId], references: [id])
+  currency            String                        @default("EUR")
+  totalAmount         Decimal
+  paymentStatus       String                        @default("PENDING")
+  paymentAttemptCount Int                           @default(0)
+  latestPaymentId     String?
+  orders              Order[]
+  paymentAttempts     CheckoutGroupPaymentAttempt[]
+  createdAt           DateTime                      @default(now())
+  updatedAt           DateTime                      @updatedAt
+
+  @@index([userId, paymentStatus])
+}
+
+model CheckoutGroupPaymentAttempt {
+  id              String        @id @default(cuid())
+  checkoutGroupId String
+  checkoutGroup   CheckoutGroup @relation(fields: [checkoutGroupId], references: [id], onDelete: Cascade)
+  paymentId       String?
+  amount          Decimal
+  currency        String        @default("EUR")
+  status          String
+  failureReason   String?
+  createdAt       DateTime      @default(now())
+
+  @@index([checkoutGroupId, createdAt])
 }
 
 model OrderLineItem {
@@ -273,15 +309,15 @@ model Category {
 }
 
 model Upload {
-  id         String   @id @default(cuid())
+  id         String       @id @default(cuid())
   fileName   String
-  storageKey String   @unique
+  storageKey String       @unique
   mimeType   String
   size       Int
   uploadedBy String
   type       UploadType
   status     UploadStatus @default(PENDING)
-  createdAt  DateTime @default(now())
+  createdAt  DateTime     @default(now())
 
   @@index([uploadedBy])
   @@index([type, status])
