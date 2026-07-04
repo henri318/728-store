@@ -48,6 +48,7 @@ export class PrismaOrderRepository implements OrderRepository {
         id: order.id,
         userId: order.userId,
         sellerId: order.sellerId,
+        checkoutGroupId: order.checkoutGroupId ?? null,
         total: order.total,
         status: order.status,
         // Persist the source cartId for cart-derived orders so the

@@ -12,9 +12,11 @@ export interface OrderEntity {
   userId: string;
   /** ID of the seller fulfilling the order */
   sellerId: string;
+  /** Shared checkout-group correlation for split orders and payment retry */
+  checkoutGroupId?: string | null;
   /** Total monetary value of the order */
   total: number;
-  /** Current status in the order lifecycle: pending → paid → ready-for-production → completed */
+  /** Current status value stored on the order record */
   status: string;
   /**
    * Source cart id when the order was created by HandleCartCheckedOut
