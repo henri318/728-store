@@ -7,6 +7,8 @@ import { toCheckoutGroupPaymentChargeInput } from '@/modules/payments/domain/ent
 import { RetryCheckoutGroupPayment } from '@/modules/payments/application/retry-checkout-group-payment';
 import type { CheckoutGroupLookupPort } from '@/modules/payments/domain/checkout-group-lookup-port';
 import { CHECKOUT_GROUP_PAYMENT_STATUSES } from '@/modules/payments/domain/value-objects/checkout-group-payment-status';
+import { Currency } from '@/shared/kernel/domain/value-objects/currency';
+import { Money } from '@/shared/kernel/domain/value-objects/money';
 
 describe('CheckoutGroup contracts', () => {
   it('maps the checkout-group aggregate into a checkout-group payment request', () => {
@@ -14,7 +16,7 @@ describe('CheckoutGroup contracts', () => {
       id: 'checkout-group-1',
       userId: 'user-1',
       currency: 'EUR',
-      totalAmount: 149.9,
+      totalAmount: Money.create(149.9, Currency.EUR),
       paymentStatus: CHECKOUT_GROUP_PAYMENT_STATUSES.PENDING,
       paymentAttemptCount: 0,
       latestPaymentId: null,
@@ -33,14 +35,14 @@ describe('CheckoutGroup contracts', () => {
         orderId: 'order-1',
         checkoutGroupId: 'checkout-group-1',
         sellerId: 'seller-1',
-        total: 90,
+        total: Money.create(90, Currency.EUR),
         status: 'pending',
       },
       {
         orderId: 'order-2',
         checkoutGroupId: 'checkout-group-1',
         sellerId: 'seller-2',
-        total: 59.9,
+        total: Money.create(59.9, Currency.EUR),
         status: 'pending',
       },
     ];
@@ -49,7 +51,7 @@ describe('CheckoutGroup contracts', () => {
       id: 'checkout-group-1',
       userId: 'user-1',
       currency: 'EUR',
-      totalAmount: 149.9,
+      totalAmount: Money.create(149.9, Currency.EUR),
       paymentStatus: CHECKOUT_GROUP_PAYMENT_STATUSES.FAILED,
       paymentAttemptCount: 2,
       latestPaymentId: 'payment-1',
@@ -83,7 +85,7 @@ describe('CheckoutGroup contracts', () => {
       id: 'checkout-group-1',
       userId: 'user-1',
       currency: 'EUR',
-      totalAmount: 149.9,
+      totalAmount: Money.create(149.9, Currency.EUR),
       paymentStatus: CHECKOUT_GROUP_PAYMENT_STATUSES.FAILED,
       paymentAttemptCount: 2,
       latestPaymentId: 'payment-1',
@@ -92,19 +94,46 @@ describe('CheckoutGroup contracts', () => {
           orderId: 'order-1',
           checkoutGroupId: 'checkout-group-1',
           sellerId: 'seller-1',
-          total: 90,
+          total: Money.create(90, Currency.EUR),
           status: 'pending',
         },
         {
           orderId: 'order-2',
           checkoutGroupId: 'checkout-group-1',
           sellerId: 'seller-2',
-          total: 59.9,
+          total: Money.create(59.9, Currency.EUR),
           status: 'pending',
         },
       ],
     });
     expect(checkoutGroup.linkedOrders).toEqual(linkedOrders);
+  });
+
+  it('rejects a completed checkout-group payment before charging', async () => {
+    const checkoutGroup = deepFreeze<CheckoutGroupEntity>({
+      id: 'checkout-group-1',
+      userId: 'user-1',
+      currency: 'EUR',
+      totalAmount: Money.create(149.9, Currency.EUR),
+      paymentStatus: CHECKOUT_GROUP_PAYMENT_STATUSES.COMPLETED,
+      paymentAttemptCount: 1,
+      latestPaymentId: 'payment-1',
+    });
+
+    const lookup: CheckoutGroupLookupPort = {
+      findById: vi.fn().mockResolvedValue(checkoutGroup),
+    };
+    const charge = vi.fn();
+    const useCase = new RetryCheckoutGroupPayment(lookup, {
+      charge,
+    });
+
+    await expect(useCase.execute('checkout-group-1')).rejects.toThrow(
+      'Checkout group payment is not retryable',
+    );
+
+    expect(lookup.findById).toHaveBeenCalledWith('checkout-group-1');
+    expect(charge).not.toHaveBeenCalled();
   });
 
   it('rejects a missing checkout-group id before attempting payment', async () => {
