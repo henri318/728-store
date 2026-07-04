@@ -30,6 +30,6 @@ describe('Prisma seed and shared adapter wiring', () => {
 
     expect(seed).not.toContain('Promise.all(');
     expect(seed).toContain('for (const role of [');
-    expect(seed).toContain('for (const p of productsData)');
+    expect(seed).toContain('for (const [index, p] of productsData.entries())');
   });
 });
