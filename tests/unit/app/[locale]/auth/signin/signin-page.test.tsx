@@ -64,7 +64,7 @@ describe('SignInPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Iniciar sesión' }));
 
     await waitFor(() => {
-      expect(mockSignIn).toHaveBeenCalledWith('credentials', {
+      expect(vi.mocked(signIn)).toHaveBeenCalledWith('credentials', {
         email: 'user@test.com',
         password: 'pass123',
         redirect: false,

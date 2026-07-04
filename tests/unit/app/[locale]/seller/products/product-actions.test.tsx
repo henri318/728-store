@@ -52,7 +52,9 @@ describe('ProductActions', () => {
     });
 
     const user = userEvent.setup();
-    render(<ProductActions productId="p-1" currentStatus="ACTIVE" />);
+    render(
+      <ProductActions locale="es" productId="p-1" currentStatus="ACTIVE" />,
+    );
 
     await user.click(screen.getByRole('button', { name: 'Suspend' }));
 
@@ -64,7 +66,9 @@ describe('ProductActions', () => {
   });
 
   it('shows Activate for DRAFT products', () => {
-    render(<ProductActions productId="p-1" currentStatus="DRAFT" />);
+    render(
+      <ProductActions locale="es" productId="p-1" currentStatus="DRAFT" />,
+    );
 
     expect(
       screen.getByRole('button', { name: 'Activate' }),
@@ -72,13 +76,17 @@ describe('ProductActions', () => {
   });
 
   it('shows no actions for ELIMINATED products', () => {
-    render(<ProductActions productId="p-1" currentStatus="ELIMINATED" />);
+    render(
+      <ProductActions locale="es" productId="p-1" currentStatus="ELIMINATED" />,
+    );
 
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
   it('shows Activate and Eliminate for ARCHIVED products', () => {
-    render(<ProductActions productId="p-1" currentStatus="ARCHIVED" />);
+    render(
+      <ProductActions locale="es" productId="p-1" currentStatus="ARCHIVED" />,
+    );
 
     expect(
       screen.getByRole('button', { name: 'Activate' }),
@@ -97,7 +105,9 @@ describe('ProductActions', () => {
     );
 
     const user = userEvent.setup();
-    render(<ProductActions productId="p-1" currentStatus="ACTIVE" />);
+    render(
+      <ProductActions locale="es" productId="p-1" currentStatus="ACTIVE" />,
+    );
 
     await user.click(screen.getByRole('button', { name: 'Suspend' }));
 

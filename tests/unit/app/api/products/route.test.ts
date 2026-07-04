@@ -511,24 +511,21 @@ describe('POST /api/products', () => {
     mocks.getProductRepositoryMock.mockReturnValue(repo);
     mocks.getOutboxRepositoryMock.mockReturnValue(new MemoryOutboxRepository());
 
-    const res = await fetchProductRoute(
-      {
-        locale: 'es',
-        name: 'Taza',
-        description: 'Con diseño',
-        price: 19.99,
-        customizationConfig: {
-          mode: 'text_photo',
-          previewEnabled: true,
-          previewTemplateUrl: null,
-          sizeOptions: ['S', 'M'],
-          textOffset: { x: 10, y: 20 },
-          imageOffset: { x: 30, y: 40 },
-        },
-        images: [],
+    const res = await fetchProductRoute({
+      locale: 'es',
+      name: 'Taza',
+      description: 'Con diseño',
+      price: 19.99,
+      customizationConfig: {
+        mode: 'text_photo',
+        previewEnabled: true,
+        previewTemplateUrl: null,
+        sizeOptions: ['S', 'M'],
+        textOffset: { x: 10, y: 20 },
+        imageOffset: { x: 30, y: 40 },
       },
-      'POST',
-    );
+      images: [],
+    });
 
     expect(res.status).toBe(201);
     const body = await res.json();
@@ -566,10 +563,7 @@ describe('POST /api/products', () => {
   });
 
   it('returns 400 for invalid payload', async () => {
-    const res = await fetchProductRoute(
-      { locale: '', name: '', price: 0 },
-      'POST',
-    );
+    const res = await fetchProductRoute({ locale: '', name: '', price: 0 });
 
     expect(res.status).toBe(400);
   });
