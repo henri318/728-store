@@ -5,10 +5,7 @@ export type CustomizationMode = 'description' | 'text' | 'photo' | 'text_photo';
 export const DEFAULT_PRODUCT_SIZE_OPTIONS = Object.freeze(['S', 'M', 'L']);
 
 export type DesignBlendMode =
-  | 'source-over'
-  | 'multiply'
-  | 'overlay'
-  | 'soft-light';
+  'source-over' | 'multiply' | 'overlay' | 'soft-light';
 
 export const DEFAULT_DESIGN_BLEND_MODE: DesignBlendMode = 'source-over';
 export const DEFAULT_DESIGN_OPACITY_PERCENT = 100;
