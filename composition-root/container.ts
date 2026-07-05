@@ -38,9 +38,12 @@ import type { UserRepository } from '@/modules/users/domain/user-repository';
 import type { RoleRepository } from '@/modules/roles/domain/role-repository';
 import type { OrderRepository } from '@/modules/orders/domain/order-repository';
 import type { ProductRepository } from '@/modules/products/domain/product-repository';
+import type { CheckoutGroupLookupPort } from '@/modules/payments/domain/checkout-group-lookup-port';
+import type { CheckoutGroupPaymentPort } from '@/modules/payments/domain/checkout-group-payment-port';
 import type { EmailQueueRepository } from '@/shared/contracts/email/email-queue-port';
 import type { UserLookupPort } from '@/modules/auth/domain/user-lookup';
 import type { UsedResetTokenStorePort } from '@/shared/contracts/security/used-reset-token-store-port';
+import type { SellerLookupPort } from '@/modules/orders/domain/seller-lookup-port';
 import type { SellerRepository } from '@/modules/sellers/domain/seller-repository';
 import type { TransactionRunner } from '@/shared/kernel/transaction-runner';
 import type { UserVerificationPort } from '@/modules/auth/domain/ports/user-verification-port';
@@ -72,6 +75,8 @@ import { PrismaEmailQueueRepository } from '@/modules/email/infrastructure/prism
 import { PrismaUserLookup } from '@/modules/auth/infrastructure/prisma-user-lookup';
 import { ConsoleForgotPasswordEmail } from '@/modules/auth/infrastructure/console-forgot-password-email';
 import { MemoryUsedResetTokenStore } from '@/modules/auth/infrastructure/memory-used-reset-token-store';
+import { PrismaCheckoutGroupLookup } from '@/modules/payments/infrastructure/prisma-checkout-group-lookup';
+import { PrismaCheckoutGroupPaymentPort } from '@/modules/payments/infrastructure/prisma-checkout-group-payment-port';
 import { SeedRolesUseCase } from '@/modules/roles/application/use-cases/seed-roles-use-case';
 import {
   hashPassword,
@@ -86,6 +91,7 @@ import { PrismaCartRepository } from '@/modules/cart/infrastructure/prisma-cart-
 import { CartProductRepositoryAdapter } from '@/modules/cart/infrastructure/cart-product-repository-adapter';
 import { CustomizationLookupAdapter } from '@/modules/cart/infrastructure/customization-lookup-adapter';
 import { PrismaPaidOrderCountAdapter } from '@/modules/orders/infrastructure/prisma-paid-order-count-adapter';
+import { SellerLookupAdapter } from '@/modules/orders/infrastructure/seller-lookup-adapter';
 import { HandleCartCheckedOut } from '@/modules/orders/application/handle-cart-checked-out';
 import { PrismaCustomizationRepository } from '@/modules/customizations/infrastructure/prisma-customization-repository';
 import { PrismaSearchHistoryRepository } from '@/modules/search-history/infrastructure/prisma-search-history-repository';
@@ -112,7 +118,10 @@ let _emailQueueRepository: EmailQueueRepository | null = null;
 let _userLookup: UserLookupPort | null = null;
 let _forgotPasswordEmailPort: ForgotPasswordEmailPort | null = null;
 let _usedResetTokenStore: UsedResetTokenStorePort | null = null;
+let _checkoutGroupLookup: CheckoutGroupLookupPort | null = null;
+let _checkoutGroupPaymentPort: CheckoutGroupPaymentPort | null = null;
 let _sellerRepository: SellerRepository | null = null;
+let _sellerLookup: SellerLookupPort | null = null;
 let _transactionRunner: TransactionRunner | null = null;
 let _userVerification: UserVerificationPort | null = null;
 let _roleValidator: RoleValidatorPort | null = null;
@@ -206,6 +215,14 @@ export function initContainer(): void {
     _orderRepository = new PrismaOrderRepository();
   }
 
+  // --- CheckoutGroup payment wiring: Prisma adapters ---
+  if (!_checkoutGroupLookup) {
+    _checkoutGroupLookup = new PrismaCheckoutGroupLookup();
+  }
+  if (!_checkoutGroupPaymentPort) {
+    _checkoutGroupPaymentPort = new PrismaCheckoutGroupPaymentPort();
+  }
+
   // --- ProductRepository: Prisma adapter ---
   if (!_productRepository) {
     _productRepository = new PrismaProductRepository();
@@ -234,6 +251,11 @@ export function initContainer(): void {
   // --- SellerRepository: Prisma adapter ---
   if (!_sellerRepository) {
     _sellerRepository = new PrismaSellerRepository();
+  }
+
+  // --- SellerLookupPort: adapter bridging orders' port to sellers infrastructure ---
+  if (!_sellerLookup) {
+    _sellerLookup = new SellerLookupAdapter(_sellerRepository!);
   }
 
   // --- TransactionRunner: Prisma-backed atomic unit-of-work ---
@@ -430,6 +452,24 @@ export function getOrderRepository(): OrderRepository {
 }
 
 /**
+ * Returns the CheckoutGroupLookupPort bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ */
+export function getCheckoutGroupLookup(): CheckoutGroupLookupPort {
+  if (!_checkoutGroupLookup) initContainer();
+  return _checkoutGroupLookup!;
+}
+
+/**
+ * Returns the CheckoutGroupPaymentPort bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ */
+export function getCheckoutGroupPaymentPort(): CheckoutGroupPaymentPort {
+  if (!_checkoutGroupPaymentPort) initContainer();
+  return _checkoutGroupPaymentPort!;
+}
+
+/**
  * Returns the ProductRepository bound for the current environment.
  * Auto-initializes the container on first call if not already initialized.
  */
@@ -481,6 +521,15 @@ export function getUsedResetTokenStore(): UsedResetTokenStorePort {
 export function getSellerRepository(): SellerRepository {
   if (!_sellerRepository) initContainer();
   return _sellerRepository!;
+}
+
+/**
+ * Returns the SellerLookupPort bound for the current environment.
+ * Auto-initializes the container on first call if not already initialized.
+ */
+export function getSellerLookup(): SellerLookupPort {
+  if (!_sellerLookup) initContainer();
+  return _sellerLookup!;
 }
 
 /**
@@ -607,12 +656,15 @@ export const container = {
   getUserRepository,
   getRoleRepository,
   getOrderRepository,
+  getCheckoutGroupLookup,
+  getCheckoutGroupPaymentPort,
   getProductRepository,
   getEmailQueueRepository,
   getUserLookup,
   getForgotPasswordEmailPort,
   getUsedResetTokenStore,
   getSellerRepository,
+  getSellerLookup,
   getTransactionRunner,
   getUserVerification,
   getRoleValidator,
@@ -668,6 +720,14 @@ export const container = {
   setOrderRepository(repo: OrderRepository): void {
     _orderRepository = repo;
   },
+  /** Override — useful in tests to inject a mock checkout-group lookup port. */
+  setCheckoutGroupLookup(port: CheckoutGroupLookupPort): void {
+    _checkoutGroupLookup = port;
+  },
+  /** Override — useful in tests to inject a mock checkout-group payment port. */
+  setCheckoutGroupPaymentPort(port: CheckoutGroupPaymentPort): void {
+    _checkoutGroupPaymentPort = port;
+  },
   /** Override — useful in tests to inject an in-memory product repository. */
   setProductRepository(repo: ProductRepository): void {
     _productRepository = repo;
@@ -691,6 +751,10 @@ export const container = {
   /** Override — useful in tests to inject an in-memory seller repository. */
   setSellerRepository(repo: SellerRepository): void {
     _sellerRepository = repo;
+  },
+  /** Override — useful in tests to inject a mock seller lookup port. */
+  setSellerLookup(port: SellerLookupPort): void {
+    _sellerLookup = port;
   },
   /** Override — useful in tests to inject a fake/stub transaction runner. */
   setTransactionRunner(runner: TransactionRunner): void {

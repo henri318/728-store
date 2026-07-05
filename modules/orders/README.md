@@ -2,37 +2,30 @@
 
 ## Overview
 
-The Orders module manages the complete lifecycle of customer orders in the e-commerce platform, from creation through payment to production readiness. It implements event-driven architecture using the Outbox pattern for reliable event emission and state transitions.
+The Orders module manages the complete lifecycle of customer orders in the e-commerce platform, from creation through fulfillment completion. It implements event-driven architecture using the Outbox pattern for reliable event emission and state transitions.
 
 ## Module Responsibilities
 
-- **Order Creation**: Create orders with line items and initial `pending` status
-- **Payment Processing**: Listen to `PaymentCompleted` events and transition orders to `paid` status
-- **Production Assignment**: Listen to `ProductCustomizationCreated` events and transition orders to `ready-for-production` status
+- **Order Creation**: Create orders with line items and initial `new` status
+- **Payment Processing**: Listen to `PaymentCompleted` events and transition orders to `in_progress`
+- **Production Assignment**: Listen to `ProductCustomizationCreated` events and transition orders to `completed`
 - **Event Emission**: Emit domain events (`ORDER_PAID`, `ORDER_READY_FOR_PRODUCTION`) via transactional outbox
 - **State Management**: Enforce valid state transitions and maintain order lifecycle integrity
 
 ## Order Status Lifecycle
 
 ```
-┌─────────────┐    PaymentCompleted    ┌─────────────┐   CustomizationReady   ┌─────────────────────┐
-│   PENDING   │ ──────────────────────> │    PAID     │ ──────────────────────> │ READY-FOR-PRODUCTION │
-└─────────────┘                        └─────────────┘                        └─────────────────────┘
-     │                                     │                                         │
-     │                                     │                                         │
-     v                                     v                                         v
-┌─────────────┐                       ┌─────────────┐                         ┌─────────────┐
-│ CANCELLED   │                       │ CANCELLED   │                         │  COMPLETED  │
-└─────────────┘                       └─────────────┘                         └─────────────┘
+┌─────────────┐    PaymentCompleted    ┌──────────────┐   CustomizationReady   ┌─────────────┐
+│    NEW      │ ──────────────────────> │ IN_PROGRESS  │ ─────────────────────> │ COMPLETED   │
+└─────────────┘                        └──────────────┘                        └─────────────┘
 ```
 
 ### State Transition Rules
 
-| From Status | To Status              | Trigger Event                 | Validation Rules                             |
-| ----------- | ---------------------- | ----------------------------- | -------------------------------------------- |
-| `pending`   | `paid`                 | `PaymentCompleted`            | Order must exist, idempotent if already paid |
-| `paid`      | `ready-for-production` | `ProductCustomizationCreated` | All line item customizations must be ready   |
-| `*`         | `cancelled`            | User/System request           | Can cancel from any status                   |
+| From Status   | To Status     | Trigger Event                 | Validation Rules                               |
+| ------------- | ------------- | ----------------------------- | ---------------------------------------------- |
+| `new`         | `in_progress` | `PaymentCompleted`            | Order must exist, idempotent if already active |
+| `in_progress` | `completed`   | `ProductCustomizationCreated` | All line item customizations must be ready     |
 
 ## Architecture
 
@@ -58,7 +51,7 @@ modules/orders/
 
 ### 1. CreateOrderUseCase
 
-Creates a new order with `pending` status and emits `ORDER_CREATED` event.
+Creates a new order with `new` status and emits `ORDER_CREATED` event.
 
 ```typescript
 const useCase = new CreateOrderUseCase(orderRepository, outboxRepository);
@@ -73,12 +66,12 @@ const order = await useCase.execute({
 
 ### 2. MarkAsPaidUseCase
 
-Listens to `PaymentCompleted` events and transitions orders from `pending` to `paid`.
+Listens to `PaymentCompleted` events and transitions orders from `new` to `in_progress`.
 
 **Features:**
 
-- Idempotent: Skips if order already paid
-- Validates state: Only accepts `pending` orders
+- Idempotent: Skips if order already active
+- Validates state: Only accepts `new` orders
 - Emits `ORDER_PAID` event via Outbox pattern
 - Transactional: Status update + event emission are atomic
 
@@ -102,12 +95,12 @@ MarkAsPaidUseCase.subscribe(eventBus, useCase);
 
 ### 3. AssignToProductionUseCase
 
-Listens to `ProductCustomizationCreated` events and transitions paid orders to `ready-for-production`.
+Listens to `ProductCustomizationCreated` events and transitions `in_progress` orders to `completed`.
 
 **Features:**
 
 - Idempotent: Skips if already in production
-- Validates state: Only accepts `paid` orders
+- Validates state: Only accepts `in_progress` orders
 - Emits `ORDER_READY_FOR_PRODUCTION` event via Outbox pattern
 - Transactional: Status update + event emission are atomic
 
@@ -131,7 +124,7 @@ AssignToProductionUseCase.subscribe(eventBus, useCase);
 
 | Event                         | Source Module         | Handler                     | Description                    |
 | ----------------------------- | --------------------- | --------------------------- | ------------------------------ |
-| `PaymentCompleted`            | payments              | `MarkAsPaidUseCase`         | Marks order as paid            |
+| `PaymentCompleted`            | payments              | `MarkAsPaidUseCase`         | Moves order to in_progress     |
 | `ProductCustomizationCreated` | product-customization | `AssignToProductionUseCase` | Triggers production assignment |
 
 ### Outgoing Events (Emitted)
@@ -155,7 +148,10 @@ The module uses the **Transactional Outbox Pattern** for reliable event emission
 // Transactional flow example
 await prisma.$transaction(async (tx) => {
   // 1. Update order status
-  await tx.order.update({ where: { id: orderId }, data: { status: 'paid' } });
+  await tx.order.update({
+    where: { id: orderId },
+    data: { status: 'in_progress' },
+  });
 
   // 2. Save event to outbox (same transaction)
   await tx.outboxEvent.create({
@@ -172,6 +168,7 @@ OutboxWorker.start(5000); // Process every 5 seconds
 ```typescript
 interface OrderRepository {
   save(order: OrderEntity): Promise<OrderEntity>;
+  findPaginated(filter: OrderListFilter): Promise<PaginatedResult<OrderEntity>>;
   saveOrderLineItems(
     orderId: string,
     lineItems: OrderLineItemEntity[],
@@ -205,8 +202,8 @@ npm test -- modules/orders/application/*.test.ts
 
 ### Test Coverage
 
-- `mark-as-paid-use-case.test.ts`: 5 tests (pending→paid, not found, idempotency, invalid states)
-- `assign-to-production-use-case.test.ts`: 5 tests (paid→production, not found, invalid states, idempotency)
+- `mark-as-paid-use-case.test.ts`: 5 tests (new→in_progress, not found, idempotency, invalid states)
+- `assign-to-production-use-case.test.ts`: 5 tests (in_progress→completed, not found, invalid states, idempotency)
 
 ## Configuration
 
@@ -245,11 +242,11 @@ AssignToProductionUseCase.subscribe(eventBus, assignToProduction);
 
 ### Common Errors
 
-| Error                                  | Cause                                 | Resolution                                   |
-| -------------------------------------- | ------------------------------------- | -------------------------------------------- |
-| `Order not found`                      | Invalid orderId                       | Verify order exists before invoking use case |
-| `Invalid state transition`             | Order not in expected status          | Check current order status                   |
-| `Order must be paid before production` | Attempting production without payment | Ensure payment completed first               |
+| Error                                         | Cause                                 | Resolution                                   |
+| --------------------------------------------- | ------------------------------------- | -------------------------------------------- |
+| `Order not found`                             | Invalid orderId                       | Verify order exists before invoking use case |
+| `Invalid state transition`                    | Order not in expected status          | Check current order status                   |
+| `Order must be in_progress before production` | Attempting production without payment | Ensure payment completed first               |
 
 ### Monitoring
 

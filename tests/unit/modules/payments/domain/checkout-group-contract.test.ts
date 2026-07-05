@@ -70,7 +70,9 @@ describe('CheckoutGroup contracts', () => {
       charge,
     });
 
-    await expect(useCase.execute('checkout-group-1')).resolves.toEqual({
+    await expect(
+      useCase.execute('checkout-group-1', 'user-1'),
+    ).resolves.toEqual({
       paymentId: 'payment-2',
       status: 'completed',
     });
@@ -128,7 +130,7 @@ describe('CheckoutGroup contracts', () => {
       charge,
     });
 
-    await expect(useCase.execute('checkout-group-1')).rejects.toThrow(
+    await expect(useCase.execute('checkout-group-1', 'user-1')).rejects.toThrow(
       'Checkout group payment is not retryable',
     );
 
@@ -145,11 +147,38 @@ describe('CheckoutGroup contracts', () => {
       charge,
     });
 
-    await expect(useCase.execute('missing-checkout-group')).rejects.toThrow(
-      'Checkout group not found',
-    );
+    await expect(
+      useCase.execute('missing-checkout-group', 'user-1'),
+    ).rejects.toThrow('Checkout group not found');
 
     expect(lookup.findById).toHaveBeenCalledWith('missing-checkout-group');
+    expect(charge).not.toHaveBeenCalled();
+  });
+
+  it('rejects retries for a different user before charging', async () => {
+    const checkoutGroup = deepFreeze<CheckoutGroupEntity>({
+      id: 'checkout-group-1',
+      userId: 'user-1',
+      currency: 'EUR',
+      totalAmount: Money.create(149.9, Currency.EUR),
+      paymentStatus: CHECKOUT_GROUP_PAYMENT_STATUSES.FAILED,
+      paymentAttemptCount: 2,
+      latestPaymentId: 'payment-1',
+    });
+
+    const lookup: CheckoutGroupLookupPort = {
+      findById: vi.fn().mockResolvedValue(checkoutGroup),
+    };
+    const charge = vi.fn();
+    const useCase = new RetryCheckoutGroupPayment(lookup, {
+      charge,
+    });
+
+    await expect(useCase.execute('checkout-group-1', 'user-2')).rejects.toThrow(
+      'Forbidden',
+    );
+
+    expect(lookup.findById).toHaveBeenCalledWith('checkout-group-1');
     expect(charge).not.toHaveBeenCalled();
   });
 });

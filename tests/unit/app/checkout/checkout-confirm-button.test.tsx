@@ -36,6 +36,109 @@ describe('CheckoutConfirmButton', () => {
     expect(screen.getByRole('button', { name: /place order/i })).toBeTruthy();
   });
 
+  it('pre-fills the inline address form when an initial profile address exists', () => {
+    render(
+      <CheckoutConfirmButton
+        locale="es"
+        initialAddress={{
+          street: 'Main St 1',
+          city: 'Madrid',
+          postalCode: '28001',
+          country: 'ES',
+        }}
+      />,
+    );
+
+    expect(screen.getByLabelText(/street/i)).toHaveValue('Main St 1');
+    expect(screen.getByLabelText(/city/i)).toHaveValue('Madrid');
+    expect(screen.getByLabelText(/postal code/i)).toHaveValue('28001');
+    expect(screen.getByLabelText(/country/i)).toHaveValue('ES');
+  });
+
+  it('shows an error and stops when the address is incomplete', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        preview: {
+          subtotal: 50,
+          discount: 0,
+          shipping: 3.99,
+          total: 53.99,
+          currency: 'EUR',
+          isFirstPurchase: false,
+        },
+        priceChanges: [],
+      }),
+    });
+
+    render(<CheckoutConfirmButton locale="es" />);
+
+    fireEvent.change(screen.getByLabelText(/street/i), {
+      target: { value: 'Main St 1' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /place order/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'Complete the address to continue',
+      );
+    });
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows an error when saving the shipping address fails', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        preview: {
+          subtotal: 50,
+          discount: 0,
+          shipping: 3.99,
+          total: 53.99,
+          currency: 'EUR',
+          isFirstPurchase: false,
+        },
+        priceChanges: [],
+      }),
+    });
+    mockFetch.mockResolvedValueOnce({ ok: false });
+
+    render(
+      <CheckoutConfirmButton
+        locale="es"
+        initialAddress={{
+          street: 'Main St 1',
+          city: 'Madrid',
+          postalCode: '28001',
+          country: 'ES',
+        }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /place order/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'Unable to save the shipping address',
+      );
+    });
+
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(mockFetch).toHaveBeenCalledWith('/api/users/me', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        address: {
+          street: 'Main St 1',
+          city: 'Madrid',
+          postalCode: '28001',
+          country: 'ES',
+        },
+      }),
+    });
+  });
+
   it('calls POST /api/cart/checkout on click', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -51,6 +154,7 @@ describe('CheckoutConfirmButton', () => {
         priceChanges: [],
       }),
     });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
@@ -60,9 +164,34 @@ describe('CheckoutConfirmButton', () => {
       }),
     });
 
-    render(<CheckoutConfirmButton locale="es" />);
+    render(
+      <CheckoutConfirmButton
+        locale="es"
+        initialAddress={{
+          street: 'Main St 1',
+          city: 'Madrid',
+          postalCode: '28001',
+          country: 'ES',
+        }}
+      />,
+    );
 
     fireEvent.click(screen.getByRole('button', { name: /place order/i }));
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/users/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          address: {
+            street: 'Main St 1',
+            city: 'Madrid',
+            postalCode: '28001',
+            country: 'ES',
+          },
+        }),
+      });
+    });
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith('/api/cart/checkout', {

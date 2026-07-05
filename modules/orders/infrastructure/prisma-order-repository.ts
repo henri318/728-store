@@ -1,11 +1,13 @@
 import type { PrismaClient } from '@prisma/client';
 import { Prisma } from '@prisma/client';
+import type { PaginatedResult } from '@/shared/kernel/domain/value-objects/pagination';
 import type { CustomizationSnapshot } from '../domain/customization-lookup-port';
 import {
   OrderEntity,
   OrderRepository,
   OrderLineItemEntity,
   OrderStatus,
+  OrderListFilter,
 } from '../domain/order-repository';
 import { ORDER_PAID_PURCHASE_STATUSES } from '../domain/value-objects/order-lifecycle';
 import { prisma } from '@/shared/infrastructure/prisma';
@@ -16,6 +18,58 @@ type PrismaTx = Omit<
 >;
 
 export class PrismaOrderRepository implements OrderRepository {
+  async findPaginated(
+    filter: OrderListFilter,
+  ): Promise<PaginatedResult<OrderEntity>> {
+    const page = filter.page ?? 1;
+    const pageSize = filter.pageSize ?? 20;
+    const sortDir = filter.sortDir ?? 'desc';
+    const where: Prisma.OrderWhereInput = {};
+
+    if (filter.userId) where.userId = filter.userId;
+    if (filter.sellerId) where.sellerId = filter.sellerId;
+    if (filter.status && filter.status !== 'all') where.status = filter.status;
+
+    const [rows, total] = await prisma.$transaction([
+      prisma.order.findMany({
+        where,
+        include: {
+          lineItems: true,
+          checkoutGroup: { select: { paymentStatus: true } },
+        },
+        orderBy: { createdAt: sortDir },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.order.count({ where }),
+    ]);
+
+    return {
+      items: rows.map((order) => {
+        const { checkoutGroup, lineItems, total, ...rest } = order;
+        return {
+          ...rest,
+          total: Number(total),
+          checkoutGroupPaymentStatus: checkoutGroup?.paymentStatus ?? null,
+          lineItems: lineItems.map((item) => ({
+            id: item.id,
+            orderId: item.orderId,
+            productId: item.productId,
+            quantity: item.quantity,
+            customizationIdList: item.customizationIdList,
+            customizationSnapshot: coerceCustomizationSnapshot(
+              item.customizationSnapshot,
+            ),
+          })),
+        };
+      }),
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
+  }
+
   /**
    * Update order status within a transaction
    * This method is designed to be used with Prisma's transaction client
@@ -103,20 +157,21 @@ export class PrismaOrderRepository implements OrderRepository {
   async findById(orderId: string): Promise<OrderEntity | null> {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
+      include: {
+        lineItems: true,
+        checkoutGroup: { select: { paymentStatus: true } },
+      },
     });
 
     if (!order) {
       return null;
     }
 
-    // Fetch associated line items
-    const lineItems = await prisma.orderLineItem.findMany({
-      where: { orderId },
-    });
-
+    const { checkoutGroup, lineItems, total, ...rest } = order;
     return {
-      ...order,
-      total: Number(order.total),
+      ...rest,
+      total: Number(total),
+      checkoutGroupPaymentStatus: checkoutGroup?.paymentStatus ?? null,
       lineItems: lineItems.map((item) => ({
         id: item.id,
         orderId: item.orderId,

@@ -85,6 +85,34 @@ describe('PrismaOrderRepository — Integration', () => {
     });
   }
 
+  async function ensureCheckoutGroup(ids: {
+    checkoutGroupId: string;
+    userId: string;
+    paymentStatus: 'failed' | 'completed';
+    totalAmount?: number;
+    latestPaymentId?: string | null;
+  }): Promise<void> {
+    await prisma.checkoutGroup.upsert({
+      where: { id: ids.checkoutGroupId },
+      create: {
+        id: ids.checkoutGroupId,
+        userId: ids.userId,
+        currency: 'EUR',
+        totalAmount: ids.totalAmount ?? 100,
+        paymentStatus: ids.paymentStatus,
+        paymentAttemptCount: ids.paymentStatus === 'failed' ? 1 : 2,
+        latestPaymentId: ids.latestPaymentId ?? null,
+      },
+      update: {
+        userId: ids.userId,
+        paymentStatus: ids.paymentStatus,
+        totalAmount: ids.totalAmount ?? 100,
+        paymentAttemptCount: ids.paymentStatus === 'failed' ? 1 : 2,
+        latestPaymentId: ids.latestPaymentId ?? null,
+      },
+    });
+  }
+
   function makeOrder(overrides: Partial<OrderEntity> = {}): OrderEntity {
     return {
       id: 'order-int-1',
@@ -417,6 +445,113 @@ describe('PrismaOrderRepository — Integration', () => {
       await expect(
         repo.updateStatus('non-existent', 'in_progress'),
       ).rejects.toThrow('Order not found');
+    });
+  });
+
+  describe('findPaginated', () => {
+    it('filters seller and customer views, sorts by createdAt, and respects status filters', async () => {
+      await ensurePrerequisites({
+        userId: 'user-order-list-a',
+        sellerId: 'seller-order-list-a',
+        productId: 'prod-order-list-a',
+      });
+      await ensurePrerequisites({
+        userId: 'user-order-list-b',
+        sellerId: 'seller-order-list-b',
+        productId: 'prod-order-list-b',
+      });
+      await ensureCheckoutGroup({
+        checkoutGroupId: 'cg-order-list-1',
+        userId: 'user-order-list-a',
+        paymentStatus: 'failed',
+        totalAmount: 75,
+      });
+      await ensureCheckoutGroup({
+        checkoutGroupId: 'cg-order-list-2',
+        userId: 'user-order-list-a',
+        paymentStatus: 'completed',
+        totalAmount: 55,
+      });
+      await ensureCheckoutGroup({
+        checkoutGroupId: 'cg-order-list-3',
+        userId: 'user-order-list-b',
+        paymentStatus: 'failed',
+        totalAmount: 45,
+      });
+
+      await prisma.order.create({
+        data: {
+          id: 'order-list-1',
+          userId: 'user-order-list-a',
+          sellerId: 'seller-order-list-a',
+          checkoutGroupId: 'cg-order-list-1',
+          total: 75,
+          status: 'new',
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        },
+      });
+      await prisma.order.create({
+        data: {
+          id: 'order-list-2',
+          userId: 'user-order-list-a',
+          sellerId: 'seller-order-list-a',
+          checkoutGroupId: 'cg-order-list-2',
+          total: 55,
+          status: 'completed',
+          createdAt: new Date('2026-01-03T00:00:00.000Z'),
+        },
+      });
+      await prisma.order.create({
+        data: {
+          id: 'order-list-3',
+          userId: 'user-order-list-b',
+          sellerId: 'seller-order-list-b',
+          checkoutGroupId: 'cg-order-list-3',
+          total: 45,
+          status: 'new',
+          createdAt: new Date('2026-01-02T00:00:00.000Z'),
+        },
+      });
+
+      const sellerResult = await repo.findPaginated({
+        sellerId: 'seller-order-list-a',
+        status: 'completed',
+        sortDir: 'asc',
+        page: 1,
+        pageSize: 10,
+      });
+
+      expect(sellerResult.total).toBe(1);
+      expect(sellerResult.items).toHaveLength(1);
+      expect(sellerResult.items[0]).toMatchObject({
+        id: 'order-list-2',
+        sellerId: 'seller-order-list-a',
+        checkoutGroupPaymentStatus: 'completed',
+      });
+
+      const customerResult = await repo.findPaginated({
+        userId: 'user-order-list-a',
+        sortDir: 'asc',
+        page: 1,
+        pageSize: 10,
+      });
+
+      expect(customerResult.items.map((order) => order.id)).toEqual([
+        'order-list-1',
+        'order-list-2',
+      ]);
+
+      const customerDescResult = await repo.findPaginated({
+        userId: 'user-order-list-a',
+        sortDir: 'desc',
+        page: 1,
+        pageSize: 10,
+      });
+
+      expect(customerDescResult.items.map((order) => order.id)).toEqual([
+        'order-list-2',
+        'order-list-1',
+      ]);
     });
   });
 
