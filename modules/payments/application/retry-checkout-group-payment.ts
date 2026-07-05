@@ -5,6 +5,11 @@ import type {
   CheckoutGroupPaymentChargeResult,
 } from '../domain/checkout-group-payment-port';
 import { CHECKOUT_GROUP_PAYMENT_STATUSES } from '../domain/value-objects/checkout-group-payment-status';
+import {
+  AppError,
+  ConflictError,
+  NotFoundError,
+} from '@/shared/kernel/app-error';
 
 export class RetryCheckoutGroupPayment {
   constructor(
@@ -14,22 +19,44 @@ export class RetryCheckoutGroupPayment {
 
   async execute(
     checkoutGroupId: string,
+    userId: string,
   ): Promise<CheckoutGroupPaymentChargeResult> {
     const checkoutGroup =
       await this.checkoutGroupLookup.findById(checkoutGroupId);
 
     if (!checkoutGroup) {
-      throw new Error('Checkout group not found');
+      throw new NotFoundError('Checkout group not found');
+    }
+
+    if (checkoutGroup.userId !== userId) {
+      throw new AppError('Forbidden', 403, 'Forbidden');
     }
 
     if (
       checkoutGroup.paymentStatus !== CHECKOUT_GROUP_PAYMENT_STATUSES.FAILED
     ) {
-      throw new Error('Checkout group payment is not retryable');
+      throw new ConflictError(
+        'Checkout group payment is not retryable',
+        'Checkout group payment is not retryable',
+      );
     }
 
-    return this.checkoutGroupPaymentPort.charge(
-      toCheckoutGroupPaymentChargeInput(checkoutGroup),
-    );
+    try {
+      return await this.checkoutGroupPaymentPort.charge(
+        toCheckoutGroupPaymentChargeInput(checkoutGroup),
+      );
+    } catch (error) {
+      // If charge fails due to concurrent retry, convert to ConflictError
+      if (
+        error instanceof Error &&
+        error.message === 'Checkout group payment is not retryable'
+      ) {
+        throw new ConflictError(
+          'Checkout group payment is not retryable',
+          'Checkout group payment is not retryable',
+        );
+      }
+      throw error;
+    }
   }
 }

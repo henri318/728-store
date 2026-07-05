@@ -11,6 +11,9 @@ import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-
 import Image from 'next/image';
 import styles from './page.module.css';
 
+const FIRST_PURCHASE_DISCOUNT_RATE = 0.1;
+const SHIPPING_COST = 3.99;
+
 interface CheckoutItem {
   id: string;
   productId: string;
@@ -66,6 +69,7 @@ export default async function CheckoutPage({
   }
 
   const cartRepository = container.getCartRepository();
+  const userRepository = container.getUserRepository();
   const customizationLookup = container.getCustomizationLookup();
   const getCart = new GetCart(cartRepository);
   const cart = await getCart.execute(session.user.id);
@@ -90,6 +94,16 @@ export default async function CheckoutPage({
   if (hasMixedCurrencies) {
     throw new Error('Checkout does not support mixed currencies');
   }
+
+  const customer = await userRepository.findById(session.user.id);
+  const initialAddress = customer?.address
+    ? {
+        street: customer.address.street,
+        city: customer.address.city,
+        postalCode: customer.address.postalCode,
+        country: customer.address.country,
+      }
+    : null;
 
   // Resolve all customizations in a single batch.
   const allCustomizationIds = [
@@ -163,8 +177,10 @@ export default async function CheckoutPage({
     session.user.id,
   );
   const isFirstPurchase = paidCount === 0;
-  const discount = isFirstPurchase ? +(subtotal * 0.1).toFixed(2) : 0;
-  const shipping = 3.99;
+  const discount = isFirstPurchase
+    ? +(subtotal * FIRST_PURCHASE_DISCOUNT_RATE).toFixed(2)
+    : 0;
+  const shipping = SHIPPING_COST;
   const total = +(subtotal - discount + shipping).toFixed(2);
 
   return (
@@ -236,7 +252,9 @@ export default async function CheckoutPage({
         </div>
         {isFirstPurchase && (
           <div className={styles.totalRow}>
-            <span>10% first-purchase discount</span>
+            <span>
+              {FIRST_PURCHASE_DISCOUNT_RATE * 100}% first-purchase discount
+            </span>
             <span className={styles.discount}>
               −{Money.format(discount, currency)}
             </span>
@@ -252,7 +270,7 @@ export default async function CheckoutPage({
         </div>
       </div>
 
-      <CheckoutConfirmButton locale={locale} />
+      <CheckoutConfirmButton locale={locale} initialAddress={initialAddress} />
     </div>
   );
 }

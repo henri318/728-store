@@ -45,13 +45,14 @@ vi.mock('@/components/products/infinite-product-list', () => ({
     initialItems,
   }: {
     initialItems: Array<{
+      id?: string;
       translations?: Array<{ name?: string }>;
       images?: Array<{ url?: string; alt?: string }>;
     }>;
   }) => (
     <div>
-      {initialItems.map((item, index) => (
-        <div key={index}>
+      {initialItems.map((item) => (
+        <div key={item.id ?? item.translations?.[0]?.name ?? ''}>
           <span>{item.translations?.[0]?.name ?? 'Unknown'}</span>
           {item.images?.[0]?.url ? (
             // eslint-disable-next-line @next/next/no-img-element

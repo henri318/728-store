@@ -1,6 +1,7 @@
 import type { OrderEntity } from './entities/order';
 import type { OrderLineItemEntity } from './entities/order-line-item';
 import type { OrderStatus } from './value-objects/order-status-type';
+import type { PaginatedResult } from '@/shared/kernel/domain/value-objects/pagination';
 
 export type { OrderEntity, OrderLineItemEntity, OrderStatus };
 
@@ -9,6 +10,8 @@ export type { OrderEntity, OrderLineItemEntity, OrderStatus };
  * Follows the Repository pattern for data access abstraction.
  */
 export interface OrderRepository {
+  findPaginated(filter: OrderListFilter): Promise<PaginatedResult<OrderEntity>>;
+
   /**
    * Saves an order entity to the database.
    * @param order - The order entity to save
@@ -58,4 +61,14 @@ export interface OrderRepository {
    * whether the first-purchase discount applies (spec REQ-CART-016).
    */
   countPaidByUserId(userId: string): Promise<number>;
+}
+
+export interface OrderListFilter {
+  userId?: string;
+  sellerId?: string;
+  status?: OrderStatus | 'all';
+  sortBy?: 'createdAt';
+  sortDir?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
 }

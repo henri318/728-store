@@ -14,6 +14,8 @@ export interface OrderEntity {
   sellerId: string;
   /** Shared checkout-group correlation for split orders and payment retry */
   checkoutGroupId?: string | null;
+  /** Payment status projected from the related checkout group for retry CTA gating. */
+  checkoutGroupPaymentStatus?: string | null;
   /** Total monetary value of the order */
   total: number;
   /** Current status value stored on the order record */
@@ -28,4 +30,6 @@ export interface OrderEntity {
   cartId?: string | null;
   /** Optional array of line items in the order */
   lineItems?: OrderLineItemEntity[];
+  /** Creation timestamp used for order lists and sorting. */
+  createdAt?: Date;
 }
