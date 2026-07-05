@@ -236,6 +236,19 @@
     "hasSpecialChars": "Té caràcters especials",
     "strengthLabel": "Força de la contrasenya"
   },
+  "orders": {
+    "status": "Estat",
+    "total": "Total",
+    "retryPayment": "Reintentar pagament",
+    "myOrders": "Les meves comandes",
+    "id": "ID",
+    "date": "Data",
+    "actions": "Accions",
+    "viewOrder": "Veure comanda",
+    "previous": "← Anterior",
+    "next": "Següent →",
+    "pageXofY": "Pàgina {current} de {total}"
+  },
   "admin": {
     "sellersTitle": "Gestió de venedors",
     "noSellers": "No s'han trobat venedors",

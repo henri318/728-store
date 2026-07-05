@@ -236,6 +236,19 @@
     "hasSpecialChars": "Tiene caracteres especiales",
     "strengthLabel": "Fortaleza de la contraseña"
   },
+  "orders": {
+    "status": "Estado",
+    "total": "Total",
+    "retryPayment": "Reintentar pago",
+    "myOrders": "Mis pedidos",
+    "id": "ID",
+    "date": "Fecha",
+    "actions": "Acciones",
+    "viewOrder": "Ver pedido",
+    "previous": "← Anterior",
+    "next": "Siguiente →",
+    "pageXofY": "Página {current} de {total}"
+  },
   "admin": {
     "sellersTitle": "Gestión de vendedores",
     "noSellers": "No se encontraron vendedores",

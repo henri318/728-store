@@ -74,6 +74,7 @@ export interface Dictionary {
   userMenu: Record<string, string>;
   sellerDashboard: Record<string, string>;
   passwordStrength: Record<string, string>;
+  orders?: Record<string, string>;
   admin: AdminDictionary;
 }
 

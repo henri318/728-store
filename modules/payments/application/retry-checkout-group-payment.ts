@@ -41,8 +41,22 @@ export class RetryCheckoutGroupPayment {
       );
     }
 
-    return this.checkoutGroupPaymentPort.charge(
-      toCheckoutGroupPaymentChargeInput(checkoutGroup),
-    );
+    try {
+      return await this.checkoutGroupPaymentPort.charge(
+        toCheckoutGroupPaymentChargeInput(checkoutGroup),
+      );
+    } catch (error) {
+      // If charge fails due to concurrent retry, convert to ConflictError
+      if (
+        error instanceof Error &&
+        error.message === 'Checkout group payment is not retryable'
+      ) {
+        throw new ConflictError(
+          'Checkout group payment is not retryable',
+          'Checkout group payment is not retryable',
+        );
+      }
+      throw error;
+    }
   }
 }

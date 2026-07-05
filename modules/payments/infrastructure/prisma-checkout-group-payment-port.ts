@@ -12,6 +12,24 @@ export class PrismaCheckoutGroupPaymentPort implements CheckoutGroupPaymentPort 
     const paymentId = crypto.randomUUID();
 
     await prisma.$transaction(async (tx) => {
+      // Atomically check and update only if status is 'failed'
+      const updated = await tx.checkoutGroup.updateMany({
+        where: {
+          id: input.checkoutGroupId,
+          paymentStatus: 'failed',
+        },
+        data: {
+          paymentStatus: 'completed',
+          latestPaymentId: paymentId,
+          paymentAttemptCount: { increment: 1 },
+        },
+      });
+
+      // If no rows were updated, the checkout group was not in 'failed' state
+      if (updated.count === 0) {
+        throw new Error('Checkout group payment is not retryable');
+      }
+
       await tx.checkoutGroupPaymentAttempt.create({
         data: {
           checkoutGroupId: input.checkoutGroupId,
@@ -19,15 +37,6 @@ export class PrismaCheckoutGroupPaymentPort implements CheckoutGroupPaymentPort 
           amount: input.amount,
           currency: input.currency,
           status: 'completed',
-        },
-      });
-
-      await tx.checkoutGroup.update({
-        where: { id: input.checkoutGroupId },
-        data: {
-          paymentStatus: 'completed',
-          latestPaymentId: paymentId,
-          paymentAttemptCount: { increment: 1 },
         },
       });
     });

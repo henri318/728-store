@@ -1,10 +1,13 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/shared/infrastructure/auth-options';
 import { container } from '@/composition-root/container';
-import { redirect } from 'next/navigation';
+import { redirect, notFound } from 'next/navigation';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { orderListQuerySchema } from '@/modules/orders/presentation/schemas/order-schemas';
 import { ListSellerOrdersUseCase } from '@/modules/orders/application/list-seller-orders-use-case';
+import { NotFoundError } from '@/shared/kernel/app-error';
+import { Money } from '@/shared/kernel/domain/value-objects/money';
+import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 
 export default async function SellerOrdersPage({
   params,
@@ -27,20 +30,34 @@ export default async function SellerOrdersPage({
   }
 
   const dict = await getDictionary(locale as 'es' | 'cat');
-  const filter = orderListQuerySchema.parse(query);
+  const filterResult = orderListQuerySchema.safeParse(query);
+  const filter = filterResult.success ? filterResult.data : {
+    status: 'all' as const,
+    page: 1,
+    pageSize: 10,
+    sortDir: 'desc' as const,
+  };
   const useCase = new ListSellerOrdersUseCase(
     container.getSellerLookup(),
     container.getOrderRepository(),
   );
 
-  const result = await useCase.execute({
-    userId: session.user.id,
-    status: filter.status,
-    page: filter.page,
-    pageSize: filter.pageSize,
-    sortBy: 'createdAt',
-    sortDir: filter.sortDir,
-  });
+  let result;
+  try {
+    result = await useCase.execute({
+      userId: session.user.id,
+      status: filter.status,
+      page: filter.page,
+      pageSize: filter.pageSize,
+      sortBy: 'createdAt',
+      sortDir: filter.sortDir,
+    });
+  } catch (error) {
+    if (error instanceof NotFoundError && error.message === 'Seller not found') {
+      notFound();
+    }
+    throw error;
+  }
 
   return (
     <div>
@@ -92,8 +109,8 @@ export default async function SellerOrdersPage({
             <tr key={order.id}>
               <td>{order.id}</td>
               <td>{order.status}</td>
-              <td>{order.createdAt?.toISOString?.() ?? ''}</td>
-              <td>{order.total}</td>
+              <td>{order.createdAt ? new Date(order.createdAt).toLocaleDateString(locale) : ''}</td>
+              <td>{Money.format(order.total, Currency.EUR)}</td>
               <td>
                 {order.status === 'new' && (
                   <form method="post" action={`/api/orders/${order.id}/status`}>
@@ -112,6 +129,26 @@ export default async function SellerOrdersPage({
           ))}
         </tbody>
       </table>
+
+      {result.totalPages > 1 && (
+        <div>
+          {result.page > 1 && (
+            <a href={`/${locale}/seller/orders?page=${result.page - 1}&pageSize=${result.pageSize}&status=${filter.status}&sortDir=${filter.sortDir}`}>
+              {dict.admin?.pagePrev ?? '← Previous'}
+            </a>
+          )}
+          <span>
+            {(dict.admin?.pageXofY ?? 'Page {current} of {total}')
+              .replace('{current}', result.page.toString())
+              .replace('{total}', result.totalPages.toString())}
+          </span>
+          {result.page < result.totalPages && (
+            <a href={`/${locale}/seller/orders?page=${result.page + 1}&pageSize=${result.pageSize}&status=${filter.status}&sortDir=${filter.sortDir}`}>
+              {dict.admin?.pageNext ?? 'Next →'}
+            </a>
+          )}
+        </div>
+      )}
     </div>
   );
 }

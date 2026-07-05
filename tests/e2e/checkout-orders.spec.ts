@@ -4,9 +4,9 @@ test.describe('Checkout and orders smoke flow', () => {
   test('redirects unauthenticated users away from customer orders', async ({
     page,
   }) => {
-    const response = await page.goto('/es/orders').catch(() => null);
+    await page.goto('/es/orders');
 
-    expect(response?.status() ?? 0).toBeLessThan(500);
+    await expect(page).toHaveURL(/\/es\/auth\/signin/);
   });
 
   test('redirects unauthenticated users away from seller orders', async ({
