@@ -55,7 +55,6 @@ export function CheckoutConfirmButton({
     initialAddress ?? EMPTY_ADDRESS,
   );
 
-  const hasAddress = Object.values(address).some((value) => value.trim());
   const hasCompleteAddress = Object.values(address).every((value) =>
     value.trim(),
   );
