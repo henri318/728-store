@@ -215,6 +215,7 @@ describe('CheckoutConfirmButton', () => {
         priceChanges: [],
       }),
     });
+    mockFetch.mockResolvedValueOnce({ ok: true });
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
@@ -224,7 +225,17 @@ describe('CheckoutConfirmButton', () => {
       }),
     });
 
-    render(<CheckoutConfirmButton locale="es" />);
+    render(
+      <CheckoutConfirmButton
+        locale="es"
+        initialAddress={{
+          street: 'Main St 1',
+          city: 'Madrid',
+          postalCode: '28001',
+          country: 'ES',
+        }}
+      />,
+    );
     fireEvent.click(screen.getByRole('button', { name: /place order/i }));
 
     await waitFor(() => {
@@ -250,7 +261,17 @@ describe('CheckoutConfirmButton', () => {
       }),
     });
 
-    render(<CheckoutConfirmButton locale="es" />);
+    render(
+      <CheckoutConfirmButton
+        locale="es"
+        initialAddress={{
+          street: 'Main St 1',
+          city: 'Madrid',
+          postalCode: '28001',
+          country: 'ES',
+        }}
+      />,
+    );
     fireEvent.click(screen.getByRole('button', { name: /place order/i }));
 
     await waitFor(() => {
@@ -268,7 +289,9 @@ describe('CheckoutConfirmButton', () => {
         priceChanges: [{ itemId: 'i1', oldPrice: 10, newPrice: 12 }],
       }),
     });
-    // Second call: confirm with acceptPriceChanges=true
+    // Second call: PATCH /api/users/me (persist address)
+    mockFetch.mockResolvedValueOnce({ ok: true });
+    // Third call: confirm with acceptPriceChanges=true
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
@@ -278,7 +301,17 @@ describe('CheckoutConfirmButton', () => {
       }),
     });
 
-    render(<CheckoutConfirmButton locale="es" />);
+    render(
+      <CheckoutConfirmButton
+        locale="es"
+        initialAddress={{
+          street: 'Main St 1',
+          city: 'Madrid',
+          postalCode: '28001',
+          country: 'ES',
+        }}
+      />,
+    );
     fireEvent.click(screen.getByRole('button', { name: /place order/i }));
 
     await waitFor(() => {
@@ -311,6 +344,7 @@ describe('CheckoutConfirmButton', () => {
         priceChanges: [],
       }),
     });
+    mockFetch.mockResolvedValueOnce({ ok: true });
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
@@ -320,7 +354,17 @@ describe('CheckoutConfirmButton', () => {
       }),
     });
 
-    render(<CheckoutConfirmButton locale="es" />);
+    render(
+      <CheckoutConfirmButton
+        locale="es"
+        initialAddress={{
+          street: 'Main St 1',
+          city: 'Madrid',
+          postalCode: '28001',
+          country: 'ES',
+        }}
+      />,
+    );
     fireEvent.click(screen.getByRole('button', { name: /place order/i }));
 
     await waitFor(() => {

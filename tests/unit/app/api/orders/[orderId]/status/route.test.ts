@@ -90,7 +90,7 @@ describe('POST /api/orders/[orderId]/status', () => {
       params: Promise.resolve({ orderId: 'order-1' }),
     } as never);
 
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(404);
     expect(mocks.updateStatusMock).not.toHaveBeenCalled();
   });
 

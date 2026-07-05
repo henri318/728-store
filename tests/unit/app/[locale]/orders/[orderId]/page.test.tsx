@@ -23,6 +23,16 @@ vi.mock('@/shared/infrastructure/auth-options', () => ({
   authOptions: {},
 }));
 
+vi.mock('@/shared/i18n/get-dictionary', () => ({
+  getDictionary: vi.fn().mockResolvedValue({
+    orders: {
+      status: 'Status',
+      total: 'Total',
+      retryPayment: 'Retry payment',
+    },
+  }),
+}));
+
 vi.mock('@/composition-root/container', () => ({
   container: {
     getOrderRepository: () => ({
