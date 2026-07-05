@@ -252,7 +252,7 @@ export default async function CheckoutPage({
         </div>
         {isFirstPurchase && (
           <div className={styles.totalRow}>
-            <span>10% first-purchase discount</span>
+            <span>{FIRST_PURCHASE_DISCOUNT_RATE * 100}% first-purchase discount</span>
             <span className={styles.discount}>
               −{Money.format(discount, currency)}
             </span>

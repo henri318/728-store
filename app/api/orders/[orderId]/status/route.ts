@@ -39,16 +39,16 @@ export const POST = requireRole('DESIGNER')(async function POST(
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
+    const sellerId = await getCurrentSellerId();
+    if (!sellerId || order.sellerId !== sellerId) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+
     if (!isOrderLifecycleStatus(order.status)) {
       return NextResponse.json(
         { error: 'Invalid transition' },
         { status: 409 },
       );
-    }
-
-    const sellerId = await getCurrentSellerId();
-    if (!sellerId || order.sellerId !== sellerId) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     if (!canTransitionOrderStatus(order.status, status)) {

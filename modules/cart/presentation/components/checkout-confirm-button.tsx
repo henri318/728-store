@@ -61,10 +61,6 @@ export function CheckoutConfirmButton({
   );
 
   const persistProfileAddress = async () => {
-    if (!hasAddress) {
-      return true;
-    }
-
     if (!hasCompleteAddress) {
       setError('Complete the address to continue');
       return false;
