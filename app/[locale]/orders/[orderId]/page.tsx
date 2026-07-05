@@ -29,15 +29,22 @@ export default async function OrderDetailPage({
   return (
     <div>
       <h1>{order.id}</h1>
-      <p>{dict.orders?.status ?? 'Status'}: {order.status}</p>
-      <p>{dict.orders?.total ?? 'Total'}: {Money.format(order.total, Currency.EUR)}</p>
+      <p>
+        {dict.orders?.status ?? 'Status'}: {order.status}
+      </p>
+      <p>
+        {dict.orders?.total ?? 'Total'}:{' '}
+        {Money.format(order.total, Currency.EUR)}
+      </p>
       {order.checkoutGroupId &&
         order.checkoutGroupPaymentStatus === 'failed' && (
           <form
             method="post"
             action={`/api/payments/checkout-groups/${order.checkoutGroupId}/retry`}
           >
-            <button type="submit">{dict.orders?.retryPayment ?? 'Retry payment'}</button>
+            <button type="submit">
+              {dict.orders?.retryPayment ?? 'Retry payment'}
+            </button>
           </form>
         )}
     </div>

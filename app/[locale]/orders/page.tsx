@@ -30,12 +30,14 @@ export default async function CustomerOrdersPage({
 
   const dict = await getDictionary(locale as 'es' | 'cat');
   const filterResult = orderListQuerySchema.safeParse(query);
-  const filter = filterResult.success ? filterResult.data : {
-    status: 'all' as const,
-    page: 1,
-    pageSize: 10,
-    sortDir: 'desc' as const,
-  };
+  const filter = filterResult.success
+    ? filterResult.data
+    : {
+        status: 'all' as const,
+        page: 1,
+        pageSize: 10,
+        sortDir: 'desc' as const,
+      };
   const useCase = new ListCustomerOrdersUseCase(container.getOrderRepository());
 
   const result = await useCase.execute({
@@ -66,17 +68,25 @@ export default async function CustomerOrdersPage({
             <tr key={order.id}>
               <td>{order.id}</td>
               <td>{order.status}</td>
-              <td>{order.createdAt ? new Date(order.createdAt).toLocaleDateString(locale) : ''}</td>
+              <td>
+                {order.createdAt
+                  ? new Date(order.createdAt).toLocaleDateString(locale)
+                  : ''}
+              </td>
               <td>{Money.format(order.total, Currency.EUR)}</td>
               <td>
-                <a href={`/${locale}/orders/${order.id}`}>{dict.orders?.viewOrder ?? 'View order'}</a>
+                <a href={`/${locale}/orders/${order.id}`}>
+                  {dict.orders?.viewOrder ?? 'View order'}
+                </a>
                 {order.checkoutGroupId &&
                   order.checkoutGroupPaymentStatus === 'failed' && (
                     <form
                       method="post"
                       action={`/api/payments/checkout-groups/${order.checkoutGroupId}/retry`}
                     >
-                      <button type="submit">{dict.orders?.retryPayment ?? 'Retry payment'}</button>
+                      <button type="submit">
+                        {dict.orders?.retryPayment ?? 'Retry payment'}
+                      </button>
                     </form>
                   )}
               </td>
@@ -88,7 +98,9 @@ export default async function CustomerOrdersPage({
       {result.totalPages > 1 && (
         <div>
           {result.page > 1 && (
-            <a href={`/${locale}/orders?page=${result.page - 1}&pageSize=${result.pageSize}&status=${filter.status}&sortDir=${filter.sortDir}`}>
+            <a
+              href={`/${locale}/orders?page=${result.page - 1}&pageSize=${result.pageSize}&status=${filter.status}&sortDir=${filter.sortDir}`}
+            >
               {dict.orders?.previous ?? '← Previous'}
             </a>
           )}
@@ -98,7 +110,9 @@ export default async function CustomerOrdersPage({
               .replace('{total}', result.totalPages.toString())}
           </span>
           {result.page < result.totalPages && (
-            <a href={`/${locale}/orders?page=${result.page + 1}&pageSize=${result.pageSize}&status=${filter.status}&sortDir=${filter.sortDir}`}>
+            <a
+              href={`/${locale}/orders?page=${result.page + 1}&pageSize=${result.pageSize}&status=${filter.status}&sortDir=${filter.sortDir}`}
+            >
               {dict.orders?.next ?? 'Next →'}
             </a>
           )}

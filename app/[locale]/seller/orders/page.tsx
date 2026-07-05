@@ -31,12 +31,14 @@ export default async function SellerOrdersPage({
 
   const dict = await getDictionary(locale as 'es' | 'cat');
   const filterResult = orderListQuerySchema.safeParse(query);
-  const filter = filterResult.success ? filterResult.data : {
-    status: 'all' as const,
-    page: 1,
-    pageSize: 10,
-    sortDir: 'desc' as const,
-  };
+  const filter = filterResult.success
+    ? filterResult.data
+    : {
+        status: 'all' as const,
+        page: 1,
+        pageSize: 10,
+        sortDir: 'desc' as const,
+      };
   const useCase = new ListSellerOrdersUseCase(
     container.getSellerLookup(),
     container.getOrderRepository(),
@@ -53,7 +55,10 @@ export default async function SellerOrdersPage({
       sortDir: filter.sortDir,
     });
   } catch (error) {
-    if (error instanceof NotFoundError && error.message === 'Seller not found') {
+    if (
+      error instanceof NotFoundError &&
+      error.message === 'Seller not found'
+    ) {
       notFound();
     }
     throw error;
@@ -109,7 +114,11 @@ export default async function SellerOrdersPage({
             <tr key={order.id}>
               <td>{order.id}</td>
               <td>{order.status}</td>
-              <td>{order.createdAt ? new Date(order.createdAt).toLocaleDateString(locale) : ''}</td>
+              <td>
+                {order.createdAt
+                  ? new Date(order.createdAt).toLocaleDateString(locale)
+                  : ''}
+              </td>
               <td>{Money.format(order.total, Currency.EUR)}</td>
               <td>
                 {order.status === 'new' && (
@@ -133,7 +142,9 @@ export default async function SellerOrdersPage({
       {result.totalPages > 1 && (
         <div>
           {result.page > 1 && (
-            <a href={`/${locale}/seller/orders?page=${result.page - 1}&pageSize=${result.pageSize}&status=${filter.status}&sortDir=${filter.sortDir}`}>
+            <a
+              href={`/${locale}/seller/orders?page=${result.page - 1}&pageSize=${result.pageSize}&status=${filter.status}&sortDir=${filter.sortDir}`}
+            >
               {dict.admin?.pagePrev ?? '← Previous'}
             </a>
           )}
@@ -143,7 +154,9 @@ export default async function SellerOrdersPage({
               .replace('{total}', result.totalPages.toString())}
           </span>
           {result.page < result.totalPages && (
-            <a href={`/${locale}/seller/orders?page=${result.page + 1}&pageSize=${result.pageSize}&status=${filter.status}&sortDir=${filter.sortDir}`}>
+            <a
+              href={`/${locale}/seller/orders?page=${result.page + 1}&pageSize=${result.pageSize}&status=${filter.status}&sortDir=${filter.sortDir}`}
+            >
               {dict.admin?.pageNext ?? 'Next →'}
             </a>
           )}
