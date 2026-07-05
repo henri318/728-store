@@ -9,9 +9,8 @@ const mocks = vi.hoisted(() => {
   const transactionRunnerMock = {
     // Pass-through runner — invokes the work callback with `undefined`
     // as the tx client, matching MemoryTransactionRunner's behavior.
-    run: vi.fn(
-      async <T>(work: (tx: unknown) => Promise<T>): Promise<T> =>
-        work(undefined),
+    run: vi.fn(async <T>(work: (tx: unknown) => Promise<T>): Promise<T> =>
+      work(undefined),
     ),
   };
 

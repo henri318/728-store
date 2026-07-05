@@ -56,9 +56,8 @@ vi.mock('@/composition-root/container', () => ({
     getTransactionRunner: () => ({
       // Simple in-memory transaction runner: just calls the callback with
       // undefined (matches MemoryTransactionRunner semantics).
-      run: vi.fn(
-        async <T>(work: (tx: unknown) => Promise<T>): Promise<T> =>
-          work(undefined),
+      run: vi.fn(async <T>(work: (tx: unknown) => Promise<T>): Promise<T> =>
+        work(undefined),
       ),
     }),
   },

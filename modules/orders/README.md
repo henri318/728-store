@@ -65,9 +65,7 @@ const useCase = new CreateOrderUseCase(orderRepository, outboxRepository);
 const order = await useCase.execute({
   userId: 'user-123',
   sellerId: 'seller-456',
-  lineItems: [
-    /* ... */
-  ],
+  lineItems: [/* ... */],
 });
 ```
 
