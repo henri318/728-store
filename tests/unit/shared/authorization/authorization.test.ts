@@ -32,7 +32,7 @@ describe('createAuthorization (shared)', () => {
       const innerHandler = vi.fn().mockResolvedValue(new Response('ok'));
       const wrapped = auth.requireRole('ADMIN')(innerHandler);
 
-      const response = await wrapped(new Request('http://test/'));
+      const response = await wrapped(new Request('https://test/'));
 
       expect(innerHandler).toHaveBeenCalledTimes(1);
       expect(response).toBeInstanceOf(Response);
@@ -45,7 +45,9 @@ describe('createAuthorization (shared)', () => {
       const innerHandler = vi.fn();
       const wrapped = auth.requireRole('ADMIN')(innerHandler);
 
-      const response = (await wrapped(new Request('http://test/'))) as Response;
+      const response = (await wrapped(
+        new Request('https://test/'),
+      )) as Response;
       const body = await response.json();
 
       expect(innerHandler).not.toHaveBeenCalled();
@@ -59,7 +61,9 @@ describe('createAuthorization (shared)', () => {
       const innerHandler = vi.fn();
       const wrapped = auth.requireRole('ADMIN')(innerHandler);
 
-      const response = (await wrapped(new Request('http://test/'))) as Response;
+      const response = (await wrapped(
+        new Request('https://test/'),
+      )) as Response;
       const body = await response.json();
 
       expect(innerHandler).not.toHaveBeenCalled();
@@ -74,7 +78,9 @@ describe('createAuthorization (shared)', () => {
       const innerHandler = vi.fn();
       const wrapped = auth.requireRole('ADMIN')(innerHandler);
 
-      const response = (await wrapped(new Request('http://test/'))) as Response;
+      const response = (await wrapped(
+        new Request('https://test/'),
+      )) as Response;
       expect(response.status).toBe(403);
     });
 
@@ -85,7 +91,7 @@ describe('createAuthorization (shared)', () => {
       const innerHandler = vi.fn().mockResolvedValue(new Response('ok'));
       const wrapped = auth.requireRole('ADMIN', 'DESIGNER')(innerHandler);
 
-      await wrapped(new Request('http://test/'));
+      await wrapped(new Request('https://test/'));
       expect(innerHandler).toHaveBeenCalledTimes(1);
     });
   });
@@ -121,7 +127,7 @@ describe('createAuthorization (shared)', () => {
 
         const inner = vi.fn().mockResolvedValue(new Response('ok'));
         const wrapped = auth.requireRole(role)(inner);
-        await wrapped(new Request('http://test/'));
+        await wrapped(new Request('https://test/'));
         expect(inner).toHaveBeenCalledTimes(1);
       }
     });
@@ -133,7 +139,9 @@ describe('createAuthorization (shared)', () => {
       const innerHandler = vi.fn();
       const wrapped = auth.requireRole('ADMIN')(innerHandler);
 
-      const response = (await wrapped(new Request('http://test/'))) as Response;
+      const response = (await wrapped(
+        new Request('https://test/'),
+      )) as Response;
       expect(response.status).toBe(403);
       expect(innerHandler).not.toHaveBeenCalled();
     });
@@ -145,7 +153,7 @@ describe('createAuthorization (shared)', () => {
       const innerHandler = vi.fn().mockResolvedValue(new Response('ok'));
       const wrapped = auth.requireRole('ADMIN')(innerHandler);
 
-      await wrapped(new Request('http://test/'));
+      await wrapped(new Request('https://test/'));
       expect(innerHandler).toHaveBeenCalledTimes(1);
     });
   });

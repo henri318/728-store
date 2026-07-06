@@ -8,6 +8,59 @@ import { PrismaTransactionRunner } from '@/shared/infrastructure/prisma-transact
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import { MemoryOrderCustomizationLookup } from '@/tests/doubles/memory-order-customization-lookup';
 
+async function ensurePrerequisites(ids: {
+  userId: string;
+  sellerId: string;
+  productId: string;
+}): Promise<void> {
+  await prisma.user.upsert({
+    where: { id: ids.userId },
+    create: {
+      id: ids.userId,
+      email: `${ids.userId}@test.com`,
+      firstName: 'Cart',
+      lastName: 'Buyer',
+      role: 'CUSTOMER',
+      passwordHash: 'hashed-pw',
+    },
+    update: {},
+  });
+
+  await prisma.user.upsert({
+    where: { id: `user-for-${ids.sellerId}` },
+    create: {
+      id: `user-for-${ids.sellerId}`,
+      email: `seller-owner-${ids.sellerId}@test.com`,
+      firstName: 'Seller',
+      lastName: 'Owner',
+      role: 'DESIGNER',
+      passwordHash: 'hashed-pw',
+    },
+    update: {},
+  });
+
+  await prisma.seller.upsert({
+    where: { id: ids.sellerId },
+    create: {
+      id: ids.sellerId,
+      name: `Seller ${ids.sellerId}`,
+      userId: `user-for-${ids.sellerId}`,
+      status: 'active',
+    },
+    update: {},
+  });
+
+  await prisma.product.upsert({
+    where: { id: ids.productId },
+    create: {
+      id: ids.productId,
+      basePrice: 50,
+      sellerId: ids.sellerId,
+    },
+    update: {},
+  });
+}
+
 class FailingOutboxRepository extends PrismaOutboxRepository {
   override async saveEvent(
     eventType: string,
@@ -27,59 +80,6 @@ describe('HandleCartCheckedOut — Integration', () => {
   afterAll(async () => {
     await cleanupDb();
   });
-
-  async function ensurePrerequisites(ids: {
-    userId: string;
-    sellerId: string;
-    productId: string;
-  }): Promise<void> {
-    await prisma.user.upsert({
-      where: { id: ids.userId },
-      create: {
-        id: ids.userId,
-        email: `${ids.userId}@test.com`,
-        firstName: 'Cart',
-        lastName: 'Buyer',
-        role: 'CUSTOMER',
-        passwordHash: 'hashed-pw',
-      },
-      update: {},
-    });
-
-    await prisma.user.upsert({
-      where: { id: `user-for-${ids.sellerId}` },
-      create: {
-        id: `user-for-${ids.sellerId}`,
-        email: `seller-owner-${ids.sellerId}@test.com`,
-        firstName: 'Seller',
-        lastName: 'Owner',
-        role: 'DESIGNER',
-        passwordHash: 'hashed-pw',
-      },
-      update: {},
-    });
-
-    await prisma.seller.upsert({
-      where: { id: ids.sellerId },
-      create: {
-        id: ids.sellerId,
-        name: `Seller ${ids.sellerId}`,
-        userId: `user-for-${ids.sellerId}`,
-        status: 'active',
-      },
-      update: {},
-    });
-
-    await prisma.product.upsert({
-      where: { id: ids.productId },
-      create: {
-        id: ids.productId,
-        basePrice: 50,
-        sellerId: ids.sellerId,
-      },
-      update: {},
-    });
-  }
 
   it('rolls back the order and outbox writes if a transaction step fails', async () => {
     await ensurePrerequisites({

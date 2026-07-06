@@ -22,7 +22,7 @@ describe('ProductDescription', () => {
     });
 
     it('should create with whitespace-only string and normalize to empty', () => {
-      const desc = ProductDescription.create('   ')!;
+      const desc = ProductDescription.create(' '.repeat(3))!;
       expect(desc.value).toBe('');
     });
 

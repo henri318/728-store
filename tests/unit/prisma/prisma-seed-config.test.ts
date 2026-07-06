@@ -1,17 +1,17 @@
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 describe('Prisma seed and shared adapter wiring', () => {
-  const sharedPrismaPath = join(
+  const sharedPrismaPath = path.join(
     process.cwd(),
     'shared/infrastructure/prisma.ts',
   );
-  const seedPath = join(process.cwd(), 'prisma/seed.ts');
+  const seedPath = path.join(process.cwd(), 'prisma/seed.ts');
 
   it('uses the object-form PrismaPg constructor everywhere', () => {
-    const sharedPrisma = readFileSync(sharedPrismaPath, 'utf-8');
-    const seed = readFileSync(seedPath, 'utf-8');
+    const sharedPrisma = readFileSync(sharedPrismaPath, 'utf8');
+    const seed = readFileSync(seedPath, 'utf8');
 
     expect(sharedPrisma).toContain(
       'new PrismaPg({ connectionString: process.env.DATABASE_URL })',
@@ -26,7 +26,7 @@ describe('Prisma seed and shared adapter wiring', () => {
   });
 
   it('keeps seed writes sequential to avoid overlapping pg queries', () => {
-    const seed = readFileSync(seedPath, 'utf-8');
+    const seed = readFileSync(seedPath, 'utf8');
 
     expect(seed).not.toContain('Promise.all(');
     expect(seed).toContain('for (const role of [');

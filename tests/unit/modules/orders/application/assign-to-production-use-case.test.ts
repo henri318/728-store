@@ -123,12 +123,10 @@ describe('AssignToProductionUseCase', () => {
     await useCase.execute({ orderId: 'order-a', customizationId: 'c-a' });
     await useCase.execute({ orderId: 'order-b', customizationId: 'c-b' });
 
-    expect((await orderRepository.findById('order-a'))?.status).toBe(
-      'completed',
-    );
-    expect((await orderRepository.findById('order-b'))?.status).toBe(
-      'completed',
-    );
+    const orderA = await orderRepository.findById('order-a');
+    expect(orderA?.status).toBe('completed');
+    const orderB = await orderRepository.findById('order-b');
+    expect(orderB?.status).toBe('completed');
     expect(outboxRepository.events.length).toBe(2);
   });
 
@@ -261,7 +259,8 @@ describe('AssignToProductionUseCase', () => {
 
     await useCase.execute({ orderId: 'o1', customizationId: 'c-1' });
 
-    expect((await orderRepository.findById('o1'))?.status).toBe('completed');
+    const foundOrder = await orderRepository.findById('o1');
+    expect(foundOrder?.status).toBe('completed');
     expect(outboxRepository.events.length).toBe(0);
   });
 
@@ -281,7 +280,8 @@ describe('AssignToProductionUseCase', () => {
     await useCase.execute({ orderId: 'o1', customizationId: 'c-1' });
 
     expect(outboxRepository.events.length).toBe(countAfterFirst);
-    expect((await orderRepository.findById('o1'))?.status).toBe('completed');
+    const foundAfterRetry = await orderRepository.findById('o1');
+    expect(foundAfterRetry?.status).toBe('completed');
   });
 
   it('should handle multiple retries of same customization event', async () => {
@@ -321,7 +321,8 @@ describe('AssignToProductionUseCase', () => {
 
     await useCase.execute({ orderId: 'o1', customizationId: '' });
 
-    expect((await orderRepository.findById('o1'))?.status).toBe('completed');
+    const foundEmpty = await orderRepository.findById('o1');
+    expect(foundEmpty?.status).toBe('completed');
   });
 
   it('should handle order with no line items', async () => {
@@ -336,7 +337,8 @@ describe('AssignToProductionUseCase', () => {
 
     await useCase.execute({ orderId: 'o1', customizationId: 'c-empty' });
 
-    expect((await orderRepository.findById('o1'))?.status).toBe('completed');
+    const foundNoItems = await orderRepository.findById('o1');
+    expect(foundNoItems?.status).toBe('completed');
     expect(outboxRepository.events.length).toBe(1);
   });
 
@@ -353,7 +355,8 @@ describe('AssignToProductionUseCase', () => {
 
     await useCase.execute({ orderId: longId, customizationId: 'c-1' });
 
-    expect((await orderRepository.findById(longId))?.status).toBe('completed');
+    const foundLongId = await orderRepository.findById(longId);
+    expect(foundLongId?.status).toBe('completed');
   });
 
   // ---------------------------------------------------------------------------
@@ -427,16 +430,14 @@ describe('AssignToProductionUseCase', () => {
       amount: 200,
     });
 
-    expect((await orderRepository.findById('o-full'))?.status).toBe(
-      'in_progress',
-    );
+    const afterPaid = await orderRepository.findById('o-full');
+    expect(afterPaid?.status).toBe('in_progress');
     expect(outboxRepository.events.length).toBe(1);
 
     await useCase.execute({ orderId: 'o-full', customizationId: 'c-1' });
 
-    expect((await orderRepository.findById('o-full'))?.status).toBe(
-      'completed',
-    );
+    const afterProduction = await orderRepository.findById('o-full');
+    expect(afterProduction?.status).toBe('completed');
     expect(outboxRepository.events.length).toBe(2);
     expect(outboxRepository.events[1].eventType).toBe(
       GlobalEvents.ORDER_READY_FOR_PRODUCTION,

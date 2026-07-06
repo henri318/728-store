@@ -6,6 +6,36 @@ import { SellerStatus } from '@/modules/sellers/domain/seller-status';
 import type { SellerEntity } from '@/modules/sellers/domain/seller';
 import { prisma } from '@/shared/infrastructure/prisma';
 
+/** Create a prerequisite User row for the FK constraint. */
+async function ensureUser(userId: string, email: string): Promise<void> {
+  await prisma.user.upsert({
+    where: { id: userId },
+    create: {
+      id: userId,
+      email,
+      firstName: 'Seller',
+      lastName: 'Owner',
+      role: 'CUSTOMER',
+      passwordHash: 'hashed-pw',
+    },
+    update: {},
+  });
+}
+
+function makeSeller(overrides: Partial<SellerEntity> = {}): SellerEntity {
+  return {
+    sellerId: SellerId.create('seller-int-1'),
+    name: 'Test Seller',
+    description: 'A test seller',
+    userId: 'user-seller-1',
+    status: SellerStatus.ACTIVE,
+    deletedAt: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  };
+}
+
 /**
  * PrismaSellerRepository — Integration tests against real Docker PostgreSQL.
  *
@@ -26,36 +56,6 @@ describe('PrismaSellerRepository — Integration', () => {
   afterAll(async () => {
     await cleanupDb();
   });
-
-  /** Create a prerequisite User row for the FK constraint. */
-  async function ensureUser(userId: string, email: string): Promise<void> {
-    await prisma.user.upsert({
-      where: { id: userId },
-      create: {
-        id: userId,
-        email,
-        firstName: 'Seller',
-        lastName: 'Owner',
-        role: 'CUSTOMER',
-        passwordHash: 'hashed-pw',
-      },
-      update: {},
-    });
-  }
-
-  function makeSeller(overrides: Partial<SellerEntity> = {}): SellerEntity {
-    return {
-      sellerId: SellerId.create('seller-int-1'),
-      name: 'Test Seller',
-      description: 'A test seller',
-      userId: 'user-seller-1',
-      status: SellerStatus.ACTIVE,
-      deletedAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      ...overrides,
-    };
-  }
 
   describe('save + findById', () => {
     it('should persist a seller and retrieve it by ID', async () => {
@@ -329,10 +329,9 @@ describe('PrismaSellerRepository — Integration', () => {
       const result = await repo.findPaginated({ q: 'camisa' });
 
       expect(result.items).toHaveLength(2);
-      expect(result.items.map((s) => s.name).sort()).toEqual([
-        'Camisas SA',
-        'Zapatos SA',
-      ]);
+      expect(
+        result.items.map((s) => s.name).toSorted((a, b) => a.localeCompare(b)),
+      ).toEqual(['Camisas SA', 'Zapatos SA']);
     });
 
     it('filters by status', async () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MergeDialog } from '@/modules/cart/presentation/components/merge-dialog';
 
@@ -31,7 +31,6 @@ vi.mock('next/navigation', () => ({
 
 // Mock fetch globally
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
 
 describe('MergeDialog', () => {
   const labels = {
@@ -49,6 +48,11 @@ describe('MergeDialog', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal('fetch', mockFetch);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('renders the dialog with three strategy options', () => {

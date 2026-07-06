@@ -1,12 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
+// Pass-through requireRole — just calls the inner handler
+function passThroughHandler(
+  handler: (req: NextRequest, context?: unknown) => unknown,
+) {
+  return handler;
+}
+function passThroughRequireRole() {
+  return passThroughHandler;
+}
+
 const mocks = vi.hoisted(() => {
   const getSessionMock = vi.fn(async () => ({ id: 'user-1' }));
-  const requireRoleMock = vi.fn(
-    () => (handler: (req: NextRequest, context?: unknown) => unknown) =>
-      handler,
-  );
+  const requireRoleMock = vi.fn(passThroughRequireRole);
   const migrateExecuteMock = vi.fn();
   const findByIdMock = vi.fn();
   const findByIdsMock = vi.fn();

@@ -132,10 +132,9 @@ describe('ListSellersUseCase', () => {
     const result = await useCase.execute({ q: 'camisa' });
 
     expect(result.items).toHaveLength(2);
-    expect(result.items.map((s) => s.name).sort()).toEqual([
-      'Camisas SA',
-      'Zapatos SA',
-    ]);
+    expect(
+      result.items.map((s) => s.name).toSorted((a, b) => a.localeCompare(b)),
+    ).toEqual(['Camisas SA', 'Zapatos SA']);
   });
 
   it('sorts by name ascending', async () => {

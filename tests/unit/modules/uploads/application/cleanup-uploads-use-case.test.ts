@@ -12,7 +12,7 @@ function makeUpload(overrides: Partial<UploadEntity> = {}): UploadEntity {
     fileName: 'photo.webp',
     storageKey: 'product/user-1/clsxyz123.webp',
     mimeType: 'image/webp',
-    size: 102400,
+    size: 102_400,
     uploadedBy: 'user-1',
     type: UploadType.product,
     status: UploadStatus.PENDING,
@@ -36,7 +36,7 @@ describe('CleanupUploadsUseCase', () => {
 
   it('should delete old pending uploads and return count', async () => {
     // Create uploads older than 24 hours
-    const oldDate = new Date(Date.now() - 25 * 3600_000);
+    const oldDate = new Date(Date.now() - 25 * 3_600_000);
     await uploadRepo.save(makeUpload({ id: 'old-1', createdAt: oldDate }));
     await uploadRepo.save(makeUpload({ id: 'old-2', createdAt: oldDate }));
 
@@ -47,7 +47,7 @@ describe('CleanupUploadsUseCase', () => {
   });
 
   it('should remove old pending uploads from repository', async () => {
-    const oldDate = new Date(Date.now() - 25 * 3600_000);
+    const oldDate = new Date(Date.now() - 25 * 3_600_000);
     await uploadRepo.save(makeUpload({ id: 'old-1', createdAt: oldDate }));
 
     await useCase.execute();
@@ -57,7 +57,7 @@ describe('CleanupUploadsUseCase', () => {
   });
 
   it('should delete old pending uploads from R2 storage', async () => {
-    const oldDate = new Date(Date.now() - 25 * 3600_000);
+    const oldDate = new Date(Date.now() - 25 * 3_600_000);
     await uploadRepo.save(
       makeUpload({
         id: 'old-1',
@@ -74,7 +74,7 @@ describe('CleanupUploadsUseCase', () => {
   // ── Filtering Logic ─────────────────────────────────────────
 
   it('should not delete recent pending uploads (less than 24h old)', async () => {
-    const recentDate = new Date(Date.now() - 1 * 3600_000); // 1 hour ago
+    const recentDate = new Date(Date.now() - 1 * 3_600_000); // 1 hour ago
     await uploadRepo.save(
       makeUpload({ id: 'recent-1', createdAt: recentDate }),
     );
@@ -87,7 +87,7 @@ describe('CleanupUploadsUseCase', () => {
   });
 
   it('should not delete confirmed uploads even if old', async () => {
-    const oldDate = new Date(Date.now() - 25 * 3600_000);
+    const oldDate = new Date(Date.now() - 25 * 3_600_000);
     await uploadRepo.save(
       makeUpload({
         id: 'confirmed-1',
@@ -106,7 +106,7 @@ describe('CleanupUploadsUseCase', () => {
   // ── Error Handling ──────────────────────────────────────────
 
   it('should handle R2 delete failures gracefully', async () => {
-    const oldDate = new Date(Date.now() - 25 * 3600_000);
+    const oldDate = new Date(Date.now() - 25 * 3_600_000);
     await uploadRepo.save(makeUpload({ id: 'old-1', createdAt: oldDate }));
 
     // Make storage throw on delete
@@ -129,7 +129,7 @@ describe('CleanupUploadsUseCase', () => {
   });
 
   it('should continue processing other uploads when one fails', async () => {
-    const oldDate = new Date(Date.now() - 25 * 3600_000);
+    const oldDate = new Date(Date.now() - 25 * 3_600_000);
     await uploadRepo.save(makeUpload({ id: 'old-1', createdAt: oldDate }));
     await uploadRepo.save(makeUpload({ id: 'old-2', createdAt: oldDate }));
 
@@ -162,8 +162,8 @@ describe('CleanupUploadsUseCase', () => {
   });
 
   it('should handle mixed old and new pending uploads', async () => {
-    const oldDate = new Date(Date.now() - 25 * 3600_000);
-    const recentDate = new Date(Date.now() - 1 * 3600_000);
+    const oldDate = new Date(Date.now() - 25 * 3_600_000);
+    const recentDate = new Date(Date.now() - 1 * 3_600_000);
     await uploadRepo.save(makeUpload({ id: 'old-1', createdAt: oldDate }));
     await uploadRepo.save(
       makeUpload({ id: 'recent-1', createdAt: recentDate }),

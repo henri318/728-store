@@ -9,6 +9,27 @@ import { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
 import type { CartEntity } from '@/modules/cart/domain/entities/cart';
 import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
 
+const makeItem = (overrides: Partial<CartItemEntity> = {}): CartItemEntity => ({
+  id: 'i-default',
+  cartId: 'c1',
+  productId: ProductId.create('p1'),
+  sellerId: SellerId.create('s1'),
+  quantity: 1,
+  unitPriceSnapshot: Money.create(10, Currency.EUR),
+  customizationIdList: [],
+  ...overrides,
+});
+
+const makeCart = (overrides: Partial<CartEntity> = {}): CartEntity => ({
+  id: 'c1',
+  userId: 'u1',
+  status: CartStatus.Active,
+  items: [],
+  createdAt: new Date('2026-01-01T00:00:00Z'),
+  updatedAt: new Date('2026-01-01T00:00:00Z'),
+  ...overrides,
+});
+
 /**
  * Tests for GetCart (simple query use case, spec REQ-CART-014 / API GET /api/cart).
  *
@@ -21,29 +42,6 @@ import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
 describe('GetCart', () => {
   let cartRepo: MemoryCartRepository;
   let useCase: GetCart;
-
-  const makeItem = (
-    overrides: Partial<CartItemEntity> = {},
-  ): CartItemEntity => ({
-    id: 'i-default',
-    cartId: 'c1',
-    productId: ProductId.create('p1'),
-    sellerId: SellerId.create('s1'),
-    quantity: 1,
-    unitPriceSnapshot: Money.create(10, Currency.EUR),
-    customizationIdList: [],
-    ...overrides,
-  });
-
-  const makeCart = (overrides: Partial<CartEntity> = {}): CartEntity => ({
-    id: 'c1',
-    userId: 'u1',
-    status: CartStatus.Active,
-    items: [],
-    createdAt: new Date('2026-01-01T00:00:00Z'),
-    updatedAt: new Date('2026-01-01T00:00:00Z'),
-    ...overrides,
-  });
 
   beforeEach(() => {
     cartRepo = new MemoryCartRepository();

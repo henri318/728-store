@@ -62,7 +62,7 @@ describe('ProductDetailPage', () => {
         images: [
           {
             id: 'img-1',
-            url: 'http://assets.example.test/products/taza.png',
+            url: 'https://assets.example.test/products/taza.png',
             alt: 'Taza personalizada',
             position: 0,
             productId: 'p-1',

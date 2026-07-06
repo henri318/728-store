@@ -39,7 +39,9 @@ describe('Email', () => {
     });
 
     it('should reject whitespace-only', () => {
-      expect(() => Email.create('   ')).toThrow('Email cannot be empty');
+      expect(() => Email.create(' '.repeat(3))).toThrow(
+        'Email cannot be empty',
+      );
     });
 
     it('should reject strings longer than 254 chars', () => {

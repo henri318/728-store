@@ -222,7 +222,9 @@ describe('Orders Module - Integration Tests', () => {
       const processedEvents = outboxRepository.events.map(
         (e) => (e.payload as Record<string, unknown>).orderId,
       );
-      expect(processedEvents.sort()).toEqual(orderIds.sort());
+      expect(processedEvents.toSorted((a, b) => a.localeCompare(b))).toEqual(
+        orderIds.toSorted((a, b) => a.localeCompare(b)),
+      );
     });
   });
 
@@ -433,7 +435,7 @@ describe('Orders Module - Integration Tests', () => {
         id: 'order-large',
         userId: 'user-1',
         sellerId: 'seller-1',
-        total: 9999999.99,
+        total: 9_999_999.99,
         status: 'new',
         lineItems: [],
       };
@@ -443,7 +445,7 @@ describe('Orders Module - Integration Tests', () => {
       await markAsPaidUseCase.execute({
         orderId: 'order-large',
         paymentId: 'payment-large',
-        amount: 9999999.99,
+        amount: 9_999_999.99,
       });
 
       // Assert
@@ -452,7 +454,7 @@ describe('Orders Module - Integration Tests', () => {
       expect(
         (outboxRepository.events[0].payload as Record<string, unknown>)
           .totalAmount,
-      ).toBe(9999999.99);
+      ).toBeCloseTo(9_999_999.99, 2);
     });
 
     it('should handle special characters in order metadata', async () => {

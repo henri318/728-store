@@ -36,8 +36,6 @@ vi.mock('@/modules/cart/presentation/guest-cart-context', () => ({
   }),
 }));
 
-global.fetch = mockFetch;
-
 function renderPopup() {
   return render(
     <CartPopupProvider>
@@ -66,6 +64,7 @@ function renderPopup() {
 describe('CartPopup', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal('fetch', mockFetch);
     mockUseSession.mockReturnValue({
       data: { user: { id: 'user-1' } },
       status: 'authenticated',
@@ -95,7 +94,7 @@ describe('CartPopup', () => {
     });
 
     act(() => {
-      window.dispatchEvent(new Event('cart:updated'));
+      globalThis.dispatchEvent(new Event('cart:updated'));
     });
 
     await waitFor(() => {
@@ -104,7 +103,7 @@ describe('CartPopup', () => {
   });
 
   it('dispatches cart:updated after removing an authenticated item', async () => {
-    const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+    const dispatchSpy = vi.spyOn(globalThis, 'dispatchEvent');
     mockFetch
       .mockResolvedValueOnce({
         ok: true,

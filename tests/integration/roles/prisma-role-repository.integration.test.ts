@@ -4,6 +4,15 @@ import { PrismaRoleRepository } from '@/modules/roles/infrastructure/prisma-role
 import { RoleId } from '@/shared/kernel/domain/identifiers/role-id';
 import type { RoleEntity } from '@/modules/roles/domain/entities/role';
 
+function makeRole(overrides: Partial<RoleEntity> = {}): RoleEntity {
+  return {
+    id: RoleId.create('role-int-1'),
+    name: 'TEST_ROLE',
+    description: 'A test role',
+    ...overrides,
+  };
+}
+
 /**
  * PrismaRoleRepository — Integration tests against real Docker PostgreSQL.
  *
@@ -21,15 +30,6 @@ describe('PrismaRoleRepository — Integration', () => {
   afterAll(async () => {
     await cleanupDb();
   });
-
-  function makeRole(overrides: Partial<RoleEntity> = {}): RoleEntity {
-    return {
-      id: RoleId.create('role-int-1'),
-      name: 'TEST_ROLE',
-      description: 'A test role',
-      ...overrides,
-    };
-  }
 
   describe('save + findByName', () => {
     it('should persist a role and retrieve it by name', async () => {

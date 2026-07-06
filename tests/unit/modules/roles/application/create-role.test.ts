@@ -96,7 +96,7 @@ describe('CreateRoleUseCase', () => {
     const useCase = new CreateRoleUseCase(roleRepository, outboxRepository);
 
     await expect(
-      useCase.execute({ name: '   ', description: 'Whitespace name' }),
+      useCase.execute({ name: ' '.repeat(3), description: 'Whitespace name' }),
     ).rejects.toThrow('Role name cannot be empty');
   });
 });

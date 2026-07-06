@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import type {
   CreateEmailQueueInput,
   EmailQueueEntry,
@@ -66,7 +66,7 @@ export class MemoryEmailQueueRepository implements EmailQueueRepository {
           e.template === template &&
           e.createdAt.getTime() >= sinceTime,
       )
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .toSorted((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     if (candidates.length === 0) return null;
     const c = candidates[0];
     return {

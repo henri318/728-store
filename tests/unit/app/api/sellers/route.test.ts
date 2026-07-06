@@ -1,6 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
+// Pass-through requireRole — just calls the inner handler.
+// The real requireRole would query the session + DB; in unit tests we
+// skip that and let each test drive the handler directly.
+function passThroughHandler(
+  handler: (req: NextRequest, context?: unknown) => unknown,
+) {
+  return handler;
+}
+function passThroughRequireRole() {
+  return passThroughHandler;
+}
+
 // Hoist all mocks so they can be accessed by vi.mock factories
 const mocks = vi.hoisted(() => {
   const findPaginatedMock = vi.fn();
@@ -11,13 +23,7 @@ const mocks = vi.hoisted(() => {
   const saveOutboxEventMock = vi.fn();
   const hashPasswordMock = vi.fn(async (pw: string) => `mem:${pw}`);
 
-  // Pass-through requireRole — just calls the inner handler.
-  // The real requireRole would query the session + DB; in unit tests we
-  // skip that and let each test drive the handler directly.
-  const requireRoleMock = vi.fn(
-    () => (handler: (req: NextRequest, context?: unknown) => unknown) =>
-      handler,
-  );
+  const requireRoleMock = vi.fn(passThroughRequireRole);
 
   return {
     findPaginatedMock,

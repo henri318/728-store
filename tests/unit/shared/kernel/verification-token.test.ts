@@ -16,7 +16,7 @@ describe('VerificationToken', () => {
     });
 
     it('should reject whitespace-only string', () => {
-      expect(() => VerificationToken.create('   ')).toThrow(
+      expect(() => VerificationToken.create(' '.repeat(3))).toThrow(
         'Verification token cannot be empty',
       );
     });

@@ -8,9 +8,9 @@
  * Output: ../public/img/icons/sprites.svg (symbol sprite for <use href> references)
  *         ../shared/presentation/sprites.css (utility classes for sizing)
  */
-import { readFileSync, writeFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { optimize } from 'svgo';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

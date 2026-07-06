@@ -1,13 +1,13 @@
 import { defineConfig } from 'vitest/config';
-import path from 'path';
+import path from 'node:path';
 
-const CI = !!process.env.CI;
+const IS_CI = !!process.env.CI;
 
 export default defineConfig({
   test: {
     environment: 'node',
     globals: true,
-    allowOnly: !CI,
+    allowOnly: !IS_CI,
     include: ['tests/integration/**/*.integration.test.ts'],
     testTimeout: 15_000,
     hookTimeout: 30_000,

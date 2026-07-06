@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
 const mocks = vi.hoisted(() => {
-  const assertRoleMock = vi.fn(async () => undefined);
+  const assertRoleMock = vi.fn(async () => {});
   const redirectMock = vi.fn(() => {
     throw new Error('NEXT_REDIRECT');
   });
@@ -173,11 +173,12 @@ describe('AdminSellersPage', () => {
   it('renders pagination info and navigation links', async () => {
     const repo = new MemorySellerRepository();
     for (let i = 1; i <= 25; i++) {
+      const day = String(i).padStart(2, '01');
       repo.seed(
         makeSeller({
           sellerId: SellerId.create(`seller-${i}`),
-          name: `Shop ${String.fromCharCode(64 + i)}`,
-          createdAt: new Date(`2025-01-${String(i).padStart(2, '01')}`),
+          name: `Shop ${String.fromCodePoint(64 + i)}`,
+          createdAt: new Date(`2025-01-${day}`),
         }),
       );
     }

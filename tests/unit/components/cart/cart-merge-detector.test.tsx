@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { CartMergeDetector } from '@/modules/cart/presentation/components/cart-merge-detector';
 
@@ -28,8 +28,6 @@ vi.mock('@/modules/cart/presentation/guest-cart-context', () => ({
   }),
 }));
 
-global.fetch = mockFetch;
-
 describe('CartMergeDetector', () => {
   const labels = {
     mergeTitle: '¿Unir tu carrito?',
@@ -46,6 +44,11 @@ describe('CartMergeDetector', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal('fetch', mockFetch);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('auto-merges without forcing a hard reload when the server cart is empty', async () => {

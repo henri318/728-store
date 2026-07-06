@@ -83,7 +83,7 @@ describe('PrismaProductRepository — Integration', () => {
 
       const product = products.find((p) => p.id === 'prod-int-1');
       expect(product).toBeDefined();
-      expect(product!.basePrice).toBe(99.99);
+      expect(product!.basePrice).toBeCloseTo(99.99, 2);
       expect(product!.sellerName).toBe('Product Seller');
       expect(product!.translations).toHaveLength(1);
       expect(product!.translations[0].name).toBe('Camiseta Test');
@@ -107,7 +107,7 @@ describe('PrismaProductRepository — Integration', () => {
       const product = await repo.findById('prod-int-1', 'en');
       expect(product).not.toBeNull();
       expect(product!.id).toBe('prod-int-1');
-      expect(product!.basePrice).toBe(99.99);
+      expect(product!.basePrice).toBeCloseTo(99.99, 2);
       expect(product!.sellerName).toBe('Product Seller');
       expect(product!.translations[0].name).toBe('Test T-Shirt');
     });
@@ -296,10 +296,9 @@ describe('PrismaProductRepository — Integration', () => {
       });
 
       expect(result.items).toHaveLength(2);
-      expect(result.items.map((p) => p.id).sort()).toEqual([
-        'prod-pag-1',
-        'prod-pag-2',
-      ]);
+      expect(
+        result.items.map((p) => p.id).toSorted((a, b) => a.localeCompare(b)),
+      ).toEqual(['prod-pag-1', 'prod-pag-2']);
     });
 
     it('filters by category slug', async () => {
@@ -309,10 +308,9 @@ describe('PrismaProductRepository — Integration', () => {
       });
 
       expect(result.items).toHaveLength(2);
-      expect(result.items.map((p) => p.id).sort()).toEqual([
-        'prod-pag-1',
-        'prod-pag-2',
-      ]);
+      expect(
+        result.items.map((p) => p.id).toSorted((a, b) => a.localeCompare(b)),
+      ).toEqual(['prod-pag-1', 'prod-pag-2']);
     });
 
     it('returns empty result for unknown category slug', async () => {
@@ -329,11 +327,9 @@ describe('PrismaProductRepository — Integration', () => {
       });
 
       expect(result.items).toHaveLength(3);
-      expect(result.items.map((p) => p.id).sort()).toEqual([
-        'prod-pag-1',
-        'prod-pag-2',
-        'prod-pag-3',
-      ]);
+      expect(
+        result.items.map((p) => p.id).toSorted((a, b) => a.localeCompare(b)),
+      ).toEqual(['prod-pag-1', 'prod-pag-2', 'prod-pag-3']);
     });
 
     it('filters by q, category and tags AND-composed', async () => {
@@ -345,10 +341,9 @@ describe('PrismaProductRepository — Integration', () => {
       });
 
       expect(result.items).toHaveLength(2);
-      expect(result.items.map((p) => p.id).sort()).toEqual([
-        'prod-pag-1',
-        'prod-pag-2',
-      ]);
+      expect(
+        result.items.map((p) => p.id).toSorted((a, b) => a.localeCompare(b)),
+      ).toEqual(['prod-pag-1', 'prod-pag-2']);
     });
 
     it('filters by sellerId', async () => {

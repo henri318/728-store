@@ -6,7 +6,7 @@
  * shared/infrastructure/prisma.ts creates its module-level PrismaPg adapter.
  */
 import { config } from 'dotenv';
-import path from 'path';
+import path from 'node:path';
 
 export default function setup() {
   config({ path: path.resolve(__dirname, '../.env') });

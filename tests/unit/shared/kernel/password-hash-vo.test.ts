@@ -16,7 +16,7 @@ describe('PasswordHash', () => {
     });
 
     it('should reject whitespace-only string', () => {
-      expect(() => PasswordHash.create('   ')).toThrow(
+      expect(() => PasswordHash.create(' '.repeat(3))).toThrow(
         'Password hash cannot be empty',
       );
     });

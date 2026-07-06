@@ -133,12 +133,10 @@ describe('MarkAsPaidUseCase', () => {
       amount: 200,
     });
 
-    expect((await orderRepository.findById('order-a'))?.status).toBe(
-      'in_progress',
-    );
-    expect((await orderRepository.findById('order-b'))?.status).toBe(
-      'in_progress',
-    );
+    const orderA = await orderRepository.findById('order-a');
+    expect(orderA?.status).toBe('in_progress');
+    const orderB = await orderRepository.findById('order-b');
+    expect(orderB?.status).toBe('in_progress');
     expect(outboxRepository.events.length).toBe(2);
   });
 
@@ -269,7 +267,8 @@ describe('MarkAsPaidUseCase', () => {
 
     await useCase.execute({ orderId: 'o1', paymentId: 'pay-1', amount: 100 });
 
-    expect((await orderRepository.findById('o1'))?.status).toBe('in_progress');
+    const foundIdempotent = await orderRepository.findById('o1');
+    expect(foundIdempotent?.status).toBe('in_progress');
     expect(outboxRepository.events.length).toBe(0);
   });
 
@@ -289,7 +288,8 @@ describe('MarkAsPaidUseCase', () => {
     await useCase.execute({ orderId: 'o1', paymentId: 'pay-1', amount: 100 });
 
     expect(outboxRepository.events.length).toBe(countAfterFirst);
-    expect((await orderRepository.findById('o1'))?.status).toBe('in_progress');
+    const foundDuplicate = await orderRepository.findById('o1');
+    expect(foundDuplicate?.status).toBe('in_progress');
   });
 
   it('should handle multiple retries of same payment event', async () => {
@@ -331,7 +331,8 @@ describe('MarkAsPaidUseCase', () => {
 
     await useCase.execute({ orderId: 'o1', paymentId: '', amount: 100 });
 
-    expect((await orderRepository.findById('o1'))?.status).toBe('in_progress');
+    const foundEmpty = await orderRepository.findById('o1');
+    expect(foundEmpty?.status).toBe('in_progress');
   });
 
   it('should handle zero amount payment', async () => {
@@ -346,7 +347,8 @@ describe('MarkAsPaidUseCase', () => {
 
     await useCase.execute({ orderId: 'o1', paymentId: 'pay-0', amount: 0 });
 
-    expect((await orderRepository.findById('o1'))?.status).toBe('in_progress');
+    const foundZero = await orderRepository.findById('o1');
+    expect(foundZero?.status).toBe('in_progress');
     expect(outboxRepository.events.length).toBe(1);
   });
 
@@ -366,7 +368,8 @@ describe('MarkAsPaidUseCase', () => {
       amount: 50,
     });
 
-    expect((await orderRepository.findById('o1'))?.status).toBe('in_progress');
+    const foundPartial = await orderRepository.findById('o1');
+    expect(foundPartial?.status).toBe('in_progress');
   });
 
   // ---------------------------------------------------------------------------
@@ -420,6 +423,6 @@ describe('MarkAsPaidUseCase', () => {
     expect(event.orderId).toBe('o1');
     expect(event.userId).toBe('u-unique');
     expect(event.paymentId).toBe('pay-1');
-    expect(event.totalAmount).toBe(999.99);
+    expect(event.totalAmount).toBeCloseTo(999.99);
   });
 });

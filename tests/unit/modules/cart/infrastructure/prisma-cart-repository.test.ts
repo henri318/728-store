@@ -22,7 +22,7 @@ const { cartStore, itemStore, prismaMock } = vi.hoisted(() => {
     productId: string;
     sellerId: string;
     quantity: number;
-    unitPriceSnapshot: { toNumber: () => number } | number;
+    unitPriceSnapshot: number | { toNumber: () => number };
     customizationIdList: string[];
     createdAt: Date;
     updatedAt: Date;
@@ -80,6 +80,7 @@ const { cartStore, itemStore, prismaMock } = vi.hoisted(() => {
           // ACTIVE cart, throw a Prisma P2002 unique-constraint error.
           const newStatus = create.status as 'ACTIVE' | 'CHECKED_OUT';
           if (newStatus === 'ACTIVE') {
+            // eslint-disable-next-line unicorn/prefer-array-some
             const conflict = cartStore.find(
               (c) =>
                 c.userId === (create.userId as string) &&
@@ -113,7 +114,7 @@ const { cartStore, itemStore, prismaMock } = vi.hoisted(() => {
           data: Record<string, unknown>;
         }) => {
           const idx = cartStore.findIndex((c) => c.id === where.id);
-          if (idx < 0) throw new Error('Cart not found');
+          if (idx === -1) throw new Error('Cart not found');
           cartStore[idx] = {
             ...cartStore[idx],
             ...(data as Partial<(typeof cartStore)[number]>),
@@ -231,6 +232,7 @@ describe('PrismaCartRepository', () => {
       unitPriceSnapshot: Money;
       customizationIdList: string[];
     }> = {},
+    // eslint-disable-next-line unicorn/consistent-function-scoping
   ): import('@/modules/cart/domain/entities/cart-item').CartItemEntity => ({
     id: overrides.id ?? 'i1',
     cartId: overrides.cartId ?? 'c1',
@@ -242,6 +244,7 @@ describe('PrismaCartRepository', () => {
     customizationIdList: overrides.customizationIdList ?? [],
   });
 
+  // eslint-disable-next-line unicorn/consistent-function-scoping
   const makeCart = (overrides: Partial<CartEntity> = {}): CartEntity => {
     const now = new Date('2026-01-01T00:00:00Z');
     return {
@@ -374,17 +377,17 @@ describe('PrismaCartRepository', () => {
   // -------------------------------------------------------------------------
 
   it('findItemById returns the item with Money VO', async () => {
+    const priceSnapshot = Money.create(7, Currency.EUR);
+    const cartItem = makeItem({
+      id: 'i1',
+      cartId: 'c1',
+      unitPriceSnapshot: priceSnapshot,
+    });
     await repo.save(
       makeCart({
         id: 'c1',
         userId: 'u1',
-        items: [
-          makeItem({
-            id: 'i1',
-            cartId: 'c1',
-            unitPriceSnapshot: Money.create(7, Currency.EUR),
-          }),
-        ],
+        items: [cartItem],
       }),
     );
 

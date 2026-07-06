@@ -1,10 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { CheckoutConfirmButton } from '@/modules/cart/presentation/components/checkout-confirm-button';
 
 // Mock fetch globally
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
 
 // Mock next/navigation
 const mockPush = vi.fn();
@@ -29,6 +28,11 @@ vi.mock('@/modules/cart/presentation/guest-cart-context', () => ({
 describe('CheckoutConfirmButton', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal('fetch', mockFetch);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('renders a "Realizar pedido" button', () => {

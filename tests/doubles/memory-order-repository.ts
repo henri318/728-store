@@ -27,7 +27,7 @@ export class MemoryOrderRepository implements OrderRepository {
       return true;
     });
 
-    const sorted = [...filtered].sort((a, b) => {
+    const sorted = filtered.toSorted((a, b) => {
       const aTime = a.createdAt?.getTime?.() ?? 0;
       const bTime = b.createdAt?.getTime?.() ?? 0;
       const diff = aTime - bTime;
@@ -51,14 +51,14 @@ export class MemoryOrderRepository implements OrderRepository {
 
     // Store associated order line items
     if (order.lineItems && order.lineItems.length > 0) {
-      order.lineItems.forEach((lineItem) => {
+      for (const lineItem of order.lineItems) {
         // Ensure orderId is set for line items before storing
         const lineItemWithOrderId: OrderLineItemEntity = {
           ...lineItem,
           orderId: order.id,
         };
         this.orderLineItems.push(lineItemWithOrderId);
-      });
+      }
     }
 
     // Return the order entity with line items populated (as it was passed in)
@@ -76,9 +76,9 @@ export class MemoryOrderRepository implements OrderRepository {
       return;
     }
 
-    lineItems.forEach((item) => {
+    for (const item of lineItems) {
       this.orderLineItems.push({ ...item, orderId });
-    });
+    }
   }
 
   async findById(orderId: string): Promise<OrderEntity | null> {
@@ -111,8 +111,7 @@ export class MemoryOrderRepository implements OrderRepository {
   async countPaidByUserId(userId: string): Promise<number> {
     return this.orders.filter(
       (o) =>
-        o.userId === userId &&
-        ORDER_PAID_PURCHASE_STATUSES.some((status) => status === o.status),
+        o.userId === userId && ORDER_PAID_PURCHASE_STATUSES.includes(o.status),
     ).length;
   }
 

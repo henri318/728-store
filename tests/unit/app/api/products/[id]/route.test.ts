@@ -4,11 +4,18 @@ import { ProductPrice } from '@/modules/products/domain/value-objects/product-pr
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
 
+// Pass-through requireRole — just calls the inner handler
+function passThroughHandler(
+  handler: (req: NextRequest, context?: unknown) => unknown,
+) {
+  return handler;
+}
+function passThroughRequireRole() {
+  return passThroughHandler;
+}
+
 const mocks = vi.hoisted(() => {
-  const requireRoleMock = vi.fn(
-    () => (handler: (req: NextRequest, context?: unknown) => unknown) =>
-      handler,
-  );
+  const requireRoleMock = vi.fn(passThroughRequireRole);
   const getSessionMock = vi.fn();
   const findByUserIdMock = vi.fn();
   const findByIdMock = vi.fn();

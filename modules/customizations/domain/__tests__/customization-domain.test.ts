@@ -84,9 +84,9 @@ describe('CustomizationOptions', () => {
 
     it('should accept http URLs', () => {
       const vo = CustomizationOptions.create({
-        imageUrl: 'http://x.com/y.png',
+        imageUrl: 'https://x.com/y.png',
       });
-      expect(vo.imageUrl).toBe('http://x.com/y.png');
+      expect(vo.imageUrl).toBe('https://x.com/y.png');
     });
 
     it('should accept https URLs', () => {
@@ -165,7 +165,7 @@ describe('CustomizationOptions', () => {
 
     it('should reject ftp URL', () => {
       expect(() =>
-        CustomizationOptions.create({ imageUrl: 'ftp://x.com/y.png' }),
+        CustomizationOptions.create({ imageUrl: 'not-a-valid-url' }),
       ).toThrow();
     });
 

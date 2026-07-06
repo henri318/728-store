@@ -32,7 +32,7 @@ describe('ProductName', () => {
     });
 
     it('should reject whitespace-only string', () => {
-      expect(() => ProductName.create('   ')).toThrow(
+      expect(() => ProductName.create(' '.repeat(3))).toThrow(
         'ProductName cannot be empty',
       );
     });

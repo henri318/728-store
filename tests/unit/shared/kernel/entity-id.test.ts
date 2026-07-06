@@ -15,7 +15,9 @@ describe('EntityId', () => {
     });
 
     it('should throw on whitespace-only string', () => {
-      expect(() => UserId.create('   ')).toThrow('EntityId cannot be empty');
+      expect(() => UserId.create(' '.repeat(3))).toThrow(
+        'EntityId cannot be empty',
+      );
     });
 
     it('should trim whitespace from the value', () => {

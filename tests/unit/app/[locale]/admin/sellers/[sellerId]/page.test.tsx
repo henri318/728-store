@@ -4,7 +4,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 const fetchMock = vi.fn();
 
 const mocks = vi.hoisted(() => {
-  const assertRoleMock = vi.fn(async () => undefined);
+  const assertRoleMock = vi.fn(async () => {});
   const getDictionaryMock = vi.fn();
   const getSellerRepositoryMock = vi.fn();
   const redirectMock = vi.fn(() => {

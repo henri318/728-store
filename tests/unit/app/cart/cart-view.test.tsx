@@ -1,9 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { CartView } from '@/modules/cart/presentation/components/cart-view';
 
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
 
 const mockRefresh = vi.fn();
 vi.mock('next/navigation', () => ({
@@ -54,8 +53,8 @@ describe('CartView', () => {
       sellerId: 'seller-1',
       sellerName: 'Test Seller',
       quantity: 2,
-      unitPrice: 10.0,
-      lineTotal: 20.0,
+      unitPrice: 10,
+      lineTotal: 20,
       customization: {
         text: null,
         color: null,
@@ -71,8 +70,8 @@ describe('CartView', () => {
       sellerId: 'seller-2',
       sellerName: 'Another Seller',
       quantity: 1,
-      unitPrice: 25.0,
-      lineTotal: 25.0,
+      unitPrice: 25,
+      lineTotal: 25,
       customization: {
         text: 'Hello',
         color: 'Red',
@@ -84,6 +83,11 @@ describe('CartView', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal('fetch', mockFetch);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('renders cart items with name, quantity, and line total', () => {

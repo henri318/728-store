@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AddToCartButton } from '@/modules/cart/presentation/components/add-to-cart-button';
 
@@ -19,7 +19,6 @@ const mockUseSession = vi.mocked(useSession);
 const mockUseGuestCart = vi.mocked(useGuestCart);
 
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
 
 describe('AddToCartButton', () => {
   const defaultProps = {
@@ -43,6 +42,7 @@ describe('AddToCartButton', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal('fetch', mockFetch);
     mockUseGuestCart.mockReturnValue({
       items: [],
       itemCount: 0,
@@ -56,6 +56,10 @@ describe('AddToCartButton', () => {
       clearCart: vi.fn(),
       hydrated: true,
     });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   describe('rendering', () => {
@@ -222,7 +226,7 @@ describe('AddToCartButton', () => {
     });
 
     it('dispatches cart:updated after authenticated add succeeds', async () => {
-      const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+      const dispatchSpy = vi.spyOn(globalThis, 'dispatchEvent');
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({ items: [] }),
@@ -511,7 +515,7 @@ describe('AddToCartButton', () => {
     });
 
     it('dispatches cart:updated after authenticated quantity update succeeds', async () => {
-      const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+      const dispatchSpy = vi.spyOn(globalThis, 'dispatchEvent');
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -567,7 +571,7 @@ describe('AddToCartButton', () => {
     });
 
     it('dispatches cart:updated after authenticated remove succeeds', async () => {
-      const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+      const dispatchSpy = vi.spyOn(globalThis, 'dispatchEvent');
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({

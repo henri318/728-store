@@ -13,7 +13,7 @@ describe('Upload Schemas', () => {
           type: 'product',
           fileName: 'photo.jpg',
           mimeType: 'image/jpeg',
-          size: 102400,
+          size: 102_400,
         }).success,
       ).toBe(true);
 

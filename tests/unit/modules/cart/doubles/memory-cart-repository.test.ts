@@ -287,7 +287,9 @@ describe('MemoryCartRepository', () => {
 
       const items = await repo.findItemsByCartId(CartId.create('cart-1'));
       expect(items).toHaveLength(2);
-      expect(items.map((i) => i.id).sort()).toEqual(['i1', 'i2']);
+      expect(
+        items.map((i) => i.id).toSorted((a, b) => a.localeCompare(b)),
+      ).toEqual(['i1', 'i2']);
     });
 
     it('returns an empty array when the cart has no items', async () => {

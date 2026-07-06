@@ -5,6 +5,8 @@ import eslintReact from '@eslint-react/eslint-plugin';
 import reactHooks from 'eslint-plugin-react-hooks';
 import nextPlugin from '@next/eslint-plugin-next';
 import i18next from 'eslint-plugin-i18next';
+import sonarjs from 'eslint-plugin-sonarjs';
+import unicorn from 'eslint-plugin-unicorn';
 
 const CODE_FILES = ['**/*.{js,jsx,mjs,cjs,ts,tsx}'];
 
@@ -110,6 +112,13 @@ export default [
       ...nextPlugin.configs['core-web-vitals'].rules,
     },
   },
+
+  // 👇 SonarJS - usa su config plana "recommended"
+  scopeToCodeFiles(sonarjs.configs.recommended),
+
+  // 👇 Unicorn - también trae flat config recomendada
+  scopeToCodeFiles(unicorn.configs.recommended),
+
   scopeToCodeFiles({
     ignores: ['**/tests/**'],
     plugins: { i18next },
@@ -126,13 +135,37 @@ export default [
             exclude: [
               '[0-9!-/:-@[-`{-~]+',
               '^[A-Z_-]+$',
-              '^[\u00B7\u00D7\u2190-\u21FF\u2212\u2713-\u2717]+$',
+              '^[\u{B7}\u{D7}\u{2190}-\u{21FF}\u{2212}\u{2713}-\u{2717}]+$',
             ],
           },
         },
       ],
     },
   }),
+  scopeToCodeFiles({
+    rules: {
+      // Unicorn tiene reglas muy opinadas que suelen chocar con convenciones existentes
+      'unicorn/prevent-abbreviations': 'off', // evita forzar renombrar req->request, err->error, etc.
+      'unicorn/filename-case': 'off', // si no seguís kebab-case estricto en nombres de archivo
+      'unicorn/no-null': 'off', // muchos proyectos usan null intencionalmente (ej. React)
+      'unicorn/prefer-module': 'off', // si tenéis algún archivo CJS (configs, scripts)
+      'unicorn/name-replacements': 'off',
+
+      // SonarJS: ajustar el umbral de complejidad cognitiva si el default es muy estricto
+      'sonarjs/cognitive-complexity': ['warn', 15],
+    },
+  }),
+  // Vitest no implementa .toBeTrue() / .toBeFalse() que sonarjs exige.
+  // Usamos .toBe(true) / .toBe(false) que es el estándar de vitest.
+  // IPs y passwords hardcoded en tests son datos de prueba esperables.
+  {
+    files: ['**/*.test.{ts,tsx}', 'tests/**/*.test.{ts,tsx}'],
+    rules: {
+      'sonarjs/prefer-specific-assertions': 'off',
+      'sonarjs/no-hardcoded-ip': 'off',
+      'sonarjs/no-hardcoded-passwords': 'off',
+    },
+  },
 
   // JSON / JSONC / JSON5
   {

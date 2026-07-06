@@ -169,7 +169,7 @@ describe('UpdateUserUseCase', () => {
     const useCase = new UpdateUserUseCase(userRepository, outboxRepository);
 
     await expect(
-      useCase.execute({ userId: 'user-empty', firstName: '   ' }),
+      useCase.execute({ userId: 'user-empty', firstName: ' '.repeat(3) }),
     ).rejects.toThrow('First name is required');
   });
 

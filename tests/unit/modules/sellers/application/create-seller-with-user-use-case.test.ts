@@ -186,7 +186,7 @@ describe('CreateSellerWithUserUseCase', () => {
         password: 'password1',
         firstName: 'A',
         lastName: 'B',
-        name: '   ',
+        name: ' '.repeat(3),
       }),
     ).rejects.toBeInstanceOf(ValidationError);
   });
@@ -200,10 +200,10 @@ describe('CreateSellerWithUserUseCase', () => {
       name: 'Conflict Name',
     });
 
-    const sellersBefore = (await sellerRepository.findAll()).length;
-    const usersBefore = (await userRepository.findByEmail('second@shop.com'))
-      ? 1
-      : 0;
+    const allSellersBefore = await sellerRepository.findAll();
+    const sellersBefore = allSellersBefore.length;
+    const existingUser = await userRepository.findByEmail('second@shop.com');
+    const usersBefore = existingUser ? 1 : 0;
 
     await expect(
       useCase.execute({
@@ -216,10 +216,10 @@ describe('CreateSellerWithUserUseCase', () => {
     ).rejects.toBeInstanceOf(ConflictError);
 
     // No new seller, no new user
-    const sellersAfter = (await sellerRepository.findAll()).length;
-    const usersAfter = (await userRepository.findByEmail('second@shop.com'))
-      ? 1
-      : 0;
+    const allSellersAfter = await sellerRepository.findAll();
+    const sellersAfter = allSellersAfter.length;
+    const updatedUser = await userRepository.findByEmail('second@shop.com');
+    const usersAfter = updatedUser ? 1 : 0;
     expect(sellersAfter).toBe(sellersBefore);
     expect(usersAfter).toBe(usersBefore);
   });

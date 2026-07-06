@@ -77,7 +77,7 @@ export class MemorySellerRepository implements SellerRepository {
       });
     }
 
-    const sorted = [...filtered].sort((a, b) => {
+    const sorted = filtered.toSorted((a, b) => {
       const dir = sortDir === 'asc' ? 1 : -1;
       if (sortBy === 'name') {
         return a.name.localeCompare(b.name) * dir;
@@ -97,7 +97,7 @@ export class MemorySellerRepository implements SellerRepository {
     const index = this.sellers.findIndex(
       (s) => s.sellerId.value === seller.sellerId.value,
     );
-    if (index < 0) {
+    if (index === -1) {
       throw new Error(`Seller with id ${seller.sellerId.value} not found`);
     }
     this.sellers[index] = seller;

@@ -8,6 +8,23 @@ import { PasswordHash } from '@/shared/kernel/domain/value-objects/password-hash
 import { Address } from '@/shared/kernel/domain/value-objects/address';
 import type { UserEntity } from '@/modules/users/domain/entities/user';
 
+function makeUser(overrides: Partial<UserEntity> = {}): UserEntity {
+  return {
+    userId: UserId.create('user-int-1'),
+    email: Email.create('test@example.com'),
+    firstName: 'Test',
+    lastName: 'User',
+    address: null,
+    roleId: RoleId.create('CUSTOMER'),
+    passwordHash: PasswordHash.create('hashed-password-123'),
+    emailVerified: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
+    ...overrides,
+  };
+}
+
 /**
  * PrismaUserRepository — Integration tests against real Docker PostgreSQL.
  *
@@ -25,23 +42,6 @@ describe('PrismaUserRepository — Integration', () => {
   afterAll(async () => {
     await cleanupDb();
   });
-
-  function makeUser(overrides: Partial<UserEntity> = {}): UserEntity {
-    return {
-      userId: UserId.create('user-int-1'),
-      email: Email.create('test@example.com'),
-      firstName: 'Test',
-      lastName: 'User',
-      address: null,
-      roleId: RoleId.create('CUSTOMER'),
-      passwordHash: PasswordHash.create('hashed-password-123'),
-      emailVerified: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      deletedAt: null,
-      ...overrides,
-    };
-  }
 
   describe('save + findById', () => {
     it('should persist a user and retrieve it by ID', async () => {

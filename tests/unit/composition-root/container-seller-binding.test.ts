@@ -113,11 +113,14 @@ vi.mock(
     PrismaPaidOrderCountAdapter: class {},
   }),
 );
-vi.mock('@/modules/orders/application/handle-cart-checked-out', () => ({
-  HandleCartCheckedOut: class {
-    static subscribe = vi.fn();
-  },
-}));
+vi.mock('@/modules/orders/application/handle-cart-checked-out', () => {
+  // eslint-disable-next-line unicorn/consistent-function-scoping
+  function HandleCartCheckedOut() {
+    // dummy constructor — container calls `new HandleCartCheckedOut(...)`
+  }
+  HandleCartCheckedOut.subscribe = vi.fn();
+  return { HandleCartCheckedOut };
+});
 
 vi.mock('@/modules/sellers/infrastructure/prisma-seller-repository', () => ({
   PrismaSellerRepository: class {

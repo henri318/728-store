@@ -23,6 +23,15 @@ export class MemoryCartRepository implements CartRepository {
   private carts: CartEntity[] = [];
   private items: CartItemEntity[] = [];
 
+  private hydrate(cart: CartEntity): CartEntity {
+    return {
+      ...cart,
+      items: this.items
+        .filter((i) => i.cartId === cart.id)
+        .map((i) => ({ ...i })),
+    };
+  }
+
   async findActiveByUserId(userId: string): Promise<CartEntity | null> {
     const cart = this.carts.find(
       (c) => c.userId === userId && c.status === CartStatus.Active,
@@ -56,10 +65,10 @@ export class MemoryCartRepository implements CartRepository {
     }
 
     const existingIndex = this.carts.findIndex((c) => c.id === cart.id);
-    if (existingIndex >= 0) {
-      this.carts[existingIndex] = { ...cart };
-    } else {
+    if (existingIndex === -1) {
       this.carts.push({ ...cart });
+    } else {
+      this.carts[existingIndex] = { ...cart };
     }
 
     // Replace items for this cart
@@ -101,14 +110,5 @@ export class MemoryCartRepository implements CartRepository {
   async findItemsByCartId(cartId: CartId): Promise<CartItemEntity[]> {
     const target = cartId.value;
     return this.items.filter((i) => i.cartId === target).map((i) => ({ ...i }));
-  }
-
-  private hydrate(cart: CartEntity): CartEntity {
-    return {
-      ...cart,
-      items: this.items
-        .filter((i) => i.cartId === cart.id)
-        .map((i) => ({ ...i })),
-    };
   }
 }

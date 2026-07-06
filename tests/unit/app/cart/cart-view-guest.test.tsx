@@ -4,7 +4,7 @@ import { CartView } from '@/modules/cart/presentation/components/cart-view';
 
 // Mock fetch globally
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
+vi.stubGlobal('fetch', mockFetch);
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
@@ -29,7 +29,7 @@ vi.mock('@/modules/cart/presentation/guest-cart-context', () => ({
 }));
 
 // Mutable guest cart items — tests override via setGuestCartItems()
-let guestCartItems: Array<{
+const guestCartItems: Array<{
   productId: string;
   sellerId: string;
   quantity: number;
@@ -40,7 +40,7 @@ let guestCartItems: Array<{
 }> = [];
 
 function setGuestCartItems(items: typeof guestCartItems) {
-  guestCartItems = items;
+  guestCartItems.splice(0, guestCartItems.length, ...items);
 }
 
 describe('CartView — guest cart', () => {
@@ -75,7 +75,7 @@ describe('CartView — guest cart', () => {
       productId: 'prod-1',
       sellerId: 'seller-1',
       quantity: 2,
-      unitPriceSnapshot: 10.0,
+      unitPriceSnapshot: 10,
       productName: 'Guest Product',
       productImageUrl: null,
       sellerName: 'Guest Seller',
@@ -84,7 +84,7 @@ describe('CartView — guest cart', () => {
       productId: 'prod-2',
       sellerId: 'seller-2',
       quantity: 1,
-      unitPriceSnapshot: 25.0,
+      unitPriceSnapshot: 25,
       productName: 'Another Guest Product',
       productImageUrl: '/img/test.png',
       sellerName: 'Another Seller',
