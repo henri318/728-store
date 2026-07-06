@@ -125,9 +125,7 @@ function unauthorizedResponse(request: NextRequest, pathname: string) {
 
 export const config = {
   matcher: [
-    // Pages and non-api paths (including /img/ static assets)
-    '/((?!api|_next/static|_next/image|favicon\\.ico|icon\\.svg|.*\\.png$).*)',
-    // Protected API routes (explicitly added since the regex above excludes /api)
+    '/((?!api|_next/static|_next/image|favicon[.]ico|icon[.]svg|.*[.]png$).*)',
     '/api/admin/:path*',
     '/api/orders/:path*',
     '/api/users/:path*',
