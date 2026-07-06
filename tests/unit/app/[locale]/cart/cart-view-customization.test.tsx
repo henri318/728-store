@@ -43,6 +43,8 @@ describe('CartView customization links', () => {
       decreaseQuantity: 'Reducir cantidad',
       increaseQuantity: 'Aumentar cantidad',
       customizationEditFromCart: 'Editar personalización',
+      customizationDesignImageAlt: 'Diseño personalizado',
+      price: 'Precio',
     };
 
     render(

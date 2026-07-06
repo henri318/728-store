@@ -177,11 +177,12 @@ export default async function SellerOrdersPage({
 
         <form method="get" className={styles.filterForm}>
           <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>
+            <label className={styles.filterLabel} htmlFor="filter-status">
               {dict.orders?.filterStatus ?? 'Status'}
             </label>
             <select
               name="status"
+              id="filter-status"
               defaultValue={filter.status}
               className={styles.filterSelect}
             >
@@ -196,11 +197,12 @@ export default async function SellerOrdersPage({
             </select>
           </div>
           <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>
+            <label className={styles.filterLabel} htmlFor="filter-sort">
               {dict.orders?.sortBy ?? 'Sort by'}
             </label>
             <select
               name="sortDir"
+              id="filter-sort"
               defaultValue={filter.sortDir}
               className={styles.filterSelect}
             >
@@ -238,7 +240,7 @@ export default async function SellerOrdersPage({
         </>
       ) : (
         <Card className={styles.emptyState}>
-          {dict.orders?.sellerOrdersTitle ?? 'No orders yet'}
+          {dict.orders?.noOrders ?? 'No orders yet'}
         </Card>
       )}
     </div>

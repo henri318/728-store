@@ -220,6 +220,7 @@
     "productCustomizationTagsHelp": "Separa les etiquetes amb comes.",
     "productCustomizationSizeOptionsLabel": "Talles disponibles",
     "productCustomizationSizeOptionsPlaceholder": "S, M, L",
+    "productCustomizationAddLabel": "Afegir",
     "productPhotosTitle": "Fotos del producte",
     "productPhotosHint": "Carrega variants i anomena-les per color o acabat.",
     "addProductPhotos": "Afegir fotos",
@@ -281,7 +282,8 @@
     "searchItemsPlaceholder": "Cercar a les meves comandes...",
     "items": "Productes",
     "qty": "Quant.",
-    "noItems": "Aquesta comanda no té productes"
+    "noItems": "Aquesta comanda no té productes",
+    "noOrders": "Encara no tens comandes"
   },
   "admin": {
     "sellersTitle": "Gestió de venedors",

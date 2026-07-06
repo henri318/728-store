@@ -61,6 +61,8 @@ describe('CartView — guest cart', () => {
     customizationText: 'Texto',
     increaseQuantity: 'Aumentar cantidad',
     decreaseQuantity: 'Reducir cantidad',
+    customizationDesignImageAlt: 'Diseño personalizado',
+    price: 'Precio',
   };
 
   beforeEach(() => {

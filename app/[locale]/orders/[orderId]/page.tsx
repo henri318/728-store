@@ -8,6 +8,7 @@ import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import { StatusBadge } from '@/shared/ui/status-badge';
 import { Card } from '@/shared/ui/card';
 import { BackLink } from '@/shared/ui/back-link';
+import { normalizeLocale } from '@/shared/i18n/normalize-locale';
 import Image from 'next/image';
 import styles from './page.module.css';
 
@@ -67,7 +68,9 @@ export default async function OrderDetailPage({
           <div className={styles.detailRow}>
             <span className={styles.detailLabel}>{dict.orders?.date}</span>
             <span className={styles.detailValue}>
-              {new Date(order.createdAt).toLocaleDateString(locale)}
+              {new Date(order.createdAt).toLocaleDateString(
+                normalizeLocale(locale),
+              )}
             </span>
           </div>
         )}
@@ -85,9 +88,10 @@ export default async function OrderDetailPage({
                 (c) => c.imageUrl,
               )?.imageUrl;
               const displayImage = customImage ?? item.productImageUrl;
-              const lineTotal = item.unitPrice
-                ? item.unitPrice * item.quantity
-                : undefined;
+              const lineTotal =
+                item.unitPrice != null
+                  ? item.unitPrice * item.quantity
+                  : undefined;
 
               return (
                 <div key={item.id} className={styles.itemRow}>

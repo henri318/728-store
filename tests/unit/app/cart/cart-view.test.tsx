@@ -41,6 +41,8 @@ describe('CartView', () => {
     customizationText: 'Texto',
     increaseQuantity: 'Aumentar cantidad',
     decreaseQuantity: 'Reducir cantidad',
+    customizationDesignImageAlt: 'Diseño personalizado',
+    price: 'Precio',
   };
 
   const baseItems = [

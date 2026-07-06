@@ -88,6 +88,7 @@ export default async function SellerProductEditPage({
             tagsPlaceholder:
               dict.sellerDashboard.productCustomizationTagsPlaceholder,
             tagsHelp: dict.sellerDashboard.productCustomizationTagsHelp,
+            addLabel: dict.sellerDashboard.productCustomizationAddLabel,
           },
         },
         gallery: {

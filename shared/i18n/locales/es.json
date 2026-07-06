@@ -220,6 +220,7 @@
     "productCustomizationTagsHelp": "Separa las etiquetas con comas.",
     "productCustomizationSizeOptionsLabel": "Tallas disponibles",
     "productCustomizationSizeOptionsPlaceholder": "S, M, L",
+    "productCustomizationAddLabel": "Añadir",
     "productPhotosTitle": "Fotos del producto",
     "productPhotosHint": "Sube variantes y nómbralas por color o acabado.",
     "addProductPhotos": "Añadir fotos",
@@ -281,7 +282,8 @@
     "searchItemsPlaceholder": "Buscar en mis pedidos...",
     "items": "Productos",
     "qty": "Cant.",
-    "noItems": "Este pedido no tiene productos"
+    "noItems": "Este pedido no tiene productos",
+    "noOrders": "Aún no tienes pedidos"
   },
   "admin": {
     "sellersTitle": "Gestión de vendedores",

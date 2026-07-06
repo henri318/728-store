@@ -179,7 +179,7 @@ export default async function CustomerOrdersPage({
         </>
       ) : (
         <Card className={styles.emptyState}>
-          {dict.orders?.myOrders ?? 'No orders yet'}
+          {dict.orders?.noOrders ?? 'No orders yet'}
         </Card>
       )}
     </div>

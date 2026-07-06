@@ -36,7 +36,7 @@ export class PrismaOrderRepository implements OrderRepository {
           product: {
             translations: {
               some: {
-                name: { contains: filter.q },
+                name: { contains: filter.q, mode: 'insensitive' },
               },
             },
           },
@@ -55,7 +55,7 @@ export class PrismaOrderRepository implements OrderRepository {
               product: {
                 include: {
                   translations: { where: { locale: translationLocale } },
-                  images: { take: 1 },
+                  images: { take: 1, orderBy: { position: 'asc' } },
                 },
               },
             },
@@ -177,6 +177,7 @@ export class PrismaOrderRepository implements OrderRepository {
         productId: item.productId,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
+        productImageUrl: item.productImageUrl,
         customizationIdList: item.customizationIdList,
         customizationSnapshot: (item.customizationSnapshot ??
           Prisma.JsonNull) as unknown as Prisma.InputJsonValue,
@@ -197,7 +198,7 @@ export class PrismaOrderRepository implements OrderRepository {
             product: {
               include: {
                 translations: { where: { locale: translationLocale } },
-                images: { take: 1 },
+                images: { take: 1, orderBy: { position: 'asc' } },
               },
             },
           },

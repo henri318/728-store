@@ -95,6 +95,8 @@ export default async function CartPage({
         customizationText: dict.common.customizationText,
         increaseQuantity: dict.common.increaseQuantity,
         decreaseQuantity: dict.common.decreaseQuantity,
+        customizationDesignImageAlt: dict.common.customizationDesignImageAlt,
+        price: dict.common.price,
       }}
     />
   );

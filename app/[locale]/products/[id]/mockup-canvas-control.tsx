@@ -290,8 +290,7 @@ export function MockupCanvasControl({
   }, []);
 
   const positionReadout = useMemo(
-    () =>
-      `${Math.round(position.x * 100)}${String.fromCharCode(37)} ${String.fromCharCode(47)} ${Math.round(position.y * 100)}${String.fromCharCode(37)}`,
+    () => `${Math.round(position.x * 100)}% / ${Math.round(position.y * 100)}%`,
     [position.x, position.y],
   );
 

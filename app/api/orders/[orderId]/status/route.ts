@@ -62,7 +62,15 @@ export const POST = requireRole('DESIGNER')(async function POST(
 
     const referer = request.headers.get('referer');
     if (referer) {
-      return NextResponse.redirect(referer, 303);
+      try {
+        const refererUrl = new URL(referer);
+        const baseUrl = new URL(request.url);
+        if (refererUrl.origin === baseUrl.origin) {
+          return NextResponse.redirect(referer, 303);
+        }
+      } catch {
+        // invalid URL — fall through to JSON response
+      }
     }
     return NextResponse.json({ orderId, status }, { status: 200 });
   } catch (error: unknown) {

@@ -7,8 +7,8 @@ import styles from './tag-list.module.css';
 interface TagListProps {
   label: string;
   placeholder?: string;
-  addLabel?: string;
-  emptyLabel?: string;
+  addLabel: string;
+  emptyLabel: string;
   value: string[] | null;
   onChange: (value: string[] | null) => void;
 }
@@ -22,8 +22,6 @@ export function TagList({
   onChange,
 }: TagListProps) {
   const dict = useDictionary();
-  const addLabelValue = addLabel ?? dict.common.customizationTagsLabel;
-  const emptyLabelValue = emptyLabel ?? dict.common.productPhotosEmptyState;
   const [inputValue, setInputValue] = useState('');
 
   const tags = value ?? [];
@@ -83,7 +81,7 @@ export function TagList({
           className={styles.addBtn}
           onClick={() => commitTags(inputValue)}
         >
-          {addLabelValue}
+          {addLabel}
         </button>
       </div>
       {tags.length > 0 ? (
@@ -95,7 +93,7 @@ export function TagList({
                 type="button"
                 className={styles.removeBtn}
                 onClick={() => removeTag(i)}
-                aria-label={tag}
+                aria-label={`${dict.common.removeFromCart ?? 'Remove'} ${tag}`}
               >
                 {'\u00D7'}
               </button>
@@ -103,7 +101,7 @@ export function TagList({
           ))}
         </div>
       ) : (
-        <p className={styles.empty}>{emptyLabelValue}</p>
+        <p className={styles.empty}>{emptyLabel}</p>
       )}
     </div>
   );
