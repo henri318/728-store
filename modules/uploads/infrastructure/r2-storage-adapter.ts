@@ -58,7 +58,7 @@ export class R2StorageAdapter implements StoragePort {
 
   /** Resolve which bucket to use based on the storage key prefix. */
   private getBucket(key: string): string {
-    const type = key.split('/')[0];
+    const type = key.split('/', 1)[0];
     return R2StorageAdapter.PUBLIC_TYPES.has(type)
       ? this.publicBucket
       : this.privateBucket;

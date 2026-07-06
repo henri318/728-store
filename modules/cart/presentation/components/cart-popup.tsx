@@ -21,7 +21,7 @@ import styles from './cart-popup.module.css';
 const CART_UPDATED_EVENT = 'cart:updated';
 
 function dispatchCartUpdated() {
-  window.dispatchEvent(new Event(CART_UPDATED_EVENT));
+  globalThis.dispatchEvent(new Event(CART_UPDATED_EVENT));
 }
 
 interface CartItemDTO {
@@ -94,7 +94,7 @@ export function CartPopup({ labels }: CartPopupProps) {
   const { status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
-  const locale = pathname?.split('/')[1] ?? 'es';
+  const locale = pathname?.split('/', 2)[1] ?? 'es';
   const isAuthenticated = status === 'authenticated';
   const guestCart = useGuestCart();
 
@@ -116,43 +116,45 @@ export function CartPopup({ labels }: CartPopupProps) {
     fetch('/api/cart', { signal: ctrl.signal })
       .then((r) => (r.ok ? r.json() : { items: [] }))
       .then((data) => {
-        if (!ctrl.signal.aborted) {
-          setAuthItems(
-            (data.items ?? []).map((i: Record<string, unknown>) => {
-              const customizations =
-                (i.customizations as Array<Record<string, unknown>>) ?? [];
-              const firstC = customizations[0] ?? null;
-              return {
-                id: i.id as string,
-                productId: i.productId as string,
-                productName: i.productName as string,
-                productImageUrl:
-                  (i.colorImageUrl as string | null) ??
-                  (i.productImageUrl as string | null) ??
-                  null,
-                sellerId: i.sellerId as string,
-                sellerName: i.sellerName as string,
-                quantity: i.quantity as number,
-                unitPrice: i.unitPrice as number,
-                lineTotal: +(
-                  (i.unitPrice as number) * (i.quantity as number)
-                ).toFixed(2),
-                customization: firstC
-                  ? {
-                      text: (firstC.text as string | null) ?? null,
-                      color: (firstC.color as string | null) ?? null,
-                      size: (firstC.size as string | null) ?? null,
-                      imageUrl: (firstC.imageUrl as string | null) ?? null,
-                      designPosition:
-                        (firstC.designPosition as Record<string, unknown>) ??
-                        null,
-                    }
-                  : null,
-              } as CartItemDTO;
-            }),
-          );
-          setLoading(false);
+        if (ctrl.signal.aborted) {
+          return;
         }
+
+        setAuthItems(
+          (data.items ?? []).map((i: Record<string, unknown>) => {
+            const customizations =
+              (i.customizations as Array<Record<string, unknown>>) ?? [];
+            const firstC = customizations[0] ?? null;
+            return {
+              id: i.id as string,
+              productId: i.productId as string,
+              productName: i.productName as string,
+              productImageUrl:
+                (i.colorImageUrl as string | null) ??
+                (i.productImageUrl as string | null) ??
+                null,
+              sellerId: i.sellerId as string,
+              sellerName: i.sellerName as string,
+              quantity: i.quantity as number,
+              unitPrice: i.unitPrice as number,
+              lineTotal: +(
+                (i.unitPrice as number) * (i.quantity as number)
+              ).toFixed(2),
+              customization: firstC
+                ? {
+                    text: (firstC.text as string | null) ?? null,
+                    color: (firstC.color as string | null) ?? null,
+                    size: (firstC.size as string | null) ?? null,
+                    imageUrl: (firstC.imageUrl as string | null) ?? null,
+                    designPosition:
+                      (firstC.designPosition as Record<string, unknown>) ??
+                      null,
+                  }
+                : null,
+            } as CartItemDTO;
+          }),
+        );
+        setLoading(false);
       })
       .catch(() => {
         if (!ctrl.signal.aborted) setLoading(false);
@@ -163,10 +165,10 @@ export function CartPopup({ labels }: CartPopupProps) {
     if (!isOpen || !isAuthenticated) return;
     refreshAuthCart();
     const handleCartUpdated = () => refreshAuthCart();
-    window.addEventListener(CART_UPDATED_EVENT, handleCartUpdated);
+    globalThis.addEventListener(CART_UPDATED_EVENT, handleCartUpdated);
     return () => {
       abortRef.current?.abort();
-      window.removeEventListener(CART_UPDATED_EVENT, handleCartUpdated);
+      globalThis.removeEventListener(CART_UPDATED_EVENT, handleCartUpdated);
     };
   }, [isOpen, isAuthenticated, refreshAuthCart]);
 

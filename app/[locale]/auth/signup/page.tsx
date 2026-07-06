@@ -61,7 +61,7 @@ function applyIssue(errors: FormErrors, issue: ZodIssue) {
     }
     default: {
       if (path.startsWith('address.')) {
-        const addrField = path.split('.')[1] as keyof AddressFields;
+        const addrField = path.split('.', 2)[1] as keyof AddressFields;
         if (!errors.address) errors.address = {};
         errors.address[addrField] = issue.message;
       }
@@ -210,9 +210,9 @@ export default function SignUpPage() {
         // Fallback: redirect to sign-in if auto-login fails
         router.push(`/${locale}/auth/signin?registered=true`);
       }
-    } catch (err: unknown) {
+    } catch (error: unknown) {
       setServerError(
-        err instanceof Error ? err.message : 'An unexpected error occurred',
+        error instanceof Error ? error.message : 'An unexpected error occurred',
       );
     } finally {
       setLoading(false);

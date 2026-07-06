@@ -140,8 +140,8 @@ function isLocalUploadStorage(): boolean {
 
 // Idempotency flag for event subscriptions — prevents double registration
 // during HMR in development.
-let _cartEventsSubscribed = false;
-let _searchHistoryEventsSubscribed = false;
+let _isCartEventsSubscribed = false;
+let _isSearchHistoryEventsSubscribed = false;
 
 // ---------------------------------------------------------------------------
 // Initialization
@@ -204,8 +204,8 @@ export function initContainer(): void {
     _roleRepository = new PrismaRoleRepository();
     // Seed default roles on first boot (idempotent, no-op if roles exist).
     const seedRoles = new SeedRolesUseCase(_roleRepository);
-    seedRoles.execute().catch((err) => {
-      console.error('[container] Role seed failed:', err);
+    seedRoles.execute().catch((error) => {
+      console.error('[container] Role seed failed:', error);
     });
   }
 
@@ -319,7 +319,7 @@ export function initContainer(): void {
   }
 
   // --- Cart event subscriptions (idempotent for HMR) ---
-  if (!_cartEventsSubscribed) {
+  if (!_isCartEventsSubscribed) {
     const handler = new HandleCartCheckedOut(
       _orderRepository!,
       _outboxRepository!,
@@ -327,16 +327,16 @@ export function initContainer(): void {
       _customizationLookup!,
     );
     HandleCartCheckedOut.subscribe(_eventBus!, handler);
-    _cartEventsSubscribed = true;
+    _isCartEventsSubscribed = true;
   }
 
   // --- Search-history event subscriptions (idempotent for HMR) ---
-  if (!_searchHistoryEventsSubscribed) {
+  if (!_isSearchHistoryEventsSubscribed) {
     const subscriber = new HandleProductSearchExecuted(
       new RecordSearchUseCase(_searchHistoryRepository!),
     );
     HandleProductSearchExecuted.subscribe(_eventBus!, subscriber);
-    _searchHistoryEventsSubscribed = true;
+    _isSearchHistoryEventsSubscribed = true;
   }
 }
 
@@ -801,9 +801,9 @@ export const container = {
   },
   /** Reset the search-history event subscription flag — useful in tests to allow re-subscription. */
   resetSearchHistoryEventSubscriptions(): void {
-    _searchHistoryEventsSubscribed = false;
+    _isSearchHistoryEventsSubscribed = false;
   } /** Reset the event subscription flag — useful in tests to allow re-subscription. */,
   resetCartEventSubscriptions(): void {
-    _cartEventsSubscribed = false;
+    _isCartEventsSubscribed = false;
   },
 };

@@ -89,9 +89,9 @@ export default async function OrderDetailPage({
               )?.imageUrl;
               const displayImage = customImage ?? item.productImageUrl;
               const lineTotal =
-                item.unitPrice != null
-                  ? item.unitPrice * item.quantity
-                  : undefined;
+                item.unitPrice == null
+                  ? undefined
+                  : item.unitPrice * item.quantity;
 
               return (
                 <div key={item.id} className={styles.itemRow}>

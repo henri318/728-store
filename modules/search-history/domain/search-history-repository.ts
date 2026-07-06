@@ -13,8 +13,6 @@
  */
 import type { SearchHistoryEntry } from './entities/search-history-entry';
 
-export type { SearchHistoryEntry };
-
 export interface RecordSearchInput {
   readonly userId: string;
   readonly term: string;
@@ -44,3 +42,5 @@ export interface SearchHistoryRepository {
    */
   findRecent(input: FindRecentInput): Promise<SearchHistoryEntry[]>;
 }
+
+export { type SearchHistoryEntry } from './entities/search-history-entry';

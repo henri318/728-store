@@ -43,15 +43,15 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         const res = await fetch('/api/auth/session');
         const session = await res.json();
         const role = session?.user?.role;
-        const locale = window.location.pathname.split('/')[1] ?? 'es';
+        const locale = globalThis.location.pathname.split('/', 2)[1] ?? 'es';
         if (role === 'ADMIN') {
-          window.location.assign(`/${locale}/admin/sellers`);
+          globalThis.location.assign(`/${locale}/admin/sellers`);
         } else if (role === 'DESIGNER') {
-          window.location.assign(`/${locale}/seller/products`);
+          globalThis.location.assign(`/${locale}/seller/products`);
         }
       }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '';
+    } catch (error_: unknown) {
+      const message = error_ instanceof Error ? error_.message : '';
       if (message.includes('CredentialsSignin')) {
         setError(dict.auth.invalidCredentials);
       } else {

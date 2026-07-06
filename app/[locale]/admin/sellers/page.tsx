@@ -165,8 +165,8 @@ export default async function AdminSellersPage({
             defaultValue={filter.q ?? ''}
             hiddenFields={{
               pageSize: String(pageSize),
-              ...(filter.sortBy ? { sortBy: filter.sortBy } : {}),
-              ...(filter.sortDir ? { sortDir: filter.sortDir } : {}),
+              ...(filter.sortBy && { sortBy: filter.sortBy }),
+              ...(filter.sortDir && { sortDir: filter.sortDir }),
             }}
           />
         </div>

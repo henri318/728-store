@@ -7,7 +7,7 @@ interface WaveTransitionProps {
 export function WaveTransition({
   animatedText = 'DETALLES QUE DEJAN HUELLA',
 }: WaveTransitionProps) {
-  const nbsp = '\u00A0';
+  const nbsp = '\u{A0}';
   const gap = nbsp.repeat(60);
   const repeatedText = `${animatedText}${gap}${animatedText}`;
 

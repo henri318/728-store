@@ -157,7 +157,9 @@ export class MigrateGuestCart {
     let resultCart: CartEntity;
     let isNewCart = false;
 
-    if (!serverCart) {
+    if (serverCart) {
+      resultCart = serverCart;
+    } else {
       const now = new Date();
       resultCart = {
         id: crypto.randomUUID(),
@@ -168,8 +170,6 @@ export class MigrateGuestCart {
         updatedAt: now,
       };
       isNewCart = true;
-    } else {
-      resultCart = serverCart;
     }
 
     let items: CartItemEntity[] = isNewCart ? [] : [...resultCart.items];

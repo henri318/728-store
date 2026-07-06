@@ -24,7 +24,7 @@ export class LocalizedDate {
 
     const d = date instanceof Date ? date : new Date(date);
     if (Number.isNaN(d.getTime())) {
-      throw new Error('LocalizedDate received an invalid date');
+      throw new TypeError('LocalizedDate received an invalid date');
     }
 
     return new LocalizedDate(d, locale);

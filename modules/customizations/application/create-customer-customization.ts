@@ -93,7 +93,7 @@ export class CreateCustomerCustomization {
 
     switch (config.mode) {
       case 'description':
-      case 'text':
+      case 'text': {
         if (!hasText) {
           throw new ValidationError(
             'Text customization is required for this product',
@@ -101,7 +101,8 @@ export class CreateCustomerCustomization {
           );
         }
         break;
-      case 'photo':
+      }
+      case 'photo': {
         if (!hasImageForCapability) {
           throw new ValidationError(
             'Photo customization is required for this product',
@@ -109,7 +110,8 @@ export class CreateCustomerCustomization {
           );
         }
         break;
-      case 'text_photo':
+      }
+      case 'text_photo': {
         if (!hasText && !hasImageForCapability) {
           throw new ValidationError(
             'Text or photo customization is required for this product',
@@ -117,6 +119,7 @@ export class CreateCustomerCustomization {
           );
         }
         break;
+      }
     }
   }
 }

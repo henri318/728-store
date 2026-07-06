@@ -26,10 +26,12 @@ export function EyeToggleWrapper({
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      toggleVisibility();
+    if (!(e.key === 'Enter' || e.key === ' ')) {
+      return;
     }
+
+    e.preventDefault();
+    toggleVisibility();
   };
 
   const inputType = showPassword ? 'text' : 'password';

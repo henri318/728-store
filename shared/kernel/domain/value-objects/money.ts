@@ -16,7 +16,7 @@ export class Money {
 
   static create(amount: number, currency: Currency): Money {
     if (!Number.isFinite(amount)) {
-      throw new Error('Money amount must be a finite number');
+      throw new TypeError('Money amount must be a finite number');
     }
 
     if (amount < 0) {
@@ -34,7 +34,7 @@ export class Money {
     this.assertSameCurrency(other);
     const resultAmount = this.amount + other.amount;
     if (!Number.isFinite(resultAmount)) {
-      throw new Error('Money addition resulted in a non-finite amount');
+      throw new TypeError('Money addition resulted in a non-finite amount');
     }
     return new Money(resultAmount, this.currency);
   }
@@ -43,18 +43,20 @@ export class Money {
     this.assertSameCurrency(other);
     const resultAmount = this.amount - other.amount;
     if (!Number.isFinite(resultAmount)) {
-      throw new Error('Money subtraction resulted in a non-finite amount');
+      throw new TypeError('Money subtraction resulted in a non-finite amount');
     }
     return new Money(resultAmount, this.currency);
   }
 
   multiply(multiplier: number): Money {
     if (!Number.isFinite(multiplier)) {
-      throw new Error('Money multiplier must be a finite number');
+      throw new TypeError('Money multiplier must be a finite number');
     }
     const resultAmount = this.amount * multiplier;
     if (!Number.isFinite(resultAmount)) {
-      throw new Error('Money multiplication resulted in a non-finite amount');
+      throw new TypeError(
+        'Money multiplication resulted in a non-finite amount',
+      );
     }
     return new Money(resultAmount, this.currency);
   }
@@ -73,7 +75,7 @@ export class Money {
 
   static format(amount: number, currency: Currency): string {
     if (!Number.isFinite(amount)) {
-      throw new Error('Money.format amount must be a finite number');
+      throw new TypeError('Money.format amount must be a finite number');
     }
     if (amount < 0) {
       throw new Error('Money amount cannot be negative');
@@ -86,14 +88,18 @@ export class Money {
 
   private static getSymbol(currency: Currency): string {
     switch (currency) {
-      case Currency.EUR:
+      case Currency.EUR: {
         return '€';
-      case Currency.USD:
+      }
+      case Currency.USD: {
         return '$';
-      case Currency.GBP:
+      }
+      case Currency.GBP: {
         return '£';
-      default:
+      }
+      default: {
         return currency;
+      }
     }
   }
 

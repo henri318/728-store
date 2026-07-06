@@ -178,7 +178,7 @@ export class CheckoutCart {
       // priceChanges is included for API responses that want to log
       // the diff alongside the result (not part of the public response).
       // Keep the linter happy when the value is empty.
-      ...(priceChanges.length > 0 ? { priceChanges } : {}),
+      ...(priceChanges.length > 0 && { priceChanges }),
     } as CheckoutResult & { priceChanges?: PriceChange[] };
   }
 

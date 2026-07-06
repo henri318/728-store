@@ -84,7 +84,7 @@ function authCustomizationMatches(
   const hasDraftContent = Boolean(
     norm.text ||
     norm.color ||
-    norm.size ||
+    norm.size > 0 ||
     norm.imageUrl ||
     norm.designPosition,
   );
@@ -103,7 +103,7 @@ function authCustomizationMatches(
 }
 
 function dispatchCartUpdated() {
-  window.dispatchEvent(new Event(CART_UPDATED_EVENT));
+  globalThis.dispatchEvent(new Event(CART_UPDATED_EVENT));
 }
 
 /**
@@ -148,10 +148,10 @@ export function AddToCartButton({
     () => normalizeCustomizationDraft(customization),
     [customization],
   );
-  const customizationHasContent = Boolean(
+  const isCustomizationHasContent = Boolean(
     normalizedCustomization.text ||
     normalizedCustomization.color ||
-    normalizedCustomization.size ||
+    normalizedCustomization.size > 0 ||
     normalizedCustomization.imageUrl ||
     normalizedCustomization.designPosition,
   );
@@ -159,14 +159,14 @@ export function AddToCartButton({
   // Fetch cart for authenticated users.
   useEffect(() => {
     if (!isAuthenticated) return;
-    let cancelled = false;
+    let isCancelled = false;
 
     async function fetchCart() {
       try {
         const res = await fetch('/api/cart');
-        if (cancelled || !res.ok) return;
+        if (isCancelled || !res.ok) return;
         const data = await res.json();
-        if (cancelled) return;
+        if (isCancelled) return;
         const items = data.items ?? [];
         const anyInCart = items.find(
           (item: { productId: string }) => item.productId === productId,
@@ -198,30 +198,30 @@ export function AddToCartButton({
 
     fetchCart();
     return () => {
-      cancelled = true;
+      isCancelled = true;
     };
   }, [isAuthenticated, productId, normalizedCustomization]);
 
   // Determine current quantity (match by productId + customization).
-  const guestMatch = !isAuthenticated
-    ? items.find(
+  const guestMatch = isAuthenticated
+    ? undefined
+    : items.find(
         (i) =>
           i.productId === productId &&
           guestCustomizationMatches(i, normalizedCustomization),
-      )
-    : undefined;
+      );
   const guestDiffMatch =
     !isAuthenticated && !guestMatch
       ? items.find((i) => i.productId === productId)
       : undefined;
-  const currentQuantity = !isAuthenticated
-    ? (guestMatch?.quantity ?? 0)
-    : (cartItemInfo?.quantity ?? 0);
+  const currentQuantity = isAuthenticated
+    ? (cartItemInfo?.quantity ?? 0)
+    : (guestMatch?.quantity ?? 0);
 
   const isInCart = currentQuantity > 0;
-  const alreadyInCartDifferent = !isAuthenticated
-    ? !!guestDiffMatch
-    : hasDifferentCustomization;
+  const alreadyInCartDifferent = isAuthenticated
+    ? hasDifferentCustomization
+    : !!guestDiffMatch;
 
   const customizeProductLabel = labels.customizeProduct ?? 'Customize';
   const addWithoutCustomizationLabel =
@@ -365,7 +365,7 @@ export function AddToCartButton({
             draft &&
             (draft.text ||
               draft.color ||
-              draft.size ||
+              draft.size > 0 ||
               draft.imageUrl ||
               draft.designPosition)
           ) {
@@ -466,7 +466,7 @@ export function AddToCartButton({
       e.preventDefault();
       if (state === 'adding' || disabled) return;
 
-      if (customizationAvailable && !customizationHasContent) {
+      if (customizationAvailable && !isCustomizationHasContent) {
         setShowCustomizationChoice(true);
         return;
       }
@@ -477,7 +477,7 @@ export function AddToCartButton({
       state,
       disabled,
       customizationAvailable,
-      customizationHasContent,
+      isCustomizationHasContent,
       normalizedCustomization,
       performAdd,
     ],
@@ -625,7 +625,7 @@ export function AddToCartButton({
             +
           </button>
         </div>
-        {customizationHasContent && labels.saveDesign && (
+        {isCustomizationHasContent && labels.saveDesign && (
           <button
             type="button"
             className={styles.saveButton}

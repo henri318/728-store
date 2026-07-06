@@ -153,7 +153,7 @@ export default async function CustomerOrdersPage({
               ariaLabel={dict.orders?.searchItems ?? 'Search by product'}
               defaultValue={filter.q}
               hiddenFields={
-                filter.status !== 'all' ? { status: filter.status } : undefined
+                filter.status === 'all' ? undefined : { status: filter.status }
               }
             />
           </div>

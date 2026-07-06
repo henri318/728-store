@@ -65,7 +65,7 @@ export function CartMergeDetector({
             if (!res.ok) return;
             // Clear guest cart after successful migration
             guestCart.clearCart();
-            window.dispatchEvent(new Event(CART_UPDATED_EVENT));
+            globalThis.dispatchEvent(new Event(CART_UPDATED_EVENT));
             router.refresh();
           } catch {
             // Ignore - let user retry manually

@@ -53,13 +53,13 @@ export class UpdateCustomization {
     // Build merged entity with only provided fields changed
     const merged: CustomizationEntity = {
       ...existing,
-      ...(dto.text !== undefined ? { text: dto.text ?? null } : {}),
-      ...(dto.color !== undefined ? { color: dto.color ?? null } : {}),
-      ...(dto.size !== undefined ? { size: dto.size ?? null } : {}),
-      ...(dto.imageUrl !== undefined ? { imageUrl: dto.imageUrl ?? null } : {}),
-      ...(dto.designPosition !== undefined
-        ? { designPosition: dto.designPosition ?? null }
-        : {}),
+      ...(dto.text !== undefined && { text: dto.text ?? null }),
+      ...(dto.color !== undefined && { color: dto.color ?? null }),
+      ...(dto.size !== undefined && { size: dto.size ?? null }),
+      ...(dto.imageUrl !== undefined && { imageUrl: dto.imageUrl ?? null }),
+      ...(dto.designPosition !== undefined && {
+        designPosition: dto.designPosition ?? null,
+      }),
     };
 
     // Re-validate via VO (throws on invalid input)

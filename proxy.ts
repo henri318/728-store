@@ -86,11 +86,11 @@ export async function proxy(request: NextRequest) {
   }
 
   // Check if pathname already has a locale
-  const pathnameHasLocale = locales.some(
+  const isPathnameHasLocale = locales.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
   );
 
-  if (pathnameHasLocale) return NextResponse.next();
+  if (isPathnameHasLocale) return NextResponse.next();
 
   // Static assets in /public don't need locale prefix
   if (
@@ -115,7 +115,7 @@ function unauthorizedResponse(request: NextRequest, pathname: string) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const requestedLocale = pathname.split('/')[1];
+  const requestedLocale = pathname.split('/', 2)[1];
   const locale = locales.includes(requestedLocale)
     ? requestedLocale
     : defaultLocale;

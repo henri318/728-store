@@ -30,10 +30,10 @@ export class CleanupUploadsUseCase {
         // Remove metadata
         await this.uploadRepo.remove(upload.id);
         deleted++;
-      } catch (err) {
+      } catch (error) {
         console.error(
           `[CleanupUploadsUseCase] Failed to clean up upload ${upload.id}:`,
-          err,
+          error,
         );
         // Still remove metadata even if R2 delete fails
         try {

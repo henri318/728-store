@@ -96,7 +96,8 @@ function buildCustomizationHref(
   if (customization.text) params.set('customizationText', customization.text);
   if (customization.color)
     params.set('customizationColor', customization.color);
-  if (customization.size) params.set('customizationSize', customization.size);
+  if (customization.size > 0)
+    params.set('customizationSize', customization.size);
   if (customization.imageUrl)
     params.set('customizationImageUrl', customization.imageUrl);
   if (customization.imageUploadId)

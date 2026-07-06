@@ -193,29 +193,29 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
             ? {
                 ...item,
                 customizationText:
-                  customization.text !== undefined
-                    ? customization.text
-                    : item.customizationText,
+                  customization.text === undefined
+                    ? item.customizationText
+                    : customization.text,
                 customizationColor:
-                  customization.color !== undefined
-                    ? customization.color
-                    : item.customizationColor,
+                  customization.color === undefined
+                    ? item.customizationColor
+                    : customization.color,
                 customizationSize:
-                  customization.size !== undefined
-                    ? customization.size
-                    : item.customizationSize,
+                  customization.size === undefined
+                    ? item.customizationSize
+                    : customization.size,
                 customizationImageUrl:
-                  customization.imageUrl !== undefined
-                    ? customization.imageUrl
-                    : item.customizationImageUrl,
+                  customization.imageUrl === undefined
+                    ? item.customizationImageUrl
+                    : customization.imageUrl,
                 customizationImageUploadId:
-                  customization.imageUploadId !== undefined
-                    ? customization.imageUploadId
-                    : item.customizationImageUploadId,
+                  customization.imageUploadId === undefined
+                    ? item.customizationImageUploadId
+                    : customization.imageUploadId,
                 customizationDesignPosition:
-                  customization.designPosition !== undefined
-                    ? (customization.designPosition as GuestCartItem['customizationDesignPosition'])
-                    : item.customizationDesignPosition,
+                  customization.designPosition === undefined
+                    ? item.customizationDesignPosition
+                    : (customization.designPosition as GuestCartItem['customizationDesignPosition']),
               }
             : item,
         ),
@@ -253,29 +253,29 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
             ? {
                 ...item,
                 customizationText:
-                  customization.text !== undefined
-                    ? customization.text
-                    : item.customizationText,
+                  customization.text === undefined
+                    ? item.customizationText
+                    : customization.text,
                 customizationColor:
-                  customization.color !== undefined
-                    ? customization.color
-                    : item.customizationColor,
+                  customization.color === undefined
+                    ? item.customizationColor
+                    : customization.color,
                 customizationSize:
-                  customization.size !== undefined
-                    ? customization.size
-                    : item.customizationSize,
+                  customization.size === undefined
+                    ? item.customizationSize
+                    : customization.size,
                 customizationImageUrl:
-                  customization.imageUrl !== undefined
-                    ? customization.imageUrl
-                    : item.customizationImageUrl,
+                  customization.imageUrl === undefined
+                    ? item.customizationImageUrl
+                    : customization.imageUrl,
                 customizationImageUploadId:
-                  customization.imageUploadId !== undefined
-                    ? customization.imageUploadId
-                    : item.customizationImageUploadId,
+                  customization.imageUploadId === undefined
+                    ? item.customizationImageUploadId
+                    : customization.imageUploadId,
                 customizationDesignPosition:
-                  customization.designPosition !== undefined
-                    ? (customization.designPosition as GuestCartItem['customizationDesignPosition'])
-                    : item.customizationDesignPosition,
+                  customization.designPosition === undefined
+                    ? item.customizationDesignPosition
+                    : (customization.designPosition as GuestCartItem['customizationDesignPosition']),
               }
             : item,
         ),

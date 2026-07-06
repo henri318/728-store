@@ -198,7 +198,7 @@ async function uploadPhoto(file: File, defaultName: string) {
     id: result.id,
     url: toAbsoluteUrl(result.publicUrl),
     alt: normalizePhotoName(
-      file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' '),
+      file.name.replace(/\.[^.]+$/, '').replaceAll(/[-_]+/g, ' '),
       defaultName,
     ),
     size: file.size,
@@ -337,9 +337,9 @@ export function ProductForm({
             null,
         };
       });
-    } catch (e) {
+    } catch (error) {
       setPhotoError(
-        e instanceof Error ? e.message : labels.gallery.uploadError,
+        error instanceof Error ? error.message : labels.gallery.uploadError,
       );
     } finally {
       setUploading(false);

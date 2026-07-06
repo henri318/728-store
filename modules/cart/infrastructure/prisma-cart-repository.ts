@@ -95,10 +95,10 @@ export class PrismaCartRepository implements CartRepository {
         throw new Error(`Cart ${cart.id} not found after save`);
       }
       return toDomain(saved);
-    } catch (err) {
+    } catch (error) {
       if (
-        err instanceof Prisma.PrismaClientKnownRequestError &&
-        err.code === 'P2002'
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
       ) {
         // Unique constraint violation — most likely the partial
         // unique index `Cart_userId_active_unique`.
@@ -106,7 +106,7 @@ export class PrismaCartRepository implements CartRepository {
           `User ${cart.userId} already has an active cart`,
         );
       }
-      throw err;
+      throw error;
     }
   }
 

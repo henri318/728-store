@@ -1,8 +1,6 @@
 import type { EmailQueueEntry } from '@/modules/email/domain/entities/email-queue-entry';
 import type { EmailQueueWorkerEntry } from '@/modules/email/domain/entities/email-queue-worker-entry';
 
-export type { EmailQueueEntry, EmailQueueWorkerEntry };
-
 export type CreateEmailQueueInput = Omit<EmailQueueEntry, 'id' | 'createdAt'>;
 
 /**
@@ -68,3 +66,6 @@ export interface EmailQueueRepository {
     error: string,
   ): Promise<void>;
 }
+
+export { type EmailQueueEntry } from '@/modules/email/domain/entities/email-queue-entry';
+export { type EmailQueueWorkerEntry } from '@/modules/email/domain/entities/email-queue-worker-entry';

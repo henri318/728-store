@@ -32,7 +32,7 @@ export function DesignPreview({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
+    let isCancelled = false;
 
     async function draw() {
       const c = canvasRef.current?.getContext('2d');
@@ -40,7 +40,7 @@ export function DesignPreview({
 
       const productImg = await loadImage(productImageUrl);
       const designImg = await loadImage(designImageUrl);
-      if (cancelled) return;
+      if (isCancelled) return;
 
       c.clearRect(0, 0, width, height);
       c.fillStyle = '#f4f2e6';
@@ -63,7 +63,7 @@ export function DesignPreview({
     draw();
 
     return () => {
-      cancelled = true;
+      isCancelled = true;
     };
   }, [productImageUrl, designImageUrl, designPosition, width, height]);
 

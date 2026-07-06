@@ -65,9 +65,11 @@ export default function ChangePasswordPage() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    } catch (err: unknown) {
+    } catch (error_: unknown) {
       setError(
-        err instanceof Error ? err.message : dict.auth.failedToChangePassword,
+        error_ instanceof Error
+          ? error_.message
+          : dict.auth.failedToChangePassword,
       );
     } finally {
       setLoading(false);

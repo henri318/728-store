@@ -60,7 +60,7 @@ export function CustomizationForm({
   const config = ProductCustomizationConfig.fromJson(customizationConfig);
 
   const textErrorId = errors.text ? 'customization-text-error' : undefined;
-  const sizeErrorId = errors.size ? 'customization-size-error' : undefined;
+  const sizeErrorId = errors.size > 0 ? 'customization-size-error' : undefined;
 
   return (
     <form
@@ -96,19 +96,21 @@ export function CustomizationForm({
           </span>
           <div className={formStyles.colorCarousel}>
             {productImages.map((img) => {
-              const selected = draft.color === img.alt;
+              const isSelected = draft.color === img.alt;
               return (
                 <div
                   key={img.url}
                   role="button"
                   tabIndex={0}
-                  className={`${formStyles.colorItem} ${selected ? formStyles.colorItemSelected : ''}`}
+                  className={`${formStyles.colorItem} ${isSelected ? formStyles.colorItemSelected : ''}`}
                   onClick={() => setColor(img.alt)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setColor(img.alt);
+                    if (!(e.key === 'Enter' || e.key === ' ')) {
+                      return;
                     }
+
+                    e.preventDefault();
+                    setColor(img.alt);
                   }}
                   title={img.alt}
                 >
@@ -131,7 +133,7 @@ export function CustomizationForm({
         <select
           value={draft.size ?? ''}
           onChange={(event) => setSize(event.target.value || null)}
-          aria-invalid={errors.size ? 'true' : undefined}
+          aria-invalid={errors.size > 0 ? 'true' : undefined}
           aria-describedby={sizeErrorId}
         >
           <option value="">{labels.customizationSizePlaceholder}</option>

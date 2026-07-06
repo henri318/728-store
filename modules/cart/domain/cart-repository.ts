@@ -3,8 +3,6 @@ import type { CartItemEntity } from './entities/cart-item';
 import type { CartId } from './value-objects/cart-id';
 import type { CartItemId } from './value-objects/cart-item-id';
 
-export type { CartEntity, CartItemEntity };
-
 /**
  * CartRepository — persistence port for the Cart aggregate.
  *
@@ -52,3 +50,6 @@ export interface CartRepository {
   /** Returns all items for a cart. Empty array when the cart has none. */
   findItemsByCartId(cartId: CartId): Promise<CartItemEntity[]>;
 }
+
+export { type CartEntity } from './entities/cart';
+export { type CartItemEntity } from './entities/cart-item';

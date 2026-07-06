@@ -55,7 +55,7 @@ export class CreateUploadUseCase {
     }
 
     // 3. Validate file size
-    if (input.size <= 0) {
+    if (input.size === 0) {
       throw new ValidationError(
         `Invalid file size: ${input.size}`,
         'Invalid file size',

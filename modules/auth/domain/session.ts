@@ -1,7 +1,5 @@
 import type { SessionUser } from './entities/session-user';
 
-export type { SessionUser };
-
 /**
  * SessionPort — the port for retrieving the current user's session.
  *
@@ -23,3 +21,5 @@ export interface SessionPort {
    */
   getSession(): Promise<SessionUser | null>;
 }
+
+export { type SessionUser } from './entities/session-user';

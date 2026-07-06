@@ -225,10 +225,12 @@ export function SearchInputWithSuggestions({
             className={styles.searchToggle}
             aria-label={showInput ? labels.submitLabel : labels.ariaLabel}
             onMouseDown={(e) => {
-              if (!showInput) {
-                e.preventDefault();
-                setShowInput(true);
+              if (showInput) {
+                return;
               }
+
+              e.preventDefault();
+              setShowInput(true);
             }}
           >
             <svg aria-hidden="true" className={styles.searchIcon}>

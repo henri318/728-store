@@ -5,5 +5,5 @@
  * Re-exported here so domain code uses a local symbol,
  * not a raw `@prisma/client` import everywhere.
  */
-import { UploadType } from '@prisma/client';
-export { UploadType };
+
+export { UploadType } from '@prisma/client';

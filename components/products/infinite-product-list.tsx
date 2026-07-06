@@ -115,8 +115,8 @@ export function InfiniteProductList({
       } else {
         setAnnouncement('');
       }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+    } catch (error_: unknown) {
+      setError(error_ instanceof Error ? error_.message : 'Unknown error');
     } finally {
       setIsLoading(false);
     }

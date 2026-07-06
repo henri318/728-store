@@ -18,7 +18,7 @@ export function PriceField({
   onChange,
   error,
   required,
-  currencySymbol = '\u20AC',
+  currencySymbol = '\u{20AC}',
 }: PriceFieldProps) {
   const id = useId();
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {

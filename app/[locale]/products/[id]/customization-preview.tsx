@@ -62,11 +62,7 @@ export function CustomizationPreview({
         {labels.customizationPreviewDisclaimer}
       </p>
 
-      {!canPreview ? (
-        <p className={styles.fallback}>
-          {labels.customizationPreviewUnavailable}
-        </p>
-      ) : (
+      {canPreview ? (
         <figure
           className={styles.previewFigure}
           aria-label={labels.customizationPreview}
@@ -109,6 +105,10 @@ export function CustomizationPreview({
             )}
           </div>
         </figure>
+      ) : (
+        <p className={styles.fallback}>
+          {labels.customizationPreviewUnavailable}
+        </p>
       )}
 
       {customizationConfig.mode === 'description' && (

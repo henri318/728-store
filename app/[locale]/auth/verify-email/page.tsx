@@ -12,7 +12,7 @@ export default function VerifyEmailPage() {
   const token = searchParams.get('token');
   const [status, setStatus] = useState<
     'loading' | 'success' | 'expired' | 'invalid'
-  >(() => (!token ? 'invalid' : 'loading'));
+  >(() => (token ? 'loading' : 'invalid'));
   const dict = useDictionary();
 
   useEffect(() => {

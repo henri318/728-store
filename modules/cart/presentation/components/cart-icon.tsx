@@ -52,12 +52,12 @@ export function CartIcon({ alt }: CartIconProps) {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    window.addEventListener(CART_UPDATED_EVENT, handleCartUpdated);
+    globalThis.addEventListener(CART_UPDATED_EVENT, handleCartUpdated);
     Promise.try(fetchCount);
 
     return () => {
       abortRef.current?.abort();
-      window.removeEventListener(CART_UPDATED_EVENT, handleCartUpdated);
+      globalThis.removeEventListener(CART_UPDATED_EVENT, handleCartUpdated);
     };
   }, [isAuthenticated, fetchCount, handleCartUpdated]);
 

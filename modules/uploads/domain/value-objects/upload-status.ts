@@ -4,5 +4,5 @@
  * Single source of truth: Prisma schema enum.
  * Re-exported here so domain code uses a local symbol.
  */
-import { UploadStatus } from '@prisma/client';
-export { UploadStatus };
+
+export { UploadStatus } from '@prisma/client';
