@@ -56,6 +56,7 @@ function renderPopup() {
           unknownSeller: 'Unknown Seller',
           increaseQuantity: 'Increase quantity',
           decreaseQuantity: 'Decrease quantity',
+          close: 'Close',
         }}
       />
     </CartPopupProvider>,

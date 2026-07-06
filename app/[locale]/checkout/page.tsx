@@ -8,6 +8,8 @@ import type { ProductEntity } from '@/modules/products/domain/product-repository
 import { Money } from '@/shared/kernel/domain/value-objects/money';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
+import { getDictionary } from '@/shared/i18n/get-dictionary';
+import { Card } from '@/shared/ui/card';
 import Image from 'next/image';
 import styles from './page.module.css';
 
@@ -63,6 +65,7 @@ export default async function CheckoutPage({
 }) {
   const { locale } = await params;
   const session = await getServerSession(authOptions);
+  const dict = await getDictionary(locale as 'es' | 'cat');
 
   if (!session?.user?.id) {
     redirect(`/${locale}/auth/signin?callbackUrl=/${locale}/checkout`);
@@ -92,7 +95,7 @@ export default async function CheckoutPage({
     (item) => item.unitPriceSnapshot.currency !== currency,
   );
   if (hasMixedCurrencies) {
-    throw new Error('Checkout does not support mixed currencies');
+    throw new Error(dict.common.genericError);
   }
 
   const customer = await userRepository.findById(session.user.id);
@@ -132,10 +135,11 @@ export default async function CheckoutPage({
     return {
       id: item.id,
       productId: item.productId.value,
-      productName: product?.translations?.[0]?.name ?? 'Unknown Product',
+      productName:
+        product?.translations?.[0]?.name ?? dict.common.unknownProduct,
       productImageUrl: product?.images?.[0]?.url ?? null,
       sellerId: item.sellerId.value,
-      sellerName: product?.sellerName ?? 'Unknown Seller',
+      sellerName: product?.sellerName ?? dict.common.unknownSeller,
       quantity: item.quantity,
       unitPrice: item.unitPriceSnapshot.amount,
       lineTotal: +(item.unitPriceSnapshot.amount * item.quantity).toFixed(2),
@@ -185,92 +189,102 @@ export default async function CheckoutPage({
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>Checkout</h2>
+      <h2 className={styles.title}>{dict.common.checkout}</h2>
 
-      {hasMissingCustomizations && (
-        <div className={styles.warning} role="alert">
-          Some customizations are no longer available and will not be included
-          in your order.
-        </div>
-      )}
-
-      {sellerGroups.map((group) => (
-        <div key={group.sellerId} className={styles.sellerSection}>
-          <h3 className={styles.sellerName}>{group.sellerName}</h3>
-          {group.items.map((item) => (
-            <div key={item.id} className={styles.itemRow}>
-              <div className={styles.itemInfo}>
-                <span className={styles.itemName}>{item.productName}</span>
-                {item.customizations.length > 0 && (
-                  <span className={styles.itemCustomization}>
-                    {[
-                      ...item.customizations.flatMap((c) => [
-                        c.size && `Size: ${c.size}`,
-                        c.color && `Color: ${c.color}`,
-                        c.text && `Text: ${c.text}`,
-                      ]),
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')}
-                  </span>
-                )}
-                {item.customizations[0]?.imageUrl && (
-                  <Image
-                    src={item.customizations[0].imageUrl}
-                    alt="Customization preview"
-                    width={48}
-                    height={48}
-                    className={styles.itemCustomizationThumbnail}
-                  />
-                )}
-                {item.customizationIdList.length >
-                  item.customizations.length && (
-                  <span className={styles.itemCustomizationRemoved}>
-                    Customization removed
-                  </span>
-                )}
-              </div>
-              <div className={styles.itemRight}>
-                <span className={styles.itemQty}>×{item.quantity}</span>
-                <span className={styles.itemLineTotal}>
-                  {Money.format(item.lineTotal, item.currency)}
-                </span>
-              </div>
-            </div>
-          ))}
-          <div className={styles.sellerSubtotal}>
-            <span>Subtotal</span>
-            <span>{Money.format(group.subtotal, currency)}</span>
-          </div>
-        </div>
-      ))}
-
-      <div className={styles.totals}>
-        <div className={styles.totalRow}>
-          <span>Subtotal</span>
-          <span>{Money.format(subtotal, currency)}</span>
-        </div>
-        {isFirstPurchase && (
-          <div className={styles.totalRow}>
-            <span>
-              {FIRST_PURCHASE_DISCOUNT_RATE * 100}% first-purchase discount
-            </span>
-            <span className={styles.discount}>
-              −{Money.format(discount, currency)}
-            </span>
+      <Card className={styles.checkoutCard}>
+        {hasMissingCustomizations && (
+          <div className={styles.warning} role="alert">
+            {dict.common.checkoutMissingCustomizations}
           </div>
         )}
-        <div className={styles.totalRow}>
-          <span>Shipping</span>
-          <span>{Money.format(shipping, currency)}</span>
-        </div>
-        <div className={`${styles.totalRow} ${styles.grandTotal}`}>
-          <span>Total</span>
-          <span>{Money.format(total, currency)}</span>
-        </div>
-      </div>
 
-      <CheckoutConfirmButton locale={locale} initialAddress={initialAddress} />
+        {sellerGroups.map((group) => (
+          <div key={group.sellerId} className={styles.sellerSection}>
+            <h3 className={styles.sellerName}>{group.sellerName}</h3>
+            {group.items.map((item) => (
+              <div key={item.id} className={styles.itemRow}>
+                <div className={styles.itemInfo}>
+                  <span className={styles.itemName}>{item.productName}</span>
+                  {item.customizations.length > 0 && (
+                    <span className={styles.itemCustomization}>
+                      {[
+                        ...item.customizations.flatMap((c) => [
+                          c.size &&
+                            `${dict.common.customizationSize}: ${c.size}`,
+                          c.color &&
+                            `${dict.common.customizationColor}: ${c.color}`,
+                          c.text &&
+                            `${dict.common.customizationText}: ${c.text}`,
+                        ]),
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </span>
+                  )}
+                  {item.customizations[0]?.imageUrl && (
+                    <Image
+                      src={item.customizations[0].imageUrl}
+                      alt={dict.common.customizationPreview}
+                      width={48}
+                      height={48}
+                      className={styles.itemCustomizationThumbnail}
+                    />
+                  )}
+                  {item.customizationIdList.length >
+                    item.customizations.length && (
+                    <span className={styles.itemCustomizationRemoved}>
+                      {dict.common.customizationRemoved}
+                    </span>
+                  )}
+                </div>
+                <div className={styles.itemRight}>
+                  <span className={styles.itemQty}>×{item.quantity}</span>
+                  <span className={styles.itemLineTotal}>
+                    {Money.format(item.lineTotal, item.currency)}
+                  </span>
+                </div>
+              </div>
+            ))}
+            <div className={styles.sellerSubtotal}>
+              <span>{dict.common.subtotal}</span>
+              <span>{Money.format(group.subtotal, currency)}</span>
+            </div>
+          </div>
+        ))}
+
+        <div className={styles.totals}>
+          <div className={styles.totalRow}>
+            <span>{dict.common.subtotal}</span>
+            <span>{Money.format(subtotal, currency)}</span>
+          </div>
+          {isFirstPurchase && (
+            <div className={styles.totalRow}>
+              <span>
+                {dict.common.firstPurchaseDiscount.replace(
+                  '{rate}',
+                  String(FIRST_PURCHASE_DISCOUNT_RATE * 100),
+                )}
+              </span>
+              <span className={styles.discount}>
+                −{Money.format(discount, currency)}
+              </span>
+            </div>
+          )}
+          <div className={styles.totalRow}>
+            <span>{dict.common.shipping}</span>
+            <span>{Money.format(shipping, currency)}</span>
+          </div>
+          <div className={`${styles.totalRow} ${styles.grandTotal}`}>
+            <span>{dict.common.total}</span>
+            <span>{Money.format(total, currency)}</span>
+          </div>
+        </div>
+
+        <CheckoutConfirmButton
+          locale={locale}
+          initialAddress={initialAddress}
+        />
+      </Card>
     </div>
   );
 }

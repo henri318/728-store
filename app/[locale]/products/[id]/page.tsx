@@ -27,9 +27,7 @@ export default async function ProductDetailPage({
   }
 
   if (error || !product) {
-    return (
-      <div>Error loading product details. Please check the server logs.</div>
-    );
+    return <div>{dict.common.productDetailsError}</div>;
   }
 
   return (
@@ -51,7 +49,7 @@ export default async function ProductDetailPage({
           ) : (
             <div className={styles.imagePlaceholder}>
               <span className={styles.imagePlaceholderText}>
-                Product Image Placeholder
+                {dict.common.customizationPreviewComingSoon}
               </span>
             </div>
           )}
@@ -63,7 +61,9 @@ export default async function ProductDetailPage({
           <h1>{product.displayName}</h1>
           <p className={styles.description}>{product.displayDescription}</p>
           <p className={styles.price}>{product.basePrice.format()}</p>
-          <p className={styles.seller}>Seller: {product.sellerName}</p>
+          <p className={styles.seller}>
+            {dict.common.soldBy}: {product.sellerName}
+          </p>
 
           <div className={styles.addToCart}>
             <AddToCartButton
@@ -76,9 +76,9 @@ export default async function ProductDetailPage({
               labels={{
                 addToCart: dict.common.addToCart,
                 removeFromCart: dict.common.removeFromCart,
-                adding: '...',
-                added: '✓',
-                error: 'Error',
+                adding: dict.common.addingToCart,
+                added: dict.common.addedToCart,
+                error: dict.common.cartError,
                 increaseQuantity: dict.common.increaseQuantity,
                 decreaseQuantity: dict.common.decreaseQuantity,
               }}

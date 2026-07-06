@@ -64,6 +64,19 @@
     "checkout": "Finalitzar compra",
     "viewFullCart": "Veure cistella completa",
     "subtotal": "Subtotal",
+    "total": "Total",
+    "shipping": "Enviament",
+    "firstPurchaseDiscount": "{rate}% de descompte en la teva primera compra",
+    "deliveryAddress": "Adreça d'enviament",
+    "placeOrder": "Fer comanda",
+    "processing": "Processant...",
+    "completeAddressToContinue": "Completa l'adreça per continuar",
+    "unableToSaveAddress": "No s'ha pogut guardar l'adreça d'enviament",
+    "unableToCheckout": "No s'ha pogut completar la compra",
+    "priceChangeDetected": "Canvi de preu detectat",
+    "priceChangeDescription": "El preu d'alguns productes ha canviat des que els vas afegir al carret:",
+    "acceptNewPrices": "Acceptar nous preus",
+    "checkoutMissingCustomizations": "Algunes personalitzacions ja no estan disponibles i no s'inclouran a la teva comanda.",
     "loadingCart": "Carregant...",
     "customizationSize": "Mida",
     "customizationSizePlaceholder": "Selecciona una mida",
@@ -118,7 +131,9 @@
     "cartMergeKeepServerHint": "Descarta els articles de la cistella de convidat",
     "cartMergeKeepGuest": "Conservar la cistella de convidat",
     "cartMergeKeepGuestHint": "Substitueix la cistella de l'usuari pels articles de convidat",
-    "genericError": "Alguna cosa ha anat malament. Torna-ho a intentar."
+    "genericError": "Alguna cosa ha anat malament. Torna-ho a intentar.",
+    "customizationRemoved": "Personalització eliminada",
+    "price": "Preu"
   },
   "auth": {
     "signInTitle": "Iniciar sessió",
@@ -178,7 +193,9 @@
     "deleteAccount": "Eliminar compte",
     "closeSession": "Tancar sessió",
     "dashboard": "Panell d'administració",
-    "designerPanel": "Panell de dissenyador"
+    "designerPanel": "Panell de dissenyador",
+    "myOrders": "Les meves comandes",
+    "receivedOrders": "Comandes rebudes"
   },
   "sellerDashboard": {
     "title": "Llistat de productes",
@@ -247,7 +264,24 @@
     "viewOrder": "Veure comanda",
     "previous": "← Anterior",
     "next": "Següent →",
-    "pageXofY": "Pàgina {current} de {total}"
+    "pageXofY": "Pàgina {current} de {total}",
+    "sellerOrdersTitle": "Comandes de la botiga",
+    "filterStatus": "Filtrar per estat",
+    "all": "Tots",
+    "new": "Nou",
+    "inProgress": "En progrés",
+    "completed": "Completat",
+    "sortBy": "Ordenar per",
+    "sortDescending": "Més recents",
+    "sortAscending": "Més antics",
+    "createdAt": "Data de creació",
+    "moveToInProgress": "Moure a en progrés",
+    "markCompleted": "Marcar completat",
+    "searchItems": "Cercar per producte",
+    "searchItemsPlaceholder": "Cercar a les meves comandes...",
+    "items": "Productes",
+    "qty": "Quant.",
+    "noItems": "Aquesta comanda no té productes"
   },
   "admin": {
     "sellersTitle": "Gestió de venedors",

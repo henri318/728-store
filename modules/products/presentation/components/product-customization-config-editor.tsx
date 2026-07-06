@@ -49,7 +49,6 @@ export function ProductCustomizationConfigEditor({
       <TagList
         label={labels.sizeOptionsLabel}
         placeholder={labels.sizeOptionsPlaceholder}
-        addLabel="+ Añadir"
         value={value.sizeOptions ?? null}
         onChange={(next) => update({ sizeOptions: next })}
       />
@@ -65,7 +64,6 @@ export function ProductCustomizationConfigEditor({
       <TagList
         label={labels.tagsLabel}
         placeholder={labels.tagsPlaceholder}
-        addLabel="+ Añadir"
         emptyLabel={labels.tagsHelp}
         value={value.tagNames ?? null}
         onChange={(next) => update({ tagNames: next })}

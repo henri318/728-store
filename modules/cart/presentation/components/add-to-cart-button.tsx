@@ -629,7 +629,7 @@ export function AddToCartButton({
             onClick={handleSaveDesign}
             disabled={savingDesign}
           >
-            {savingDesign ? '...' : labels.saveDesign}
+            {savingDesign ? labels.adding : labels.saveDesign}
           </button>
         )}
         <button

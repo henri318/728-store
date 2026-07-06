@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type KeyboardEvent } from 'react';
+import { useDictionary } from '@/shared/i18n/dictionary-context';
 import styles from './tag-list.module.css';
 
 interface TagListProps {
@@ -15,11 +16,14 @@ interface TagListProps {
 export function TagList({
   label,
   placeholder,
-  addLabel = '+ Añadir',
-  emptyLabel = 'Aún no has añadido ninguna etiqueta.',
+  addLabel,
+  emptyLabel,
   value,
   onChange,
 }: TagListProps) {
+  const dict = useDictionary();
+  const addLabelValue = addLabel ?? dict.common.customizationTagsLabel;
+  const emptyLabelValue = emptyLabel ?? dict.common.productPhotosEmptyState;
   const [inputValue, setInputValue] = useState('');
 
   const tags = value ?? [];
@@ -79,7 +83,7 @@ export function TagList({
           className={styles.addBtn}
           onClick={() => commitTags(inputValue)}
         >
-          {addLabel}
+          {addLabelValue}
         </button>
       </div>
       {tags.length > 0 ? (
@@ -91,15 +95,15 @@ export function TagList({
                 type="button"
                 className={styles.removeBtn}
                 onClick={() => removeTag(i)}
-                aria-label={`Eliminar etiqueta ${tag}`}
+                aria-label={tag}
               >
-                &times;
+                {'\u00D7'}
               </button>
             </span>
           ))}
         </div>
       ) : (
-        <p className={styles.empty}>{emptyLabel}</p>
+        <p className={styles.empty}>{emptyLabelValue}</p>
       )}
     </div>
   );

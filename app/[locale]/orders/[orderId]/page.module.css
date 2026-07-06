@@ -1,0 +1,134 @@
+.container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.title {
+  margin: 0 0 var(--spacing-lg);
+  font-size: 1.3rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-green-dark);
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm) 0;
+}
+
+.detailRow + .detailRow {
+  border-top: 1px solid var(--color-border);
+}
+
+.detailLabel {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.detailValue {
+  font-weight: var(--font-weight-medium);
+  font-size: 0.95rem;
+}
+
+.itemsCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.itemsTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-green-dark);
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
+}
+
+.itemRow + .itemRow {
+  border-top: 1px solid var(--color-border);
+}
+
+.itemImage {
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.itemName {
+  font-weight: var(--font-weight-medium);
+  font-size: 0.95rem;
+}
+
+.itemCustomization {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.itemRight {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+.itemQty {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.itemLineTotal {
+  font-weight: var(--font-weight-semibold);
+  font-size: 0.95rem;
+  min-width: 5rem;
+  text-align: right;
+}
+
+.noItems {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.retrySection {
+  margin: 0;
+}
+
+.retryButton {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--color-coral);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: var(--font-weight-medium);
+}
+
+.retryButton:hover {
+  opacity: 0.85;
+}

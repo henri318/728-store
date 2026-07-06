@@ -124,7 +124,7 @@ describe('SellerOrdersPage', () => {
         sortDir: 'desc',
       }),
     );
-    expect(screen.getByText('order-1')).toBeInTheDocument();
+    expect(screen.getByText('#order-1')).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Move to in progress' }),
     ).toBeInTheDocument();

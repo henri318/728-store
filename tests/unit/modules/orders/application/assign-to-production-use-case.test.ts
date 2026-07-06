@@ -69,6 +69,7 @@ describe('AssignToProductionUseCase', () => {
           quantity: 2,
           customizationIdList: [],
           customizationSnapshot: null,
+          unitPrice: 0,
         },
         {
           id: 'item-2',
@@ -77,6 +78,7 @@ describe('AssignToProductionUseCase', () => {
           quantity: 1,
           customizationIdList: [],
           customizationSnapshot: null,
+          unitPrice: 0,
         },
       ],
     };

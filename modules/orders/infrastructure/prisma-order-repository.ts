@@ -20,6 +20,7 @@ type PrismaTx = Omit<
 export class PrismaOrderRepository implements OrderRepository {
   async findPaginated(
     filter: OrderListFilter,
+    locale?: string,
   ): Promise<PaginatedResult<OrderEntity>> {
     const page = filter.page ?? 1;
     const pageSize = filter.pageSize ?? 20;
@@ -29,12 +30,36 @@ export class PrismaOrderRepository implements OrderRepository {
     if (filter.userId) where.userId = filter.userId;
     if (filter.sellerId) where.sellerId = filter.sellerId;
     if (filter.status && filter.status !== 'all') where.status = filter.status;
+    if (filter.q) {
+      where.lineItems = {
+        some: {
+          product: {
+            translations: {
+              some: {
+                name: { contains: filter.q },
+              },
+            },
+          },
+        },
+      };
+    }
+
+    const translationLocale = locale ?? 'es';
 
     const [rows, total] = await prisma.$transaction([
       prisma.order.findMany({
         where,
         include: {
-          lineItems: true,
+          lineItems: {
+            include: {
+              product: {
+                include: {
+                  translations: { where: { locale: translationLocale } },
+                  images: { take: 1 },
+                },
+              },
+            },
+          },
           checkoutGroup: { select: { paymentStatus: true } },
         },
         orderBy: { createdAt: sortDir },
@@ -55,6 +80,10 @@ export class PrismaOrderRepository implements OrderRepository {
             id: item.id,
             orderId: item.orderId,
             productId: item.productId,
+            productName: item.product?.translations?.[0]?.name,
+            productImageUrl:
+              item.product?.images?.[0]?.url ?? item.productImageUrl,
+            unitPrice: Number(item.unitPrice),
             quantity: item.quantity,
             customizationIdList: item.customizationIdList,
             customizationSnapshot: coerceCustomizationSnapshot(
@@ -143,10 +172,11 @@ export class PrismaOrderRepository implements OrderRepository {
     // Create OrderLineItem records associated with the orderId
     await tx.orderLineItem.createMany({
       data: lineItems.map((item) => ({
-        id: item.id, // Assuming IDs are generated or passed correctly
+        id: item.id,
         orderId: orderId,
         productId: item.productId,
         quantity: item.quantity,
+        unitPrice: item.unitPrice,
         customizationIdList: item.customizationIdList,
         customizationSnapshot: (item.customizationSnapshot ??
           Prisma.JsonNull) as unknown as Prisma.InputJsonValue,
@@ -154,11 +184,24 @@ export class PrismaOrderRepository implements OrderRepository {
     });
   }
 
-  async findById(orderId: string): Promise<OrderEntity | null> {
+  async findById(
+    orderId: string,
+    locale?: string,
+  ): Promise<OrderEntity | null> {
+    const translationLocale = locale ?? 'es';
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
-        lineItems: true,
+        lineItems: {
+          include: {
+            product: {
+              include: {
+                translations: { where: { locale: translationLocale } },
+                images: { take: 1 },
+              },
+            },
+          },
+        },
         checkoutGroup: { select: { paymentStatus: true } },
       },
     });
@@ -176,6 +219,9 @@ export class PrismaOrderRepository implements OrderRepository {
         id: item.id,
         orderId: item.orderId,
         productId: item.productId,
+        productName: item.product?.translations?.[0]?.name,
+        productImageUrl: item.product?.images?.[0]?.url ?? item.productImageUrl,
+        unitPrice: Number(item.unitPrice),
         quantity: item.quantity,
         customizationIdList: item.customizationIdList,
         customizationSnapshot: coerceCustomizationSnapshot(

@@ -9,6 +9,7 @@ interface PriceFieldProps {
   onChange: (value: string) => void;
   error?: string;
   required?: boolean;
+  currencySymbol?: string;
 }
 
 export function PriceField({
@@ -17,6 +18,7 @@ export function PriceField({
   onChange,
   error,
   required,
+  currencySymbol = '\u20AC',
 }: PriceFieldProps) {
   const id = useId();
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -42,7 +44,7 @@ export function PriceField({
           aria-describedby={errorId}
           className={`${styles.input} ${error ? styles.inputError : ''}`}
         />
-        <span className={styles.suffix}>&euro;</span>
+        <span className={styles.suffix}>{currencySymbol}</span>
       </div>
       {error && (
         <span id={errorId} role="alert" className={styles.errorText}>

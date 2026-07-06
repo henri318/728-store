@@ -77,13 +77,33 @@ export function UserMenuDropdown(_props: UserMenuDropdownProps) {
             </Link>
           )}
           {_props.user?.role === 'DESIGNER' && (
+            <>
+              <Link
+                href={`/${locale}/seller/products`}
+                role="menuitem"
+                onClick={closeMenu}
+                className={styles.menuItem}
+              >
+                {dict.userMenu.designerPanel}
+              </Link>
+              <Link
+                href={`/${locale}/seller/orders`}
+                role="menuitem"
+                onClick={closeMenu}
+                className={styles.menuItem}
+              >
+                {dict.userMenu.receivedOrders}
+              </Link>
+            </>
+          )}
+          {_props.user?.role !== 'DESIGNER' && (
             <Link
-              href={`/${locale}/seller/products`}
+              href={`/${locale}/orders`}
               role="menuitem"
               onClick={closeMenu}
               className={styles.menuItem}
             >
-              {dict.userMenu.designerPanel}
+              {dict.userMenu.myOrders}
             </Link>
           )}
           <Link

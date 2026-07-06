@@ -11,6 +11,12 @@ export interface OrderLineItemEntity {
   orderId: string;
   /** ID of the product being ordered */
   productId: string;
+  /** Product name (enriched at query time) */
+  productName?: string;
+  /** Product image URL (snapshot at checkout time) */
+  productImageUrl?: string | null;
+  /** Unit price at checkout time */
+  unitPrice: number;
   /** Quantity of this product */
   quantity: number;
   /** References to Customization entities (historical) */

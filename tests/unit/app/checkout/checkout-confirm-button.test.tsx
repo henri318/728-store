@@ -31,9 +31,11 @@ describe('CheckoutConfirmButton', () => {
     vi.clearAllMocks();
   });
 
-  it('renders a "Place Order" button', () => {
+  it('renders a "Realizar pedido" button', () => {
     render(<CheckoutConfirmButton locale="es" />);
-    expect(screen.getByRole('button', { name: /place order/i })).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: /realizar pedido/i }),
+    ).toBeTruthy();
   });
 
   it('pre-fills the inline address form when an initial profile address exists', () => {
@@ -49,10 +51,10 @@ describe('CheckoutConfirmButton', () => {
       />,
     );
 
-    expect(screen.getByLabelText(/street/i)).toHaveValue('Main St 1');
-    expect(screen.getByLabelText(/city/i)).toHaveValue('Madrid');
-    expect(screen.getByLabelText(/postal code/i)).toHaveValue('28001');
-    expect(screen.getByLabelText(/country/i)).toHaveValue('ES');
+    expect(screen.getByLabelText(/calle/i)).toHaveValue('Main St 1');
+    expect(screen.getByLabelText(/ciudad/i)).toHaveValue('Madrid');
+    expect(screen.getByLabelText(/código postal/i)).toHaveValue('28001');
+    expect(screen.getByLabelText(/país/i)).toHaveValue('ES');
   });
 
   it('shows an error and stops when the address is incomplete', async () => {
@@ -73,14 +75,14 @@ describe('CheckoutConfirmButton', () => {
 
     render(<CheckoutConfirmButton locale="es" />);
 
-    fireEvent.change(screen.getByLabelText(/street/i), {
+    fireEvent.change(screen.getByLabelText(/calle/i), {
       target: { value: 'Main St 1' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /place order/i }));
+    fireEvent.click(screen.getByRole('button', { name: /realizar pedido/i }));
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent(
-        'Complete the address to continue',
+        'Completa la dirección para continuar',
       );
     });
 
@@ -116,11 +118,11 @@ describe('CheckoutConfirmButton', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /place order/i }));
+    fireEvent.click(screen.getByRole('button', { name: /realizar pedido/i }));
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent(
-        'Unable to save the shipping address',
+        'No se pudo guardar la dirección de envío',
       );
     });
 
@@ -176,7 +178,7 @@ describe('CheckoutConfirmButton', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /place order/i }));
+    fireEvent.click(screen.getByRole('button', { name: /realizar pedido/i }));
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith('/api/users/me', {
@@ -236,7 +238,7 @@ describe('CheckoutConfirmButton', () => {
         }}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: /place order/i }));
+    fireEvent.click(screen.getByRole('button', { name: /realizar pedido/i }));
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith('/api/cart/checkout/confirm', {
@@ -272,10 +274,10 @@ describe('CheckoutConfirmButton', () => {
         }}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: /place order/i }));
+    fireEvent.click(screen.getByRole('button', { name: /realizar pedido/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/price change/i)).toBeTruthy();
+      expect(screen.getByText(/cambio de precio/i)).toBeTruthy();
     });
   });
 
@@ -312,13 +314,13 @@ describe('CheckoutConfirmButton', () => {
         }}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: /place order/i }));
+    fireEvent.click(screen.getByRole('button', { name: /realizar pedido/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/price change/i)).toBeTruthy();
+      expect(screen.getByText(/cambio de precio/i)).toBeTruthy();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /accept/i }));
+    fireEvent.click(screen.getByRole('button', { name: /aceptar/i }));
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith('/api/cart/checkout/confirm', {
@@ -365,7 +367,7 @@ describe('CheckoutConfirmButton', () => {
         }}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: /place order/i }));
+    fireEvent.click(screen.getByRole('button', { name: /realizar pedido/i }));
 
     await waitFor(() => {
       expect(mockClearCart).toHaveBeenCalled();

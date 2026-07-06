@@ -5,6 +5,7 @@ import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
 import { DesignPreview } from '@/modules/presentation/components/design-preview';
 import { Money } from '@/shared/kernel/domain/value-objects/money';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
+import { useDictionary } from '@/shared/i18n/dictionary-context';
 import styles from './cart-view.module.css';
 
 // --- Types ---
@@ -126,6 +127,7 @@ export function CartView({
   labels,
 }: CartViewProps) {
   // Hooks must be called unconditionally (Rules of Hooks).
+  const dict = useDictionary();
   const guestCart = useGuestCart();
   const [localItems, dispatchLocalItems] = useReducer(
     localItemsReducer,
@@ -298,7 +300,7 @@ export function CartView({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={item.customization.imageUrl}
-                    alt="Dise\u00f1o subido"
+                    alt={dict.common.customizationDesignImageAlt}
                     className={styles.designThumb}
                   />
                 )}
@@ -318,7 +320,7 @@ export function CartView({
 
                 {item.customization.color && (
                   <span className={styles.customizationLine}>
-                    Estilo: {item.customization.color}
+                    {dict.common.customizationColor}: {item.customization.color}
                   </span>
                 )}
 
@@ -351,7 +353,9 @@ export function CartView({
 
               <div className={styles.itemActions}>
                 <span className={styles.unitPrice}>
-                  <span className={styles.unitPriceLabel}>Precio:</span>{' '}
+                  <span className={styles.unitPriceLabel}>
+                    {dict.common.price}:
+                  </span>{' '}
                   {Money.format(item.unitPrice, Currency.EUR)}
                 </span>
 

@@ -168,6 +168,7 @@ describe('PrismaOrderRepository — Integration', () => {
               quantity: 1,
               customizationIdList: ['cust-legacy'],
               customizationSnapshot: null,
+              unitPrice: 0,
             },
           ],
         }),
@@ -220,6 +221,7 @@ describe('PrismaOrderRepository — Integration', () => {
               quantity: 1,
               customizationIdList: [],
               customizationSnapshot: null,
+              unitPrice: 0,
             },
             {
               id: 'item-invalid-scalar',
@@ -228,6 +230,7 @@ describe('PrismaOrderRepository — Integration', () => {
               quantity: 1,
               customizationIdList: [],
               customizationSnapshot: null,
+              unitPrice: 0,
             },
           ],
         }),
@@ -280,6 +283,7 @@ describe('PrismaOrderRepository — Integration', () => {
           productId: 'prod-order-2',
           quantity: 2,
           customizationIdList: [],
+          unitPrice: 0,
           customizationSnapshot: [
             {
               id: 'cust-int-1',
@@ -297,6 +301,7 @@ describe('PrismaOrderRepository — Integration', () => {
           productId: 'prod-order-2',
           quantity: 1,
           customizationIdList: [],
+          unitPrice: 0,
           customizationSnapshot: [
             {
               id: 'cust-int-2',
@@ -377,6 +382,7 @@ describe('PrismaOrderRepository — Integration', () => {
           productId: 'prod-order-2b',
           quantity: 1,
           customizationIdList: ['cust-order-1'],
+          unitPrice: 0,
           customizationSnapshot: [
             {
               id: 'cust-order-1',
@@ -580,6 +586,7 @@ describe('PrismaOrderRepository — Integration', () => {
           quantity: 3,
           customizationIdList: [],
           customizationSnapshot: null,
+          unitPrice: 0,
         },
       ];
 

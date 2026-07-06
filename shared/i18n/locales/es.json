@@ -64,6 +64,19 @@
     "checkout": "Finalizar compra",
     "viewFullCart": "Ver carrito completo",
     "subtotal": "Subtotal",
+    "total": "Total",
+    "shipping": "Envío",
+    "firstPurchaseDiscount": "{rate}% de descuento en tu primera compra",
+    "deliveryAddress": "Dirección de envío",
+    "placeOrder": "Realizar pedido",
+    "processing": "Procesando...",
+    "completeAddressToContinue": "Completa la dirección para continuar",
+    "unableToSaveAddress": "No se pudo guardar la dirección de envío",
+    "unableToCheckout": "No se pudo completar la compra",
+    "priceChangeDetected": "Cambio de precio detectado",
+    "priceChangeDescription": "El precio de algunos productos ha cambiado desde que los añadiste al carrito:",
+    "acceptNewPrices": "Aceptar nuevos precios",
+    "checkoutMissingCustomizations": "Algunas personalizaciones ya no están disponibles y no se incluirán en tu pedido.",
     "loadingCart": "Cargando...",
     "customizationSize": "Talla",
     "customizationSizePlaceholder": "Selecciona una talla",
@@ -118,7 +131,9 @@
     "cartMergeKeepServerHint": "Descarta los artículos del carrito de invitado",
     "cartMergeKeepGuest": "Conservar el carrito de invitado",
     "cartMergeKeepGuestHint": "Reemplaza el carrito del servidor con los artículos de invitado",
-    "genericError": "Algo salió mal. Inténtalo de nuevo."
+    "genericError": "Algo salió mal. Inténtalo de nuevo.",
+    "customizationRemoved": "Personalización eliminada",
+    "price": "Precio"
   },
   "auth": {
     "signInTitle": "Iniciar sesión",
@@ -178,7 +193,9 @@
     "deleteAccount": "Eliminar cuenta",
     "closeSession": "Cerrar sesión",
     "dashboard": "Panel de administración",
-    "designerPanel": "Panel de diseñador"
+    "designerPanel": "Panel de diseñador",
+    "myOrders": "Mis pedidos",
+    "receivedOrders": "Pedidos recibidos"
   },
   "sellerDashboard": {
     "title": "Listado de productos",
@@ -247,7 +264,24 @@
     "viewOrder": "Ver pedido",
     "previous": "← Anterior",
     "next": "Siguiente →",
-    "pageXofY": "Página {current} de {total}"
+    "pageXofY": "Página {current} de {total}",
+    "sellerOrdersTitle": "Pedidos de la tienda",
+    "filterStatus": "Filtrar por estado",
+    "all": "Todos",
+    "new": "Nuevo",
+    "inProgress": "En progreso",
+    "completed": "Completado",
+    "sortBy": "Ordenar por",
+    "sortDescending": "Más recientes",
+    "sortAscending": "Más antiguos",
+    "createdAt": "Fecha de creación",
+    "moveToInProgress": "Mover a en progreso",
+    "markCompleted": "Marcar completado",
+    "searchItems": "Buscar por producto",
+    "searchItemsPlaceholder": "Buscar en mis pedidos...",
+    "items": "Productos",
+    "qty": "Cant.",
+    "noItems": "Este pedido no tiene productos"
   },
   "admin": {
     "sellersTitle": "Gestión de vendedores",
