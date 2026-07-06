@@ -26,7 +26,11 @@ async function resolveStoragePath(
 
   const rawPath = path.resolve(root, ...segments);
   const rawRelative = path.relative(root, rawPath);
-  if (rawRelative.startsWith('..') || path.isAbsolute(rawRelative)) {
+  if (
+    rawRelative === '..' ||
+    rawRelative.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(rawRelative)
+  ) {
     return null;
   }
 

@@ -77,7 +77,7 @@ function resolveClassFills(svgContent) {
 
 // Optimize each icon and extract viewBox content
 const icons = files.map((file) => {
-  const raw = readFileSync(join(ICONS_DIR, file), 'utf8');
+  const raw = readFileSync(path.join(ICONS_DIR, file), 'utf8');
   // Resolve class-based fills to inline fills BEFORE optimization,
   // so SVGO doesn't strip the <defs><style> block before we can process it.
   const preprocessed = resolveClassFills(raw);
@@ -101,7 +101,7 @@ const icons = files.map((file) => {
     viewBox,
     content: inner,
     file,
-    originalSize: readFileSync(join(ICONS_DIR, file), 'utf8').length,
+    originalSize: readFileSync(path.join(ICONS_DIR, file), 'utf8').length,
     optimizedSize: result.data.length,
   };
 });
