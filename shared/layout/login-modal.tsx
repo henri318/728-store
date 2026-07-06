@@ -45,9 +45,9 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         const role = session?.user?.role;
         const locale = window.location.pathname.split('/')[1] ?? 'es';
         if (role === 'ADMIN') {
-          window.location.href = `/${locale}/admin/sellers`;
+          window.location.assign(`/${locale}/admin/sellers`);
         } else if (role === 'DESIGNER') {
-          window.location.href = `/${locale}/seller/products`;
+          window.location.assign(`/${locale}/seller/products`);
         }
       }
     } catch (err: unknown) {

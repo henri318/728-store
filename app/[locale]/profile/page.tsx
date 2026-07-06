@@ -136,7 +136,7 @@ export default function ProfilePage() {
         throw new Error(data.error || 'Failed to delete account');
       }
       // Redirect to home after soft-delete
-      window.location.href = '/';
+      window.location.assign('/');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to delete account');
     } finally {

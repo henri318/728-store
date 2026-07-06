@@ -187,7 +187,6 @@ export default [
       'unicorn/import-style': 'off',
       'sonarjs/no-unused-vars': 'off',
       'unicorn/no-declarations-before-early-exit': 'off',
-      //'unicorn/prefer-string-raw': 'off',
       'unicorn/no-for-each': 'off',
       'unicorn/prefer-location-assign': 'off',
 
