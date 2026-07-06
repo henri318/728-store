@@ -138,7 +138,9 @@ describe('PrismaCustomizationRepository — Integration', () => {
     it('should return partial results for missing IDs', async () => {
       const results = await repo.findByIds(['C1', 'GHOST', 'C3']);
       expect(results).toHaveLength(2);
-      const ids = results.map((r) => r.id).sort();
+      const ids = results
+        .map((r) => r.id)
+        .toSorted((a, b) => a.localeCompare(b));
       expect(ids).toEqual(['C1', 'C3']);
     });
 
@@ -157,7 +159,9 @@ describe('PrismaCustomizationRepository — Integration', () => {
     it('should scope by seller via Product relation', async () => {
       const results = await repo.findBySellerId('seller-cust-1');
       expect(results).toHaveLength(2);
-      const ids = results.map((r) => r.id).sort();
+      const ids = results
+        .map((r) => r.id)
+        .toSorted((a, b) => a.localeCompare(b));
       expect(ids).toEqual(['C1', 'C2']);
     });
 

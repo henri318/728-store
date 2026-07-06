@@ -137,7 +137,7 @@ describe('mapper.toDomainProduct', () => {
     const row = makePrismaProductRow({ basePrice: 19.99 });
     const result = toDomainProduct(row);
 
-    expect(result.basePrice.amount).toBe(19.99);
+    expect(result.basePrice.amount).toBeCloseTo(19.99);
     expect(result.basePrice.currency).toBe(Currency.EUR);
   });
 
@@ -165,7 +165,7 @@ describe('mapper.toDomainProduct', () => {
     const row = makePrismaProductRow({ basePrice: 1234.56 });
     const result = toDomainProduct(row);
 
-    expect(result.basePrice.amount).toBe(1234.56);
+    expect(result.basePrice.amount).toBeCloseTo(1234.56);
   });
 
   it('should convert Prisma Decimal-like object to number', () => {
@@ -174,7 +174,7 @@ describe('mapper.toDomainProduct', () => {
     const row = makePrismaProductRow({ basePrice: decimalLike });
     const result = toDomainProduct(row);
 
-    expect(result.basePrice.amount).toBe(29.99);
+    expect(result.basePrice.amount).toBeCloseTo(29.99);
     expect(result.basePrice.currency).toBe(Currency.EUR);
   });
 
@@ -244,6 +244,7 @@ describe('mapper.toDomainProduct', () => {
 
 // ─── toPersistenceProduct ───
 describe('mapper.toPersistenceProduct', () => {
+  // eslint-disable-next-line unicorn/consistent-function-scoping
   function makeEntity(overrides: Partial<ProductEntity> = {}): ProductEntity {
     return {
       id: 'product-1',

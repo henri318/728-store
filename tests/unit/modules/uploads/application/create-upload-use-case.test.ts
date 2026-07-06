@@ -24,7 +24,7 @@ describe('CreateUploadUseCase', () => {
       type: UploadType.product,
       fileName: 'photo.webp',
       mimeType: 'image/webp',
-      size: 102400,
+      size: 102_400,
     });
 
     expect(typeof result.id).toBe('string');
@@ -41,7 +41,7 @@ describe('CreateUploadUseCase', () => {
       type: UploadType.product,
       fileName: 'photo.webp',
       mimeType: 'image/webp',
-      size: 102400,
+      size: 102_400,
     });
 
     const saved = await uploadRepo.findById(result.id);
@@ -51,7 +51,7 @@ describe('CreateUploadUseCase', () => {
     expect(saved!.type).toBe(UploadType.product);
     expect(saved!.fileName).toBe('photo.webp');
     expect(saved!.mimeType).toBe('image/webp');
-    expect(saved!.size).toBe(102400);
+    expect(saved!.size).toBe(102_400);
   });
 
   it('should generate a storageKey with the correct format', async () => {
@@ -60,7 +60,7 @@ describe('CreateUploadUseCase', () => {
       type: UploadType.avatar,
       fileName: 'avatar.png',
       mimeType: 'image/png',
-      size: 51200,
+      size: 51_200,
     });
 
     expect(result.storageKey).toMatch(/^avatar\/user-42\/[\w-]+\.png$/);
@@ -76,7 +76,7 @@ describe('CreateUploadUseCase', () => {
       type: UploadType.product,
       fileName: 'photo.webp',
       mimeType: 'image/webp',
-      size: 102400,
+      size: 102_400,
     });
 
     // publicUrl comes from getPublicUrl (permanent domain URL)
@@ -96,7 +96,7 @@ describe('CreateUploadUseCase', () => {
       type: UploadType.customization,
       fileName: 'design.png',
       mimeType: 'image/png',
-      size: 102400,
+      size: 102_400,
     });
 
     // publicUrl comes from generateReadUrl (presigned), NOT getPublicUrl
@@ -112,7 +112,7 @@ describe('CreateUploadUseCase', () => {
       type: UploadType.ticket,
       fileName: 'screenshot.jpg',
       mimeType: 'image/jpeg',
-      size: 102400,
+      size: 102_400,
     });
 
     expect(result.publicUrl).toContain('mock-r2.read');
@@ -124,7 +124,7 @@ describe('CreateUploadUseCase', () => {
       type: UploadType.general,
       fileName: 'doc.png',
       mimeType: 'image/png',
-      size: 102400,
+      size: 102_400,
     });
 
     expect(result.publicUrl).toContain('mock-r2.read');
@@ -360,8 +360,8 @@ describe('CreateUploadUseCase', () => {
         mimeType: 'image/webp',
         size: 1024,
       });
-    } catch (e) {
-      caughtError = e as Error;
+    } catch (error) {
+      caughtError = error as Error;
     }
 
     expect(caughtError).not.toBeNull();

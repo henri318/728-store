@@ -26,10 +26,10 @@ describe('SocialFooter', () => {
   it('opens links in a new tab', () => {
     render(<SocialFooter />);
 
-    screen.getAllByRole('link').forEach((link) => {
+    for (const link of screen.getAllByRole('link')) {
       expect(link).toHaveAttribute('target', '_blank');
       expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'));
-    });
+    }
   });
 
   it('uses the expected external destinations for major links', () => {

@@ -1,15 +1,15 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
-import path from 'path';
+import path from 'node:path';
 
-const CI = !!process.env.CI;
+const IS_CI = !!process.env.CI;
 
 export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'jsdom',
     globals: true,
-    allowOnly: !CI,
+    allowOnly: !IS_CI,
     pool: 'threads',
     fileParallelism: false,
     setupFiles: ['./tests/setup.ts'],

@@ -13,10 +13,10 @@ export class MemoryUploadRepository implements UploadRepository {
 
   async save(entity: UploadEntity): Promise<void> {
     const index = this.store.findIndex((e) => e.id === entity.id);
-    if (index !== -1) {
-      this.store[index] = entity;
-    } else {
+    if (index === -1) {
       this.store.push(entity);
+    } else {
+      this.store[index] = entity;
     }
   }
 
@@ -34,7 +34,7 @@ export class MemoryUploadRepository implements UploadRepository {
         `findPendingOlderThan: hours must be a positive finite number, got ${hours}`,
       );
     }
-    const cutoff = new Date(Date.now() - hours * 3600_000);
+    const cutoff = new Date(Date.now() - hours * 3_600_000);
     return this.store.filter(
       (e) => e.status === 'PENDING' && e.createdAt < cutoff,
     );

@@ -53,7 +53,7 @@ export function CartIcon({ alt }: CartIconProps) {
   useEffect(() => {
     if (!isAuthenticated) return;
     window.addEventListener(CART_UPDATED_EVENT, handleCartUpdated);
-    void Promise.resolve().then(fetchCount);
+    void Promise.try(fetchCount);
 
     return () => {
       abortRef.current?.abort();

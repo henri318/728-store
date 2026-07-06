@@ -19,7 +19,6 @@ import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
 const mockUseSession = vi.mocked(useSession);
 const mockUseGuestCart = vi.mocked(useGuestCart);
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
 
 function renderWithProvider(ui: React.ReactElement) {
   return render(<CartPopupProvider>{ui}</CartPopupProvider>);
@@ -28,6 +27,7 @@ function renderWithProvider(ui: React.ReactElement) {
 describe('CartIcon', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal('fetch', mockFetch);
   });
 
   describe('rendering', () => {
@@ -211,7 +211,7 @@ describe('CartIcon', () => {
         expect(screen.getByText('1')).toBeTruthy();
       });
 
-      window.dispatchEvent(new Event('cart:updated'));
+      globalThis.dispatchEvent(new Event('cart:updated'));
 
       await waitFor(() => {
         expect(screen.getByText('2')).toBeTruthy();
@@ -219,22 +219,18 @@ describe('CartIcon', () => {
     });
 
     it('applies only the latest in-flight cart count response', async () => {
-      let resolveFirst: (value: unknown) => void;
-      let resolveSecond: (value: unknown) => void;
-      const first = new Promise((resolve) => {
-        resolveFirst = resolve;
-      });
-      const second = new Promise((resolve) => {
-        resolveSecond = resolve;
-      });
+      const first = Promise.withResolvers<unknown>();
+      const second = Promise.withResolvers<unknown>();
 
-      mockFetch.mockReturnValueOnce(first).mockReturnValueOnce(second);
+      mockFetch
+        .mockReturnValueOnce(first.promise)
+        .mockReturnValueOnce(second.promise);
 
       renderWithProvider(<CartIcon alt="Cart" />);
 
-      window.dispatchEvent(new Event('cart:updated'));
+      globalThis.dispatchEvent(new Event('cart:updated'));
 
-      resolveSecond!({
+      second.resolve({
         ok: true,
         json: async () => ({ items: [{}, {}] }),
       });
@@ -242,7 +238,7 @@ describe('CartIcon', () => {
         expect(screen.getByText('2')).toBeTruthy();
       });
 
-      resolveFirst!({
+      first.resolve({
         ok: true,
         json: async () => ({ items: [{}, {}, {}] }),
       });

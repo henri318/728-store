@@ -18,7 +18,9 @@ describe('SeedRolesUseCase', () => {
 
     expect(result).toHaveLength(4);
 
-    const names = result.map((r) => r.name).sort();
+    const names = result
+      .map((r) => r.name)
+      .toSorted((a, b) => a.localeCompare(b));
     expect(names).toEqual(['ADMIN', 'CUSTOMER', 'DESIGNER', 'SUPPORT']);
 
     // Verify each role has a non-empty description

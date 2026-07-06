@@ -20,7 +20,7 @@ vi.mock('next/navigation', () => {
   };
 });
 
-globalThis.fetch = mocks.fetchMock as typeof fetch;
+vi.stubGlobal('fetch', mocks.fetchMock as typeof fetch);
 
 import { ProductActions } from '@/modules/products/presentation/components/product-actions';
 
@@ -104,12 +104,9 @@ describe('ProductActions', () => {
   });
 
   it('disables the action while loading', async () => {
-    let resolveFetch: ((value: Response) => void) | undefined;
-    mocks.fetchMock.mockReturnValue(
-      new Promise((resolve) => {
-        resolveFetch = resolve;
-      }),
-    );
+    const { promise: pendingFetch, resolve: resolveFetch } =
+      Promise.withResolvers<Response>();
+    mocks.fetchMock.mockReturnValue(pendingFetch);
 
     const user = userEvent.setup();
     render(
@@ -124,10 +121,13 @@ describe('ProductActions', () => {
 
     await act(async () => {
       resolveFetch?.(
-        new Response(JSON.stringify({ status: 'ARCHIVED' }), {
-          status: 200,
-          headers: { 'content-type': 'application/json' },
-        }),
+        Response.json(
+          { status: 'ARCHIVED' },
+          {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          },
+        ),
       );
     });
   });

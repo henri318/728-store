@@ -16,7 +16,7 @@ function makePendingUpload(
     fileName: 'photo.webp',
     storageKey: 'product/user-1/clsxyz123.webp',
     mimeType: 'image/webp',
-    size: 102400,
+    size: 102_400,
     uploadedBy: 'user-1',
     type: UploadType.product,
     status: UploadStatus.PENDING,
@@ -101,7 +101,11 @@ describe('ConfirmUploadUseCase', () => {
       makePendingUpload({ status: UploadStatus.CONFIRMED }),
     );
 
-    await useCase.execute('upload-1').catch(() => {});
+    try {
+      await useCase.execute('upload-1');
+    } catch {
+      // Expected error — upload is already confirmed
+    }
 
     expect(outboxRepo.events.length).toBe(0);
   });

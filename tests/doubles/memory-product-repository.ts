@@ -14,6 +14,20 @@ export class MemoryProductRepository implements ProductRepository {
   private products: ProductEntity[] = [];
   private categories: Map<string, CategoryEntity> = new Map();
 
+  private deriveCategory(categoryId: string | null): CategoryEntity | null {
+    if (!categoryId) return null;
+    return this.categories.get(categoryId) ?? null;
+  }
+
+  private selectTranslationsWithFallback(
+    translations: ProductTranslationEntity[],
+    locale: string,
+  ): ProductTranslationEntity[] {
+    const requested = translations.filter((t) => t.locale === locale);
+    if (requested.length > 0) return requested;
+    return translations.filter((t) => t.locale === 'es');
+  }
+
   async findAll(locale: string): Promise<ProductEntity[]> {
     return this.products.map((p) => ({
       ...p,
@@ -79,7 +93,7 @@ export class MemoryProductRepository implements ProductRepository {
       if (
         filter.tags !== undefined &&
         filter.tags.length > 0 &&
-        !p.tags.some((t) => filter.tags!.includes(t.slug))
+        p.tags.every((t) => !filter.tags!.includes(t.slug))
       ) {
         return false;
       }
@@ -120,7 +134,7 @@ export class MemoryProductRepository implements ProductRepository {
       return true;
     });
 
-    const sorted = [...filtered].sort((a, b) => {
+    const sorted = filtered.toSorted((a, b) => {
       const dir = sortDir === 'asc' ? 1 : -1;
       return (a.createdAt.getTime() - b.createdAt.getTime()) * dir;
     });
@@ -143,26 +157,12 @@ export class MemoryProductRepository implements ProductRepository {
     };
   }
 
-  private deriveCategory(categoryId: string | null): CategoryEntity | null {
-    if (!categoryId) return null;
-    return this.categories.get(categoryId) ?? null;
-  }
-
-  private selectTranslationsWithFallback(
-    translations: ProductTranslationEntity[],
-    locale: string,
-  ): ProductTranslationEntity[] {
-    const requested = translations.filter((t) => t.locale === locale);
-    if (requested.length > 0) return requested;
-    return translations.filter((t) => t.locale === 'es');
-  }
-
   async save(entity: ProductEntity): Promise<void> {
     const index = this.products.findIndex((p) => p.id === entity.id);
-    if (index !== -1) {
-      this.products[index] = entity;
-    } else {
+    if (index === -1) {
       this.products.push(entity);
+    } else {
+      this.products[index] = entity;
     }
   }
 

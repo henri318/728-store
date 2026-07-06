@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
 const mocks = vi.hoisted(() => {
-  const assertRoleMock = vi.fn(async () => undefined);
+  const assertRoleMock = vi.fn(async () => {});
   const getDictionaryMock = vi.fn();
   const getProductRepositoryMock = vi.fn();
   const getSellerRepositoryMock = vi.fn();

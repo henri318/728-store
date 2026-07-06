@@ -6,6 +6,21 @@ import { UploadStatus } from '@/modules/uploads/domain/value-objects/upload-stat
 import { UploadType } from '@/modules/uploads/domain/value-objects/upload-type';
 import type { UploadEntity } from '@/modules/uploads/domain/entities/upload';
 
+function makeUpload(overrides: Partial<UploadEntity> = {}): UploadEntity {
+  return {
+    id: 'upload-int-1',
+    fileName: 'photo.webp',
+    storageKey: 'product/user-1/clsxyz123.webp',
+    mimeType: 'image/webp',
+    size: 102_400,
+    uploadedBy: 'user-1',
+    type: UploadType.product,
+    status: UploadStatus.PENDING,
+    createdAt: new Date('2025-01-01T10:00:00Z'),
+    ...overrides,
+  };
+}
+
 /**
  * PR2 — PrismaUploadRepository integration tests against real Docker PostgreSQL.
  *
@@ -29,21 +44,6 @@ describe('PrismaUploadRepository — Integration', () => {
     await cleanupDb();
   });
 
-  function makeUpload(overrides: Partial<UploadEntity> = {}): UploadEntity {
-    return {
-      id: 'upload-int-1',
-      fileName: 'photo.webp',
-      storageKey: 'product/user-1/clsxyz123.webp',
-      mimeType: 'image/webp',
-      size: 102400,
-      uploadedBy: 'user-1',
-      type: UploadType.product,
-      status: UploadStatus.PENDING,
-      createdAt: new Date('2025-01-01T10:00:00Z'),
-      ...overrides,
-    };
-  }
-
   // ─── save + findById ───
   describe('save + findById', () => {
     it('should persist and retrieve an upload by ID', async () => {
@@ -57,7 +57,7 @@ describe('PrismaUploadRepository — Integration', () => {
       expect(found!.fileName).toBe('photo.webp');
       expect(found!.storageKey).toBe('product/user-1/clsxyz123.webp');
       expect(found!.mimeType).toBe('image/webp');
-      expect(found!.size).toBe(102400);
+      expect(found!.size).toBe(102_400);
       expect(found!.uploadedBy).toBe('user-1');
       expect(found!.type).toBe(UploadType.product);
       expect(found!.status).toBe(UploadStatus.PENDING);
@@ -133,8 +133,7 @@ describe('PrismaUploadRepository — Integration', () => {
     });
 
     it('should not throw when removing non-existent ID', async () => {
-      // Should complete without error
-      await repo.remove('non-existent');
+      await expect(repo.remove('non-existent')).resolves.toBeUndefined();
     });
 
     it('should only remove the specified upload', async () => {
@@ -156,7 +155,7 @@ describe('PrismaUploadRepository — Integration', () => {
   describe('findPendingOlderThan', () => {
     it('should return PENDING uploads older than the given hours', async () => {
       // Create an upload with createdAt 25 hours ago
-      const oldDate = new Date(Date.now() - 25 * 3600_000);
+      const oldDate = new Date(Date.now() - 25 * 3_600_000);
       const oldEntity = makeUpload({
         id: 'upload-old',
         storageKey: 'product/user-1/old.webp',
@@ -171,7 +170,7 @@ describe('PrismaUploadRepository — Integration', () => {
     });
 
     it('should not return CONFIRMED uploads even if old enough', async () => {
-      const oldDate = new Date(Date.now() - 25 * 3600_000);
+      const oldDate = new Date(Date.now() - 25 * 3_600_000);
       const confirmedEntity = makeUpload({
         id: 'upload-confirmed-old',
         storageKey: 'product/user-1/confirmed-old.webp',
@@ -230,7 +229,7 @@ describe('PrismaUploadRepository — Integration', () => {
     });
 
     it('should correctly distinguish old PENDING from old CONFIRMED', async () => {
-      const oldDate = new Date(Date.now() - 30 * 3600_000);
+      const oldDate = new Date(Date.now() - 30 * 3_600_000);
 
       await repo.save(
         makeUpload({

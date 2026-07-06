@@ -53,8 +53,10 @@ export class MemorySearchHistoryRepository implements SearchHistoryRepository {
       }
     }
 
-    return Array.from(byTerm.values())
-      .sort((a, b) => b.searchedAt.getTime() - a.searchedAt.getTime())
+    return byTerm
+      .values()
+      .toArray()
+      .toSorted((a, b) => b.searchedAt.getTime() - a.searchedAt.getTime())
       .slice(0, input.limit);
   }
 

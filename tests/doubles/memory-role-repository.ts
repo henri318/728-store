@@ -13,10 +13,10 @@ export class MemoryRoleRepository implements RoleRepository {
 
   async save(role: RoleEntity): Promise<RoleEntity> {
     const existingIndex = this.roles.findIndex((r) => r.name === role.name);
-    if (existingIndex >= 0) {
-      this.roles[existingIndex] = role;
-    } else {
+    if (existingIndex === -1) {
       this.roles.push(role);
+    } else {
+      this.roles[existingIndex] = role;
     }
     return role;
   }

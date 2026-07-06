@@ -55,9 +55,9 @@ describe('Address', () => {
     });
 
     it('should reject whitespace-only street', () => {
-      expect(() => Address.create('   ', 'Springfield', '12345', 'US')).toThrow(
-        'All address fields are required',
-      );
+      expect(() =>
+        Address.create(' '.repeat(3), 'Springfield', '12345', 'US'),
+      ).toThrow('All address fields are required');
     });
   });
 

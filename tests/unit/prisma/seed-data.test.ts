@@ -44,15 +44,15 @@ describe('buildSeedProducts', () => {
   });
 
   it('serves the seed mug image from the product asset container', () => {
-    process.env.SEED_PRODUCT_ASSET_BASE_URL = 'http://assets.example.test';
+    process.env.SEED_PRODUCT_ASSET_BASE_URL = 'https://assets.example.test';
 
     const [, mug] = buildSeedProducts('seller-123');
 
     expect(mug.images.create[0].url).toBe(
-      'http://assets.example.test/products/taza.png',
+      'https://assets.example.test/products/taza.png',
     );
     expect(mug.customizationConfig.previewTemplateUrl).toBe(
-      'http://assets.example.test/products/taza.png',
+      'https://assets.example.test/products/taza.png',
     );
   });
 });

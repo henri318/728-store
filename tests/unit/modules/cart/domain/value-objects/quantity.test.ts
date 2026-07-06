@@ -49,19 +49,15 @@ describe('Quantity', () => {
     });
 
     it('rejects NaN', () => {
-      expect(() => Quantity.create(Number.NaN)).toThrow(InvalidQuantityError);
+      expect(() => Quantity.create(NaN)).toThrow(InvalidQuantityError);
     });
 
     it('rejects Infinity', () => {
-      expect(() => Quantity.create(Number.POSITIVE_INFINITY)).toThrow(
-        InvalidQuantityError,
-      );
+      expect(() => Quantity.create(Infinity)).toThrow(InvalidQuantityError);
     });
 
     it('rejects -Infinity', () => {
-      expect(() => Quantity.create(Number.NEGATIVE_INFINITY)).toThrow(
-        InvalidQuantityError,
-      );
+      expect(() => Quantity.create(-Infinity)).toThrow(InvalidQuantityError);
     });
   });
 

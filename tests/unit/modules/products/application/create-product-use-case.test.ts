@@ -83,7 +83,7 @@ describe('CreateProductUseCase', () => {
         sellerId: 'seller-1',
         sellerName: 'Test Shop',
         locale: 'es',
-        name: '   ',
+        name: ' '.repeat(3),
         description: 'Desc',
         price: 19.99,
       }),

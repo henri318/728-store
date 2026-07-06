@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
-import { type ZodError } from 'zod';
+import { type ZodError, type ZodIssue } from 'zod';
 import { Input } from '@/shared/ui/input';
 import { Button } from '@/shared/ui/button';
 import { ErrorMessage } from '@/shared/ui/error-message';
@@ -40,6 +40,36 @@ interface FormErrors {
   address?: Partial<AddressFields>;
 }
 
+function applyIssue(errors: FormErrors, issue: ZodIssue) {
+  const path = issue.path?.join('.') || '';
+  switch (path) {
+    case 'firstName': {
+      errors.firstName = issue.message;
+      break;
+    }
+    case 'lastName': {
+      errors.lastName = issue.message;
+      break;
+    }
+    case 'email': {
+      errors.email = issue.message;
+      break;
+    }
+    case 'password': {
+      errors.password = issue.message;
+      break;
+    }
+    default: {
+      if (path.startsWith('address.')) {
+        const addrField = path.split('.')[1] as keyof AddressFields;
+        if (!errors.address) errors.address = {};
+        errors.address[addrField] = issue.message;
+      }
+      break;
+    }
+  }
+}
+
 function validateForm(
   form: FormState,
   passwordsDoNotMatch: string,
@@ -68,16 +98,7 @@ function validateForm(
   const issues = (result.error as ZodError).issues ?? [];
 
   for (const issue of issues) {
-    const path = issue.path?.join('.') || '';
-    if (path === 'firstName') errors.firstName = issue.message;
-    else if (path === 'lastName') errors.lastName = issue.message;
-    else if (path === 'email') errors.email = issue.message;
-    else if (path === 'password') errors.password = issue.message;
-    else if (path.startsWith('address.')) {
-      const addrField = path.split('.')[1] as keyof AddressFields;
-      if (!errors.address) errors.address = {};
-      errors.address[addrField] = issue.message;
-    }
+    applyIssue(errors, issue);
   }
 
   return Object.keys(errors).length > 0 ? errors : null;
@@ -155,7 +176,7 @@ export default function SignUpPage() {
           lastName: form.lastName,
           email: form.email,
           password: form.password,
-          address: Object.values(form.address).some((v) => v)
+          address: Object.values(form.address).some(Boolean)
             ? form.address
             : undefined,
         }),

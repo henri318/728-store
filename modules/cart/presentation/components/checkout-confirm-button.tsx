@@ -185,7 +185,7 @@ export function CheckoutConfirmButton({
               {priceChanges.map((pc) => (
                 <li key={pc.itemId}>
                   {Money.format(pc.oldPrice, Currency.EUR)}
-                  {'\u00a0→\u00a0'}
+                  {'\u00A0→\u00A0'}
                   {Money.format(pc.newPrice, Currency.EUR)}
                 </li>
               ))}

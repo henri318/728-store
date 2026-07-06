@@ -12,6 +12,8 @@ import { z } from 'zod';
  * `pageSize` is capped at 50 for the public audience: 5 increments of 10
  * per scroll provides a mild DoS guard while keeping the UX smooth.
  */
+const stringArraySchema = z.array(z.string());
+
 export const productListQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   // pageSize is validated and bounded but has NO default here — the use
@@ -29,7 +31,7 @@ export const productListQuerySchema = z.object({
           .map((s) => s.trim())
           .filter(Boolean),
       ),
-      z.array(z.string()),
+      stringArraySchema,
     ])
     .optional(),
   lang: z.string().default('es'),

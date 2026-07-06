@@ -145,7 +145,7 @@ export function SearchInputWithSuggestions({
         setActiveIndex((idx) => (idx < suggestions.length - 1 ? idx + 1 : 0));
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        setActiveIndex((idx) => (idx > 0 ? idx - 1 : suggestions.length - 1));
+        setActiveIndex((idx) => (idx > 0 ? idx : suggestions.length) - 1);
       } else if (e.key === 'Enter' && activeIndex >= 0) {
         e.preventDefault();
         const choice = suggestions[activeIndex];

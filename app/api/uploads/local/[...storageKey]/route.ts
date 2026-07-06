@@ -1,61 +1,19 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { NextRequest, NextResponse } from 'next/server';
 
-const STORAGE_ROOT =
-  process.env.LOCAL_UPLOAD_STORAGE_DIR ?? join(process.cwd(), 'tmp', 'uploads');
-
-export async function PUT(
-  request: NextRequest,
-  context: { params: Promise<{ storageKey: string[] }> },
-) {
-  if (process.env.NODE_ENV === 'production') {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  }
-
-  const { storageKey } = await context.params;
-  const filePath = resolveStoragePath(storageKey);
-  if (!filePath) {
-    return NextResponse.json({ error: 'Invalid storage key' }, { status: 400 });
-  }
-
-  await mkdir(dirname(filePath), { recursive: true });
-
-  const body = Buffer.from(await request.arrayBuffer());
-  await writeFile(filePath, body);
-
-  return new NextResponse(null, { status: 204 });
+async function getStorageRoot(): Promise<string> {
+  const { join } = await import('node:path');
+  return (
+    process.env.LOCAL_UPLOAD_STORAGE_DIR ??
+    join(process.cwd(), 'tmp', 'uploads')
+  );
 }
 
-export async function GET(
-  _request: NextRequest,
-  context: { params: Promise<{ storageKey: string[] }> },
-) {
-  if (process.env.NODE_ENV === 'production') {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  }
+async function resolveStoragePath(
+  storageKey: string[],
+  root: string,
+): Promise<string | null> {
+  const { resolve, relative, isAbsolute } = await import('node:path');
 
-  const { storageKey } = await context.params;
-  const filePath = resolveStoragePath(storageKey);
-  if (!filePath) {
-    return NextResponse.json({ error: 'Invalid storage key' }, { status: 400 });
-  }
-
-  try {
-    const body = await readFile(filePath);
-    return new NextResponse(body, {
-      status: 200,
-      headers: {
-        'content-type': guessContentType(filePath),
-      },
-    });
-  } catch {
-    return NextResponse.json({ error: 'File not found' }, { status: 404 });
-  }
-}
-
-function resolveStoragePath(storageKey: string[]): string | null {
-  const root = resolve(STORAGE_ROOT);
   const decodedKey = decodeURIComponent(storageKey.join('/'));
   if (
     decodedKey.includes('\\') ||
@@ -87,4 +45,59 @@ function guessContentType(filePath: string): string {
   if (lower.endsWith('.svg')) return 'image/svg+xml';
   if (lower.endsWith('.txt')) return 'text/plain; charset=utf-8';
   return 'application/octet-stream';
+}
+
+export async function PUT(
+  request: NextRequest,
+  context: { params: Promise<{ storageKey: string[] }> },
+) {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
+
+  const { mkdir, writeFile } = await import('node:fs/promises');
+  const { dirname } = await import('node:path');
+
+  const { storageKey } = await context.params;
+  const root = await getStorageRoot();
+  const filePath = await resolveStoragePath(storageKey, root);
+  if (!filePath) {
+    return NextResponse.json({ error: 'Invalid storage key' }, { status: 400 });
+  }
+
+  await mkdir(dirname(filePath), { recursive: true });
+
+  const body = Buffer.from(await request.arrayBuffer());
+  await writeFile(filePath, body);
+
+  return new NextResponse(null, { status: 204 });
+}
+
+export async function GET(
+  _request: NextRequest,
+  context: { params: Promise<{ storageKey: string[] }> },
+) {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
+
+  const { storageKey } = await context.params;
+  const root = await getStorageRoot();
+  const filePath = await resolveStoragePath(storageKey, root);
+  if (!filePath) {
+    return NextResponse.json({ error: 'Invalid storage key' }, { status: 400 });
+  }
+
+  try {
+    const { readFile } = await import('node:fs/promises');
+    const body = await readFile(filePath);
+    return new NextResponse(body, {
+      status: 200,
+      headers: {
+        'content-type': guessContentType(filePath),
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: 'File not found' }, { status: 404 });
+  }
 }

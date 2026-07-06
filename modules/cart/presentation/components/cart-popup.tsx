@@ -143,9 +143,9 @@ export function CartPopup({ labels }: CartPopupProps) {
                       color: (firstC.color as string | null) ?? null,
                       size: (firstC.size as string | null) ?? null,
                       imageUrl: (firstC.imageUrl as string | null) ?? null,
-                      designPosition: firstC.designPosition
-                        ? (firstC.designPosition as Record<string, unknown>)
-                        : null,
+                      designPosition:
+                        (firstC.designPosition as Record<string, unknown>) ??
+                        null,
                     }
                   : null,
               } as CartItemDTO;
@@ -292,8 +292,8 @@ export function CartPopup({ labels }: CartPopupProps) {
                 {items.map((item) => (
                   <li key={item.id} className={styles.item}>
                     <div className={styles.itemInfo}>
-                      {item.customization?.imageUrl &&
-                      item.customization?.designPosition ? (
+                      {item.customization?.imageUrl != null &&
+                      item.customization?.designPosition != null ? (
                         <DesignPreview
                           productImageUrl={item.productImageUrl ?? ''}
                           designImageUrl={item.customization.imageUrl}

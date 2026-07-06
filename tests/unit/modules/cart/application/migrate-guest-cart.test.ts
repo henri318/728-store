@@ -16,6 +16,27 @@ import type { ProductCapabilityPort } from '@/modules/products/domain/product-ca
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
 import type { CustomizationCreatePort } from '@/modules/cart/domain/customization-create-port';
 
+const makeItem = (overrides: Partial<CartItemEntity> = {}): CartItemEntity => ({
+  id: 'i-default',
+  cartId: 'c1',
+  productId: ProductId.create('p1'),
+  sellerId: SellerId.create('s1'),
+  quantity: 1,
+  unitPriceSnapshot: Money.create(10, Currency.EUR),
+  customizationIdList: [],
+  ...overrides,
+});
+
+const makeCart = (overrides: Partial<CartEntity> = {}): CartEntity => ({
+  id: 'c1',
+  userId: 'u1',
+  status: CartStatus.Active,
+  items: [],
+  createdAt: new Date('2026-01-01T00:00:00Z'),
+  updatedAt: new Date('2026-01-01T00:00:00Z'),
+  ...overrides,
+});
+
 /**
  * Tests for MigrateGuestCart (spec REQ-CART-020 / REQ-CART-033).
  *
@@ -41,29 +62,6 @@ describe('MigrateGuestCart', () => {
   let capabilityPort: ProductCapabilityPort;
   let customizationCreator: CustomizationCreatePort;
   let useCase: MigrateGuestCart;
-
-  const makeItem = (
-    overrides: Partial<CartItemEntity> = {},
-  ): CartItemEntity => ({
-    id: 'i-default',
-    cartId: 'c1',
-    productId: ProductId.create('p1'),
-    sellerId: SellerId.create('s1'),
-    quantity: 1,
-    unitPriceSnapshot: Money.create(10, Currency.EUR),
-    customizationIdList: [],
-    ...overrides,
-  });
-
-  const makeCart = (overrides: Partial<CartEntity> = {}): CartEntity => ({
-    id: 'c1',
-    userId: 'u1',
-    status: CartStatus.Active,
-    items: [],
-    createdAt: new Date('2026-01-01T00:00:00Z'),
-    updatedAt: new Date('2026-01-01T00:00:00Z'),
-    ...overrides,
-  });
 
   beforeEach(() => {
     cartRepo = new MemoryCartRepository();
@@ -190,6 +188,13 @@ describe('MigrateGuestCart', () => {
       { id: 'p1', basePrice: 12, sellerId: 's1' },
       { id: 'p2', basePrice: 25, sellerId: 's2' },
     ]);
+    const p1Id = ProductId.create('p1');
+    const s1Id = SellerId.create('s1');
+    const price12 = Money.create(12, Currency.EUR);
+    const p2Id = ProductId.create('p2');
+    const s2Id = SellerId.create('s2');
+    const price25 = Money.create(25, Currency.EUR);
+
     await cartRepo.save(
       makeCart({
         id: 'c1',
@@ -198,18 +203,18 @@ describe('MigrateGuestCart', () => {
           makeItem({
             id: 'server-i1',
             cartId: 'c1',
-            productId: ProductId.create('p1'),
-            sellerId: SellerId.create('s1'),
+            productId: p1Id,
+            sellerId: s1Id,
             quantity: 2,
-            unitPriceSnapshot: Money.create(12, Currency.EUR),
+            unitPriceSnapshot: price12,
           }),
           makeItem({
             id: 'server-i2',
             cartId: 'c1',
-            productId: ProductId.create('p2'),
-            sellerId: SellerId.create('s2'),
+            productId: p2Id,
+            sellerId: s2Id,
             quantity: 1,
-            unitPriceSnapshot: Money.create(25, Currency.EUR),
+            unitPriceSnapshot: price25,
           }),
         ],
       }),
@@ -498,6 +503,8 @@ describe('MigrateGuestCart', () => {
 
   it('keep-guest: server cart is replaced with guest items', async () => {
     productRepo.seed([{ id: 'p1', basePrice: 12, sellerId: 's1' }]);
+    const p1KeepGuest = ProductId.create('p1');
+    const price10 = Money.create(10, Currency.EUR);
     await cartRepo.save(
       makeCart({
         id: 'c1',
@@ -506,9 +513,9 @@ describe('MigrateGuestCart', () => {
           makeItem({
             id: 'server-i1',
             cartId: 'c1',
-            productId: ProductId.create('p1'),
+            productId: p1KeepGuest,
             quantity: 1,
-            unitPriceSnapshot: Money.create(10, Currency.EUR),
+            unitPriceSnapshot: price10,
           }),
         ],
       }),

@@ -119,7 +119,7 @@ describe('RegisterUserUseCase', () => {
   it('should reject empty firstName', async () => {
     const dto = {
       email: 'test@example.com',
-      firstName: '   ',
+      firstName: ' '.repeat(3),
       lastName: 'User',
       password: 'MiPassword123!',
     };

@@ -95,7 +95,9 @@ describe('ProductListQueryUseCase', () => {
     const result = await useCase.execute({ q: 'camiseta' });
 
     expect(result.items).toHaveLength(2);
-    expect(result.items.map((p) => p.id).sort()).toEqual(['p1', 'p2']);
+    expect(
+      result.items.map((p) => p.id).toSorted((a, b) => a.localeCompare(b)),
+    ).toEqual(['p1', 'p2']);
   });
 
   it('falls back to es translation when requested locale has no translation', async () => {
@@ -217,7 +219,9 @@ describe('ProductListQueryUseCase', () => {
     const result = await useCase.execute({ tags: ['cotton', 'blue'] });
 
     expect(result.items).toHaveLength(2);
-    expect(result.items.map((p) => p.id).sort()).toEqual(['p1', 'p3']);
+    expect(
+      result.items.map((p) => p.id).toSorted((a, b) => a.localeCompare(b)),
+    ).toEqual(['p1', 'p3']);
   });
 
   it('defaults locale to es', async () => {
@@ -353,10 +357,9 @@ describe('ProductListQueryUseCase', () => {
 
       const result = await useCase.execute({ audience: 'seller' });
 
-      expect(result.items.map((p) => p.id).sort()).toEqual([
-        'active-1',
-        'draft-1',
-      ]);
+      expect(
+        result.items.map((p) => p.id).toSorted((a, b) => a.localeCompare(b)),
+      ).toEqual(['active-1', 'draft-1']);
     });
 
     it('keeps the default pageSize=20 (admin tables unaffected)', async () => {
@@ -455,7 +458,9 @@ describe('ProductListQueryUseCase', () => {
 
       const result = await useCase.execute({ q: 'cerámica' });
 
-      expect(result.items.map((p) => p.id).sort()).toEqual(['p1', 'p2']);
+      expect(
+        result.items.map((p) => p.id).toSorted((a, b) => a.localeCompare(b)),
+      ).toEqual(['p1', 'p2']);
     });
   });
 
@@ -496,7 +501,11 @@ describe('ProductListQueryUseCase', () => {
     it('does NOT emit when q is only whitespace for public audience', async () => {
       repo.seed([makeProduct('p1')]);
 
-      await useCase.execute({ audience: 'public', q: '   ', userId: 'user-1' });
+      await useCase.execute({
+        audience: 'public',
+        q: ' '.repeat(3),
+        userId: 'user-1',
+      });
 
       const events = await outbox.findPending(10);
       expect(events).toHaveLength(0);

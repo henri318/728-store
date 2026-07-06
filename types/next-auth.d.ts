@@ -1,17 +1,19 @@
 import { DefaultSession, DefaultUser } from 'next-auth';
 import { DefaultJWT } from 'next-auth/jwt';
 
+type EmailVerified = Date | string | null;
+
 declare module 'next-auth' {
   interface User extends DefaultUser {
     role?: string;
-    emailVerified?: Date | string | null;
+    emailVerified?: EmailVerified;
   }
 
   interface Session {
     user: {
       id: string;
       role: string;
-      emailVerified: Date | string | null;
+      emailVerified: EmailVerified;
     } & DefaultSession['user'];
   }
 }
@@ -20,6 +22,6 @@ declare module 'next-auth/jwt' {
   interface JWT extends DefaultJWT {
     id?: string;
     role?: string;
-    emailVerified?: Date | string | null;
+    emailVerified?: EmailVerified;
   }
 }

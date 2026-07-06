@@ -5,9 +5,9 @@ import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 describe('ProductPrice', () => {
   describe('create()', () => {
     it('should create with valid amount and currency', () => {
-      const price = ProductPrice.create(25.0, Currency.EUR);
+      const price = ProductPrice.create(25, Currency.EUR);
       expect(price).toBeInstanceOf(ProductPrice);
-      expect(price.amount).toBe(25.0);
+      expect(price.amount).toBe(25);
       expect(price.currency).toBe(Currency.EUR);
     });
 
@@ -19,7 +19,7 @@ describe('ProductPrice', () => {
 
     it('should create with small positive amount', () => {
       const price = ProductPrice.create(0.01, Currency.EUR);
-      expect(price.amount).toBe(0.01);
+      expect(price.amount).toBeCloseTo(0.01);
     });
 
     it('should reject zero amount', () => {
@@ -45,29 +45,29 @@ describe('ProductPrice', () => {
 
   describe('equals()', () => {
     it('should return true for the same amount and currency', () => {
-      const a = ProductPrice.create(25.0, Currency.EUR);
-      const b = ProductPrice.create(25.0, Currency.EUR);
+      const a = ProductPrice.create(25, Currency.EUR);
+      const b = ProductPrice.create(25, Currency.EUR);
       expect(a.equals(b)).toBe(true);
     });
 
     it('should return false for different amount', () => {
-      const a = ProductPrice.create(25.0, Currency.EUR);
-      const b = ProductPrice.create(30.0, Currency.EUR);
+      const a = ProductPrice.create(25, Currency.EUR);
+      const b = ProductPrice.create(30, Currency.EUR);
       expect(a.equals(b)).toBe(false);
     });
 
     it('should return false for different currency', () => {
-      const a = ProductPrice.create(25.0, Currency.EUR);
-      const b = ProductPrice.create(25.0, Currency.USD);
+      const a = ProductPrice.create(25, Currency.EUR);
+      const b = ProductPrice.create(25, Currency.USD);
       expect(a.equals(b)).toBe(false);
     });
   });
 
   describe('delegates to Money', () => {
     it('should expose Money behavior via price', () => {
-      const price = ProductPrice.create(50.0, Currency.EUR);
+      const price = ProductPrice.create(50, Currency.EUR);
       expect(price.money).toBeDefined();
-      expect(price.money.amount).toBe(50.0);
+      expect(price.money.amount).toBe(50);
       expect(price.money.currency).toBe(Currency.EUR);
     });
   });

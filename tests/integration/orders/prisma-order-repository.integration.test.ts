@@ -8,6 +8,103 @@ import type {
   OrderLineItemEntity,
 } from '@/modules/orders/domain/order-repository';
 
+/** Create prerequisite rows for FK constraints. */
+async function ensurePrerequisites(ids: {
+  userId: string;
+  sellerId: string;
+  productId: string;
+  userEmail?: string;
+  sellerName?: string;
+}): Promise<void> {
+  await prisma.user.upsert({
+    where: { id: ids.userId },
+    create: {
+      id: ids.userId,
+      email: ids.userEmail ?? `${ids.userId}@test.com`,
+      firstName: 'Order',
+      lastName: 'Buyer',
+      role: 'CUSTOMER',
+      passwordHash: 'hashed-pw',
+    },
+    update: {},
+  });
+
+  // Seller's linked user must exist before the seller (FK constraint)
+  await prisma.user.upsert({
+    where: { id: `user-for-${ids.sellerId}` },
+    create: {
+      id: `user-for-${ids.sellerId}`,
+      email: `seller-owner-${ids.sellerId}@test.com`,
+      firstName: 'Seller',
+      lastName: 'Owner',
+      role: 'DESIGNER',
+      passwordHash: 'hashed-pw',
+    },
+    update: {},
+  });
+
+  await prisma.seller.upsert({
+    where: { id: ids.sellerId },
+    create: {
+      id: ids.sellerId,
+      name: ids.sellerName ?? `Seller ${ids.sellerId}`,
+      userId: `user-for-${ids.sellerId}`,
+      status: 'active',
+    },
+    update: {},
+  });
+
+  await prisma.product.upsert({
+    where: { id: ids.productId },
+    create: {
+      id: ids.productId,
+      basePrice: 50,
+      sellerId: ids.sellerId,
+    },
+    update: {},
+  });
+}
+
+async function ensureCheckoutGroup(ids: {
+  checkoutGroupId: string;
+  userId: string;
+  paymentStatus: 'failed' | 'completed';
+  totalAmount?: number;
+  latestPaymentId?: string | null;
+}): Promise<void> {
+  await prisma.checkoutGroup.upsert({
+    where: { id: ids.checkoutGroupId },
+    create: {
+      id: ids.checkoutGroupId,
+      userId: ids.userId,
+      currency: 'EUR',
+      totalAmount: ids.totalAmount ?? 100,
+      paymentStatus: ids.paymentStatus,
+      paymentAttemptCount: ids.paymentStatus === 'failed' ? 1 : 2,
+      latestPaymentId: ids.latestPaymentId ?? null,
+    },
+    update: {
+      userId: ids.userId,
+      paymentStatus: ids.paymentStatus,
+      totalAmount: ids.totalAmount ?? 100,
+      paymentAttemptCount: ids.paymentStatus === 'failed' ? 1 : 2,
+      latestPaymentId: ids.latestPaymentId ?? null,
+    },
+  });
+}
+
+function makeOrder(overrides: Partial<OrderEntity> = {}): OrderEntity {
+  return {
+    id: 'order-int-1',
+    userId: 'user-order-1',
+    sellerId: 'seller-order-1',
+    total: 100,
+    status: 'new',
+    lineItems: [],
+    ...overrides,
+  };
+}
+
 /**
  * PrismaOrderRepository — Integration tests against real Docker PostgreSQL.
  *
@@ -27,103 +124,6 @@ describe('PrismaOrderRepository — Integration', () => {
   afterAll(async () => {
     await cleanupDb();
   });
-
-  /** Create prerequisite rows for FK constraints. */
-  async function ensurePrerequisites(ids: {
-    userId: string;
-    sellerId: string;
-    productId: string;
-    userEmail?: string;
-    sellerName?: string;
-  }): Promise<void> {
-    await prisma.user.upsert({
-      where: { id: ids.userId },
-      create: {
-        id: ids.userId,
-        email: ids.userEmail ?? `${ids.userId}@test.com`,
-        firstName: 'Order',
-        lastName: 'Buyer',
-        role: 'CUSTOMER',
-        passwordHash: 'hashed-pw',
-      },
-      update: {},
-    });
-
-    // Seller's linked user must exist before the seller (FK constraint)
-    await prisma.user.upsert({
-      where: { id: `user-for-${ids.sellerId}` },
-      create: {
-        id: `user-for-${ids.sellerId}`,
-        email: `seller-owner-${ids.sellerId}@test.com`,
-        firstName: 'Seller',
-        lastName: 'Owner',
-        role: 'DESIGNER',
-        passwordHash: 'hashed-pw',
-      },
-      update: {},
-    });
-
-    await prisma.seller.upsert({
-      where: { id: ids.sellerId },
-      create: {
-        id: ids.sellerId,
-        name: ids.sellerName ?? `Seller ${ids.sellerId}`,
-        userId: `user-for-${ids.sellerId}`,
-        status: 'active',
-      },
-      update: {},
-    });
-
-    await prisma.product.upsert({
-      where: { id: ids.productId },
-      create: {
-        id: ids.productId,
-        basePrice: 50.0,
-        sellerId: ids.sellerId,
-      },
-      update: {},
-    });
-  }
-
-  async function ensureCheckoutGroup(ids: {
-    checkoutGroupId: string;
-    userId: string;
-    paymentStatus: 'failed' | 'completed';
-    totalAmount?: number;
-    latestPaymentId?: string | null;
-  }): Promise<void> {
-    await prisma.checkoutGroup.upsert({
-      where: { id: ids.checkoutGroupId },
-      create: {
-        id: ids.checkoutGroupId,
-        userId: ids.userId,
-        currency: 'EUR',
-        totalAmount: ids.totalAmount ?? 100,
-        paymentStatus: ids.paymentStatus,
-        paymentAttemptCount: ids.paymentStatus === 'failed' ? 1 : 2,
-        latestPaymentId: ids.latestPaymentId ?? null,
-      },
-      update: {
-        userId: ids.userId,
-        paymentStatus: ids.paymentStatus,
-        totalAmount: ids.totalAmount ?? 100,
-        paymentAttemptCount: ids.paymentStatus === 'failed' ? 1 : 2,
-        latestPaymentId: ids.latestPaymentId ?? null,
-      },
-    });
-  }
-
-  function makeOrder(overrides: Partial<OrderEntity> = {}): OrderEntity {
-    return {
-      id: 'order-int-1',
-      userId: 'user-order-1',
-      sellerId: 'seller-order-1',
-      total: 100,
-      status: 'new',
-      lineItems: [],
-      ...overrides,
-    };
-  }
 
   describe('save + findById', () => {
     it('should persist an order and retrieve it by ID', async () => {

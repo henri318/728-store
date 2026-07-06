@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { type ZodError } from 'zod';
+import { type ZodError, type ZodIssue } from 'zod';
 import { TextField } from '@/shared/ui/text-field';
 import { DescriptionField } from '@/shared/ui/description-field';
 import { BackLink } from '@/shared/ui/back-link';
@@ -35,6 +35,37 @@ interface FormErrors {
   description?: string;
 }
 
+function applyIssue(errors: FormErrors, issue: ZodIssue) {
+  const path = issue.path?.join('.') || '';
+  switch (path) {
+    case 'email': {
+      errors.email = issue.message;
+      break;
+    }
+    case 'password': {
+      errors.password = issue.message;
+      break;
+    }
+    case 'firstName': {
+      errors.firstName = issue.message;
+      break;
+    }
+    case 'lastName': {
+      errors.lastName = issue.message;
+      break;
+    }
+    case 'name': {
+      errors.name = issue.message;
+      break;
+    }
+    case 'description': {
+      errors.description = issue.message;
+      // No default
+      break;
+    }
+  }
+}
+
 function normalizePayload(form: FormState) {
   return {
     email: form.email.trim(),
@@ -65,13 +96,7 @@ function validateForm(
   const issues = (result.error as ZodError).issues ?? [];
 
   for (const issue of issues) {
-    const path = issue.path?.join('.') || '';
-    if (path === 'email') errors.email = issue.message;
-    else if (path === 'password') errors.password = issue.message;
-    else if (path === 'firstName') errors.firstName = issue.message;
-    else if (path === 'lastName') errors.lastName = issue.message;
-    else if (path === 'name') errors.name = issue.message;
-    else if (path === 'description') errors.description = issue.message;
+    applyIssue(errors, issue);
   }
 
   return Object.keys(errors).length > 0 ? errors : null;

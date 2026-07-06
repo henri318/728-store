@@ -10,7 +10,7 @@ import { PaginatedResult } from '@/shared/kernel/domain/value-objects/pagination
 
 export class MemoryOrderRepository implements OrderRepository {
   private orders: OrderEntity[] = [];
-  private orderLineItems: OrderLineItemEntity[] = []; // In-memory store for line items
+  private orderLineItems: OrderLineItemEntity[] = [];
 
   async findPaginated(
     filter: OrderListFilter,
@@ -27,7 +27,7 @@ export class MemoryOrderRepository implements OrderRepository {
       return true;
     });
 
-    const sorted = [...filtered].sort((a, b) => {
+    const sorted = filtered.toSorted((a, b) => {
       const aTime = a.createdAt?.getTime?.() ?? 0;
       const bTime = b.createdAt?.getTime?.() ?? 0;
       const diff = aTime - bTime;
@@ -46,24 +46,18 @@ export class MemoryOrderRepository implements OrderRepository {
   }
 
   async save(order: OrderEntity, _tx?: unknown): Promise<OrderEntity> {
-    // Store the order
     this.orders.push(order);
 
-    // Store associated order line items
     if (order.lineItems && order.lineItems.length > 0) {
-      order.lineItems.forEach((lineItem) => {
-        // Ensure orderId is set for line items before storing
+      for (const lineItem of order.lineItems) {
         const lineItemWithOrderId: OrderLineItemEntity = {
           ...lineItem,
           orderId: order.id,
         };
         this.orderLineItems.push(lineItemWithOrderId);
-      });
+      }
     }
 
-    // Return the order entity with line items populated (as it was passed in)
-    // In a real scenario, the repository might fetch them back to return a fully hydrated entity.
-    // For this fake repository, returning the object as it was passed is sufficient.
     return order;
   }
 
@@ -76,16 +70,15 @@ export class MemoryOrderRepository implements OrderRepository {
       return;
     }
 
-    lineItems.forEach((item) => {
+    for (const item of lineItems) {
       this.orderLineItems.push({ ...item, orderId });
-    });
+    }
   }
 
   async findById(orderId: string): Promise<OrderEntity | null> {
     const order = this.orders.find((o) => o.id === orderId);
     if (!order) return null;
 
-    // Fetch associated line items to return a hydrated entity
     const lineItems = this.orderLineItems.filter(
       (item) => item.orderId === orderId,
     );
@@ -111,28 +104,18 @@ export class MemoryOrderRepository implements OrderRepository {
   async countPaidByUserId(userId: string): Promise<number> {
     return this.orders.filter(
       (o) =>
-        o.userId === userId &&
-        ORDER_PAID_PURCHASE_STATUSES.some((status) => status === o.status),
+        o.userId === userId && ORDER_PAID_PURCHASE_STATUSES.includes(o.status),
     ).length;
   }
 
-  // Add a method to retrieve line items if needed for testing or verification
   async getLineItemsByOrderId(orderId: string): Promise<OrderLineItemEntity[]> {
     return this.orderLineItems.filter((item) => item.orderId === orderId);
   }
 
-  /**
-   * Test helper — returns a shallow copy of every stored order. Lets
-   * test code enumerate the full set without reaching into private
-   * state. Not part of the production port.
-   */
   async findAllForTest(): Promise<OrderEntity[]> {
     return this.orders.map((o) => ({ ...o }));
   }
 
-  /**
-   * Test helper — returns every line item across all orders.
-   */
   async getAllLineItemsForTest(): Promise<OrderLineItemEntity[]> {
     return [...this.orderLineItems];
   }

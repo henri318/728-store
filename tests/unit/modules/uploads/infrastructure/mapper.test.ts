@@ -27,7 +27,7 @@ function makePrismaUploadRow(
     fileName: 'photo.webp',
     storageKey: 'product/user-1/clsxyz123.webp',
     mimeType: 'image/webp',
-    size: 102400,
+    size: 102_400,
     uploadedBy: 'user-1',
     type: 'product',
     status: 'PENDING',
@@ -42,7 +42,7 @@ function makeEntity(overrides: Partial<UploadEntity> = {}): UploadEntity {
     fileName: 'photo.webp',
     storageKey: 'product/user-1/clsxyz123.webp',
     mimeType: 'image/webp',
-    size: 102400,
+    size: 102_400,
     uploadedBy: 'user-1',
     type: UploadType.product,
     status: UploadStatus.PENDING,
@@ -61,7 +61,7 @@ describe('mapper.toDomainUpload', () => {
     expect(result.fileName).toBe('photo.webp');
     expect(result.storageKey).toBe('product/user-1/clsxyz123.webp');
     expect(result.mimeType).toBe('image/webp');
-    expect(result.size).toBe(102400);
+    expect(result.size).toBe(102_400);
     expect(result.uploadedBy).toBe('user-1');
     expect(result.type).toBe(UploadType.product);
     expect(result.status).toBe(UploadStatus.PENDING);
@@ -146,7 +146,7 @@ describe('mapper.toPersistenceUpload', () => {
       fileName: 'custom-photo.png',
       storageKey: 'avatar/user-42/custom.webp',
       mimeType: 'image/png',
-      size: 512000,
+      size: 512_000,
       uploadedBy: 'user-42',
       type: UploadType.avatar,
       status: UploadStatus.CONFIRMED,
@@ -157,7 +157,7 @@ describe('mapper.toPersistenceUpload', () => {
     expect(result.id).toBe('custom-id');
     expect(result.type).toBe(UploadType.avatar);
     expect(result.status).toBe(UploadStatus.CONFIRMED);
-    expect(result.size).toBe(512000);
+    expect(result.size).toBe(512_000);
   });
 
   it('should pass through invalid enum values (no runtime validation)', () => {
@@ -187,7 +187,7 @@ describe('mapper round-trip', () => {
       fileName: 'photo.jpg',
       storageKey: 'product/user-1/clsxyz123.jpg',
       mimeType: 'image/jpeg',
-      size: 102400,
+      size: 102_400,
       uploadedBy: 'user-1',
       type: UploadType.product,
       status: UploadStatus.CONFIRMED,

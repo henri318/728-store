@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
-const ACCEPTED_MIME_TYPES = ['image/png', 'image/jpeg'];
+const ACCEPTED_MIME_TYPES = new Set(['image/png', 'image/jpeg']);
 
 export interface PhotoUploadResult {
   imageUploadId: string;
@@ -43,7 +43,7 @@ export function PhotoUploadField({
       return;
     }
 
-    if (!ACCEPTED_MIME_TYPES.includes(file.type)) {
+    if (!ACCEPTED_MIME_TYPES.has(file.type)) {
       setError(invalidImageLabel);
       return;
     }

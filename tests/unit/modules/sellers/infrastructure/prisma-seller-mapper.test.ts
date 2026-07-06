@@ -116,6 +116,7 @@ describe('prisma-seller-mapper.toDomain', () => {
 });
 
 describe('prisma-seller-mapper.toPersistence', () => {
+  // eslint-disable-next-line unicorn/consistent-function-scoping
   function makeEntity(overrides: Partial<SellerEntity> = {}): SellerEntity {
     return {
       sellerId: SellerId.create('seller-1'),

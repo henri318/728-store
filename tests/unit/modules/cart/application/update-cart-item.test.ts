@@ -17,6 +17,27 @@ import {
 import type { CartEntity } from '@/modules/cart/domain/entities/cart';
 import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
 
+const makeItem = (overrides: Partial<CartItemEntity> = {}): CartItemEntity => ({
+  id: 'i-default',
+  cartId: 'c1',
+  productId: ProductId.create('p1'),
+  sellerId: SellerId.create('s1'),
+  quantity: 1,
+  unitPriceSnapshot: Money.create(10, Currency.EUR),
+  customizationIdList: [],
+  ...overrides,
+});
+
+const makeCart = (overrides: Partial<CartEntity> = {}): CartEntity => ({
+  id: 'c1',
+  userId: 'u1',
+  status: CartStatus.Active,
+  items: [],
+  createdAt: new Date('2026-01-01T00:00:00Z'),
+  updatedAt: new Date('2026-01-01T00:00:00Z'),
+  ...overrides,
+});
+
 /**
  * Tests for UpdateCartItemQuantity (spec REQ-CART-012).
  *
@@ -32,29 +53,6 @@ describe('UpdateCartItemQuantity', () => {
   let cartRepo: MemoryCartRepository;
   let outboxRepo: MemoryOutboxRepository;
   let useCase: UpdateCartItemQuantity;
-
-  const makeItem = (
-    overrides: Partial<CartItemEntity> = {},
-  ): CartItemEntity => ({
-    id: 'i-default',
-    cartId: 'c1',
-    productId: ProductId.create('p1'),
-    sellerId: SellerId.create('s1'),
-    quantity: 1,
-    unitPriceSnapshot: Money.create(10, Currency.EUR),
-    customizationIdList: [],
-    ...overrides,
-  });
-
-  const makeCart = (overrides: Partial<CartEntity> = {}): CartEntity => ({
-    id: 'c1',
-    userId: 'u1',
-    status: CartStatus.Active,
-    items: [],
-    createdAt: new Date('2026-01-01T00:00:00Z'),
-    updatedAt: new Date('2026-01-01T00:00:00Z'),
-    ...overrides,
-  });
 
   beforeEach(async () => {
     cartRepo = new MemoryCartRepository();
@@ -155,11 +153,9 @@ describe('UpdateCartItemQuantity', () => {
 
   it('rejects update on a checked-out cart with CartImmutableError', async () => {
     // Mark the cart as checked out.
-    await cartRepo.markCheckedOut(
-      await import('@/modules/cart/domain/value-objects/cart-id').then((m) =>
-        m.CartId.create('c1'),
-      ),
-    );
+    const { CartId } =
+      await import('@/modules/cart/domain/value-objects/cart-id');
+    await cartRepo.markCheckedOut(CartId.create('c1'));
 
     await expect(
       useCase.execute({ userId: 'u1', itemId: 'i1', quantity: 5 }),

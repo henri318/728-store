@@ -5,6 +5,8 @@ import eslintReact from '@eslint-react/eslint-plugin';
 import reactHooks from 'eslint-plugin-react-hooks';
 import nextPlugin from '@next/eslint-plugin-next';
 import i18next from 'eslint-plugin-i18next';
+import sonarjs from 'eslint-plugin-sonarjs';
+import unicorn from 'eslint-plugin-unicorn';
 
 const CODE_FILES = ['**/*.{js,jsx,mjs,cjs,ts,tsx}'];
 
@@ -110,6 +112,13 @@ export default [
       ...nextPlugin.configs['core-web-vitals'].rules,
     },
   },
+
+  // 👇 SonarJS - usa su config plana "recommended"
+  scopeToCodeFiles(sonarjs.configs.recommended),
+
+  // 👇 Unicorn - también trae flat config recomendada
+  scopeToCodeFiles(unicorn.configs.recommended),
+
   scopeToCodeFiles({
     ignores: ['**/tests/**'],
     plugins: { i18next },
@@ -126,13 +135,87 @@ export default [
             exclude: [
               '[0-9!-/:-@[-`{-~]+',
               '^[A-Z_-]+$',
-              '^[\u00B7\u00D7\u2190-\u21FF\u2212\u2713-\u2717]+$',
+              '^[\u{B7}\u{D7}\u{2190}-\u{21FF}\u{2212}\u{2713}-\u{2717}]+$',
             ],
           },
         },
       ],
     },
   }),
+  scopeToCodeFiles({
+    rules: {
+      // Unicorn tiene reglas muy opinadas que suelen chocar con convenciones existentes
+      'unicorn/prevent-abbreviations': 'off', // evita forzar renombrar req->request, err->error, etc.
+      'unicorn/filename-case': 'off', // si no seguís kebab-case estricto en nombres de archivo
+      'unicorn/no-null': 'off', // muchos proyectos usan null intencionalmente (ej. React)
+      'unicorn/prefer-module': 'off', // si tenéis algún archivo CJS (configs, scripts)
+      'unicorn/name-replacements': 'off',
+
+      'unicorn/no-top-level-assignment-in-function': 'off',
+      'unicorn/consistent-class-member-order': 'off',
+      'unicorn/no-negated-condition': 'off',
+      'unicorn/consistent-boolean-name': 'off',
+      'unicorn/prefer-await': 'off',
+      'unicorn/prefer-export-from': 'off',
+      'unicorn/catch-error-name': 'off',
+      'unicorn/prefer-global-this': 'off',
+      'unicorn/explicit-length-check': 'off',
+      'unicorn/prefer-split-limit': 'off',
+      'unicorn/no-array-callback-reference': 'off',
+      'unicorn/prefer-string-replace-all': 'off',
+      'unicorn/consistent-conditional-object-spread': 'off',
+      'sonarjs/no-nested-conditional': 'off',
+      'unicorn/prefer-type-error': 'off',
+      'unicorn/no-computed-property-existence-check': 'off',
+      'unicorn/switch-case-braces': 'off',
+      'unicorn/no-unsafe-string-replacement': 'off',
+      'unicorn/prefer-unicode-code-point-escapes': 'off',
+      'unicorn/prefer-early-return': 'off',
+      'unicorn/require-array-sort-compare': 'off',
+      'sonarjs/cognitive-complexity': 'off',
+      'sonarjs/no-nested-template-literals': 'off',
+      'unicorn/no-nested-ternary': 'off',
+      'unicorn/no-array-sort': 'off',
+      'unicorn/prefer-number-is-safe-integer': 'off',
+      'unicorn/prefer-ternary': 'off',
+      'sonarjs/no-useless-react-setstate': 'off',
+      'sonarjs/no-hardcoded-passwords': 'off',
+      'unicorn/prefer-add-event-listener': 'off',
+      'sonarjs/super-linear-regex': 'off',
+      'unicorn/numeric-separators-style': 'off',
+      'sonarjs/void-use': 'off',
+      'unicorn/import-style': 'off',
+      'sonarjs/no-unused-vars': 'off',
+      'unicorn/no-declarations-before-early-exit': 'off',
+      'unicorn/prefer-string-raw': 'off',
+      'unicorn/no-for-each': 'off',
+      'unicorn/prefer-location-assign': 'off',
+
+      // SonarJS: ajustar el umbral de complejidad cognitiva si el default es muy estricto
+      // 'sonarjs/cognitive-complexity': ['warn', 15],
+    },
+  }),
+  // Vitest no implementa .toBeTrue() / .toBeFalse() que sonarjs exige.
+  // Usamos .toBe(true) / .toBe(false) que es el estándar de vitest.
+  // IPs y passwords hardcoded en tests son datos de prueba esperables.
+  {
+    files: ['**/*.test.{ts,tsx}', 'tests/**/*.test.{ts,tsx}'],
+    rules: {
+      'sonarjs/prefer-specific-assertions': 'off',
+      'sonarjs/no-hardcoded-ip': 'off',
+      'sonarjs/no-hardcoded-passwords': 'off',
+    },
+  },
+  // prisma/seed.ts se compila con esbuild en formato CJS,
+  // que no soporta top-level await. Deshabilitamos reglas
+  // que obligan a usarlo.
+  {
+    files: ['prisma/seed.ts'],
+    rules: {
+      'unicorn/prefer-top-level-await': 'off',
+      'unicorn/no-async-promise-finally': 'off',
+    },
+  },
 
   // JSON / JSONC / JSON5
   {

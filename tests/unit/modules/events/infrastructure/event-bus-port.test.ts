@@ -28,9 +28,15 @@ describe('EventBusPort — port contract (via EventBus)', () => {
 
     it('should invoke multiple handlers for the same event in registration order', async () => {
       const order: string[] = [];
-      bus.on('order.paid', () => void order.push('h1'));
-      bus.on('order.paid', () => void order.push('h2'));
-      bus.on('order.paid', () => void order.push('h3'));
+      bus.on('order.paid', () => {
+        order.push('h1');
+      });
+      bus.on('order.paid', () => {
+        order.push('h2');
+      });
+      bus.on('order.paid', () => {
+        order.push('h3');
+      });
 
       await bus.emit('order.paid', {});
 
@@ -139,8 +145,8 @@ describe('EventBusPort — port contract (via EventBus)', () => {
       try {
         await bus.emit('order.paid', {});
         expect.fail('emit should have rejected');
-      } catch (err) {
-        expect(err).toBe(original);
+      } catch (error) {
+        expect(error).toBe(original);
       }
     });
   });

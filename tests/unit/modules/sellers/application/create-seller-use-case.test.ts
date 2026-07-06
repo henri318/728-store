@@ -83,7 +83,7 @@ describe('CreateSellerUseCase', () => {
 
   it('should throw ValidationError when name is whitespace only', async () => {
     await expect(
-      useCase.execute({ name: '   ', userId: 'user-6' }),
+      useCase.execute({ name: ' '.repeat(3), userId: 'user-6' }),
     ).rejects.toThrow('Seller name is required');
   });
 

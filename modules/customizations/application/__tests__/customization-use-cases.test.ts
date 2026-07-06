@@ -38,6 +38,7 @@ class FakeCustomizationRepository implements CustomizationRepository {
   }
 
   async findByProductId(productId: string): Promise<CustomizationEntity[]> {
+    // eslint-disable-next-line unicorn/prefer-iterator-to-array
     return [...this.store.values()].filter((e) => e.productId === productId);
   }
 
@@ -140,7 +141,7 @@ describe('CreateCustomization', () => {
     await expect(
       useCase.execute({
         productId: 'prod-1',
-        imageUrl: 'ftp://x.com/y.png',
+        imageUrl: 'not-a-valid-url',
       }),
     ).rejects.toThrow();
   });

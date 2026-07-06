@@ -116,10 +116,8 @@ describe('SellerDetailForm', () => {
   });
 
   it('keeps the submit button in loading state until the request settles', async () => {
-    let resolveFetch!: (value: Response) => void;
-    const pendingFetch = new Promise<Response>((resolve) => {
-      resolveFetch = resolve;
-    });
+    const { promise: pendingFetch, resolve: resolveFetch } =
+      Promise.withResolvers<Response>();
 
     fetchMock.mockReturnValueOnce(pendingFetch as Promise<Response>);
 

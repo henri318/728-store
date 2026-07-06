@@ -27,10 +27,9 @@ import { InfiniteProductList } from '@/components/products/infinite-product-list
 import type { ClientProductCard } from '@/components/products/infinite-product-list';
 
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
 
 // Capture the IntersectionObserver callback so tests can fire it.
-let intersectionCallbacks: Array<
+const intersectionCallbacks: Array<
   (entries: Array<{ isIntersecting: boolean }>) => void
 > = [];
 
@@ -53,13 +52,14 @@ class MockIntersectionObserver {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  intersectionCallbacks = [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (global as any).IntersectionObserver = MockIntersectionObserver;
+  intersectionCallbacks.length = 0;
+  vi.stubGlobal('fetch', mockFetch);
+  vi.stubGlobal('IntersectionObserver', MockIntersectionObserver);
 });
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 function makeProduct(id: string, name: string): ClientProductCard {

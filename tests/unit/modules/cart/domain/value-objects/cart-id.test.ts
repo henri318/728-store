@@ -21,7 +21,9 @@ describe('CartId', () => {
   });
 
   it('rejects whitespace-only strings', () => {
-    expect(() => CartId.create('   ')).toThrow('EntityId cannot be empty');
+    expect(() => CartId.create(' '.repeat(3))).toThrow(
+      'EntityId cannot be empty',
+    );
   });
 
   it('trims surrounding whitespace', () => {

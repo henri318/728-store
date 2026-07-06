@@ -37,10 +37,12 @@ export function TagList({
     const existingLower = new Set(tags.map((t) => t.toLowerCase()));
     const next = [...tags];
     for (const t of rawTags) {
-      if (!existingLower.has(t.toLowerCase())) {
-        next.push(t);
-        existingLower.add(t.toLowerCase());
+      if (existingLower.has(t.toLowerCase())) {
+        continue;
       }
+
+      next.push(t);
+      existingLower.add(t.toLowerCase());
     }
 
     onChange(next.length > 0 ? next : null);

@@ -10,10 +10,10 @@ export class MemoryUserRepository implements UserRepository {
     const existingIndex = this.users.findIndex((u) =>
       u.userId.equals(user.userId),
     );
-    if (existingIndex >= 0) {
-      this.users[existingIndex] = user;
-    } else {
+    if (existingIndex === -1) {
       this.users.push(user);
+    } else {
+      this.users[existingIndex] = user;
     }
     return user;
   }
@@ -36,7 +36,7 @@ export class MemoryUserRepository implements UserRepository {
 
   async update(user: UserEntity, _tx?: unknown): Promise<UserEntity> {
     const index = this.users.findIndex((u) => u.userId.equals(user.userId));
-    if (index < 0) {
+    if (index === -1) {
       throw new Error(`User with id ${user.userId.value} not found`);
     }
     this.users[index] = user;
@@ -45,7 +45,7 @@ export class MemoryUserRepository implements UserRepository {
 
   async delete(id: string): Promise<void> {
     const index = this.users.findIndex((u) => u.userId.value === id);
-    if (index >= 0) {
+    if (index !== -1) {
       this.users.splice(index, 1);
     }
   }

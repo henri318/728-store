@@ -18,12 +18,12 @@ export async function loginAs(
   await page.getByLabel('Correo electrónico').fill(email);
   await page.getByLabel('Contraseña').fill(password);
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
-  await page.waitForURL(new RegExp(`\\/${locale}${expectedPath}\\/?$`));
+  await page.waitForURL(new RegExp(String.raw`\/${locale}${expectedPath}\/?$`));
 }
 
 /** Log out by clicking the menu → sign out button. */
 export async function logout(page: Page, locale = 'es'): Promise<void> {
   await page.getByRole('button', { name: /menu/i }).click();
   await page.getByRole('menuitem', { name: /cerrar sesión/i }).click();
-  await page.waitForURL(new RegExp(`\\/${locale}\\/?$`));
+  await page.waitForURL(new RegExp(String.raw`\/${locale}\/?$`));
 }

@@ -21,11 +21,9 @@ vi.mock('next-auth/react', () => ({
 import SignUpPage from '@/app/[locale]/auth/signup/page';
 
 describe('SignUpPage', () => {
-  const originalFetch = global.fetch;
-
   afterEach(() => {
     vi.restoreAllMocks();
-    global.fetch = originalFetch;
+    vi.unstubAllGlobals();
   });
 
   it('renders firstName, lastName, email, password fields — NOT a single "name" field', () => {
@@ -58,7 +56,7 @@ describe('SignUpPage', () => {
       ok: true,
       json: () => Promise.resolve({ id: '123', email: 'test@example.com' }),
     });
-    global.fetch = fetchMock;
+    vi.stubGlobal('fetch', fetchMock);
 
     render(<SignUpPage />);
 
@@ -112,7 +110,7 @@ describe('SignUpPage', () => {
   it('shows validation error when firstName is empty', async () => {
     const user = userEvent.setup();
     const fetchMock = vi.fn();
-    global.fetch = fetchMock;
+    vi.stubGlobal('fetch', fetchMock);
 
     render(<SignUpPage />);
 
@@ -148,7 +146,7 @@ describe('SignUpPage', () => {
       status: 409,
       json: () => Promise.resolve({ error: 'User already exists' }),
     });
-    global.fetch = fetchMock;
+    vi.stubGlobal('fetch', fetchMock);
 
     render(<SignUpPage />);
 

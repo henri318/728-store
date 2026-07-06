@@ -11,7 +11,7 @@ function makeUpload(overrides: Partial<UploadEntity> = {}): UploadEntity {
     fileName: 'photo.webp',
     storageKey: 'product/user-1/clsxyz123.webp',
     mimeType: 'image/webp',
-    size: 102400,
+    size: 102_400,
     uploadedBy: 'user-1',
     type: UploadType.product,
     status: UploadStatus.CONFIRMED,
@@ -41,7 +41,7 @@ describe('GetUploadUseCase', () => {
     expect(result.fileName).toBe('photo.webp');
     expect(result.storageKey).toBe('product/user-1/clsxyz123.webp');
     expect(result.mimeType).toBe('image/webp');
-    expect(result.size).toBe(102400);
+    expect(result.size).toBe(102_400);
     expect(result.uploadedBy).toBe('user-1');
     expect(result.type).toBe(UploadType.product);
     expect(result.status).toBe(UploadStatus.CONFIRMED);

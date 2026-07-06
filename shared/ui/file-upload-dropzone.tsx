@@ -55,7 +55,7 @@ export function FileUploadDropzone({
   };
 
   const handleFiles = async (fileList: FileList | File[]) => {
-    const files = Array.from(fileList);
+    const files = [...fileList];
     if (!files.length || disabled || busy) return;
 
     await onFilesSelected(multiple ? files : files.slice(0, 1));

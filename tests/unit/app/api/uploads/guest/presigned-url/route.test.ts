@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => {
   const saveMock = vi.fn();
   const uploadUrlMock = vi.fn(async () => 'https://r2.example.com/upload');
   const rateLimitMock = vi.fn(async () => ({ blocked: false }));
-  const recordAttemptMock = vi.fn(async () => undefined);
+  const recordAttemptMock = vi.fn(async () => {});
 
   return {
     saveMock,

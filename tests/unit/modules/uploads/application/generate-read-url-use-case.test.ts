@@ -12,7 +12,7 @@ function makeUpload(overrides: Partial<UploadEntity> = {}): UploadEntity {
     fileName: 'photo.webp',
     storageKey: 'product/user-1/clsxyz123.webp',
     mimeType: 'image/webp',
-    size: 102400,
+    size: 102_400,
     uploadedBy: 'user-1',
     type: UploadType.product,
     status: UploadStatus.CONFIRMED,

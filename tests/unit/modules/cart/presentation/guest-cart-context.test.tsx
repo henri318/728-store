@@ -23,7 +23,7 @@ function CartConsumer() {
             productId: 'prod-1',
             sellerId: 'seller-1',
             quantity: 2,
-            unitPriceSnapshot: 10.0,
+            unitPriceSnapshot: 10,
           })
         }
       >
@@ -88,7 +88,7 @@ describe('GuestCartContext', () => {
     expect(items).toHaveLength(1);
     expect(items[0].productId).toBe('prod-1');
     expect(items[0].quantity).toBe(2);
-    expect(items[0].unitPriceSnapshot).toBe(10.0);
+    expect(items[0].unitPriceSnapshot).toBe(10);
   });
 
   it('persists items to localStorage', () => {
@@ -108,7 +108,7 @@ describe('GuestCartContext', () => {
           productId: 'prod-x',
           sellerId: 'seller-x',
           quantity: 3,
-          unitPriceSnapshot: 15.0,
+          unitPriceSnapshot: 15,
         },
       ],
       updatedAt: new Date().toISOString(),

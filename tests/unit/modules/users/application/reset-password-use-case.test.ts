@@ -66,7 +66,7 @@ describe('ResetPasswordUseCase', () => {
 
   async function createValidToken(
     email = userEmail,
-    ttlMs = 3600_000,
+    ttlMs = 3_600_000,
   ): Promise<string> {
     return tokenCodec.encode({
       email,

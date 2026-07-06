@@ -1,12 +1,12 @@
 import 'server-only';
 
 import type { Dictionary } from './dictionary-context';
+import es from './locales/es.json';
+import cat from './locales/cat.json';
 
 const dictionaries: Record<string, () => Promise<Dictionary>> = {
-  es: () =>
-    import('./locales/es.json').then((module) => module.default as Dictionary),
-  cat: () =>
-    import('./locales/cat.json').then((module) => module.default as Dictionary),
+  es: async () => es as unknown as Dictionary,
+  cat: async () => cat as unknown as Dictionary,
 };
 
 export const getDictionary = async (

@@ -63,9 +63,9 @@ describe('CustomizationOptions', () => {
 
     it('should accept valid http imageUrl', () => {
       const opts = CustomizationOptions.create({
-        imageUrl: 'http://example.com/photo.png',
+        imageUrl: 'https://example.com/photo.png',
       });
-      expect(opts.imageUrl).toBe('http://example.com/photo.png');
+      expect(opts.imageUrl).toBe('https://example.com/photo.png');
     });
 
     it('should accept valid https imageUrl', () => {

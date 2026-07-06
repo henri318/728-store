@@ -81,7 +81,7 @@ export class Money {
     if (!currency) {
       throw new Error('Money.format currency is required');
     }
-    return `${amount.toFixed(2)} ${Money.getSymbol(currency)}`;
+    return `${amount.toFixed(2)} ${this.getSymbol(currency)}`;
   }
 
   private static getSymbol(currency: Currency): string {

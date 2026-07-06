@@ -370,7 +370,7 @@ export function CartView({
                   <button
                     aria-label={labels.increaseQuantity}
                     className={styles.qtyButton}
-                    onClick={() => handleUpdateQuantity(item, +1)}
+                    onClick={() => handleUpdateQuantity(item, 1)}
                     disabled={item.quantity >= 99}
                   >
                     +

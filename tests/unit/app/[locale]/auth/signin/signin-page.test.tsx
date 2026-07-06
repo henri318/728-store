@@ -18,15 +18,13 @@ import { signIn } from 'next-auth/react';
 import SignInPage from '@/app/[locale]/auth/signin/page';
 
 describe('SignInPage', () => {
-  const originalFetch = global.fetch;
-
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    global.fetch = originalFetch;
+    vi.unstubAllGlobals();
   });
 
   it('renders i18n labels: signInTitle, email, password, loginButton', () => {
@@ -49,9 +47,12 @@ describe('SignInPage', () => {
       status: 200,
       url: '',
     });
-    global.fetch = vi.fn().mockResolvedValue({
-      json: () => Promise.resolve({ user: { role: 'CUSTOMER' } }),
-    });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        json: () => Promise.resolve({ user: { role: 'CUSTOMER' } }),
+      }),
+    );
 
     render(<SignInPage />);
 
@@ -83,9 +84,12 @@ describe('SignInPage', () => {
       status: 200,
       url: '',
     });
-    global.fetch = vi.fn().mockResolvedValue({
-      json: () => Promise.resolve({ user: { role: 'DESIGNER' } }),
-    });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        json: () => Promise.resolve({ user: { role: 'DESIGNER' } }),
+      }),
+    );
 
     render(<SignInPage />);
 
@@ -109,9 +113,12 @@ describe('SignInPage', () => {
       status: 200,
       url: '',
     });
-    global.fetch = vi.fn().mockResolvedValue({
-      json: () => Promise.resolve({ user: { role: 'ADMIN' } }),
-    });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        json: () => Promise.resolve({ user: { role: 'ADMIN' } }),
+      }),
+    );
 
     render(<SignInPage />);
 

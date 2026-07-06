@@ -31,6 +31,7 @@ class FakeCustomizationRepository implements CustomizationRepository {
   }
 
   async findByProductId(productId: string): Promise<CustomizationEntity[]> {
+    // eslint-disable-next-line unicorn/prefer-iterator-to-array
     return [...this.store.values()].filter((e) => e.productId === productId);
   }
 

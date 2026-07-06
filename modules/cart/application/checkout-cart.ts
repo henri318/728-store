@@ -316,10 +316,12 @@ function uniqueProductIds(items: CartItemEntity[]): ProductId[] {
   const set = new Set<string>();
   const out: ProductId[] = [];
   for (const item of items) {
-    if (!set.has(item.productId.value)) {
-      set.add(item.productId.value);
-      out.push(item.productId);
+    if (set.has(item.productId.value)) {
+      continue;
     }
+
+    set.add(item.productId.value);
+    out.push(item.productId);
   }
   return out;
 }

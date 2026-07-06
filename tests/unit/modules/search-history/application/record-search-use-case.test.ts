@@ -45,7 +45,11 @@ describe('RecordSearchUseCase', () => {
   });
 
   it('rejects empty terms without writing', async () => {
-    await useCase.execute({ userId: 'user-1', term: '   ', locale: 'es' });
+    await useCase.execute({
+      userId: 'user-1',
+      term: ' '.repeat(3),
+      locale: 'es',
+    });
 
     const entries = await repo.findRecent({
       userId: 'user-1',

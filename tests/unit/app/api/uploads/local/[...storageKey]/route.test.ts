@@ -1,5 +1,5 @@
 import { mkdtempSync, rmSync } from 'node:fs';
-import { join } from 'node:path';
+import path from 'node:path';
 import { tmpdir } from 'node:os';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
@@ -13,13 +13,15 @@ describe('PUT/GET /api/uploads/local/[...storageKey]', () => {
 
   afterEach(() => {
     vi.unstubAllEnvs();
-    for (const dir of tempDirs.splice(0)) {
+    const dirs = [...tempDirs];
+    tempDirs.length = 0;
+    for (const dir of dirs) {
       rmSync(dir, { recursive: true, force: true });
     }
   });
 
   it('stores bytes locally and serves them back through GET', async () => {
-    const dir = mkdtempSync(join(tmpdir(), '728-store-uploads-'));
+    const dir = mkdtempSync(path.join(tmpdir(), '728-store-uploads-'));
     tempDirs.push(dir);
     process.env.LOCAL_UPLOAD_STORAGE_DIR = dir;
 
@@ -61,7 +63,7 @@ describe('PUT/GET /api/uploads/local/[...storageKey]', () => {
   ])(
     'rejects storage keys that escape the local upload directory: %s',
     async (key) => {
-      const dir = mkdtempSync(join(tmpdir(), '728-store-uploads-'));
+      const dir = mkdtempSync(path.join(tmpdir(), '728-store-uploads-'));
       tempDirs.push(dir);
       process.env.LOCAL_UPLOAD_STORAGE_DIR = dir;
 

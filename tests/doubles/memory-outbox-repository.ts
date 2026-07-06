@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import type {
   OutboxEvent,
   OutboxRepository,
@@ -45,7 +45,7 @@ export class MemoryOutboxRepository implements OutboxRepository {
   async findPending(limit: number): Promise<OutboxEvent[]> {
     return this.store
       .filter((e) => e.status === 'PENDING')
-      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+      .toSorted((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
       .slice(0, limit);
   }
 

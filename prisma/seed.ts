@@ -152,7 +152,7 @@ async function main() {
   // 7. Create 25 Products with i18n translations
   const productsData = [
     {
-      basePrice: 25.0,
+      basePrice: 25,
       sellerId: seller.id,
       tags: ['personalizable', 'basico'],
       translations: {
@@ -168,7 +168,7 @@ async function main() {
       },
     },
     {
-      basePrice: 15.0,
+      basePrice: 15,
       sellerId: seller.id,
       tags: ['cocina', 'personalizable', 'regalo'],
       translations: {
@@ -183,7 +183,7 @@ async function main() {
       },
     },
     {
-      basePrice: 45.0,
+      basePrice: 45,
       sellerId: seller.id,
       tags: ['personalizable', 'basico'],
       translations: {
@@ -198,7 +198,7 @@ async function main() {
       },
     },
     {
-      basePrice: 12.0,
+      basePrice: 12,
       sellerId: seller.id,
       tags: ['cocina', 'hogar'],
       translations: {
@@ -213,7 +213,7 @@ async function main() {
       },
     },
     {
-      basePrice: 35.0,
+      basePrice: 35,
       sellerId: seller.id,
       tags: ['hogar', 'decoracion', 'premium'],
       translations: {
@@ -229,7 +229,7 @@ async function main() {
       },
     },
     {
-      basePrice: 8.0,
+      basePrice: 8,
       sellerId: seller.id,
       tags: ['oficina', 'accesorio'],
       translations: {
@@ -244,7 +244,7 @@ async function main() {
       },
     },
     {
-      basePrice: 55.0,
+      basePrice: 55,
       sellerId: seller.id,
       tags: ['premium', 'hogar', 'limited-edition'],
       translations: {
@@ -259,7 +259,7 @@ async function main() {
       },
     },
     {
-      basePrice: 18.0,
+      basePrice: 18,
       sellerId: seller.id,
       tags: ['cocina', 'eco-friendly', 'hogar'],
       translations: {
@@ -274,7 +274,7 @@ async function main() {
       },
     },
     {
-      basePrice: 22.0,
+      basePrice: 22,
       sellerId: seller.id,
       tags: ['accesorio', 'handmade', 'regalo'],
       translations: {
@@ -289,7 +289,7 @@ async function main() {
       },
     },
     {
-      basePrice: 30.0,
+      basePrice: 30,
       sellerId: seller.id,
       tags: ['hogar', 'decoracion', 'eco-friendly'],
       translations: {
@@ -304,7 +304,7 @@ async function main() {
       },
     },
     {
-      basePrice: 9.0,
+      basePrice: 9,
       sellerId: seller.id,
       tags: ['oficina', 'accesorio', 'basico'],
       translations: {
@@ -320,7 +320,7 @@ async function main() {
       },
     },
     {
-      basePrice: 40.0,
+      basePrice: 40,
       sellerId: seller.id,
       tags: ['handmade', 'eco-friendly', 'limited-edition'],
       translations: {
@@ -336,7 +336,7 @@ async function main() {
       },
     },
     {
-      basePrice: 20.0,
+      basePrice: 20,
       sellerId: seller.id,
       tags: ['cocina', 'basico', 'hogar'],
       translations: {
@@ -351,7 +351,7 @@ async function main() {
       },
     },
     {
-      basePrice: 65.0,
+      basePrice: 65,
       sellerId: seller.id,
       tags: ['premium', 'hogar', 'handmade'],
       translations: {
@@ -366,7 +366,7 @@ async function main() {
       },
     },
     {
-      basePrice: 14.0,
+      basePrice: 14,
       sellerId: seller.id,
       tags: ['oficina', 'accesorio', 'regalo'],
       translations: {
@@ -381,7 +381,7 @@ async function main() {
       },
     },
     {
-      basePrice: 28.0,
+      basePrice: 28,
       sellerId: seller.id,
       tags: ['accesorio', 'handmade', 'eco-friendly'],
       translations: {
@@ -397,7 +397,7 @@ async function main() {
       },
     },
     {
-      basePrice: 48.0,
+      basePrice: 48,
       sellerId: seller.id,
       tags: ['personalizable', 'premium', 'limited-edition'],
       translations: {
@@ -412,7 +412,7 @@ async function main() {
       },
     },
     {
-      basePrice: 11.0,
+      basePrice: 11,
       sellerId: seller.id,
       tags: ['cocina', 'hogar', 'basico'],
       translations: {
@@ -427,7 +427,7 @@ async function main() {
       },
     },
     {
-      basePrice: 32.0,
+      basePrice: 32,
       sellerId: seller.id,
       tags: ['hogar', 'decoracion', 'handmade'],
       translations: {
@@ -442,7 +442,7 @@ async function main() {
       },
     },
     {
-      basePrice: 6.0,
+      basePrice: 6,
       sellerId: seller.id,
       tags: ['accesorio', 'basico', 'eco-friendly'],
       translations: {
@@ -457,7 +457,7 @@ async function main() {
       },
     },
     {
-      basePrice: 38.0,
+      basePrice: 38,
       sellerId: seller.id,
       tags: ['cocina', 'premium', 'regalo'],
       translations: {
@@ -472,7 +472,7 @@ async function main() {
       },
     },
     {
-      basePrice: 16.0,
+      basePrice: 16,
       sellerId: seller.id,
       tags: ['oficina', 'accesorio', 'personalizable'],
       translations: {
@@ -487,7 +487,7 @@ async function main() {
       },
     },
     {
-      basePrice: 50.0,
+      basePrice: 50,
       sellerId: seller.id,
       tags: ['handmade', 'premium', 'limited-edition'],
       translations: {
@@ -519,7 +519,7 @@ async function main() {
       },
     },
     {
-      basePrice: 42.0,
+      basePrice: 42,
       sellerId: seller.id,
       tags: ['accesorio', 'handmade', 'eco-friendly'],
       translations: {
@@ -602,9 +602,9 @@ async function main() {
 }
 
 main()
-  .catch((e) => {
-    console.error('❌ Seed failed:', e);
-    process.exit(1);
+  .catch((error) => {
+    console.error('❌ Seed failed:', error);
+    process.exitCode = 1;
   })
   .finally(async () => {
     await prisma.$disconnect();

@@ -14,7 +14,7 @@ describe('CategoryId', () => {
     });
 
     it('should throw on whitespace-only string', () => {
-      expect(() => CategoryId.create('   ')).toThrow(
+      expect(() => CategoryId.create(' '.repeat(3))).toThrow(
         'EntityId cannot be empty',
       );
     });

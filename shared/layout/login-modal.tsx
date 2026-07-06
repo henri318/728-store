@@ -41,7 +41,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         onClose();
 
         const res = await fetch('/api/auth/session');
-        const role = (await res.json())?.user?.role;
+        const session = await res.json();
+        const role = session?.user?.role;
         const locale = window.location.pathname.split('/')[1] ?? 'es';
         if (role === 'ADMIN') {
           window.location.href = `/${locale}/admin/sellers`;

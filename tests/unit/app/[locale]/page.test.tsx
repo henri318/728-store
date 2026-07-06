@@ -103,7 +103,7 @@ describe('HomePage', () => {
             images: [
               {
                 id: 'img-1',
-                url: 'http://assets.example.test/products/taza.png',
+                url: 'https://assets.example.test/products/taza.png',
                 alt: 'Taza personalizada',
                 position: 0,
                 productId: 'active-1',
@@ -130,7 +130,7 @@ describe('HomePage', () => {
     expect(screen.getByText('Taza personalizada')).toBeInTheDocument();
     expect(screen.getByAltText('Taza personalizada')).toHaveAttribute(
       'src',
-      'http://assets.example.test/products/taza.png',
+      'https://assets.example.test/products/taza.png',
     );
     expect(screen.queryByText('Borrador')).toBeNull();
   });

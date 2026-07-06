@@ -35,7 +35,7 @@ export class EventBus implements EventBusPort {
     const handlers = this.handlers.get(event) || [];
     // Track errors per-handler; the first one wins
     const settled = await Promise.allSettled(
-      handlers.map((handler) => Promise.resolve().then(() => handler(data))),
+      handlers.map((handler) => Promise.try(() => handler(data))),
     );
     const firstRejection = settled.find((r) => r.status === 'rejected');
     if (firstRejection && firstRejection.status === 'rejected') {

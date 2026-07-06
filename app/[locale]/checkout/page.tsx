@@ -170,7 +170,7 @@ export default async function CheckoutPage({
     group.items.push(item);
     group.subtotal = +(group.subtotal + item.lineTotal).toFixed(2);
   }
-  const sellerGroups = Array.from(sellerMap.values());
+  const sellerGroups = sellerMap.values().toArray();
 
   // Totals.
   const subtotal = +items.reduce((acc, i) => acc + i.lineTotal, 0).toFixed(2);

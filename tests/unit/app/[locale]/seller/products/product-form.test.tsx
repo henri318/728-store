@@ -78,13 +78,13 @@ describe('ProductForm', () => {
         const body = JSON.parse(String(init?.body ?? '{}')) as {
           fileName: string;
         };
-        return new Response(
-          JSON.stringify({
+        return Response.json(
+          {
             id: `${body.fileName}-upload`,
             uploadUrl: `https://uploads.example.com/${body.fileName}`,
             storageKey: `products/${body.fileName}`,
             publicUrl: `http://localhost:8081/products/${body.fileName}`,
-          }),
+          },
           { status: 201 },
         );
       }
@@ -94,7 +94,7 @@ describe('ProductForm', () => {
       }
 
       if (url === '/api/products') {
-        return new Response(JSON.stringify({ id: 'p-1' }), { status: 201 });
+        return Response.json({ id: 'p-1' }, { status: 201 });
       }
 
       return new Response(null, { status: 200 });
@@ -306,7 +306,7 @@ describe('ProductForm', () => {
       const url = String(input);
 
       if (url === '/api/products/p-1') {
-        return new Response(JSON.stringify({ id: 'p-1' }), { status: 200 });
+        return Response.json({ id: 'p-1' }, { status: 200 });
       }
 
       return new Response(null, { status: 200 });
@@ -361,13 +361,13 @@ describe('ProductForm', () => {
       const url = String(input);
 
       if (url.includes('/api/uploads/presigned-url')) {
-        return new Response(
-          JSON.stringify({
+        return Response.json(
+          {
             id: 'photo-upload',
             uploadUrl: 'https://uploads.example.com/photo.png',
             storageKey: 'products/photo.png',
             publicUrl: 'http://localhost:8081/products/photo.png',
-          }),
+          },
           { status: 201 },
         );
       }

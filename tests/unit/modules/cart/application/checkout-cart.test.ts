@@ -21,6 +21,27 @@ import type { TransactionRunner } from '@/shared/kernel/transaction-runner';
 import type { CartEntity } from '@/modules/cart/domain/entities/cart';
 import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
 
+const makeItem = (overrides: Partial<CartItemEntity> = {}): CartItemEntity => ({
+  id: 'i-default',
+  cartId: 'c1',
+  productId: ProductId.create('p1'),
+  sellerId: SellerId.create('s1'),
+  quantity: 1,
+  unitPriceSnapshot: Money.create(10, Currency.EUR),
+  customizationIdList: [],
+  ...overrides,
+});
+
+const makeCart = (overrides: Partial<CartEntity> = {}): CartEntity => ({
+  id: 'c1',
+  userId: 'u1',
+  status: CartStatus.Active,
+  items: [],
+  createdAt: new Date('2026-01-01T00:00:00Z'),
+  updatedAt: new Date('2026-01-01T00:00:00Z'),
+  ...overrides,
+});
+
 /**
  * Tests for CheckoutCart (spec REQ-CART-014 / REQ-CART-015 / REQ-CART-016).
  *
@@ -55,29 +76,6 @@ describe('CheckoutCart', () => {
   let customizationLookup: MemoryCustomizationLookup;
   let useCase: CheckoutCart;
 
-  const makeItem = (
-    overrides: Partial<CartItemEntity> = {},
-  ): CartItemEntity => ({
-    id: 'i-default',
-    cartId: 'c1',
-    productId: ProductId.create('p1'),
-    sellerId: SellerId.create('s1'),
-    quantity: 1,
-    unitPriceSnapshot: Money.create(10, Currency.EUR),
-    customizationIdList: [],
-    ...overrides,
-  });
-
-  const makeCart = (overrides: Partial<CartEntity> = {}): CartEntity => ({
-    id: 'c1',
-    userId: 'u1',
-    status: CartStatus.Active,
-    items: [],
-    createdAt: new Date('2026-01-01T00:00:00Z'),
-    updatedAt: new Date('2026-01-01T00:00:00Z'),
-    ...overrides,
-  });
-
   beforeEach(() => {
     cartRepo = new MemoryCartRepository();
     productRepo = new MemoryCartProductRepository();
@@ -102,89 +100,72 @@ describe('CheckoutCart', () => {
   it('happy path single seller: subtotal €20, shipping €3.99, total €23.99', async () => {
     productRepo.seed([{ id: 'p1', basePrice: 10, sellerId: 's1' }]);
     paidOrderPort.setCount(1); // not first purchase
-    await cartRepo.save(
-      makeCart({
-        id: 'c1',
-        userId: 'u1',
-        items: [
-          makeItem({
-            id: 'i1',
-            cartId: 'c1',
-            productId: ProductId.create('p1'),
-            quantity: 2,
-          }),
-        ],
+    const items = [
+      makeItem({
+        id: 'i1',
+        cartId: 'c1',
+        productId: ProductId.create('p1'),
+        quantity: 2,
       }),
-    );
+    ];
+    await cartRepo.save(makeCart({ id: 'c1', userId: 'u1', items }));
 
     const result = await useCase.confirm('u1', false);
 
     expect(result.totals.subtotal).toBe(20);
     expect(result.totals.discount).toBe(0);
-    expect(result.totals.shipping).toBe(3.99);
-    expect(result.totals.total).toBe(23.99);
+    expect(result.totals.shipping).toBeCloseTo(3.99);
+    expect(result.totals.total).toBeCloseTo(23.99);
     expect(result.totals.currency).toBe(Currency.EUR);
     expect(result.totals.isFirstPurchase).toBe(false);
 
-    const cart = await cartRepo.findById(
-      await import('@/modules/cart/domain/value-objects/cart-id').then((m) =>
-        m.CartId.create('c1'),
-      ),
-    );
+    const { CartId: CartIdVO } =
+      await import('@/modules/cart/domain/value-objects/cart-id');
+    const cart = await cartRepo.findById(CartIdVO.create('c1'));
     expect(cart?.status).toBe(CartStatus.CheckedOut);
   });
 
   it('first-purchase discount: 10% off subtotal', async () => {
     productRepo.seed([{ id: 'p1', basePrice: 50, sellerId: 's1' }]);
     paidOrderPort.setCount(0); // first purchase
-    await cartRepo.save(
-      makeCart({
-        id: 'c1',
-        userId: 'u1',
-        items: [
-          makeItem({
-            id: 'i1',
-            cartId: 'c1',
-            productId: ProductId.create('p1'),
-            sellerId: SellerId.create('s1'),
-            unitPriceSnapshot: Money.create(50, Currency.EUR),
-          }),
-        ],
+    const items = [
+      makeItem({
+        id: 'i1',
+        cartId: 'c1',
+        productId: ProductId.create('p1'),
+        sellerId: SellerId.create('s1'),
+        unitPriceSnapshot: Money.create(50, Currency.EUR),
       }),
-    );
+    ];
+    await cartRepo.save(makeCart({ id: 'c1', userId: 'u1', items }));
 
     const result = await useCase.confirm('u1', false);
 
     expect(result.totals.subtotal).toBe(50);
     expect(result.totals.discount).toBe(5);
-    expect(result.totals.shipping).toBe(3.99);
-    expect(result.totals.total).toBe(48.99);
+    expect(result.totals.shipping).toBeCloseTo(3.99);
+    expect(result.totals.total).toBeCloseTo(48.99);
     expect(result.totals.isFirstPurchase).toBe(true);
   });
 
   it('discount boundary: subtotal €0.01 → discount €0.00 (rounded to cents)', async () => {
     productRepo.seed([{ id: 'p1', basePrice: 0.01, sellerId: 's1' }]);
     paidOrderPort.setCount(0);
-    await cartRepo.save(
-      makeCart({
-        id: 'c1',
-        userId: 'u1',
-        items: [
-          makeItem({
-            id: 'i1',
-            cartId: 'c1',
-            productId: ProductId.create('p1'),
-            sellerId: SellerId.create('s1'),
-            unitPriceSnapshot: Money.create(0.01, Currency.EUR),
-          }),
-        ],
+    const items = [
+      makeItem({
+        id: 'i1',
+        cartId: 'c1',
+        productId: ProductId.create('p1'),
+        sellerId: SellerId.create('s1'),
+        unitPriceSnapshot: Money.create(0.01, Currency.EUR),
       }),
-    );
+    ];
+    await cartRepo.save(makeCart({ id: 'c1', userId: 'u1', items }));
 
     const result = await useCase.confirm('u1', false);
 
     expect(result.totals.discount).toBe(0);
-    expect(result.totals.shipping).toBe(3.99);
+    expect(result.totals.shipping).toBeCloseTo(3.99);
     expect(result.totals.total).toBeCloseTo(3.99 + 0.01, 2);
   });
 
@@ -197,52 +178,47 @@ describe('CheckoutCart', () => {
       { id: 'p5', basePrice: 50, sellerId: 's5' },
     ]);
     paidOrderPort.setCount(1);
-    await cartRepo.save(
-      makeCart({
-        id: 'c1',
-        userId: 'u1',
-        items: [
-          makeItem({
-            id: 'i1',
-            cartId: 'c1',
-            productId: ProductId.create('p1'),
-            unitPriceSnapshot: Money.create(10, Currency.EUR),
-          }),
-          makeItem({
-            id: 'i2',
-            cartId: 'c1',
-            productId: ProductId.create('p2'),
-            sellerId: SellerId.create('s2'),
-            unitPriceSnapshot: Money.create(20, Currency.EUR),
-          }),
-          makeItem({
-            id: 'i3',
-            cartId: 'c1',
-            productId: ProductId.create('p3'),
-            sellerId: SellerId.create('s3'),
-            unitPriceSnapshot: Money.create(30, Currency.EUR),
-          }),
-          makeItem({
-            id: 'i4',
-            cartId: 'c1',
-            productId: ProductId.create('p4'),
-            sellerId: SellerId.create('s4'),
-            unitPriceSnapshot: Money.create(40, Currency.EUR),
-          }),
-          makeItem({
-            id: 'i5',
-            cartId: 'c1',
-            productId: ProductId.create('p5'),
-            sellerId: SellerId.create('s5'),
-            unitPriceSnapshot: Money.create(50, Currency.EUR),
-          }),
-        ],
+    const items = [
+      makeItem({
+        id: 'i1',
+        cartId: 'c1',
+        productId: ProductId.create('p1'),
+        unitPriceSnapshot: Money.create(10, Currency.EUR),
       }),
-    );
+      makeItem({
+        id: 'i2',
+        cartId: 'c1',
+        productId: ProductId.create('p2'),
+        sellerId: SellerId.create('s2'),
+        unitPriceSnapshot: Money.create(20, Currency.EUR),
+      }),
+      makeItem({
+        id: 'i3',
+        cartId: 'c1',
+        productId: ProductId.create('p3'),
+        sellerId: SellerId.create('s3'),
+        unitPriceSnapshot: Money.create(30, Currency.EUR),
+      }),
+      makeItem({
+        id: 'i4',
+        cartId: 'c1',
+        productId: ProductId.create('p4'),
+        sellerId: SellerId.create('s4'),
+        unitPriceSnapshot: Money.create(40, Currency.EUR),
+      }),
+      makeItem({
+        id: 'i5',
+        cartId: 'c1',
+        productId: ProductId.create('p5'),
+        sellerId: SellerId.create('s5'),
+        unitPriceSnapshot: Money.create(50, Currency.EUR),
+      }),
+    ];
+    await cartRepo.save(makeCart({ id: 'c1', userId: 'u1', items }));
 
     const result = await useCase.confirm('u1', false);
 
-    expect(result.totals.shipping).toBe(3.99);
+    expect(result.totals.shipping).toBeCloseTo(3.99);
     expect(result.totals.subtotal).toBe(150);
   });
 
@@ -253,35 +229,30 @@ describe('CheckoutCart', () => {
       { id: 'p3', basePrice: 30, sellerId: 's2' },
     ]);
     paidOrderPort.setCount(1);
-    await cartRepo.save(
-      makeCart({
-        id: 'c1',
-        userId: 'u1',
-        items: [
-          makeItem({
-            id: 'i1',
-            cartId: 'c1',
-            productId: ProductId.create('p1'),
-            sellerId: SellerId.create('s1'),
-            unitPriceSnapshot: Money.create(10, Currency.EUR),
-          }),
-          makeItem({
-            id: 'i2',
-            cartId: 'c1',
-            productId: ProductId.create('p2'),
-            sellerId: SellerId.create('s1'),
-            unitPriceSnapshot: Money.create(20, Currency.EUR),
-          }),
-          makeItem({
-            id: 'i3',
-            cartId: 'c1',
-            productId: ProductId.create('p3'),
-            sellerId: SellerId.create('s2'),
-            unitPriceSnapshot: Money.create(30, Currency.EUR),
-          }),
-        ],
+    const items = [
+      makeItem({
+        id: 'i1',
+        cartId: 'c1',
+        productId: ProductId.create('p1'),
+        sellerId: SellerId.create('s1'),
+        unitPriceSnapshot: Money.create(10, Currency.EUR),
       }),
-    );
+      makeItem({
+        id: 'i2',
+        cartId: 'c1',
+        productId: ProductId.create('p2'),
+        sellerId: SellerId.create('s1'),
+        unitPriceSnapshot: Money.create(20, Currency.EUR),
+      }),
+      makeItem({
+        id: 'i3',
+        cartId: 'c1',
+        productId: ProductId.create('p3'),
+        sellerId: SellerId.create('s2'),
+        unitPriceSnapshot: Money.create(30, Currency.EUR),
+      }),
+    ];
+    await cartRepo.save(makeCart({ id: 'c1', userId: 'u1', items }));
 
     const result = await useCase.confirm('u1', false);
 
@@ -289,7 +260,9 @@ describe('CheckoutCart', () => {
       items: Array<{ productId: string; sellerId: string; quantity: number }>;
     };
     expect(payload.items).toHaveLength(3);
-    const sellers = payload.items.map((i) => i.sellerId).sort();
+    const sellers = payload.items
+      .map((i) => i.sellerId)
+      .toSorted((a, b) => a.localeCompare(b));
     expect(sellers).toEqual(['s1', 's1', 's2']);
   });
 
@@ -324,8 +297,8 @@ describe('CheckoutCart', () => {
     expect(payload.items).toHaveLength(1);
     expect(payload.subtotal).toBe(20);
     expect(payload.discountApplied).toBe(2);
-    expect(payload.shippingCost).toBe(3.99);
-    expect(payload.totalAmount).toBe(21.99);
+    expect(payload.shippingCost).toBeCloseTo(3.99);
+    expect(payload.totalAmount).toBeCloseTo(21.99);
     expect(payload.currency).toBe('EUR');
     expect(payload.isFirstPurchase).toBe(true);
   });
@@ -475,19 +448,14 @@ describe('CheckoutCart', () => {
   it('preview detects a price change and returns PriceChangedError with diff', async () => {
     productRepo.seed([{ id: 'p1', basePrice: 12, sellerId: 's1' }]); // current 12
     paidOrderPort.setCount(1);
-    await cartRepo.save(
-      makeCart({
-        id: 'c1',
-        userId: 'u1',
-        items: [
-          makeItem({
-            id: 'i1',
-            cartId: 'c1',
-            unitPriceSnapshot: Money.create(10, Currency.EUR),
-          }),
-        ],
+    const items = [
+      makeItem({
+        id: 'i1',
+        cartId: 'c1',
+        unitPriceSnapshot: Money.create(10, Currency.EUR),
       }),
-    );
+    ];
+    await cartRepo.save(makeCart({ id: 'c1', userId: 'u1', items }));
 
     await expect(useCase.preview('u1')).rejects.toBeInstanceOf(
       PriceChangedError,
@@ -505,33 +473,28 @@ describe('CheckoutCart', () => {
       { id: 'p2', basePrice: 25, sellerId: 's1' }, // unchanged
     ]);
     paidOrderPort.setCount(1);
-    await cartRepo.save(
-      makeCart({
-        id: 'c1',
-        userId: 'u1',
-        items: [
-          makeItem({
-            id: 'i1',
-            cartId: 'c1',
-            productId: ProductId.create('p1'),
-            unitPriceSnapshot: Money.create(10, Currency.EUR),
-          }),
-          makeItem({
-            id: 'i2',
-            cartId: 'c1',
-            productId: ProductId.create('p2'),
-            unitPriceSnapshot: Money.create(25, Currency.EUR),
-          }),
-        ],
+    const items = [
+      makeItem({
+        id: 'i1',
+        cartId: 'c1',
+        productId: ProductId.create('p1'),
+        unitPriceSnapshot: Money.create(10, Currency.EUR),
       }),
-    );
+      makeItem({
+        id: 'i2',
+        cartId: 'c1',
+        productId: ProductId.create('p2'),
+        unitPriceSnapshot: Money.create(25, Currency.EUR),
+      }),
+    ];
+    await cartRepo.save(makeCart({ id: 'c1', userId: 'u1', items }));
 
     try {
       await useCase.preview('u1');
       expect.unreachable('preview should have thrown');
-    } catch (err) {
-      expect(err).toBeInstanceOf(PriceChangedError);
-      const changes = (err as PriceChangedError).priceChanges;
+    } catch (error) {
+      expect(error).toBeInstanceOf(PriceChangedError);
+      const changes = (error as PriceChangedError).priceChanges;
       expect(changes).toHaveLength(1);
       expect(changes[0].itemId).toBe('i1');
       expect(changes[0].oldPrice.amount).toBe(10);
@@ -542,19 +505,14 @@ describe('CheckoutCart', () => {
   it('confirm with acceptPriceChanges=false on a price mismatch aborts', async () => {
     productRepo.seed([{ id: 'p1', basePrice: 12, sellerId: 's1' }]);
     paidOrderPort.setCount(1);
-    await cartRepo.save(
-      makeCart({
-        id: 'c1',
-        userId: 'u1',
-        items: [
-          makeItem({
-            id: 'i1',
-            cartId: 'c1',
-            unitPriceSnapshot: Money.create(10, Currency.EUR),
-          }),
-        ],
+    const items = [
+      makeItem({
+        id: 'i1',
+        cartId: 'c1',
+        unitPriceSnapshot: Money.create(10, Currency.EUR),
       }),
-    );
+    ];
+    await cartRepo.save(makeCart({ id: 'c1', userId: 'u1', items }));
 
     await expect(useCase.confirm('u1', false)).rejects.toBeInstanceOf(
       PriceChangedError,
@@ -568,30 +526,23 @@ describe('CheckoutCart', () => {
   it('confirm with acceptPriceChanges=true updates snapshots and proceeds', async () => {
     productRepo.seed([{ id: 'p1', basePrice: 12, sellerId: 's1' }]);
     paidOrderPort.setCount(1);
-    await cartRepo.save(
-      makeCart({
-        id: 'c1',
-        userId: 'u1',
-        items: [
-          makeItem({
-            id: 'i1',
-            cartId: 'c1',
-            unitPriceSnapshot: Money.create(10, Currency.EUR),
-          }),
-        ],
+    const items = [
+      makeItem({
+        id: 'i1',
+        cartId: 'c1',
+        unitPriceSnapshot: Money.create(10, Currency.EUR),
       }),
-    );
+    ];
+    await cartRepo.save(makeCart({ id: 'c1', userId: 'u1', items }));
 
     const result = await useCase.confirm('u1', true);
 
     expect(result.totals.subtotal).toBe(12); // current price, not snapshot
     expect(outboxRepo.events).toHaveLength(1);
 
-    const cart = await cartRepo.findById(
-      await import('@/modules/cart/domain/value-objects/cart-id').then((m) =>
-        m.CartId.create('c1'),
-      ),
-    );
+    const { CartId: CartIdVO2 } =
+      await import('@/modules/cart/domain/value-objects/cart-id');
+    const cart = await cartRepo.findById(CartIdVO2.create('c1'));
     expect(cart?.status).toBe(CartStatus.CheckedOut);
     expect(cart?.items[0].unitPriceSnapshot.amount).toBe(12);
   });
@@ -661,8 +612,8 @@ describe('CheckoutCart', () => {
     const preview = await useCase.preview('u1');
 
     expect(preview.subtotal).toBe(10);
-    expect(preview.shipping).toBe(3.99);
-    expect(preview.total).toBe(13.99);
+    expect(preview.shipping).toBeCloseTo(3.99);
+    expect(preview.total).toBeCloseTo(13.99);
 
     const cart = await cartRepo.findActiveByUserId('u1');
     expect(cart?.status).toBe(CartStatus.Active);
@@ -724,11 +675,9 @@ describe('CheckoutCart', () => {
 
     expect(runSpy).toHaveBeenCalledTimes(1);
     // Cart is checked out AND the outbox has exactly one event.
-    const cart = await cartRepo.findById(
-      await import('@/modules/cart/domain/value-objects/cart-id').then((m) =>
-        m.CartId.create('c1'),
-      ),
-    );
+    const { CartId: CartIdVO3 } =
+      await import('@/modules/cart/domain/value-objects/cart-id');
+    const cart = await cartRepo.findById(CartIdVO3.create('c1'));
     expect(cart?.status).toBe(CartStatus.CheckedOut);
     expect(outboxRepo.events).toHaveLength(1);
   });

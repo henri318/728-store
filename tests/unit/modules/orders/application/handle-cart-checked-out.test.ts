@@ -22,6 +22,47 @@ import { GlobalEvents } from '@/modules/events/domain/event-registry';
  *  - Customization fields preserved on each line item
  *  - ORDER_CREATED event emitted per created order, with payload
  */
+const buildPayload = (
+  overrides: Partial<{
+    cartId: string;
+    userId: string;
+    items: Array<{
+      productId: string;
+      sellerId: string;
+      quantity: number;
+      unitPrice: number;
+      customizationIdList?: string[];
+      customizationSnapshot?: Array<{
+        id: string;
+        text: string | null;
+        color: string | null;
+        size: string | null;
+        imageUrl: string | null;
+        designPosition: CustomizationDesignPositionSnapshot | null;
+      }> | null;
+    }>;
+    subtotal: number;
+    discountApplied: number;
+    shippingCost: number;
+    totalAmount: number;
+    currency: 'EUR';
+    isFirstPurchase: boolean;
+    occurredAt: string;
+  }> = {},
+) => ({
+  cartId: 'cart-1',
+  userId: 'user-1',
+  items: [],
+  subtotal: 0,
+  discountApplied: 0,
+  shippingCost: 3.99,
+  totalAmount: 3.99,
+  currency: 'EUR' as const,
+  isFirstPurchase: false,
+  occurredAt: new Date().toISOString(),
+  ...overrides,
+});
+
 describe('HandleCartCheckedOut', () => {
   let orderRepo: MemoryOrderRepository;
   let outboxRepo: MemoryOutboxRepository;
@@ -47,47 +88,6 @@ describe('HandleCartCheckedOut', () => {
 
     expect(await orderRepo.findAllForTest()).toHaveLength(0);
     expect(outboxRepo.events).toHaveLength(0);
-  });
-
-  const buildPayload = (
-    overrides: Partial<{
-      cartId: string;
-      userId: string;
-      items: Array<{
-        productId: string;
-        sellerId: string;
-        quantity: number;
-        unitPrice: number;
-        customizationIdList?: string[];
-        customizationSnapshot?: Array<{
-          id: string;
-          text: string | null;
-          color: string | null;
-          size: string | null;
-          imageUrl: string | null;
-          designPosition: CustomizationDesignPositionSnapshot | null;
-        }> | null;
-      }>;
-      subtotal: number;
-      discountApplied: number;
-      shippingCost: number;
-      totalAmount: number;
-      currency: 'EUR';
-      isFirstPurchase: boolean;
-      occurredAt: string;
-    }> = {},
-  ) => ({
-    cartId: 'cart-1',
-    userId: 'user-1',
-    items: [],
-    subtotal: 0,
-    discountApplied: 0,
-    shippingCost: 3.99,
-    totalAmount: 3.99,
-    currency: 'EUR' as const,
-    isFirstPurchase: false,
-    occurredAt: new Date().toISOString(),
-    ...overrides,
   });
 
   // -------------------------------------------------------------------------
@@ -172,7 +172,9 @@ describe('HandleCartCheckedOut', () => {
 
     // items[] carries the per-line breakdown.
     expect(eventPayload.items).toHaveLength(2);
-    const productIds = eventPayload.items.map((i) => i.productId).sort();
+    const productIds = eventPayload.items
+      .map((i) => i.productId)
+      .toSorted((a, b) => a.localeCompare(b));
     expect(productIds).toEqual(['p-A', 'p-B']);
 
     // Every line item exposes productId, quantity, and unitPrice.
@@ -354,7 +356,7 @@ describe('HandleCartCheckedOut', () => {
 
     await useCase.execute(payload);
 
-    const order = (await orderRepo.findAllForTest())[0];
+    const [order] = await orderRepo.findAllForTest();
     const [lineItem] = await orderRepo.getLineItemsByOrderId(order.id);
     expect(lineItem.customizationSnapshot).toEqual([
       {
@@ -393,7 +395,7 @@ describe('HandleCartCheckedOut', () => {
 
     await useCase.execute(payload);
 
-    const order = (await orderRepo.findAllForTest())[0];
+    const [order] = await orderRepo.findAllForTest();
     const [lineItem] = await orderRepo.getLineItemsByOrderId(order.id);
     expect(lineItem.customizationSnapshot).toBeNull();
   });
@@ -422,7 +424,7 @@ describe('HandleCartCheckedOut', () => {
 
     await useCase.execute(payload);
 
-    const order = (await orderRepo.findAllForTest())[0];
+    const [order] = await orderRepo.findAllForTest();
     const [lineItem] = await orderRepo.getLineItemsByOrderId(order.id);
     expect(lineItem.customizationSnapshot).toEqual([
       {
@@ -524,7 +526,7 @@ describe('HandleCartCheckedOut', () => {
     const handlers: Record<string, ((p: unknown) => Promise<void>)[]> = {};
     const fakeBus = {
       on: (event: string, h: (p: unknown) => Promise<void>) => {
-        handlers[event] = handlers[event] ?? [];
+        handlers[event] ??= [];
         handlers[event].push(h);
       },
       emit: async () => {},
