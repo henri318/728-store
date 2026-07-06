@@ -10,7 +10,7 @@ import { PaginatedResult } from '@/shared/kernel/domain/value-objects/pagination
 
 export class MemoryOrderRepository implements OrderRepository {
   private orders: OrderEntity[] = [];
-  private orderLineItems: OrderLineItemEntity[] = []; // In-memory store for line items
+  private orderLineItems: OrderLineItemEntity[] = [];
 
   async findPaginated(
     filter: OrderListFilter,
@@ -46,13 +46,10 @@ export class MemoryOrderRepository implements OrderRepository {
   }
 
   async save(order: OrderEntity, _tx?: unknown): Promise<OrderEntity> {
-    // Store the order
     this.orders.push(order);
 
-    // Store associated order line items
     if (order.lineItems && order.lineItems.length > 0) {
       for (const lineItem of order.lineItems) {
-        // Ensure orderId is set for line items before storing
         const lineItemWithOrderId: OrderLineItemEntity = {
           ...lineItem,
           orderId: order.id,
@@ -61,9 +58,6 @@ export class MemoryOrderRepository implements OrderRepository {
       }
     }
 
-    // Return the order entity with line items populated (as it was passed in)
-    // In a real scenario, the repository might fetch them back to return a fully hydrated entity.
-    // For this fake repository, returning the object as it was passed is sufficient.
     return order;
   }
 
@@ -85,7 +79,6 @@ export class MemoryOrderRepository implements OrderRepository {
     const order = this.orders.find((o) => o.id === orderId);
     if (!order) return null;
 
-    // Fetch associated line items to return a hydrated entity
     const lineItems = this.orderLineItems.filter(
       (item) => item.orderId === orderId,
     );
@@ -115,23 +108,14 @@ export class MemoryOrderRepository implements OrderRepository {
     ).length;
   }
 
-  // Add a method to retrieve line items if needed for testing or verification
   async getLineItemsByOrderId(orderId: string): Promise<OrderLineItemEntity[]> {
     return this.orderLineItems.filter((item) => item.orderId === orderId);
   }
 
-  /**
-   * Test helper — returns a shallow copy of every stored order. Lets
-   * test code enumerate the full set without reaching into private
-   * state. Not part of the production port.
-   */
   async findAllForTest(): Promise<OrderEntity[]> {
     return this.orders.map((o) => ({ ...o }));
   }
 
-  /**
-   * Test helper — returns every line item across all orders.
-   */
   async getAllLineItemsForTest(): Promise<OrderLineItemEntity[]> {
     return [...this.orderLineItems];
   }
