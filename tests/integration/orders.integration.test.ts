@@ -220,7 +220,7 @@ describe('Orders Module - Integration Tests', () => {
 
       // Simulate outbox worker processing
       const processedEvents = outboxRepository.events.map(
-        (e) => (e.payload as Record<string, unknown>).orderId,
+        (e) => (e.payload as Record<string, unknown>).orderId as string,
       );
       expect(processedEvents.toSorted((a, b) => a.localeCompare(b))).toEqual(
         orderIds.toSorted((a, b) => a.localeCompare(b)),

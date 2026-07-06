@@ -1,4 +1,4 @@
-import { createHash } from 'crypto';
+import { createHash } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/composition-root/container';
 import { handleApiError } from '@/shared/presentation/error-handler';

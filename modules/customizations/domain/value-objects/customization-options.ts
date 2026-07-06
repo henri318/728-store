@@ -60,10 +60,8 @@ export class CustomizationOptions {
     const imageUrl = data.imageUrl ?? undefined;
     const designPosition = data.designPosition ?? undefined;
 
-    if (text !== undefined) {
-      if (text.length > 500) {
-        throw new Error('Customization text must be at most 500 characters');
-      }
+    if (text !== undefined && text.length > 500) {
+      throw new Error('Customization text must be at most 500 characters');
     }
 
     if (color !== undefined) {
@@ -91,16 +89,16 @@ export class CustomizationOptions {
       }
     }
 
-    if (designPosition !== undefined && designPosition !== null) {
-      if (
-        typeof designPosition !== 'object' ||
+    if (
+      designPosition !== undefined &&
+      designPosition !== null &&
+      (typeof designPosition !== 'object' ||
         typeof designPosition.imageUrl !== 'string' ||
-        designPosition.imageUrl.length === 0
-      ) {
-        throw new Error(
-          'Customization designPosition must be an object with a non-empty imageUrl',
-        );
-      }
+        designPosition.imageUrl.length === 0)
+    ) {
+      throw new Error(
+        'Customization designPosition must be an object with a non-empty imageUrl',
+      );
     }
 
     return new CustomizationOptions({

@@ -7,7 +7,7 @@ import {
   isAllowedExtension,
 } from '@/modules/uploads/domain/value-objects/mime-type';
 import { ValidationError } from '@/shared/kernel/app-error';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const PRIVATE_READ_TTL = 7 * 24 * 3600; // 7 days — presigned URL for private buckets

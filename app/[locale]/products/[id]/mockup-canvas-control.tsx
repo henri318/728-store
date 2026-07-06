@@ -73,7 +73,7 @@ interface DragState {
 }
 
 const MAX_DESIGN_FILE_BYTES = 10 * 1024 * 1024;
-const ACCEPTED_MIME_TYPES = ['image/png', 'image/jpeg'];
+const ACCEPTED_MIME_TYPES = new Set(['image/png', 'image/jpeg']);
 
 export function MockupCanvasControl({
   productImageUrl,
@@ -163,7 +163,7 @@ export function MockupCanvasControl({
       event.target.value = '';
       if (!file) return;
 
-      if (!ACCEPTED_MIME_TYPES.includes(file.type)) {
+      if (!ACCEPTED_MIME_TYPES.has(file.type)) {
         setError(labels.invalidImage);
         return;
       }
@@ -456,7 +456,7 @@ function buildInitialPosition(
     return {
       ...base,
       imageUrl: designUrl,
-      ...(initial ?? {}),
+      ...initial,
     };
   }
   return base;

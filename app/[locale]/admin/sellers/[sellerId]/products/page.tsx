@@ -50,7 +50,8 @@ export default async function AdminSellerProductsPage({
 
   const sellerRepository = container.getSellerRepository();
   const getSeller = new GetSellerUseCase(sellerRepository);
-  const sellerName = (await getSeller.execute({ sellerId })).name;
+  const seller = await getSeller.execute({ sellerId });
+  const sellerName = seller.name;
 
   const productRepository = container.getProductRepository();
   const useCase = new ProductListQueryUseCase(productRepository);

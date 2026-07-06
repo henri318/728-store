@@ -91,9 +91,7 @@ export function ProductPhotoGallery({
                   onClick={() => onSelectPhoto(photo.id)}
                 >
                   <span className={styles.photoIndex}>{index + 1}</span>
-                  {isSelected
-                    ? labels.selectForPreviewLabel
-                    : labels.selectForPreviewLabel}
+                  {labels.selectForPreviewLabel}
                 </button>
 
                 <div className={styles.photoFrame}>

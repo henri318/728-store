@@ -141,7 +141,7 @@ export class ProductCustomizationConfig {
   static fromJson(value: unknown): ProductCustomizationConfig {
     const parsed = productCustomizationConfigSchema.safeParse(value);
     if (!parsed.success) {
-      return ProductCustomizationConfig.default();
+      return this.default();
     }
 
     const data = parsed.data;

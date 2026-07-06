@@ -18,11 +18,11 @@ export class Base64ResetTokenCodec implements ResetTokenCodec {
       exp: payload.exp,
       jti: crypto.randomUUID(),
     });
-    return Buffer.from(json, 'utf-8').toString('base64url');
+    return Buffer.from(json, 'utf8').toString('base64url');
   }
 
   decode(token: string): ResetTokenPayload {
-    const json = Buffer.from(token, 'base64url').toString('utf-8');
+    const json = Buffer.from(token, 'base64url').toString('utf8');
     const payload = JSON.parse(json);
 
     // Validate shape

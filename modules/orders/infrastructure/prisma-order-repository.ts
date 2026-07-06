@@ -20,7 +20,7 @@ type PrismaTx = Omit<
 export class PrismaOrderRepository implements OrderRepository {
   async findPaginated(
     filter: OrderListFilter,
-    locale?: string,
+    locale: string = 'es',
   ): Promise<PaginatedResult<OrderEntity>> {
     const page = filter.page ?? 1;
     const pageSize = filter.pageSize ?? 20;
@@ -44,8 +44,6 @@ export class PrismaOrderRepository implements OrderRepository {
       };
     }
 
-    const translationLocale = locale ?? 'es';
-
     const [rows, total] = await prisma.$transaction([
       prisma.order.findMany({
         where,
@@ -54,7 +52,7 @@ export class PrismaOrderRepository implements OrderRepository {
             include: {
               product: {
                 include: {
-                  translations: { where: { locale: translationLocale } },
+                  translations: { where: { locale } },
                   images: { take: 1, orderBy: { position: 'asc' } },
                 },
               },
@@ -187,9 +185,8 @@ export class PrismaOrderRepository implements OrderRepository {
 
   async findById(
     orderId: string,
-    locale?: string,
+    locale: string = 'es',
   ): Promise<OrderEntity | null> {
-    const translationLocale = locale ?? 'es';
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
@@ -197,7 +194,7 @@ export class PrismaOrderRepository implements OrderRepository {
           include: {
             product: {
               include: {
-                translations: { where: { locale: translationLocale } },
+                translations: { where: { locale } },
                 images: { take: 1, orderBy: { position: 'asc' } },
               },
             },

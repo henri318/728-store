@@ -87,9 +87,5 @@ async function getCurrentSellerId(): Promise<string | null> {
 }
 
 function isOrderLifecycleStatus(value: string): value is OrderLifecycleStatus {
-  return (
-    value === ORDER_LIFECYCLE_STATUSES.NEW ||
-    value === ORDER_LIFECYCLE_STATUSES.IN_PROGRESS ||
-    value === ORDER_LIFECYCLE_STATUSES.COMPLETED
-  );
+  return (Object.values(ORDER_LIFECYCLE_STATUSES) as string[]).includes(value);
 }

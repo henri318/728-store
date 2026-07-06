@@ -12,7 +12,7 @@ import type { UsedResetTokenStorePort } from '@/shared/contracts/security/used-r
  *   For production multi-instance deployments, replace with a Redis adapter
  *   that provides atomic read-check-write operations.
  *
- * TODO: Replace with Redis adapter for production multi-instance deployments.
+ * NOTE: Replace with Redis adapter for production multi-instance deployments.
  */
 export class MemoryUsedResetTokenStore implements UsedResetTokenStorePort {
   private readonly usedTokens = new Map<string, number>(); // jti → expiry timestamp (ms)

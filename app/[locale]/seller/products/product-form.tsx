@@ -115,7 +115,8 @@ function normalizePhotoName(value: string, fallback: string) {
 
 function createPhotoId() {
   return (
-    globalThis.crypto?.randomUUID?.() ?? `photo-${Date.now()}-${Math.random()}`
+    globalThis.crypto?.randomUUID?.() ??
+    `photo-${Date.now()}-${crypto.randomUUID()}`
   );
 }
 

@@ -6,7 +6,6 @@ import { CustomizationPreview } from '@/app/[locale]/products/[id]/customization
 
 vi.mock('next/image', () => ({
   default: (props: ImgHTMLAttributes<HTMLImageElement>) => {
-    // eslint-disable-next-line sonarjs/no-unused-vars -- destructuring to exclude `unoptimized`
     const { unoptimized: _unoptimized, ...rest } =
       props as ImgHTMLAttributes<HTMLImageElement> & {
         unoptimized?: boolean;
