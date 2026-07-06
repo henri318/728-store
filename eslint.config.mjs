@@ -206,6 +206,16 @@ export default [
       'sonarjs/no-hardcoded-passwords': 'off',
     },
   },
+  // prisma/seed.ts se compila con esbuild en formato CJS,
+  // que no soporta top-level await. Deshabilitamos reglas
+  // que obligan a usarlo.
+  {
+    files: ['prisma/seed.ts'],
+    rules: {
+      'unicorn/prefer-top-level-await': 'off',
+      'unicorn/no-async-promise-finally': 'off',
+    },
+  },
 
   // JSON / JSONC / JSON5
   {

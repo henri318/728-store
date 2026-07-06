@@ -601,11 +601,11 @@ async function main() {
   console.log('\n✅ Seed complete!');
 }
 
-try {
-  await main();
-} catch (error) {
-  console.error('❌ Seed failed:', error);
-  throw error;
-} finally {
-  await prisma.$disconnect();
-}
+main()
+  .catch((error) => {
+    console.error('❌ Seed failed:', error);
+    process.exitCode = 1;
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
