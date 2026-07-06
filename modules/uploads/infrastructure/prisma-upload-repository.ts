@@ -54,7 +54,7 @@ export class PrismaUploadRepository implements UploadRepository {
         `findPendingOlderThan: hours must be a positive finite number, got ${hours}`,
       );
     }
-    const cutoff = new Date(Date.now() - hours * 3600_000);
+    const cutoff = new Date(Date.now() - hours * 3_600_000);
     const rows = await prisma.upload.findMany({
       where: {
         status: UploadStatus.PENDING,

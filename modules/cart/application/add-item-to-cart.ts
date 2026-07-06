@@ -170,7 +170,7 @@ export class AddItemToCart {
   private async validateCustomizations(
     customizationIdList: string[],
     productId: string,
-    sellerId: string,
+    _sellerId: string,
   ): Promise<void> {
     const snapshots =
       await this.customizationLookup.findByIds(customizationIdList);
@@ -197,7 +197,6 @@ export class AddItemToCart {
     // their sellerId from the Product. If productId matches, the
     // sellerId is guaranteed to match (enforced at customization
     // creation time by the customizations module).
-    void sellerId;
   }
 }
 

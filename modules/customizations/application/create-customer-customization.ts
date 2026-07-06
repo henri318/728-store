@@ -57,16 +57,6 @@ export class CreateCustomerCustomization {
     config: ProductCustomizationConfig,
   ): void {
     const hasText = dto.text !== undefined && dto.text !== null;
-    const hasImage = dto.imageUrl !== undefined && dto.imageUrl !== null;
-    const hasDesignPosition =
-      dto.designPosition !== undefined && dto.designPosition !== null;
-    // A canvas-only customization is also a "has image" signal — the
-    // mockup canvas embeds imageUrl inside designPosition, so a
-    // canvas-only draft must satisfy the photo requirement.
-    const hasImageForCapability = hasImage || hasDesignPosition;
-    const hasStyle =
-      (dto.color !== undefined && dto.color !== null) ||
-      (dto.size !== undefined && dto.size !== null);
 
     if (hasText && !config.allowsText()) {
       throw new ValidationError(
@@ -75,12 +65,24 @@ export class CreateCustomerCustomization {
       );
     }
 
+    const hasImage = dto.imageUrl !== undefined && dto.imageUrl !== null;
+    const hasDesignPosition =
+      dto.designPosition !== undefined && dto.designPosition !== null;
+    // A canvas-only customization is also a "has image" signal — the
+    // mockup canvas embeds imageUrl inside designPosition, so a
+    // canvas-only draft must satisfy the photo requirement.
+    const hasImageForCapability = hasImage || hasDesignPosition;
+
     if (hasImageForCapability && !config.allowsPhoto()) {
       throw new ValidationError(
         'This product does not support photo customization',
         'Customization is not allowed for this product',
       );
     }
+
+    const hasStyle =
+      (dto.color !== undefined && dto.color !== null) ||
+      (dto.size !== undefined && dto.size !== null);
 
     if (hasStyle && !config.allowsStyleOptions()) {
       throw new ValidationError(

@@ -55,14 +55,14 @@ export class CustomizationOptions {
   }): CustomizationOptions {
     // Normalize null to undefined — DB fields return string | null.
     const text = data.text ?? undefined;
-    const color = data.color ?? undefined;
-    const size = data.size ?? undefined;
-    const imageUrl = data.imageUrl ?? undefined;
-    const designPosition = data.designPosition ?? undefined;
 
     if (text !== undefined && text.length > 500) {
       throw new Error('Customization text must be at most 500 characters');
     }
+
+    const color = data.color ?? undefined;
+    const size = data.size ?? undefined;
+    const imageUrl = data.imageUrl ?? undefined;
 
     if (color !== undefined) {
       if (color.trim().length === 0) {
@@ -88,6 +88,8 @@ export class CustomizationOptions {
         throw new Error('Customization image URL must be a valid URL');
       }
     }
+
+    const designPosition = data.designPosition ?? undefined;
 
     if (
       designPosition !== undefined &&

@@ -20,7 +20,7 @@ export class Quantity {
   }
 
   static create(amount: number): Quantity {
-    if (!Number.isFinite(amount) || !Number.isInteger(amount)) {
+    if (!Number.isSafeInteger(amount)) {
       throw new InvalidQuantityError(
         `Quantity must be a finite integer, got: ${amount}`,
       );

@@ -40,7 +40,8 @@ export class ListSellerProductsUseCase {
       throw new NotFoundError('Seller not found');
     }
 
-    const { userId: _userId, ...filter } = dto;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- destructuring to exclude userId
+    const { userId, ...filter } = dto;
 
     return this.productQuery.execute({
       ...filter,

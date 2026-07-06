@@ -60,7 +60,6 @@ export function CustomizationForm({
   const config = ProductCustomizationConfig.fromJson(customizationConfig);
 
   const textErrorId = errors.text ? 'customization-text-error' : undefined;
-  const _colorErrorId = errors.color ? 'customization-color-error' : undefined;
   const sizeErrorId = errors.size ? 'customization-size-error' : undefined;
 
   return (

@@ -96,6 +96,10 @@ export default function ProfilePage() {
     };
   }, [status, locale, router]);
 
+  if (status === 'loading' || loading) {
+    return <div className={styles.loading}>{dict.common.loading}</div>;
+  }
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -136,7 +140,7 @@ export default function ProfilePage() {
         throw new Error(data.error || 'Failed to delete account');
       }
       // Redirect to home after soft-delete
-      window.location.href = '/';
+      window.location.assign('/');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to delete account');
     } finally {
@@ -144,10 +148,6 @@ export default function ProfilePage() {
       setShowDeleteModal(false);
     }
   };
-
-  if (status === 'loading' || loading) {
-    return <div className={styles.loading}>{dict.common.loading}</div>;
-  }
 
   return (
     <div className={styles.container}>

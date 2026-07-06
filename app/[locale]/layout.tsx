@@ -42,9 +42,9 @@ export async function generateMetadata({
   const baseUrl = APP_BASE_URL;
   const alternates: Record<string, string> = {};
 
-  ['es', 'cat'].forEach((lang) => {
+  for (const lang of ['es', 'cat']) {
     alternates[lang] = `${baseUrl}/${lang}`;
-  });
+  }
 
   return {
     metadataBase: new URL(baseUrl),

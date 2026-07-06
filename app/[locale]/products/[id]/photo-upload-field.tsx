@@ -55,7 +55,7 @@ export function PhotoUploadField({
 
     setError(null);
     startTransition(() => {
-      void onUpload(file).then((result) => {
+      onUpload(file).then((result) => {
         onUploaded?.(result);
       });
     });

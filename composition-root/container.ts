@@ -155,11 +155,10 @@ let _searchHistoryEventsSubscribed = false;
 export function initContainer(): void {
   // --- EmailSender: env-dependent (Brevo in production, console otherwise) ---
   if (!_emailSender) {
-    if (process.env.NODE_ENV === 'production') {
-      _emailSender = new BrevoEmailSender();
-    } else {
-      _emailSender = new ConsoleEmailSender();
-    }
+    _emailSender =
+      process.env.NODE_ENV === 'production'
+        ? new BrevoEmailSender()
+        : new ConsoleEmailSender();
   }
 
   // --- OutboxRepository: single Prisma adapter works in every env ---

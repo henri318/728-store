@@ -204,7 +204,7 @@ export class PrismaProductRepository implements ProductRepository {
     let normQ = normalizeText(q);
     // Escape SQL ILIKE wildcards so user input like "100%" or "a_b" is
     // treated literally instead of expanding to unintended patterns.
-    normQ = normQ.replace(/%/g, '\\%').replace(/_/g, '\\_');
+    normQ = normQ.replace(/%/g, String.raw`\%`).replace(/_/g, String.raw`\_`);
     // Parameterised placeholders ($1, $2) prevent SQL injection.
     const rows = await prisma.$queryRawUnsafe<Array<{ id: string }>>(
       `SELECT DISTINCT p.id

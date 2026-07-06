@@ -10,6 +10,7 @@ const refreshMock = vi.fn();
 
 vi.mock('next/image', () => ({
   default: (props: ImgHTMLAttributes<HTMLImageElement>) => {
+    // eslint-disable-next-line sonarjs/no-unused-vars -- stripping unoptimized prop
     const { unoptimized: _unoptimized, ...rest } =
       props as ImgHTMLAttributes<HTMLImageElement> & {
         unoptimized?: boolean;

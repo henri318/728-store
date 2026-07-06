@@ -28,6 +28,7 @@ export class MemoryStorageAdapter implements StoragePort {
   }
 
   getPublicUrl(key: string): string {
+    // eslint-disable-next-line sonarjs/super-linear-regex -- simple trailing-slash trim
     return `${this.publicDomain.replace(/\/+$/, '')}/${key}`;
   }
 

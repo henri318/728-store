@@ -22,7 +22,11 @@ if (!RAW_BASE_URL) {
 }
 
 // Strip trailing slashes so link composition is predictable.
-export const APP_BASE_URL: string = RAW_BASE_URL.replace(/\/+$/, '');
+export const APP_BASE_URL: string = (() => {
+  let url = RAW_BASE_URL;
+  while (url.length > 0 && url.at(-1) === '/') url = url.slice(0, -1);
+  return url;
+})();
 
 export function getBaseUrl(): string {
   return APP_BASE_URL;

@@ -16,7 +16,7 @@ export class Email {
       throw new Error('Email must be at most 254 characters');
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
     if (!emailRegex.test(trimmed)) {
       throw new Error('Invalid email format');
     }

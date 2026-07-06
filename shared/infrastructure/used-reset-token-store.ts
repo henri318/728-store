@@ -32,5 +32,5 @@ export function isTokenUsed(jti: string): boolean {
  */
 export function markTokenUsed(jti: string, exp?: number): void {
   purgeExpired();
-  usedTokens.set(jti, exp ?? Date.now() + 3600_000); // default 1h TTL
+  usedTokens.set(jti, exp ?? Date.now() + 3_600_000); // default 1h TTL
 }

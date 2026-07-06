@@ -9,14 +9,14 @@
  *         ../shared/presentation/sprites.css (utility classes for sizing)
  */
 import { readFileSync, writeFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { optimize } from 'svgo';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ICONS_DIR = join(__dirname, '../devresources/icons');
-const OUTPUT_SVG = join(__dirname, '../public/img/icons/sprites.svg');
-const OUTPUT_CSS = join(__dirname, '../shared/presentation/sprites.css');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ICONS_DIR = path.join(__dirname, '../devresources/icons');
+const OUTPUT_SVG = path.join(__dirname, '../public/img/icons/sprites.svg');
+const OUTPUT_CSS = path.join(__dirname, '../shared/presentation/sprites.css');
 
 // Icon name mapping: filename -> class/id name
 // Files are read directly from the /icons directory at repo root
@@ -49,10 +49,18 @@ function resolveClassFills(svgContent) {
 
   const cssText = match[1];
   const classMap = {};
-  const ruleRegex = /\.(\S+)\s*\{[^}]*?fill:\s*([^;}]+)[^}]*?\}/g;
-  let m;
-  while ((m = ruleRegex.exec(cssText)) !== null) {
-    classMap[m[1]] = m[2].trim();
+  for (const rule of cssText.split('}')) {
+    const dotIdx = rule.indexOf('.');
+    const braceIdx = rule.indexOf('{');
+    if (dotIdx === -1 || braceIdx === -1 || dotIdx > braceIdx) continue;
+    const className = rule
+      .slice(dotIdx + 1, braceIdx)
+      .trim()
+      .split(/\s+/)[0];
+    const fillMatch = rule.slice(braceIdx).match(/fill:\s*([^;}\s]+)/);
+    if (className && fillMatch) {
+      classMap[className] = fillMatch[1].trim();
+    }
   }
 
   if (Object.keys(classMap).length === 0) return svgContent;
@@ -69,7 +77,7 @@ function resolveClassFills(svgContent) {
 
 // Optimize each icon and extract viewBox content
 const icons = files.map((file) => {
-  const raw = readFileSync(join(ICONS_DIR, file), 'utf8');
+  const raw = readFileSync(path.join(ICONS_DIR, file), 'utf8');
   // Resolve class-based fills to inline fills BEFORE optimization,
   // so SVGO doesn't strip the <defs><style> block before we can process it.
   const preprocessed = resolveClassFills(raw);
@@ -93,7 +101,7 @@ const icons = files.map((file) => {
     viewBox,
     content: inner,
     file,
-    originalSize: readFileSync(join(ICONS_DIR, file), 'utf8').length,
+    originalSize: readFileSync(path.join(ICONS_DIR, file), 'utf8').length,
     optimizedSize: result.data.length,
   };
 });
@@ -143,11 +151,11 @@ writeFileSync(OUTPUT_CSS, cssContent, 'utf8');
 // Print summary
 console.log(`\n✓ Sprite generated: ${OUTPUT_SVG}`);
 console.log(`  ${icons.length} icons optimized`);
-icons.forEach((i) =>
+for (const i of icons) {
   console.log(
     `  • ${i.file.padEnd(22)} → icon-${i.name.padEnd(10)} ${i.originalSize}B → ${i.optimizedSize}B`,
-  ),
-);
+  );
+}
 const totalOriginal = icons.reduce((s, i) => s + i.originalSize, 0);
 const totalOptimized = icons.reduce((s, i) => s + i.optimizedSize, 0);
 console.log(

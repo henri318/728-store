@@ -7,7 +7,7 @@ export interface ForgotPasswordDTO {
 }
 
 /** Token validity: 1 hour in milliseconds. */
-const TOKEN_TTL_MS = 3600_000;
+const TOKEN_TTL_MS = 3_600_000;
 
 export class ForgotPasswordUseCase {
   constructor(

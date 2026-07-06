@@ -34,6 +34,6 @@ export class MemoryUsedResetTokenStore implements UsedResetTokenStorePort {
   /** Mark a token as used with optional expiry for auto-cleanup. */
   markTokenUsed(jti: string, exp?: number): void {
     this.purgeExpired();
-    this.usedTokens.set(jti, exp ?? Date.now() + 3600_000); // default 1h TTL
+    this.usedTokens.set(jti, exp ?? Date.now() + 3_600_000); // default 1h TTL
   }
 }
