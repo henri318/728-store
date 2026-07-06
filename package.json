@@ -101,6 +101,7 @@
     "cross-env": "^10.1.0",
     "eslint": "^10.6.0",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-i18next": "^6.1.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "husky": "^9.1.7",
     "jsdom": "^29.1.1",
@@ -113,5 +114,12 @@
     "typescript": "^6",
     "typescript-eslint": "^8.62.1",
     "vitest": "^4.1.9"
+  },
+  "allowScripts": {
+    "@prisma/engines@7.8.0": true,
+    "prisma@7.8.0": true,
+    "bcrypt@6.0.0": true,
+    "esbuild@0.28.1": true,
+    "sharp@0.34.5": true
   }
 }

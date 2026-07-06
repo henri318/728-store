@@ -90,6 +90,7 @@ export class CreateOrderUseCase {
         quantity: item.quantity,
         customizationIdList: [],
         customizationSnapshot: null,
+        unitPrice: product.basePrice,
       });
     }
 

@@ -7,6 +7,20 @@ import { ListCustomerOrdersUseCase } from '@/modules/orders/application/list-cus
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { Money } from '@/shared/kernel/domain/value-objects/money';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
+import { DataTable } from '@/shared/ui/data-table';
+import type { DataTableColumn } from '@/shared/ui/data-table';
+import { StatusBadge } from '@/shared/ui/status-badge';
+import { Pagination } from '@/shared/ui/pagination';
+import { Card } from '@/shared/ui/card';
+import { SearchForm } from '@/shared/ui/search-form';
+import type { OrderEntity } from '@/modules/orders/domain/order-repository';
+import styles from './page.module.css';
+
+const ORDER_STATUS_LABELS: Record<string, string> = {
+  new: 'new',
+  in_progress: 'inProgress',
+  completed: 'completed',
+};
 
 export default async function CustomerOrdersPage({
   params,
@@ -18,6 +32,7 @@ export default async function CustomerOrdersPage({
     page?: string;
     pageSize?: string;
     sortDir?: string;
+    q?: string;
   }>;
 }) {
   const { locale } = await params;
@@ -40,83 +55,132 @@ export default async function CustomerOrdersPage({
       };
   const useCase = new ListCustomerOrdersUseCase(container.getOrderRepository());
 
-  const result = await useCase.execute({
-    userId: session.user.id,
-    status: filter.status,
-    page: filter.page,
-    pageSize: filter.pageSize,
-    sortBy: 'createdAt',
-    sortDir: filter.sortDir,
-  });
+  const result = await useCase.execute(
+    {
+      userId: session.user.id,
+      status: filter.status,
+      page: filter.page,
+      pageSize: filter.pageSize,
+      sortBy: 'createdAt',
+      sortDir: filter.sortDir,
+      q: filter.q,
+    },
+    locale,
+  );
+
+  const columns: DataTableColumn<OrderEntity>[] = [
+    {
+      key: 'status',
+      header: dict.orders?.status ?? 'Status',
+      render: (order) => {
+        const labelKey = ORDER_STATUS_LABELS[order.status];
+        const label = labelKey
+          ? (dict.orders?.[labelKey] ?? order.status)
+          : order.status;
+        return <StatusBadge status={order.status} label={label} />;
+      },
+    },
+    {
+      key: 'date',
+      header: dict.orders?.date ?? 'Date',
+      render: (order) =>
+        order.createdAt
+          ? new Date(order.createdAt).toLocaleDateString(locale)
+          : '',
+    },
+    {
+      key: 'total',
+      header: dict.orders?.total ?? 'Total',
+      render: (order) => Money.format(order.total, Currency.EUR),
+    },
+    {
+      key: 'actions',
+      header: dict.orders?.actions ?? 'Actions',
+      render: (order) => (
+        <div className={styles.actionCell}>
+          <a
+            href={`/${locale}/orders/${order.id}`}
+            className={styles.viewButton}
+          >
+            {dict.orders?.viewOrder ?? 'View order'}
+          </a>
+          {order.checkoutGroupId &&
+            order.checkoutGroupPaymentStatus === 'failed' && (
+              <form
+                method="post"
+                action={`/api/payments/checkout-groups/${order.checkoutGroupId}/retry`}
+                className={styles.retryForm}
+              >
+                <button type="submit" className={styles.retryButton}>
+                  {dict.orders?.retryPayment ?? 'Retry payment'}
+                </button>
+              </form>
+            )}
+        </div>
+      ),
+    },
+  ];
+
+  const hasOrders = result.items.length > 0;
+  const currentPage =
+    result.totalPages > 0 && result.page > result.totalPages
+      ? result.totalPages
+      : result.page;
+
+  const buildPageUrl = (page: number) => {
+    const params = new URLSearchParams();
+    if (page > 1) params.set('page', String(page));
+    if (filter.status !== 'all') params.set('status', filter.status);
+    if (filter.sortDir !== 'desc') params.set('sortDir', filter.sortDir);
+    if (filter.pageSize !== 20) params.set('pageSize', String(filter.pageSize));
+    if (filter.q) params.set('q', filter.q);
+    const qs = params.toString();
+    return `/${locale}/orders${qs ? `?${qs}` : ''}`;
+  };
 
   return (
-    <div>
-      <h1>{dict.orders?.myOrders ?? 'My orders'}</h1>
-
-      <table>
-        <thead>
-          <tr>
-            <th>{dict.orders?.id ?? 'ID'}</th>
-            <th>{dict.orders?.status ?? 'Status'}</th>
-            <th>{dict.orders?.date ?? 'Date'}</th>
-            <th>{dict.orders?.total ?? 'Total'}</th>
-            <th>{dict.orders?.actions ?? 'Actions'}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {result.items.map((order) => (
-            <tr key={order.id}>
-              <td>{order.id}</td>
-              <td>{order.status}</td>
-              <td>
-                {order.createdAt
-                  ? new Date(order.createdAt).toLocaleDateString(locale)
-                  : ''}
-              </td>
-              <td>{Money.format(order.total, Currency.EUR)}</td>
-              <td>
-                <a href={`/${locale}/orders/${order.id}`}>
-                  {dict.orders?.viewOrder ?? 'View order'}
-                </a>
-                {order.checkoutGroupId &&
-                  order.checkoutGroupPaymentStatus === 'failed' && (
-                    <form
-                      method="post"
-                      action={`/api/payments/checkout-groups/${order.checkoutGroupId}/retry`}
-                    >
-                      <button type="submit">
-                        {dict.orders?.retryPayment ?? 'Retry payment'}
-                      </button>
-                    </form>
-                  )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {result.totalPages > 1 && (
-        <div>
-          {result.page > 1 && (
-            <a
-              href={`/${locale}/orders?page=${result.page - 1}&pageSize=${result.pageSize}&status=${filter.status}&sortDir=${filter.sortDir}`}
-            >
-              {dict.orders?.previous ?? '← Previous'}
-            </a>
-          )}
-          <span>
-            {(dict.orders?.pageXofY ?? 'Page {current} of {total}')
-              .replace('{current}', result.page.toString())
-              .replace('{total}', result.totalPages.toString())}
-          </span>
-          {result.page < result.totalPages && (
-            <a
-              href={`/${locale}/orders?page=${result.page + 1}&pageSize=${result.pageSize}&status=${filter.status}&sortDir=${filter.sortDir}`}
-            >
-              {dict.orders?.next ?? 'Next →'}
-            </a>
-          )}
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <div className={styles.headerLead}>
+          <h1 className={styles.title}>
+            {dict.orders?.myOrders ?? 'My orders'}
+          </h1>
+          <div className={styles.searchWrap}>
+            <SearchForm
+              placeholder={
+                dict.orders?.searchItemsPlaceholder ?? 'Search my orders...'
+              }
+              ariaLabel={dict.orders?.searchItems ?? 'Search by product'}
+              defaultValue={filter.q}
+              hiddenFields={
+                filter.status !== 'all' ? { status: filter.status } : undefined
+              }
+            />
+          </div>
         </div>
+      </div>
+
+      {hasOrders ? (
+        <>
+          <div className={styles.tableWrap}>
+            <DataTable
+              columns={columns}
+              rows={result.items}
+              rowKey={(o) => o.id}
+            />
+          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={result.totalPages}
+            buildPageUrl={buildPageUrl}
+            prevLabel={dict.orders?.previous ?? '← Previous'}
+            nextLabel={dict.orders?.next ?? 'Next →'}
+          />
+        </>
+      ) : (
+        <Card className={styles.emptyState}>
+          {dict.orders?.noOrders ?? 'No orders yet'}
+        </Card>
       )}
     </div>
   );

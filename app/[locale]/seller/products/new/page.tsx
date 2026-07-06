@@ -60,6 +60,7 @@ export default async function SellerProductCreatePage({
             tagsPlaceholder:
               dict.sellerDashboard.productCustomizationTagsPlaceholder,
             tagsHelp: dict.sellerDashboard.productCustomizationTagsHelp,
+            addLabel: dict.sellerDashboard.productCustomizationAddLabel,
           },
         },
         gallery: {

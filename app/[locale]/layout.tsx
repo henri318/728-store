@@ -167,6 +167,7 @@ export default async function RootLayout({
                   unknownSeller: dict.common.unknownSeller,
                   increaseQuantity: dict.common.increaseQuantity,
                   decreaseQuantity: dict.common.decreaseQuantity,
+                  close: dict.common.close,
                 }}
               />
             </CartPopupProvider>

@@ -47,6 +47,7 @@ describe('ProductForm', () => {
         tagsLabel: 'Etiquetas',
         tagsPlaceholder: 'etiqueta1, etiqueta2',
         tagsHelp: 'Separa las etiquetas por comas.',
+        addLabel: 'Añadir',
       },
     },
     gallery: {

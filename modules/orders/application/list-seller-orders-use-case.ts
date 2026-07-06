@@ -19,6 +19,7 @@ export class ListSellerOrdersUseCase {
 
   async execute(
     dto: ListSellerOrdersDTO,
+    locale?: string,
   ): Promise<PaginatedResult<OrderEntity>> {
     const seller = await this.sellerLookup.findByUserId(dto.userId);
     if (!seller) {
@@ -26,9 +27,12 @@ export class ListSellerOrdersUseCase {
     }
 
     const { userId: _userId, ...filter } = dto;
-    return this.orderRepository.findPaginated({
-      ...filter,
-      sellerId: seller.sellerId,
-    });
+    return this.orderRepository.findPaginated(
+      {
+        ...filter,
+        sellerId: seller.sellerId,
+      },
+      locale,
+    );
   }
 }

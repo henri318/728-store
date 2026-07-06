@@ -50,6 +50,7 @@ interface ProductFormLabels {
       tagsLabel: string;
       tagsPlaceholder: string;
       tagsHelp: string;
+      addLabel: string;
     };
   };
   gallery: {

@@ -158,6 +158,7 @@ async function buildLineItems(
       id: crypto.randomUUID(),
       orderId,
       productId: item.productId,
+      unitPrice: item.unitPrice,
       quantity: item.quantity,
       customizationIdList: item.customizationIdList ?? [],
       customizationSnapshot: await resolveCustomizationSnapshot(

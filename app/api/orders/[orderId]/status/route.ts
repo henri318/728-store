@@ -59,6 +59,19 @@ export const POST = requireRole('DESIGNER')(async function POST(
     }
 
     await orderRepository.updateStatus(orderId, status);
+
+    const referer = request.headers.get('referer');
+    if (referer) {
+      try {
+        const refererUrl = new URL(referer);
+        const baseUrl = new URL(request.url);
+        if (refererUrl.origin === baseUrl.origin) {
+          return NextResponse.redirect(referer, 303);
+        }
+      } catch {
+        // invalid URL — fall through to JSON response
+      }
+    }
     return NextResponse.json({ orderId, status }, { status: 200 });
   } catch (error: unknown) {
     return handleApiError(error);

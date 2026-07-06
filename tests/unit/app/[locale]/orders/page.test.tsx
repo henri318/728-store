@@ -91,7 +91,9 @@ describe('CustomerOrdersPage', () => {
         sortDir: 'desc',
       }),
     );
-    expect(screen.getByText('order-1')).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'View order' }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Retry payment' }),
     ).toBeInTheDocument();

@@ -1,13 +1,32 @@
+.addressCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.addressTitle {
+  font-size: 1.05rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-green-dark);
+}
+
+.addressForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
 .button {
-  width: 100%;
-  padding: 1rem;
-  background: var(--color-green-dark, var(--color-green-dark));
-  color: #fff;
+  width: fit-content;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-green-dark);
+  color: var(--color-white);
   border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 1.15rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: var(--font-weight-semibold);
 }
 
 .button:hover:not(:disabled) {
@@ -28,8 +47,14 @@
   margin-bottom: 0.5rem;
 }
 
+.error {
+  color: var(--color-coral);
+  font-size: 0.9rem;
+  margin-bottom: var(--spacing-md);
+}
+
 .dialog p {
-  color: #555;
+  color: var(--color-text-secondary);
   margin-bottom: 1rem;
 }
 
@@ -42,7 +67,7 @@
 
 .priceList li {
   padding: 0.5rem 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-border);
   font-size: 0.95rem;
 }
 
@@ -54,12 +79,12 @@
 
 .acceptButton {
   padding: 0.75rem;
-  background: var(--color-green-dark, var(--color-green-dark));
-  color: #fff;
+  background: var(--color-green-dark);
+  color: var(--color-white);
   border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .cancelButton {

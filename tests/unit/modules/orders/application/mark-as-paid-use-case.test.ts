@@ -70,6 +70,7 @@ describe('MarkAsPaidUseCase', () => {
           quantity: 2,
           customizationIdList: [],
           customizationSnapshot: null,
+          unitPrice: 0,
         },
         {
           id: 'item-2',
@@ -78,6 +79,7 @@ describe('MarkAsPaidUseCase', () => {
           quantity: 1,
           customizationIdList: [],
           customizationSnapshot: null,
+          unitPrice: 0,
         },
       ],
     };

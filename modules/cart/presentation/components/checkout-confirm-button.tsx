@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
+import { useDictionary } from '@/shared/i18n/dictionary-context';
 import { Modal } from '@/shared/ui/modal';
 import { TextField } from '@/shared/ui/text-field';
 import { Money } from '@/shared/kernel/domain/value-objects/money';
@@ -48,6 +49,7 @@ export function CheckoutConfirmButton({
 }: CheckoutConfirmButtonProps) {
   const router = useRouter();
   const { clearCart } = useGuestCart();
+  const dict = useDictionary();
   const [loading, setLoading] = useState(false);
   const [priceChanges, setPriceChanges] = useState<PriceChange[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +63,7 @@ export function CheckoutConfirmButton({
 
   const persistProfileAddress = async () => {
     if (!hasCompleteAddress) {
-      setError('Complete the address to continue');
+      setError(dict.common.completeAddressToContinue);
       return false;
     }
 
@@ -72,7 +74,7 @@ export function CheckoutConfirmButton({
     });
 
     if (!profileRes.ok) {
-      setError('Unable to save the shipping address');
+      setError(dict.common.unableToSaveAddress);
       return false;
     }
 
@@ -100,7 +102,7 @@ export function CheckoutConfirmButton({
       // Preview OK → confirm immediately (no price changes).
       await confirmCheckout(false);
     } catch {
-      setError('Unable to complete checkout');
+      setError(dict.common.unableToCheckout);
       setLoading(false);
     }
   };
@@ -132,58 +134,58 @@ export function CheckoutConfirmButton({
 
   return (
     <>
-      <div className={styles.addressForm}>
-        <h3>Delivery address</h3>
-        <TextField
-          label="Street"
-          value={address.street}
-          onChange={(street) => setAddress((prev) => ({ ...prev, street }))}
-        />
-        <TextField
-          label="City"
-          value={address.city}
-          onChange={(city) => setAddress((prev) => ({ ...prev, city }))}
-        />
-        <TextField
-          label="Postal code"
-          value={address.postalCode}
-          onChange={(postalCode) =>
-            setAddress((prev) => ({ ...prev, postalCode }))
-          }
-        />
-        <TextField
-          label="Country"
-          value={address.country}
-          onChange={(country) => setAddress((prev) => ({ ...prev, country }))}
-        />
-      </div>
-
-      {error && (
-        <div className={styles.error} role="alert">
-          {error}
+      <div className={styles.addressCard}>
+        <h3 className={styles.addressTitle}>{dict.common.deliveryAddress}</h3>
+        <div className={styles.addressForm}>
+          <TextField
+            label={dict.auth.street}
+            value={address.street}
+            onChange={(street) => setAddress((prev) => ({ ...prev, street }))}
+          />
+          <TextField
+            label={dict.auth.city}
+            value={address.city}
+            onChange={(city) => setAddress((prev) => ({ ...prev, city }))}
+          />
+          <TextField
+            label={dict.auth.postalCode}
+            value={address.postalCode}
+            onChange={(postalCode) =>
+              setAddress((prev) => ({ ...prev, postalCode }))
+            }
+          />
+          <TextField
+            label={dict.auth.country}
+            value={address.country}
+            onChange={(country) => setAddress((prev) => ({ ...prev, country }))}
+          />
         </div>
-      )}
 
-      <button
-        className={styles.button}
-        onClick={handleCheckout}
-        disabled={loading}
-      >
-        {loading ? 'Processing...' : 'Place Order'}
-      </button>
+        {error && (
+          <div className={styles.error} role="alert">
+            {error}
+          </div>
+        )}
+
+        <button
+          className={styles.button}
+          onClick={handleCheckout}
+          disabled={loading}
+        >
+          {loading ? dict.common.processing : dict.common.placeOrder}
+        </button>
+      </div>
 
       {priceChanges && (
         <Modal isOpen={true} onClose={() => setPriceChanges(null)}>
           <div className={styles.dialog}>
-            <h2>Price Change Detected</h2>
-            <p>
-              The price of some items has changed since you added them to your
-              cart:
-            </p>
+            <h2>{dict.common.priceChangeDetected}</h2>
+            <p>{dict.common.priceChangeDescription}</p>
             <ul className={styles.priceList}>
               {priceChanges.map((pc) => (
                 <li key={pc.itemId}>
-                  {Money.format(pc.oldPrice, Currency.EUR)} →{' '}
+                  {Money.format(pc.oldPrice, Currency.EUR)}
+                  {'\u00a0→\u00a0'}
                   {Money.format(pc.newPrice, Currency.EUR)}
                 </li>
               ))}
@@ -193,7 +195,7 @@ export function CheckoutConfirmButton({
                 className={styles.acceptButton}
                 onClick={() => confirmCheckout(true)}
               >
-                Accept new prices
+                {dict.common.acceptNewPrices}
               </button>
               <button
                 className={styles.cancelButton}
@@ -202,7 +204,7 @@ export function CheckoutConfirmButton({
                   router.push(`/${locale}/cart`);
                 }}
               >
-                Cancel
+                {dict.common.cancel}
               </button>
             </div>
           </div>

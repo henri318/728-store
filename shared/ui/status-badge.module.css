@@ -35,3 +35,18 @@
   background: var(--color-coral);
   color: var(--color-white);
 }
+
+.statusBadge[data-status='new'] {
+  background: var(--color-cream);
+  color: var(--color-green-dark);
+}
+
+.statusBadge[data-status='in_progress'] {
+  background: var(--color-lila);
+  color: var(--color-white);
+}
+
+.statusBadge[data-status='completed'] {
+  background: var(--color-green-light);
+  color: var(--color-green-dark);
+}

@@ -25,10 +25,19 @@ vi.mock('@/shared/infrastructure/auth-options', () => ({
 
 vi.mock('@/shared/i18n/get-dictionary', () => ({
   getDictionary: vi.fn().mockResolvedValue({
+    common: {
+      customizationSize: 'Size',
+      customizationColor: 'Color',
+      customizationText: 'Text',
+    },
     orders: {
       status: 'Status',
       total: 'Total',
       retryPayment: 'Retry payment',
+      myOrders: 'My orders',
+      date: 'Date',
+      items: 'Items',
+      noItems: 'No items in this order',
     },
   }),
 }));
@@ -67,7 +76,7 @@ describe('OrderDetailPage', () => {
     render(element);
 
     expect(
-      screen.getByRole('heading', { name: /order-1/i }),
+      screen.getByRole('heading', { name: 'My orders' }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Retry payment' }),

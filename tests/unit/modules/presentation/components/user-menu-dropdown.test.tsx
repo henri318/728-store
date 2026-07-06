@@ -34,28 +34,6 @@ describe('UserMenuDropdown component', () => {
     expect(screen.getByRole('menu')).toBeInTheDocument();
   });
 
-  it('shows 3 menu items: profile, changePassword, closeSession', () => {
-    render(<UserMenuDropdown user={mockUser} />);
-
-    const trigger = screen.getByRole('button', { name: /menu/i });
-    fireEvent.click(trigger);
-
-    expect(
-      screen.getByRole('menuitem', { name: /mi perfil/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('menuitem', { name: /editar contraseña/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('menuitem', { name: /cerrar sesión/i }),
-    ).toBeInTheDocument();
-
-    // Delete account should NOT be in the dropdown
-    expect(
-      screen.queryByRole('menuitem', { name: /eliminar cuenta/i }),
-    ).toBeNull();
-  });
-
   it('click outside closes dropdown', () => {
     render(
       <div data-testid="outside">

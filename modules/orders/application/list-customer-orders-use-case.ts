@@ -14,11 +14,15 @@ export class ListCustomerOrdersUseCase {
 
   async execute(
     dto: ListCustomerOrdersDTO,
+    locale?: string,
   ): Promise<PaginatedResult<OrderEntity>> {
     const { userId, ...filter } = dto;
-    return this.orderRepository.findPaginated({
-      ...filter,
-      userId,
-    });
+    return this.orderRepository.findPaginated(
+      {
+        ...filter,
+        userId,
+      },
+      locale,
+    );
   }
 }

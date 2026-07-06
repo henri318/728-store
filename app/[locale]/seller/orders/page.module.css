@@ -1,0 +1,129 @@
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.headerLead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-green-dark);
+}
+
+.filterForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--color-white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.filterLabel {
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.filterSelect {
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--color-lila);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  color: var(--color-black);
+  font-family: inherit;
+  font-size: 0.85rem;
+  min-width: 140px;
+}
+
+.filterSubmit {
+  padding: 0.5rem 1rem;
+  background: var(--color-green-dark);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: var(--font-weight-medium);
+  min-height: 38px;
+}
+
+.filterSubmit:hover {
+  opacity: 0.85;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.idCell {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.actionCell {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.statusForm {
+  display: inline;
+}
+
+.statusButton {
+  padding: 0.3rem 0.7rem;
+  background: var(--color-green-dark);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.statusButton:hover {
+  opacity: 0.85;
+}
+
+.statusButtonSecondary {
+  background: var(--color-lila);
+}
+
+.emptyState {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--color-lila);
+  font-size: 1rem;
+}

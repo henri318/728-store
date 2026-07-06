@@ -58,6 +58,7 @@ interface CartPopupLabels {
   unknownSeller: string;
   increaseQuantity: string;
   decreaseQuantity: string;
+  close: string;
 }
 
 interface CartPopupProps {
@@ -266,7 +267,7 @@ export function CartPopup({ labels }: CartPopupProps) {
             type="button"
             onClick={close}
             className={styles.closeBtn}
-            aria-label="Close"
+            aria-label={labels.close}
           >
             ✕
           </button>

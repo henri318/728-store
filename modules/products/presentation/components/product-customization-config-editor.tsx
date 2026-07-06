@@ -17,6 +17,7 @@ interface ProductCustomizationConfigEditorLabels {
   tagsLabel: string;
   tagsPlaceholder: string;
   tagsHelp: string;
+  addLabel: string;
 }
 
 interface ProductCustomizationConfigEditorProps {
@@ -49,7 +50,8 @@ export function ProductCustomizationConfigEditor({
       <TagList
         label={labels.sizeOptionsLabel}
         placeholder={labels.sizeOptionsPlaceholder}
-        addLabel="+ Añadir"
+        addLabel={labels.addLabel}
+        emptyLabel=""
         value={value.sizeOptions ?? null}
         onChange={(next) => update({ sizeOptions: next })}
       />
@@ -65,7 +67,7 @@ export function ProductCustomizationConfigEditor({
       <TagList
         label={labels.tagsLabel}
         placeholder={labels.tagsPlaceholder}
-        addLabel="+ Añadir"
+        addLabel={labels.addLabel}
         emptyLabel={labels.tagsHelp}
         value={value.tagNames ?? null}
         onChange={(next) => update({ tagNames: next })}

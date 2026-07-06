@@ -4,6 +4,7 @@ import tseslint from 'typescript-eslint';
 import eslintReact from '@eslint-react/eslint-plugin';
 import reactHooks from 'eslint-plugin-react-hooks';
 import nextPlugin from '@next/eslint-plugin-next';
+import i18next from 'eslint-plugin-i18next';
 
 const CODE_FILES = ['**/*.{js,jsx,mjs,cjs,ts,tsx}'];
 
@@ -109,6 +110,29 @@ export default [
       ...nextPlugin.configs['core-web-vitals'].rules,
     },
   },
+  scopeToCodeFiles({
+    ignores: ['**/tests/**'],
+    plugins: { i18next },
+    rules: {
+      'i18next/no-literal-string': [
+        'error',
+        {
+          mode: 'jsx-text-only',
+          'jsx-attributes': {
+            include: ['alt', 'title', 'placeholder', 'aria-label'],
+            exclude: ['className', 'style', 'type', 'id', 'data-testid'],
+          },
+          words: {
+            exclude: [
+              '[0-9!-/:-@[-`{-~]+',
+              '^[A-Z_-]+$',
+              '^[\u00B7\u00D7\u2190-\u21FF\u2212\u2713-\u2717]+$',
+            ],
+          },
+        },
+      ],
+    },
+  }),
 
   // JSON / JSONC / JSON5
   {

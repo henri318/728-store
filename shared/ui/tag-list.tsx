@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, type KeyboardEvent } from 'react';
+import { useDictionary } from '@/shared/i18n/dictionary-context';
 import styles from './tag-list.module.css';
 
 interface TagListProps {
   label: string;
   placeholder?: string;
-  addLabel?: string;
-  emptyLabel?: string;
+  addLabel: string;
+  emptyLabel: string;
   value: string[] | null;
   onChange: (value: string[] | null) => void;
 }
@@ -15,11 +16,12 @@ interface TagListProps {
 export function TagList({
   label,
   placeholder,
-  addLabel = '+ Añadir',
-  emptyLabel = 'Aún no has añadido ninguna etiqueta.',
+  addLabel,
+  emptyLabel,
   value,
   onChange,
 }: TagListProps) {
+  const dict = useDictionary();
   const [inputValue, setInputValue] = useState('');
 
   const tags = value ?? [];
@@ -91,9 +93,9 @@ export function TagList({
                 type="button"
                 className={styles.removeBtn}
                 onClick={() => removeTag(i)}
-                aria-label={`Eliminar etiqueta ${tag}`}
+                aria-label={`${dict.common.removeFromCart ?? 'Remove'} ${tag}`}
               >
-                &times;
+                {'\u00D7'}
               </button>
             </span>
           ))}

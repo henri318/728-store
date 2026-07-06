@@ -46,6 +46,7 @@ describe('Orders Module - Integration Tests', () => {
             quantity: 1,
             customizationIdList: [],
             customizationSnapshot: null,
+            unitPrice: 0,
           },
         ],
       };

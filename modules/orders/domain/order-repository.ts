@@ -10,7 +10,10 @@ export type { OrderEntity, OrderLineItemEntity, OrderStatus };
  * Follows the Repository pattern for data access abstraction.
  */
 export interface OrderRepository {
-  findPaginated(filter: OrderListFilter): Promise<PaginatedResult<OrderEntity>>;
+  findPaginated(
+    filter: OrderListFilter,
+    locale?: string,
+  ): Promise<PaginatedResult<OrderEntity>>;
 
   /**
    * Saves an order entity to the database.
@@ -33,9 +36,10 @@ export interface OrderRepository {
   /**
    * Finds an order by its unique identifier.
    * @param orderId - The unique ID of the order to find
+   * @param locale - The locale for product name resolution
    * @returns The order entity if found, null otherwise
    */
-  findById(orderId: string): Promise<OrderEntity | null>;
+  findById(orderId: string, locale?: string): Promise<OrderEntity | null>;
 
   /**
    * Updates the status of an order.
@@ -67,6 +71,7 @@ export interface OrderListFilter {
   userId?: string;
   sellerId?: string;
   status?: OrderStatus | 'all';
+  q?: string;
   sortBy?: 'createdAt';
   sortDir?: 'asc' | 'desc';
   page?: number;

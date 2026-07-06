@@ -10,11 +10,15 @@
   margin-bottom: 1.5rem;
 }
 
+.checkoutCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
 .sellerSection {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .sellerName {
@@ -22,7 +26,7 @@
   font-weight: 600;
   margin-bottom: 0.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .itemRow {
@@ -46,22 +50,22 @@
 
 .itemCustomization {
   font-size: 0.8rem;
-  color: #888;
+  color: var(--color-text-secondary);
 }
 
 .itemCustomizationRemoved {
   font-size: 0.8rem;
-  color: #c62828;
+  color: var(--color-danger);
   font-style: italic;
 }
 
 .warning {
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
-  background: #fff3e0;
-  border: 1px solid #ff9800;
-  border-radius: 6px;
-  color: #e65100;
+  background: var(--color-cream);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  color: var(--color-green-dark);
   font-size: 0.9rem;
 }
 
@@ -88,15 +92,14 @@
   justify-content: space-between;
   padding-top: 0.5rem;
   margin-top: 0.5rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--color-border);
   font-weight: 600;
   font-size: 0.95rem;
 }
 
 .totals {
-  margin: 1.5rem 0;
-  padding: 1rem;
-  background: #f9f9f9;
+  padding: var(--spacing-md);
+  background: var(--color-cream);
   border-radius: var(--radius-md);
 }
 
@@ -114,7 +117,7 @@
 .grandTotal {
   font-size: 1.2rem;
   font-weight: 700;
-  border-top: 2px solid #ddd;
+  border-top: 2px solid var(--color-border-strong);
   margin-top: 0.5rem;
   padding-top: 0.75rem;
 }

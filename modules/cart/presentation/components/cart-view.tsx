@@ -70,6 +70,8 @@ interface CartViewProps {
     decreaseQuantity: string;
     increaseQuantity: string;
     customizationEditFromCart?: string;
+    customizationDesignImageAlt: string;
+    price: string;
   };
 }
 
@@ -298,7 +300,7 @@ export function CartView({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={item.customization.imageUrl}
-                    alt="Dise\u00f1o subido"
+                    alt={labels.customizationDesignImageAlt}
                     className={styles.designThumb}
                   />
                 )}
@@ -318,7 +320,7 @@ export function CartView({
 
                 {item.customization.color && (
                   <span className={styles.customizationLine}>
-                    Estilo: {item.customization.color}
+                    {labels.customizationColor}: {item.customization.color}
                   </span>
                 )}
 
@@ -351,7 +353,7 @@ export function CartView({
 
               <div className={styles.itemActions}>
                 <span className={styles.unitPrice}>
-                  <span className={styles.unitPriceLabel}>Precio:</span>{' '}
+                  <span className={styles.unitPriceLabel}>{labels.price}:</span>{' '}
                   {Money.format(item.unitPrice, Currency.EUR)}
                 </span>
 

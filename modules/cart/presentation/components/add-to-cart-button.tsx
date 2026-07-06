@@ -25,6 +25,7 @@ export interface CartButtonLabels {
   decreaseQuantity?: string;
   increaseQuantity?: string;
   saveDesign?: string;
+  savingDesign?: string;
   alreadyInCart?: string;
   alreadyInCartDifferent?: string;
 }
@@ -629,7 +630,9 @@ export function AddToCartButton({
             onClick={handleSaveDesign}
             disabled={savingDesign}
           >
-            {savingDesign ? '...' : labels.saveDesign}
+            {savingDesign
+              ? (labels.savingDesign ?? labels.saveDesign)
+              : labels.saveDesign}
           </button>
         )}
         <button
