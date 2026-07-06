@@ -27,8 +27,10 @@ export const GlobalEvents = {
   /** User account deleted */
   USER_DELETED: 'user.deleted',
   /** Password changed by authenticated user */
+  // eslint-disable-next-line sonarjs/no-hardcoded-passwords
   PASSWORD_CHANGED: 'password.changed',
   /** Password reset via forgot-password flow */
+  // eslint-disable-next-line sonarjs/no-hardcoded-passwords
   PASSWORD_RESET: 'password.reset',
   /** New seller created (initial status: active) */
   SELLER_CREATED: 'seller.created',

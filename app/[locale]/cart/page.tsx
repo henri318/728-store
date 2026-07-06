@@ -45,9 +45,9 @@ export default async function CartPage({
         productIds.map((id) => productRepository.findById(id, locale)),
       );
       const productMap = new Map<string, ProductEntity>();
-      products.forEach((p) => {
+      for (const p of products) {
         if (p) productMap.set(p.id, p);
-      });
+      }
 
       items = cart.items.map((item) => {
         const product = productMap.get(item.productId.value);

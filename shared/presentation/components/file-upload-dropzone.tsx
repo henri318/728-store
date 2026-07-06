@@ -157,9 +157,9 @@ function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) {
     const value = bytes / 1024;
-    return `${Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1)} KB`;
+    return `${Number.isSafeInteger(value) ? value.toFixed(0) : value.toFixed(1)} KB`;
   }
 
   const value = bytes / (1024 * 1024);
-  return `${Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1)} MB`;
+  return `${Number.isSafeInteger(value) ? value.toFixed(0) : value.toFixed(1)} MB`;
 }

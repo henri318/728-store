@@ -60,15 +60,14 @@ export class RegisterUserUseCase {
     const userId = UserId.create(crypto.randomUUID());
     const roleId = RoleId.create('CUSTOMER');
 
-    let address: Address | null = null;
-    if (dto.address) {
-      address = Address.create(
-        dto.address.street,
-        dto.address.city,
-        dto.address.postalCode,
-        dto.address.country,
-      );
-    }
+    const address = dto.address
+      ? Address.create(
+          dto.address.street,
+          dto.address.city,
+          dto.address.postalCode,
+          dto.address.country,
+        )
+      : null;
 
     // 5. Save user
     const now = new Date();

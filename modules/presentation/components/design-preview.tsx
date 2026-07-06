@@ -88,7 +88,7 @@ function loadImage(src: string): Promise<HTMLImageElement | null> {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.addEventListener('load', () => resolve(img));
-    img.onerror = () => resolve(null);
+    img.addEventListener('error', () => resolve(null));
     img.src = src;
   });
 }

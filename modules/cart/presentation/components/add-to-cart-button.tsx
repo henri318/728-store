@@ -492,6 +492,7 @@ export function AddToCartButton({
     if (!isInCart || currentQuantity >= MAX_QUANTITY) return;
     const newQty = currentQuantity + 1;
     if (isAuthenticated && cartItemInfo) {
+      const prevCartItemInfo = cartItemInfo;
       setCartItemInfo({ ...cartItemInfo, quantity: newQty });
       try {
         const res = await fetch(`/api/cart/items/${cartItemInfo.cartItemId}`, {
@@ -500,12 +501,12 @@ export function AddToCartButton({
           body: JSON.stringify({ quantity: newQty }),
         });
         if (!res.ok) {
-          setCartItemInfo(cartItemInfo);
+          setCartItemInfo(prevCartItemInfo);
           return;
         }
         dispatchCartUpdated();
       } catch {
-        setCartItemInfo(cartItemInfo);
+        setCartItemInfo(prevCartItemInfo);
       }
     } else if (guestMatch?.id) {
       updateItemQuantity(guestMatch.id, newQty);
@@ -525,6 +526,7 @@ export function AddToCartButton({
 
     const newQty = currentQuantity - 1;
     if (isAuthenticated && cartItemInfo) {
+      const prevCartItemInfo = cartItemInfo;
       setCartItemInfo({ ...cartItemInfo, quantity: newQty });
       try {
         const res = await fetch(`/api/cart/items/${cartItemInfo.cartItemId}`, {
@@ -533,12 +535,12 @@ export function AddToCartButton({
           body: JSON.stringify({ quantity: newQty }),
         });
         if (!res.ok) {
-          setCartItemInfo(cartItemInfo);
+          setCartItemInfo(prevCartItemInfo);
           return;
         }
         dispatchCartUpdated();
       } catch {
-        setCartItemInfo(cartItemInfo);
+        setCartItemInfo(prevCartItemInfo);
       }
     } else if (guestMatch?.id) {
       updateItemQuantity(guestMatch.id, newQty);

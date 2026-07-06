@@ -26,20 +26,18 @@ export function toDomain(user: {
 }): UserEntity {
   if (!user.email) throw new Error('User email is required');
 
-  let address: Address | null = null;
-  if (
+  const address =
     user.addressStreet &&
     user.addressCity &&
     user.addressPostalCode &&
     user.addressCountry
-  ) {
-    address = Address.create(
-      user.addressStreet,
-      user.addressCity,
-      user.addressPostalCode,
-      user.addressCountry,
-    );
-  }
+      ? Address.create(
+          user.addressStreet,
+          user.addressCity,
+          user.addressPostalCode,
+          user.addressCountry,
+        )
+      : null;
 
   return {
     userId: UserId.create(user.id),

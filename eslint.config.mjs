@@ -150,6 +150,7 @@ export default [
       'unicorn/no-null': 'off', // muchos proyectos usan null intencionalmente (ej. React)
       'unicorn/prefer-module': 'off', // si tenéis algún archivo CJS (configs, scripts)
       'unicorn/name-replacements': 'off',
+      'unicorn/import-style': 'off',
 
       'unicorn/no-top-level-assignment-in-function': 'off',
       'unicorn/consistent-class-member-order': 'off',
@@ -176,19 +177,6 @@ export default [
       'sonarjs/no-nested-template-literals': 'off',
       'unicorn/no-nested-ternary': 'off',
       'unicorn/no-array-sort': 'off',
-      'unicorn/prefer-number-is-safe-integer': 'off',
-      'unicorn/prefer-ternary': 'off',
-      'sonarjs/no-useless-react-setstate': 'off',
-      'sonarjs/no-hardcoded-passwords': 'off',
-      'unicorn/prefer-add-event-listener': 'off',
-      'sonarjs/super-linear-regex': 'off',
-      'unicorn/numeric-separators-style': 'off',
-      'sonarjs/void-use': 'off',
-      'unicorn/import-style': 'off',
-      'sonarjs/no-unused-vars': 'off',
-      'unicorn/no-declarations-before-early-exit': 'off',
-      'unicorn/no-for-each': 'off',
-      'unicorn/prefer-location-assign': 'off',
 
       // SonarJS: ajustar el umbral de complejidad cognitiva si el default es muy estricto
       // 'sonarjs/cognitive-complexity': ['warn', 15],

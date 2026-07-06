@@ -95,11 +95,7 @@ export class CheckoutCart {
   ) {}
 
   async preview(userId: string): Promise<CheckoutPreview> {
-    const { cart, totals } = await this.buildTotals(userId, false);
-    // Touch the unused cart ref so TS doesn't complain about a return-only
-    // branch — the spec ties the preview to the cart's contents and we
-    // want the call to also serve as a validation gate.
-    void cart;
+    const { totals } = await this.buildTotals(userId, false);
     return totals;
   }
 
@@ -269,14 +265,14 @@ export class CheckoutCart {
 
     // Persist the updated snapshots (if any) so the cart reflects the
     // new prices. Status stays ACTIVE — checkout hasn't run yet.
-    let liveCart = cart;
-    if (acceptPriceChanges && priceChanges.length > 0) {
-      liveCart = await this.cartRepository.save({
-        ...cart,
-        items: updatedItems,
-        updatedAt: new Date(),
-      });
-    }
+    const liveCart =
+      acceptPriceChanges && priceChanges.length > 0
+        ? await this.cartRepository.save({
+            ...cart,
+            items: updatedItems,
+            updatedAt: new Date(),
+          })
+        : cart;
 
     // Compute totals from the live items (so acceptPriceChanges reflects
     // the updated snapshot prices in subtotal/discount/total).

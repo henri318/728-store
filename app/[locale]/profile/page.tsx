@@ -96,6 +96,10 @@ export default function ProfilePage() {
     };
   }, [status, locale, router]);
 
+  if (status === 'loading' || loading) {
+    return <div className={styles.loading}>{dict.common.loading}</div>;
+  }
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -144,10 +148,6 @@ export default function ProfilePage() {
       setShowDeleteModal(false);
     }
   };
-
-  if (status === 'loading' || loading) {
-    return <div className={styles.loading}>{dict.common.loading}</div>;
-  }
 
   return (
     <div className={styles.container}>

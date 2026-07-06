@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 async function getStorageRoot(): Promise<string> {
-  const { join } = await import('node:path');
+  const path = await import('node:path');
   return (
     process.env.LOCAL_UPLOAD_STORAGE_DIR ??
-    join(process.cwd(), 'tmp', 'uploads')
+    path.join(process.cwd(), 'tmp', 'uploads')
   );
 }
 
@@ -12,7 +12,7 @@ async function resolveStoragePath(
   storageKey: string[],
   root: string,
 ): Promise<string | null> {
-  const { resolve, relative, isAbsolute } = await import('node:path');
+  const path = await import('node:path');
 
   const decodedKey = decodeURIComponent(storageKey.join('/'));
   if (
@@ -24,14 +24,14 @@ async function resolveStoragePath(
   }
   const segments = decodedKey.split('/').filter(Boolean);
 
-  const rawPath = resolve(root, ...segments);
-  const rawRelative = relative(root, rawPath);
-  if (rawRelative.startsWith('..') || isAbsolute(rawRelative)) {
+  const rawPath = path.resolve(root, ...segments);
+  const rawRelative = path.relative(root, rawPath);
+  if (rawRelative.startsWith('..') || path.isAbsolute(rawRelative)) {
     return null;
   }
 
   const sanitized = segments.map((s) => s.replace(/[:*?"<>|]/g, '_'));
-  const filePath = resolve(root, ...sanitized);
+  const filePath = path.resolve(root, ...sanitized);
 
   return filePath;
 }
@@ -56,7 +56,7 @@ export async function PUT(
   }
 
   const { mkdir, writeFile } = await import('node:fs/promises');
-  const { dirname } = await import('node:path');
+  const path = await import('node:path');
 
   const { storageKey } = await context.params;
   const root = await getStorageRoot();
@@ -65,7 +65,7 @@ export async function PUT(
     return NextResponse.json({ error: 'Invalid storage key' }, { status: 400 });
   }
 
-  await mkdir(dirname(filePath), { recursive: true });
+  await mkdir(path.dirname(filePath), { recursive: true });
 
   const body = Buffer.from(await request.arrayBuffer());
   await writeFile(filePath, body);

@@ -25,6 +25,18 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  if (!token) {
+    return (
+      <AuthCard className={styles.centered}>
+        <h2 className={styles.title}>{dict.auth.resetPasswordTitle}</h2>
+        <ErrorMessage message={error ?? undefined} />
+        <Link href="/auth/forgot-password" className={styles.link}>
+          {dict.auth.requestNewLink}
+        </Link>
+      </AuthCard>
+    );
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -60,18 +72,6 @@ export default function ResetPasswordPage() {
       setLoading(false);
     }
   };
-
-  if (!token) {
-    return (
-      <AuthCard className={styles.centered}>
-        <h2 className={styles.title}>{dict.auth.resetPasswordTitle}</h2>
-        <ErrorMessage message={error ?? undefined} />
-        <Link href="/auth/forgot-password" className={styles.link}>
-          {dict.auth.requestNewLink}
-        </Link>
-      </AuthCard>
-    );
-  }
 
   return (
     <AuthCard>
