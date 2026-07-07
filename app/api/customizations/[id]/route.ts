@@ -5,10 +5,8 @@ import { handleApiError } from '@/shared/presentation/error-handler';
 import { GetCustomizationById } from '@/modules/customizations/application/get-customization-by-id';
 import { UpdateCustomization } from '@/modules/customizations/application/update-customization';
 import { DeleteCustomization } from '@/modules/customizations/application/delete-customization';
-import {
-  updateCustomizationSchema,
-  customizationResponseSchema,
-} from '@/modules/customizations/presentation/schemas/customization-schemas';
+import { toCustomizationResponse } from '@/modules/customizations/presentation/to-customization-response';
+import { updateCustomizationSchema } from '@/modules/customizations/presentation/schemas/customization-schemas';
 import {
   getCurrentSellerId,
   getRouteParams,
@@ -135,37 +133,3 @@ export const DELETE = requireRole('DESIGNER')(async function DELETE(
     return handleApiError(error);
   }
 });
-
-function toCustomizationResponse(customization: {
-  id: string;
-  productId: string;
-  text: string | null;
-  color: string | null;
-  size: string | null;
-  imageUrl: string | null;
-  designPosition: unknown;
-  createdAt: Date;
-}) {
-  return customizationResponseSchema.parse({
-    id: customization.id,
-    productId: customization.productId,
-    text: customization.text,
-    color: customization.color,
-    size: customization.size,
-    imageUrl: customization.imageUrl,
-    designPosition:
-      (customization.designPosition as
-        | {
-            imageUrl: string;
-            x: number;
-            y: number;
-            scale: number;
-            rotation_deg: number;
-            opacity: number;
-            blend_mode: string;
-          }
-        | null
-        | undefined) ?? null,
-    createdAt: customization.createdAt.toISOString(),
-  });
-}

@@ -4,11 +4,11 @@ import { container } from '@/composition-root/container';
 import { MigrateGuestCart } from '@/modules/cart/application/migrate-guest-cart';
 import { migrateGuestCartSchema } from '@/modules/cart/presentation/schemas/cart-schemas';
 import { handleApiError } from '@/shared/presentation/error-handler';
+import { enrichCartItem } from '@/modules/cart/presentation/enrich-cart-item';
 import {
   getAuthenticatedUserId,
   parseBody,
 } from '@/shared/presentation/route-helpers';
-import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
 import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
 import { CreateCustomerCustomization } from '@/modules/customizations/application/create-customer-customization';
@@ -160,38 +160,3 @@ export const POST = requireRole('CUSTOMER')(async function POST(
     return handleApiError(error);
   }
 });
-
-// --- Enrichment helper ---
-
-function enrichCartItem(
-  item: CartItemEntity,
-  product: ProductEntity | undefined,
-  customizations: CustomizationSnapshot[],
-): Record<string, unknown> {
-  const productName = product?.translations?.[0]?.name ?? 'Unknown Product';
-  const productImageUrl = product?.images?.[0]?.url ?? null;
-  const sellerName = product?.sellerName ?? 'Unknown Seller';
-  const unitPrice = item.unitPriceSnapshot.amount;
-  const lineTotal = unitPrice * item.quantity;
-
-  return {
-    id: item.id,
-    productId: item.productId.value,
-    productName,
-    productImageUrl,
-    sellerId: item.sellerId.value,
-    sellerName,
-    quantity: item.quantity,
-    unitPrice,
-    lineTotal,
-    customizationIdList: item.customizationIdList,
-    customizations: customizations.map((c) => ({
-      id: c.id,
-      text: c.text,
-      color: c.color,
-      size: c.size,
-      imageUrl: c.imageUrl,
-      designPosition: c.designPosition,
-    })),
-  };
-}

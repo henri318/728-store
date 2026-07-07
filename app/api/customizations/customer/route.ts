@@ -3,10 +3,8 @@ import { requireRole } from '@/shared/authorization/authorization';
 import { container } from '@/composition-root/container';
 import { handleApiError } from '@/shared/presentation/error-handler';
 import { CreateCustomerCustomization } from '@/modules/customizations/application/create-customer-customization';
-import {
-  createCustomerCustomizationSchema,
-  customizationResponseSchema,
-} from '@/modules/customizations/presentation/schemas/customization-schemas';
+import { toCustomizationResponse } from '@/modules/customizations/presentation/to-customization-response';
+import { createCustomerCustomizationSchema } from '@/modules/customizations/presentation/schemas/customization-schemas';
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
 import type { ProductCapabilityPort } from '@/modules/products/domain/product-capability-port';
 
@@ -52,37 +50,3 @@ export const POST = requireRole('CUSTOMER')(async function POST(
     return handleApiError(error);
   }
 });
-
-function toCustomizationResponse(customization: {
-  id: string;
-  productId: string;
-  text: string | null;
-  color: string | null;
-  size: string | null;
-  imageUrl: string | null;
-  designPosition: unknown;
-  createdAt: Date;
-}) {
-  return customizationResponseSchema.parse({
-    id: customization.id,
-    productId: customization.productId,
-    text: customization.text,
-    color: customization.color,
-    size: customization.size,
-    imageUrl: customization.imageUrl,
-    designPosition:
-      (customization.designPosition as
-        | {
-            imageUrl: string;
-            x: number;
-            y: number;
-            scale: number;
-            rotation_deg: number;
-            opacity: number;
-            blend_mode: string;
-          }
-        | null
-        | undefined) ?? null,
-    createdAt: customization.createdAt.toISOString(),
-  });
-}

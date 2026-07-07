@@ -3,8 +3,8 @@ import { requireRole } from '@/shared/authorization/authorization';
 import { container } from '@/composition-root/container';
 import { GetCart } from '@/modules/cart/application/get-cart';
 import { handleApiError } from '@/shared/presentation/error-handler';
+import { enrichCartItem } from '@/modules/cart/presentation/enrich-cart-item';
 import { getAuthenticatedUserId } from '@/shared/presentation/route-helpers';
-import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
 import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
 
@@ -76,43 +76,3 @@ export const GET = requireRole('CUSTOMER')(async function GET() {
     return handleApiError(error);
   }
 });
-
-// --- Enrichment helper ---
-
-function enrichCartItem(
-  item: CartItemEntity,
-  product: ProductEntity | undefined,
-  customizations: CustomizationSnapshot[],
-): Record<string, unknown> {
-  const productName = product?.translations?.[0]?.name ?? 'Unknown Product';
-  const productImageUrl = product?.images?.[0]?.url ?? null;
-  const sellerName = product?.sellerName ?? 'Unknown Seller';
-  const unitPrice = item.unitPriceSnapshot.amount;
-  const lineTotal = unitPrice * item.quantity;
-
-  return {
-    id: item.id,
-    productId: item.productId.value,
-    productName,
-    productImageUrl,
-    sellerId: item.sellerId.value,
-    sellerName,
-    quantity: item.quantity,
-    unitPrice,
-    lineTotal,
-    customizationIdList: item.customizationIdList,
-    colorImageUrl:
-      product && customizations[0]?.color
-        ? (product.images?.find((img) => img.alt === customizations[0].color)
-            ?.url ?? null)
-        : null,
-    customizations: customizations.map((c) => ({
-      id: c.id,
-      text: c.text,
-      color: c.color,
-      size: c.size,
-      imageUrl: c.imageUrl,
-      designPosition: c.designPosition,
-    })),
-  };
-}

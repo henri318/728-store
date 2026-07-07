@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
-import { type ZodError, type ZodIssue } from 'zod';
+import type { ZodIssue } from 'zod';
 import { Input } from '@/shared/ui/input';
 import { Button } from '@/shared/ui/button';
 import { ErrorMessage } from '@/shared/ui/error-message';
@@ -13,6 +13,7 @@ import { AuthCard } from '@/shared/ui/auth-card';
 import { signupSchema } from '@/modules/auth/presentation/schemas/auth-schemas';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 import { checkPasswordMatch } from '@/shared/validation/password-match';
+import { validateForm } from '@/shared/validation/validate-form';
 import styles from './page.module.css';
 
 interface AddressFields {
@@ -70,7 +71,7 @@ function applyIssue(errors: FormErrors, issue: ZodIssue) {
   }
 }
 
-function validateForm(
+function validateFormLocal(
   form: FormState,
   passwordsDoNotMatch: string,
 ): FormErrors | null {
@@ -91,17 +92,7 @@ function validateForm(
         : undefined,
   };
 
-  const result = signupSchema.safeParse(formToValidate);
-  if (result.success) return null;
-
-  const errors: FormErrors = {};
-  const issues = (result.error as ZodError).issues ?? [];
-
-  for (const issue of issues) {
-    applyIssue(errors, issue);
-  }
-
-  return Object.keys(errors).length > 0 ? errors : null;
+  return validateForm(formToValidate, signupSchema, applyIssue);
 }
 
 export default function SignUpPage() {
@@ -160,7 +151,10 @@ export default function SignUpPage() {
     e.preventDefault();
     setServerError(null);
 
-    const validationErrors = validateForm(form, dict.auth.passwordsDoNotMatch);
+    const validationErrors = validateFormLocal(
+      form,
+      dict.auth.passwordsDoNotMatch,
+    );
     if (validationErrors) {
       setErrors(validationErrors);
       return;
