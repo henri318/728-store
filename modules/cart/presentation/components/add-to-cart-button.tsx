@@ -11,6 +11,8 @@ import {
 } from './customization-draft-schema';
 import styles from './add-to-cart-button.module.css';
 
+const hasText = (value?: string | null) => value != null && value.length > 0;
+
 export interface CartButtonLabels {
   addToCart: string;
   removeFromCart: string;
@@ -81,13 +83,12 @@ function isAuthCustomizationMatching(
   draft: CustomizationDraftPayload | null,
 ): boolean {
   const norm = normalizeCustomizationDraft(draft);
-  const hasDraftContent = Boolean(
-    norm.text ||
-    norm.color ||
-    norm.size > 0 ||
-    norm.imageUrl ||
-    norm.designPosition,
-  );
+  const hasDraftContent =
+    hasText(norm.text) ||
+    hasText(norm.color) ||
+    hasText(norm.size) ||
+    hasText(norm.imageUrl) ||
+    Boolean(norm.designPosition);
 
   if (!hasDraftContent) {
     return customizations.length === 0;
@@ -148,13 +149,12 @@ export function AddToCartButton({
     () => normalizeCustomizationDraft(customization),
     [customization],
   );
-  const isCustomizationHasContent = Boolean(
-    normalizedCustomization.text ||
-    normalizedCustomization.color ||
-    normalizedCustomization.size > 0 ||
-    normalizedCustomization.imageUrl ||
-    normalizedCustomization.designPosition,
-  );
+  const isCustomizationHasContent =
+    hasText(normalizedCustomization.text) ||
+    hasText(normalizedCustomization.color) ||
+    hasText(normalizedCustomization.size) ||
+    hasText(normalizedCustomization.imageUrl) ||
+    Boolean(normalizedCustomization.designPosition);
 
   // Fetch cart for authenticated users.
   useEffect(() => {
@@ -353,11 +353,11 @@ export function AddToCartButton({
       let customizationIdList: string[] = [];
       const hasCustomizationContent =
         draft &&
-        (draft.text ||
-          draft.color ||
-          Boolean(draft?.size) ||
-          draft.imageUrl ||
-          draft.designPosition);
+        (hasText(draft.text) ||
+          hasText(draft.color) ||
+          hasText(draft.size) ||
+          hasText(draft.imageUrl) ||
+          Boolean(draft.designPosition));
 
       if (hasCustomizationContent) {
         const customizationResponse = await fetch(
