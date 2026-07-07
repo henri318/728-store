@@ -20,7 +20,7 @@ function isKnownLocale(segment: string): boolean {
   return locales.includes(segment);
 }
 
-function doesMatchProtectedPath(
+function isProtectedPathMatch(
   pathname: string,
   protectedPath: string,
 ): boolean {
@@ -31,19 +31,19 @@ function doesMatchProtectedPath(
     return false;
   }
 
-  const directMatch = protectedSegments.every(
+  const hasDirectMatch = protectedSegments.every(
     (segment, index) => pathnameSegments[index] === segment,
   );
-  if (directMatch) {
+  if (hasDirectMatch) {
     return true;
   }
 
-  const localePrefixedMatch = protectedSegments.every(
+  const hasLocalePrefixedMatch = protectedSegments.every(
     (segment, index) =>
       isKnownLocale(pathnameSegments[0] ?? '') &&
       pathnameSegments[index + 1] === segment,
   );
-  return localePrefixedMatch;
+  return hasLocalePrefixedMatch;
 }
 
 export async function proxy(request: NextRequest) {
@@ -51,7 +51,7 @@ export async function proxy(request: NextRequest) {
 
   // ---- Auth gate for protected routes ----
   const isProtected = protectedPaths.some((path) =>
-    doesMatchProtectedPath(pathname, path),
+    isProtectedPathMatch(pathname, path),
   );
 
   if (isProtected) {
@@ -86,11 +86,11 @@ export async function proxy(request: NextRequest) {
   }
 
   // Check if pathname already has a locale
-  const isPathnameHasLocale = locales.some(
+  const hasPathnameLocale = locales.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
   );
 
-  if (isPathnameHasLocale) return NextResponse.next();
+  if (hasPathnameLocale) return NextResponse.next();
 
   // Static assets in /public don't need locale prefix
   if (

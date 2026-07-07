@@ -26,26 +26,6 @@ export interface CustomizationDesignPosition {
 }
 
 export class CustomizationOptions {
-  readonly text?: string;
-  readonly color?: string;
-  readonly size?: string;
-  readonly imageUrl?: string;
-  readonly designPosition?: CustomizationDesignPosition | null;
-
-  private constructor(data: {
-    text?: string;
-    color?: string;
-    size?: string;
-    imageUrl?: string;
-    designPosition?: CustomizationDesignPosition | null;
-  }) {
-    this.text = data.text;
-    this.color = data.color;
-    this.size = data.size;
-    this.imageUrl = data.imageUrl;
-    this.designPosition = data.designPosition;
-  }
-
   private static validateText(text: string | undefined): void {
     if (text !== undefined && text.length > 500) {
       throw new Error('Customization text must be at most 500 characters');
@@ -131,6 +111,26 @@ export class CustomizationOptions {
       imageUrl,
       designPosition: designPosition ?? null,
     });
+  }
+
+  readonly text?: string;
+  readonly color?: string;
+  readonly size?: string;
+  readonly imageUrl?: string;
+  readonly designPosition?: CustomizationDesignPosition | null;
+
+  private constructor(data: {
+    text?: string;
+    color?: string;
+    size?: string;
+    imageUrl?: string;
+    designPosition?: CustomizationDesignPosition | null;
+  }) {
+    this.text = data.text;
+    this.color = data.color;
+    this.size = data.size;
+    this.imageUrl = data.imageUrl;
+    this.designPosition = data.designPosition;
   }
 
   equals(other: CustomizationOptions): boolean {

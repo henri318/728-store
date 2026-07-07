@@ -1,6 +1,4 @@
 export class VerificationToken {
-  readonly value: string;
-
   static create(value: string): VerificationToken {
     const trimmed = value.trim();
 
@@ -10,6 +8,8 @@ export class VerificationToken {
 
     return new VerificationToken(trimmed);
   }
+
+  readonly value: string;
 
   private constructor(value: string) {
     this.value = value;

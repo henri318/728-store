@@ -36,19 +36,6 @@ export interface MarkAsPaidDTO {
  */
 export class MarkAsPaidUseCase {
   /**
-   * Creates a new MarkAsPaidUseCase instance.
-   *
-   * @param orderRepository - Repository for order persistence operations
-   * @param outboxRepository - Repository for emitting domain events via Outbox pattern
-   * @param transactionalService - Optional service for atomic status update + event emission
-   */
-  constructor(
-    private orderRepository: OrderRepository,
-    private outboxRepository: OutboxRepository,
-    private transactionalService?: TransactionalOrderPort,
-  ) {}
-
-  /**
    * Static method to subscribe to PaymentCompleted events from the event bus.
    *
    * This method registers a listener that automatically invokes the use case
@@ -75,6 +62,19 @@ export class MarkAsPaidUseCase {
       }
     });
   }
+
+  /**
+   * Creates a new MarkAsPaidUseCase instance.
+   *
+   * @param orderRepository - Repository for order persistence operations
+   * @param outboxRepository - Repository for emitting domain events via Outbox pattern
+   * @param transactionalService - Optional service for atomic status update + event emission
+   */
+  constructor(
+    private orderRepository: OrderRepository,
+    private outboxRepository: OutboxRepository,
+    private transactionalService?: TransactionalOrderPort,
+  ) {}
 
   /**
    * Executes the mark-as-paid operation for an order.

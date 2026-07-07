@@ -1,6 +1,4 @@
 export class PasswordHash {
-  readonly value: string;
-
   static create(hash: string): PasswordHash {
     const trimmed = hash.trim();
 
@@ -14,6 +12,8 @@ export class PasswordHash {
 
     return new PasswordHash(trimmed);
   }
+
+  readonly value: string;
 
   private constructor(value: string) {
     this.value = value;

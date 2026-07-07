@@ -9,67 +9,6 @@ import { toDomainProduct, toPersistenceProduct } from './mapper';
 import { normalizeText } from '@/shared/lib/normalize-text';
 
 export class PrismaProductRepository implements ProductRepository {
-  async findAll(locale: string): Promise<ProductEntity[]> {
-    const products = await prisma.product.findMany({
-      include: {
-        seller: true,
-        category: true,
-        translations: {
-          where: { locale },
-        },
-        images: {
-          orderBy: { position: 'asc' },
-        },
-        tags: true,
-      },
-    });
-
-    return products.map((product) => toDomainProduct(product));
-  }
-
-  async findById(id: string, locale: string): Promise<ProductEntity | null> {
-    const product = await prisma.product.findUnique({
-      where: { id },
-      include: {
-        seller: true,
-        category: true,
-        translations: {
-          where: { locale },
-        },
-        images: {
-          orderBy: { position: 'asc' },
-        },
-        tags: true,
-      },
-    });
-
-    if (!product) return null;
-
-    return toDomainProduct(product);
-  }
-
-  async findBySellerId(
-    sellerId: string,
-    locale: string,
-  ): Promise<ProductEntity[]> {
-    const products = await prisma.product.findMany({
-      where: { sellerId },
-      include: {
-        seller: true,
-        category: true,
-        translations: {
-          where: { locale },
-        },
-        images: {
-          orderBy: { position: 'asc' },
-        },
-        tags: true,
-      },
-    });
-
-    return products.map((product) => toDomainProduct(product));
-  }
-
   /**
    * Build Prisma WHERE conditions, optionally skipping the q filter.
    * When shouldSkipQ is true, the search term is handled separately via
@@ -168,6 +107,67 @@ export class PrismaProductRepository implements ProductRepository {
       `%${normQ}%`,
     );
     return rows.map((r) => r.id);
+  }
+
+  async findAll(locale: string): Promise<ProductEntity[]> {
+    const products = await prisma.product.findMany({
+      include: {
+        seller: true,
+        category: true,
+        translations: {
+          where: { locale },
+        },
+        images: {
+          orderBy: { position: 'asc' },
+        },
+        tags: true,
+      },
+    });
+
+    return products.map((product) => toDomainProduct(product));
+  }
+
+  async findById(id: string, locale: string): Promise<ProductEntity | null> {
+    const product = await prisma.product.findUnique({
+      where: { id },
+      include: {
+        seller: true,
+        category: true,
+        translations: {
+          where: { locale },
+        },
+        images: {
+          orderBy: { position: 'asc' },
+        },
+        tags: true,
+      },
+    });
+
+    if (!product) return null;
+
+    return toDomainProduct(product);
+  }
+
+  async findBySellerId(
+    sellerId: string,
+    locale: string,
+  ): Promise<ProductEntity[]> {
+    const products = await prisma.product.findMany({
+      where: { sellerId },
+      include: {
+        seller: true,
+        category: true,
+        translations: {
+          where: { locale },
+        },
+        images: {
+          orderBy: { position: 'asc' },
+        },
+        tags: true,
+      },
+    });
+
+    return products.map((product) => toDomainProduct(product));
   }
 
   async findPaginated(

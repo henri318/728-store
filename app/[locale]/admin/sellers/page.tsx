@@ -195,8 +195,10 @@ export default async function AdminSellersPage({
             prevLabel={dict.admin.pagePrev}
             nextLabel={dict.admin.pageNext}
             pageInfo={dict.admin.pageXofY
-              .replace('{current}', currentPage.toString())
-              .replace('{total}', totalPages.toString())}
+              .split('{current}')
+              .join(currentPage.toString())
+              .split('{total}')
+              .join(totalPages.toString())}
           />
         </>
       )}

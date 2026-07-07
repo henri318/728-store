@@ -2,8 +2,6 @@ import { Money } from '@/shared/kernel/domain/value-objects/money';
 import type { Currency } from '@/shared/kernel/domain/value-objects/currency';
 
 export class ProductPrice {
-  readonly money: Money;
-
   static create(amount: number, currency: Currency): ProductPrice {
     const money = Money.create(amount, currency);
 
@@ -13,6 +11,8 @@ export class ProductPrice {
 
     return new ProductPrice(money);
   }
+
+  readonly money: Money;
 
   private constructor(money: Money) {
     this.money = money;

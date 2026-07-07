@@ -19,12 +19,6 @@ import type {
  * these — production wires the Prisma adapter.
  */
 export class MemoryRateLimiter implements RateLimiter {
-  /** Thresholds — keep in sync with the Prisma adapter and docs/security-gaps.md. */
-  public readonly EMAIL_FAIL_THRESHOLD = 5;
-  public readonly IP_FAIL_THRESHOLD = 20;
-  public readonly WINDOW_MS = 15 * 60 * 1000;
-  public readonly EMAIL_BLOCK_SECONDS = 15 * 60;
-
   private store: Array<{
     email: string;
     ip: string;
@@ -32,6 +26,11 @@ export class MemoryRateLimiter implements RateLimiter {
     createdAt: Date;
   }> = [];
 
+  /** Thresholds — keep in sync with the Prisma adapter and docs/security-gaps.md. */
+  public readonly EMAIL_FAIL_THRESHOLD = 5;
+  public readonly IP_FAIL_THRESHOLD = 20;
+  public readonly WINDOW_MS = 15 * 60 * 1000;
+  public readonly EMAIL_BLOCK_SECONDS = 15 * 60;
   public readonly IP_BLOCK_SECONDS = 60 * 60;
 
   async checkRateLimit(email: string, ip: string): Promise<RateLimitResult> {

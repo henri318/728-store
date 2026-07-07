@@ -1,9 +1,4 @@
 export class Address {
-  readonly street: string;
-  readonly city: string;
-  readonly postalCode: string;
-  readonly country: string;
-
   static create(
     street: string,
     city: string,
@@ -31,6 +26,11 @@ export class Address {
       trimmedCountry,
     );
   }
+
+  readonly street: string;
+  readonly city: string;
+  readonly postalCode: string;
+  readonly country: string;
 
   private constructor(
     street: string,

@@ -21,8 +21,6 @@ import { RecordSearchUseCase } from './record-search-use-case';
  *    single failure does not break the in-process bus.
  */
 export class HandleProductSearchExecuted {
-  constructor(private readonly recordSearch: RecordSearchUseCase) {}
-
   /**
    * Wire the handler to the event bus. Mirrors the
    * `HandleCartCheckedOut.subscribe` pattern so HMR doesn't double-register.
@@ -39,6 +37,8 @@ export class HandleProductSearchExecuted {
       }
     });
   }
+
+  constructor(private readonly recordSearch: RecordSearchUseCase) {}
 
   async handle(
     payload: ProductSearchExecutedPayload | null | undefined,

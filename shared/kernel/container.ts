@@ -21,7 +21,7 @@ import { ConsoleEmailSender } from './console-email-sender';
 // State
 // ---------------------------------------------------------------------------
 
-let _emailSender: EmailSender | null = null;
+const state: Record<string, unknown> = {};
 
 // ---------------------------------------------------------------------------
 // Initialization
@@ -45,13 +45,13 @@ export function initContainer(): void {
  * Lazily initializes on first call.
  */
 export function getEmailSender(): EmailSender {
-  if (!_emailSender) {
-    _emailSender =
+  if (!state.emailSender) {
+    state.emailSender =
       process.env.NODE_ENV === 'production'
         ? new BrevoEmailSender()
         : new ConsoleEmailSender();
   }
-  return _emailSender;
+  return state.emailSender as EmailSender;
 }
 
 // ---------------------------------------------------------------------------
@@ -69,6 +69,6 @@ export const container = {
   getEmailSender,
   /** Override — useful in tests to inject a mock without touching env vars. */
   setEmailSender(sender: EmailSender): void {
-    _emailSender = sender;
+    state.emailSender = sender;
   },
 };

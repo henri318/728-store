@@ -49,6 +49,24 @@ export interface CartCheckedOutPayload {
  *  - Customization fields are preserved on every line item.
  */
 export class HandleCartCheckedOut {
+  /**
+   * Static helper that wires the handler to a CART_CHECKED_OUT listener
+   * on the event bus. Mirrors the pattern used by MarkAsPaidUseCase
+   * and AssignToProductionUseCase (events/domain/event-bus-port).
+   */
+  static subscribe(
+    eventBus: EventBusPort,
+    useCase: HandleCartCheckedOut,
+  ): void {
+    eventBus.on(GlobalEvents.CART_CHECKED_OUT, async (data: unknown) => {
+      try {
+        await useCase.execute(data as CartCheckedOutPayload);
+      } catch (error) {
+        console.error('Error processing CartCheckedOut event:', error);
+      }
+    });
+  }
+
   constructor(
     private orderRepository: OrderRepository,
     private outboxRepository: OutboxRepository,
@@ -124,24 +142,6 @@ export class HandleCartCheckedOut {
           },
           tx,
         );
-      }
-    });
-  }
-
-  /**
-   * Static helper that wires the handler to a CART_CHECKED_OUT listener
-   * on the event bus. Mirrors the pattern used by MarkAsPaidUseCase
-   * and AssignToProductionUseCase (events/domain/event-bus-port).
-   */
-  static subscribe(
-    eventBus: EventBusPort,
-    useCase: HandleCartCheckedOut,
-  ): void {
-    eventBus.on(GlobalEvents.CART_CHECKED_OUT, async (data: unknown) => {
-      try {
-        await useCase.execute(data as CartCheckedOutPayload);
-      } catch (error) {
-        console.error('Error processing CartCheckedOut event:', error);
       }
     });
   }

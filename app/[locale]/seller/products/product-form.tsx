@@ -258,7 +258,7 @@ export function ProductForm({
   ) => {
     setForm((current) => ({ ...current, [field]: value }));
     setErrors((current) => {
-      if (!(field in current)) return current;
+      if (!Object.hasOwn(current, field)) return current;
       const next = { ...current };
       delete next[field];
       return next;
@@ -351,7 +351,7 @@ export function ProductForm({
 
     for (const issue of error.issues) {
       const path = issue.path[0] as keyof FormErrors | undefined;
-      if (path !== undefined && !(path in next)) {
+      if (path !== undefined && !Object.hasOwn(next, path)) {
         next[path] = issue.message;
       }
     }

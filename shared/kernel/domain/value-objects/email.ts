@@ -1,6 +1,4 @@
 export class Email {
-  readonly value: string;
-
   static create(email: string): Email {
     const trimmed = email.trim().toLowerCase();
 
@@ -19,6 +17,8 @@ export class Email {
 
     return new Email(trimmed);
   }
+
+  readonly value: string;
 
   private constructor(value: string) {
     this.value = value;

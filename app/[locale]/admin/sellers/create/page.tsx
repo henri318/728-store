@@ -122,7 +122,7 @@ export default function CreateSellerPage() {
 
   const updateField = (field: keyof FormState, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    if (field in errors) {
+    if (Object.hasOwn(errors, field)) {
       setErrors((prev) => {
         const next = { ...prev };
         delete next[field];

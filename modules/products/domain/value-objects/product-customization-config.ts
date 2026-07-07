@@ -99,17 +99,6 @@ const productCustomizationConfigSchema = z
   .strip();
 
 export class ProductCustomizationConfig {
-  readonly mode: CustomizationMode;
-  readonly previewEnabled: boolean;
-  readonly previewTemplateUrl: string | null;
-  readonly sizeOptions: string[] | null;
-  readonly textOffset: PreviewOffset | null;
-  readonly imageOffset: PreviewOffset | null;
-  readonly allowPhotoDesign: boolean;
-  readonly designChangeDescription: string | null;
-  readonly categoryId: string | null;
-  readonly tagNames: string[] | null;
-
   static default(): ProductCustomizationConfig {
     return new ProductCustomizationConfig({
       mode: 'description',
@@ -145,6 +134,17 @@ export class ProductCustomizationConfig {
       tagNames: normalizeTagNames(data.tagNames ?? null),
     });
   }
+
+  readonly mode: CustomizationMode;
+  readonly previewEnabled: boolean;
+  readonly previewTemplateUrl: string | null;
+  readonly sizeOptions: string[] | null;
+  readonly textOffset: PreviewOffset | null;
+  readonly imageOffset: PreviewOffset | null;
+  readonly allowPhotoDesign: boolean;
+  readonly designChangeDescription: string | null;
+  readonly categoryId: string | null;
+  readonly tagNames: string[] | null;
 
   private constructor(data: ProductCustomizationConfigJson) {
     this.mode = data.mode;

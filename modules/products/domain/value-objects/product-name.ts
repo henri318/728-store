@@ -9,8 +9,6 @@
  *  - Input is trimmed before validation
  */
 export class ProductName {
-  readonly value: string;
-
   static create(value: string): ProductName {
     const trimmed = value.trim();
 
@@ -24,6 +22,8 @@ export class ProductName {
 
     return new ProductName(trimmed);
   }
+
+  readonly value: string;
 
   private constructor(value: string) {
     this.value = value;

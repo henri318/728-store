@@ -9,8 +9,6 @@
  *  - Non-null: max 2000 characters, trimmed
  */
 export class ProductDescription {
-  readonly value: string;
-
   static create(value: string | null): ProductDescription | null {
     if (value === null) {
       return null;
@@ -24,6 +22,8 @@ export class ProductDescription {
 
     return new ProductDescription(trimmed);
   }
+
+  readonly value: string;
 
   private constructor(value: string) {
     this.value = value;

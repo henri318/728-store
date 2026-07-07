@@ -15,6 +15,28 @@ import type {
  * type at the boundary so the domain layer never depends on Prisma.
  */
 export class PrismaCustomizationRepository implements CustomizationRepository {
+  private toDomain(row: {
+    id: string;
+    productId: string;
+    text: string | null;
+    color: string | null;
+    size: string | null;
+    imageUrl: string | null;
+    designPosition: unknown;
+    createdAt: Date;
+  }): CustomizationEntity {
+    return {
+      id: row.id,
+      productId: row.productId,
+      text: row.text,
+      color: row.color,
+      size: row.size,
+      imageUrl: row.imageUrl,
+      designPosition: coerceDesignPosition(row.designPosition),
+      createdAt: row.createdAt,
+    };
+  }
+
   async save(entity: CustomizationEntity): Promise<CustomizationEntity> {
     const result = await prisma.customization.upsert({
       where: { id: entity.id },
@@ -72,28 +94,6 @@ export class PrismaCustomizationRepository implements CustomizationRepository {
 
   async delete(id: string): Promise<void> {
     await prisma.customization.delete({ where: { id } });
-  }
-
-  private toDomain(row: {
-    id: string;
-    productId: string;
-    text: string | null;
-    color: string | null;
-    size: string | null;
-    imageUrl: string | null;
-    designPosition: unknown;
-    createdAt: Date;
-  }): CustomizationEntity {
-    return {
-      id: row.id,
-      productId: row.productId,
-      text: row.text,
-      color: row.color,
-      size: row.size,
-      imageUrl: row.imageUrl,
-      designPosition: coerceDesignPosition(row.designPosition),
-      createdAt: row.createdAt,
-    };
   }
 
   async isReferencedByOrders(id: string): Promise<boolean> {

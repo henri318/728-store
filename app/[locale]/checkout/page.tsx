@@ -260,10 +260,9 @@ export default async function CheckoutPage({
           {isFirstPurchase && (
             <div className={styles.totalRow}>
               <span>
-                {dict.common.firstPurchaseDiscount.replace(
-                  '{rate}',
-                  (FIRST_PURCHASE_DISCOUNT_RATE * 100).toString(),
-                )}
+                {dict.common.firstPurchaseDiscount
+                  .split('{rate}')
+                  .join((FIRST_PURCHASE_DISCOUNT_RATE * 100).toString())}
               </span>
               <span className={styles.discount}>
                 −{Money.format(discount, currency)}

@@ -18,6 +18,34 @@ import type {
  * imports — the worker resolves them through the container.
  */
 export class PrismaEmailQueueRepository implements EmailQueueRepository {
+  private toWorkerEntry(row: {
+    id: string;
+    to: string;
+    subject: string;
+    htmlBody: string;
+    template: string | null;
+    metadata: unknown;
+    createdAt: Date;
+    status: string;
+    retryCount: number;
+    maxRetries: number;
+    scheduledAt: Date;
+  }): EmailQueueWorkerEntry {
+    return {
+      id: row.id,
+      to: row.to,
+      subject: row.subject,
+      htmlBody: row.htmlBody,
+      template: row.template ?? '',
+      metadata: (row.metadata as Record<string, unknown> | null) ?? undefined,
+      createdAt: row.createdAt,
+      status: row.status,
+      retryCount: row.retryCount,
+      maxRetries: row.maxRetries,
+      scheduledAt: row.scheduledAt,
+    };
+  }
+
   async create(entry: CreateEmailQueueInput): Promise<EmailQueueEntry> {
     const row = await prisma.emailQueue.create({
       data: {
@@ -121,34 +149,6 @@ export class PrismaEmailQueueRepository implements EmailQueueRepository {
       where: { id },
       data: { status: 'FAILED', error, retryCount },
     });
-  }
-
-  private toWorkerEntry(row: {
-    id: string;
-    to: string;
-    subject: string;
-    htmlBody: string;
-    template: string | null;
-    metadata: unknown;
-    createdAt: Date;
-    status: string;
-    retryCount: number;
-    maxRetries: number;
-    scheduledAt: Date;
-  }): EmailQueueWorkerEntry {
-    return {
-      id: row.id,
-      to: row.to,
-      subject: row.subject,
-      htmlBody: row.htmlBody,
-      template: row.template ?? '',
-      metadata: (row.metadata as Record<string, unknown> | null) ?? undefined,
-      createdAt: row.createdAt,
-      status: row.status,
-      retryCount: row.retryCount,
-      maxRetries: row.maxRetries,
-      scheduledAt: row.scheduledAt,
-    };
   }
 
   async reschedule(
