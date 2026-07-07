@@ -1,0 +1,17 @@
+{
+  "threshold": 5,
+  "reporters": ["console", "html"],
+  "ignore": [
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/*.md",
+    "**/*.json",
+    "**/*.test.{ts,tsx}",
+    "**/*.spec.{ts,tsx}",
+    "**/__tests__/**",
+    "prisma/migrations/**"
+  ],
+  "format": ["typescript", "tsx", "javascript"],
+  "minTokens": 70,
+  "minLines": 10
+}

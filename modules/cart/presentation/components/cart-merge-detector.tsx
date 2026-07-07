@@ -5,8 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
 import { MergeDialog } from './merge-dialog';
-
-const CART_UPDATED_EVENT = 'cart:updated';
+import { dispatchCartUpdated } from '@/modules/cart/presentation/cart-events';
 
 interface CartMergeDetectorLabels {
   mergeTitle: string;
@@ -65,7 +64,7 @@ export function CartMergeDetector({
             if (!res.ok) return;
             // Clear guest cart after successful migration
             guestCart.clearCart();
-            globalThis.dispatchEvent(new Event(CART_UPDATED_EVENT));
+            dispatchCartUpdated();
             router.refresh();
           } catch {
             // Ignore - let user retry manually

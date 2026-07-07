@@ -7,6 +7,10 @@ import {
   createCustomizationSchema,
   customizationResponseSchema,
 } from '@/modules/customizations/presentation/schemas/customization-schemas';
+import {
+  getCurrentSellerId,
+  parseBody,
+} from '@/shared/presentation/route-helpers';
 
 export const GET = requireRole('DESIGNER')(async function GET() {
   try {
@@ -39,7 +43,7 @@ export const POST = requireRole('DESIGNER')(async function POST(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const body = createCustomizationSchema.parse(await request.json());
+    const body = await parseBody(request, createCustomizationSchema);
     const productRepository = container.getProductRepository();
     const product = await productRepository.findById(body.productId, 'es');
     if (!product) {
@@ -66,14 +70,6 @@ export const POST = requireRole('DESIGNER')(async function POST(
     return handleApiError(error);
   }
 });
-
-async function getCurrentSellerId(): Promise<string | null> {
-  const session = await container.getSession().getSession();
-  if (!session?.id) return null;
-
-  const seller = await container.getSellerRepository().findByUserId(session.id);
-  return seller?.sellerId.value ?? null;
-}
 
 function toCustomizationResponse(customization: {
   id: string;

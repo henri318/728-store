@@ -18,7 +18,7 @@ vi.mock('@/shared/infrastructure/prisma', () => ({
   prisma: { seller: { create: vi.fn() } },
 }));
 
-vi.mock('@/modules/email/infrastructure/brevo-email-sender', () => ({
+vi.mock('@/shared/kernel/brevo-email-sender', () => ({
   BrevoEmailSender: class {},
 }));
 vi.mock('@/modules/email/infrastructure/console-email-sender', () => ({

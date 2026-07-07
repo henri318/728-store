@@ -9,34 +9,13 @@ import styles from './cart-view.module.css';
 
 // --- Types ---
 
-export interface CartItemDTO {
-  id: string;
-  productId: string;
-  productName: string;
-  productImageUrl: string | null;
-  sellerId: string;
-  sellerName: string;
-  quantity: number;
-  unitPrice: number;
-  lineTotal: number;
-  customization: {
-    text: string | null;
-    color: string | null;
-    size: string | null;
-    imageUrl: string | null;
-    imageUploadId?: string | null;
-    colorImageUrl?: string | null;
-    designPosition?: {
-      imageUrl: string;
-      x: number;
-      y: number;
-      scale: number;
-      rotation_deg: number;
-      opacity: number;
-      blend_mode: string;
-    } | null;
-  };
-}
+import {
+  guestItemToDTO,
+  type CartItemDTO,
+} from '@/modules/cart/presentation/cart-dto';
+
+export type { CartItemDTO } from '@/modules/cart/presentation/cart-dto';
+export { guestItemToDTO } from '@/modules/cart/presentation/cart-dto';
 
 type LocalItemsAction =
   | { type: 'reset'; items: CartItemDTO[] }
@@ -147,24 +126,11 @@ export function CartView({
   const items: CartItemDTO[] = isAuthenticated
     ? localItems
     : guestCart.items.map((gi) => ({
+        ...guestItemToDTO(gi, {
+          productName: labels.unknownProduct,
+          sellerName: labels.unknownSeller,
+        }),
         id: gi.productId,
-        productId: gi.productId,
-        productName: gi.productName ?? labels.unknownProduct,
-        productImageUrl: gi.productImageUrl ?? null,
-        sellerId: gi.sellerId,
-        sellerName: gi.sellerName ?? labels.unknownSeller,
-        quantity: gi.quantity,
-        unitPrice: gi.unitPriceSnapshot,
-        lineTotal: +(gi.unitPriceSnapshot * gi.quantity).toFixed(2),
-        customization: {
-          text: gi.customizationText ?? null,
-          color: gi.customizationColor ?? null,
-          size: gi.customizationSize ?? null,
-          imageUrl: gi.customizationImageUrl ?? null,
-          imageUploadId: gi.customizationImageUploadId ?? null,
-          colorImageUrl: gi.productImageUrl ?? null,
-          designPosition: gi.customizationDesignPosition ?? null,
-        },
       }));
 
   const subtotal = items.reduce((acc, i) => acc + i.lineTotal, 0);

@@ -32,7 +32,7 @@ vi.mock('@/composition-root/container', () => ({
   },
 }));
 
-vi.mock('@/components/cart/add-to-cart-button', () => ({
+vi.mock('@/modules/cart/presentation/components/add-to-cart-button', () => ({
   AddToCartButton: () => <button type="button">Add to cart</button>,
 }));
 

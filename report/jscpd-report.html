@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Copy/Paste Detector Report</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f7fafc; color: #2d3748; }
+    a { color: #3182ce; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .header { background: #fff; box-shadow: 0 1px 3px 0 rgba(0,0,0,.1), 0 1px 2px 0 rgba(0,0,0,.06); padding: 1rem 0; }
+    .header-inner { max-width: 80rem; margin: 0 auto; padding: 0 1rem; }
+    .header h1 { font-size: 1.875rem; font-weight: 600; color: #2d3748; margin: 0; }
+    .main { max-width: 80rem; margin: 2rem auto; padding: 0 1rem; }
+    .card { background: #fff; box-shadow: 0 1px 3px 0 rgba(0,0,0,.1), 0 1px 2px 0 rgba(0,0,0,.06); border-radius: 0.25rem; padding: 1.5rem; margin-bottom: 2rem; }
+    h2 { font-size: 1.5rem; font-weight: 600; color: #4a5568; margin: 0 0 1rem 0; }
+    .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    .stat-card { padding: 1rem; border-radius: 0.25rem; text-align: center; }
+    .stat-card h3 { font-size: 1.125rem; font-weight: 600; margin: 0 0 0.5rem 0; }
+    .stat-card .val { font-size: 2.25rem; font-weight: 700; }
+    .stat-blue { background: #bee3f8; color: #2a4365; }
+    .stat-green { background: #c6f6d5; color: #276749; }
+    .stat-yellow { background: #fefcbf; color: #975a16; }
+    .stat-red { background: #fed7d7; color: #9b2c2c; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { background: #edf2f7; color: #718096; text-transform: uppercase; font-size: 0.75rem; font-weight: 600; padding: 0.75rem 1.5rem; text-align: left; }
+    tbody td { padding: 0.75rem 1.5rem; border-bottom: 1px solid #edf2f7; font-size: 0.875rem; }
+    tbody tr:hover { background: #f7fafc; }
+    .clone-section { margin-bottom: 2rem; }
+    .clone-section h2 { border-bottom: 2px solid #edf2f7; padding-bottom: 0.5rem; }
+    .clone-item { padding: 1rem 0; border-bottom: 1px solid #edf2f7; }
+    .clone-item:last-child { border-bottom: none; }
+    .clone-info { color: #718096; font-size: 0.875rem; margin-bottom: 0.25rem; }
+    .toggle-btn { background: #a0aec0; color: #fff; border: none; padding: 0.125rem 0.5rem; font-size: 0.75rem; border-radius: 0.25rem; cursor: pointer; margin-left: 0.5rem; }
+    .toggle-btn:focus { outline: none; }
+    .code-block { background: #f7fafc; border: 1px solid #edf2f7; border-radius: 0.25rem; padding: 1rem; margin-top: 0.5rem; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 0.875rem; color: #2d3748; white-space: pre-wrap; overflow-x: auto; display: none; }
+    .code-block.visible { display: block; }
+    .no-dupes { color: #27ae60; font-weight: 700; font-size: 1.125rem; }
+    .footer { margin-top: 3rem; padding: 2rem 0; border-top: 1px solid #e0e0e0; text-align: center; font-family: -apple-system, sans-serif; color: #666; }
+    .footer p { margin: 0.5rem 0; font-size: 0.875rem; }
+    .footer a { color: #0066cc; }
+    .footer .small { font-size: 0.75rem; color: #999; }
+    @media (max-width: 768px) { .dashboard { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <h1>jscpd - copy/paste report</h1>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="card">
+      <section>
+        <h2>Dashboard</h2>
+        <div class="dashboard">
+          <div class="stat-card stat-blue">
+            <h3>Total Files</h3>
+            <div class="val">302</div>
+          </div>
+          <div class="stat-card stat-green">
+            <h3>Total Lines of Code</h3>
+            <div class="val">28399</div>
+          </div>
+          <div class="stat-card stat-yellow">
+            <h3>Number of Clones</h3>
+            <div class="val">39</div>
+          </div>
+          <div class="stat-card stat-red">
+            <h3>Duplicated Lines</h3>
+            <div class="val">922 (3.25%)</div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="card">
+      <section>
+        <h2>Formats with Duplications</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Format</th>
+              <th>Files</th>
+              <th>Lines</th>
+              <th>Clones</th>
+              <th>Duplicated Lines</th>
+              <th>Duplicated Tokens</th>
+            </tr>
+          </thead>
+          <tbody>
+            
+            <tr>
+              <td><a href="#javascript-clones">javascript</a></td>
+              <td>2</td>
+              <td>412</td>
+              <td>0</td>
+              <td>0 (0.00%)</td>
+              <td>0 (0.00%)</td>
+            </tr>
+            
+            <tr>
+              <td><a href="#tsx-clones">tsx</a></td>
+              <td>81</td>
+              <td>10915</td>
+              <td>15</td>
+              <td>365 (3.34%)</td>
+              <td>1957 (3.32%)</td>
+            </tr>
+            
+            <tr>
+              <td><a href="#typescript-clones">typescript</a></td>
+              <td>219</td>
+              <td>17072</td>
+              <td>24</td>
+              <td>557 (3.26%)</td>
+              <td>3026 (3.83%)</td>
+            </tr>
+            
+            <tr style="font-weight: 700;">
+              <td>Total</td>
+              <td>302</td>
+              <td>28399</td>
+              <td>39</td>
+              <td>922 (3.25%)</td>
+              <td>4983 (3.58%)</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    
+    
+    <div class="card">
+      <section class="clone-section">
+        <a name="tsx-clones"></a>
+        <h2>tsx</h2>
+        <div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\[locale]\admin\sellers\[sellerId]\products\page.tsx (Line 65:42 - Line 120:13),
+              app\[locale]\seller\products\page.tsx (Line 87:20 - Line 142:13)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-tsx-1')">Show code</button>
+            </div>
+            <pre id="code-tsx-1" class="code-block">  const hasProducts = products.length &gt; 0;
+
+  const columns: DataTableColumn&lt;ProductEntity&gt;[] = [
+    {
+      key: &#x27;name&#x27;,
+      header: dict.admin.productName,
+      render: (product) =&gt; (
+        &lt;span className={styles.nameCell}&gt;
+          {product.translations.find(
+            (translation) =&gt; translation.locale === locale,
+          )?.name ?? dict.admin.untranslatedProduct}
+        &lt;/span&gt;
+      ),
+    },
+    {
+      key: &#x27;status&#x27;,
+      header: dict.admin.productStatus,
+      render: (product) =&gt; (
+        &lt;StatusBadge
+          status={product.status}
+          label={resolveStatusLabel(
+            product.status,
+            PRODUCT_STATUS_LABELS,
+            dict.admin,
+          )}
+        /&gt;
+      ),
+    },
+    {
+      key: &#x27;price&#x27;,
+      header: dict.admin.productPrice,
+      render: (product) =&gt; product.basePrice.format(),
+    },
+    {
+      key: &#x27;updated&#x27;,
+      header: dict.admin.productUpdated,
+      render: (product) =&gt;
+        LocalizedDate.create(product.updatedAt, locale).toString(),
+    },
+    {
+      key: &#x27;actions&#x27;,
+      header: dict.admin.actions,
+      render: (product) =&gt; (
+        &lt;ProductActions
+          locale={locale}
+          productId={product.id}
+          currentStatus={product.status}
+        /&gt;
+      ),
+    },
+  ];
+
+  return (
+    &lt;div className={styles.container}&gt;
+      &lt;div className={styles.header}&gt;
+        &lt;div&gt;</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\[locale]\admin\sellers\create\page.tsx (Line 92:54 - Line 105:24),
+              app\[locale]\auth\signup\page.tsx (Line 94:55 - Line 107:24)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-tsx-2')">Show code</button>
+            </div>
+            <pre id="code-tsx-2" class="code-block">  const result = createSellerSchema.safeParse(payload);
+  if (result.success) return null;
+
+  const errors: FormErrors = {};
+  const issues = (result.error as ZodError).issues ?? [];
+
+  for (const issue of issues) {
+    applyIssue(errors, issue);
+  }
+
+  return Object.keys(errors).length &gt; 0 ? errors : null;
+}
+
+export default function CreateSellerPage() {</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\[locale]\admin\sellers\create\page.tsx (Line 121:29 - Line 134:8),
+              app\[locale]\auth\signup\page.tsx (Line 124:37 - Line 137:8)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-tsx-3')">Show code</button>
+            </div>
+            <pre id="code-tsx-3" class="code-block">  const [loading, setLoading] = useState(false);
+
+  const updateField = (field: keyof FormState, value: string) =&gt; {
+    setForm((prev) =&gt; ({ ...prev, [field]: value }));
+    if (Object.hasOwn(errors, field)) {
+      setErrors((prev) =&gt; {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) =&gt; {</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\[locale]\orders\page.tsx (Line 74:26 - Line 85:20),
+              app\[locale]\seller\orders\page.tsx (Line 94:35 - Line 105:20)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-tsx-4')">Show code</button>
+            </div>
+            <pre id="code-tsx-4" class="code-block">      header: dict.orders?.status ?? &#x27;Status&#x27;,
+      render: (order) =&gt; {
+        const labelKey = ORDER_STATUS_LABELS[order.status];
+        const label = labelKey
+          ? (dict.orders?.[labelKey] ?? order.status)
+          : order.status;
+        return &lt;StatusBadge status={order.status} label={label} /&gt;;
+      },
+    },
+    {
+      key: &#x27;date&#x27;,
+      header: dict.orders?.date ?? &#x27;Date&#x27;,</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\[locale]\orders\page.tsx (Line 117:15 - Line 135:81),
+              app\[locale]\seller\orders\page.tsx (Line 146:13 - Line 164:81)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-tsx-5')">Show code</button>
+            </div>
+            <pre id="code-tsx-5" class="code-block">              &lt;/form&gt;
+            )}
+        &lt;/div&gt;
+      ),
+    },
+  ];
+
+  const hasOrders = result.items.length &gt; 0;
+  const currentPage =
+    result.totalPages &gt; 0 &amp;&amp; result.page &gt; result.totalPages
+      ? result.totalPages
+      : result.page;
+
+  const buildPageUrl = (page: number) =&gt; {
+    const params = new URLSearchParams();
+    if (page &gt; 1) params.set(&#x27;page&#x27;, String(page));
+    if (filter.status !== &#x27;all&#x27;) params.set(&#x27;status&#x27;, filter.status);
+    if (filter.sortDir !== &#x27;desc&#x27;) params.set(&#x27;sortDir&#x27;, filter.sortDir);
+    if (filter.pageSize !== 20) params.set(&#x27;pageSize&#x27;, String(filter.pageSize));</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\[locale]\orders\page.tsx (Line 160:14 - Line 187:2),
+              app\[locale]\seller\orders\page.tsx (Line 221:15 - Line 248:2)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-tsx-6')">Show code</button>
+            </div>
+            <pre id="code-tsx-6" class="code-block">        &lt;/div&gt;
+      &lt;/div&gt;
+
+      {hasOrders ? (
+        &lt;&gt;
+          &lt;div className={styles.tableWrap}&gt;
+            &lt;DataTable
+              columns={columns}
+              rows={result.items}
+              rowKey={(o) =&gt; o.id}
+            /&gt;
+          &lt;/div&gt;
+          &lt;Pagination
+            currentPage={currentPage}
+            totalPages={result.totalPages}
+            buildPageUrl={buildPageUrl}
+            prevLabel={dict.orders?.previous ?? &#x27;← Previous&#x27;}
+            nextLabel={dict.orders?.next ?? &#x27;Next →&#x27;}
+          /&gt;
+        &lt;/&gt;
+      ) : (
+        &lt;Card className={styles.emptyState}&gt;
+          {dict.orders?.noOrders ?? &#x27;No orders yet&#x27;}
+        &lt;/Card&gt;
+      )}
+    &lt;/div&gt;
+  );
+}</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\[locale]\products\[id]\customization-experience.tsx (Line 45:31 - Line 62:36),
+              app\[locale]\products\[id]\customization-form.tsx (Line 24:33 - Line 41:36)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-tsx-7')">Show code</button>
+            </div>
+            <pre id="code-tsx-7" class="code-block">  customizationInvalidImageUrl: string;
+  customizationCanvasLabel: string;
+  customizationCanvasHelp: string;
+  customizationProductImageAlt: string;
+  customizationDesignImageAlt: string;
+  customizationUploadDesign: string;
+  customizationReplaceDesign: string;
+  customizationRemoveDesign: string;
+  customizationDesignUploading: string;
+  customizationDesignInvalid: string;
+  customizationDesignTooLarge: string;
+  customizationScaleLabel: string;
+  customizationRotationLabel: string;
+  customizationOpacityLabel: string;
+  customizationPositionReadoutLabel: string;
+  customizationPositionXLabel: string;
+  customizationPositionYLabel: string;
+  customizationCanvasReset: string;</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\[locale]\products\[id]\mockup-canvas-control.tsx (Line 481:15 - Line 511:12),
+              modules\presentation\components\design-preview.tsx (Line 93:5 - Line 123:12)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-tsx-8')">Show code</button>
+            </div>
+            <pre id="code-tsx-8" class="code-block">  return value;
+}
+
+function drawCover(
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  width: number,
+  height: number,
+) {
+  const ratio = image.naturalWidth / image.naturalHeight;
+  const targetRatio = width / height;
+  let drawWidth: number;
+  let drawHeight: number;
+
+  if (ratio &gt; targetRatio) {
+    drawHeight = height;
+    drawWidth = height * ratio;
+  } else {
+    drawWidth = width;
+    drawHeight = width / ratio;
+  }
+
+  const offsetX = (width - drawWidth) / 2;
+  const offsetY = (height - drawHeight) / 2;
+  ctx.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
+}
+
+function drawDesign(
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  position: DesignPosition,</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\[locale]\products\[id]\mockup-canvas-control.tsx (Line 511:27 - Line 527:2),
+              modules\presentation\components\design-preview.tsx (Line 123:31 - Line 139:2)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-tsx-9')">Show code</button>
+            </div>
+            <pre id="code-tsx-9" class="code-block">  position: DesignPosition,
+  width: number,
+  height: number,
+) {
+  const scaleFactor = position.scale / 100;
+  const baseWidth = Math.min(width, image.naturalWidth);
+  const ratio = image.naturalHeight / image.naturalWidth;
+  const drawWidth = baseWidth * scaleFactor;
+  const drawHeight = drawWidth * ratio;
+
+  const centerX = position.x * width;
+  const centerY = position.y * height;
+
+  ctx.translate(centerX, centerY);
+  ctx.rotate((position.rotation_deg * Math.PI) / 180);
+  ctx.drawImage(image, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+}</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\[locale]\seller\products\[id]\edit\page.tsx (Line 64:47 - Line 113:2),
+              app\[locale]\seller\products\new\page.tsx (Line 36:49 - Line 85:2)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-tsx-10')">Show code</button>
+            </div>
+            <pre id="code-tsx-10" class="code-block">        save: dict.sellerDashboard.editProduct,
+        saved: dict.sellerDashboard.productSaved,
+        error: dict.sellerDashboard.productFormError,
+        customization: {
+          label: dict.sellerDashboard.productCustomizationConfigLabel,
+          hint: dict.sellerDashboard.productCustomizationConfigHint,
+          editor: {
+            sizeOptionsLabel:
+              dict.sellerDashboard.productCustomizationSizeOptionsLabel,
+            sizeOptionsPlaceholder:
+              dict.sellerDashboard.productCustomizationSizeOptionsPlaceholder,
+            allowPhotoDesignLabel:
+              dict.sellerDashboard.productCustomizationAllowPhotoDesignLabel,
+            designChangeDescriptionLabel:
+              dict.sellerDashboard
+                .productCustomizationDesignChangeDescriptionLabel,
+            designChangeDescriptionPlaceholder:
+              dict.sellerDashboard
+                .productCustomizationDesignChangeDescriptionPlaceholder,
+            categoryLabel:
+              dict.sellerDashboard.productCustomizationCategoryLabel,
+            categoryPlaceholder:
+              dict.sellerDashboard.productCustomizationCategoryPlaceholder,
+            tagsLabel: dict.sellerDashboard.productCustomizationTagsLabel,
+            tagsPlaceholder:
+              dict.sellerDashboard.productCustomizationTagsPlaceholder,
+            tagsHelp: dict.sellerDashboard.productCustomizationTagsHelp,
+            addLabel: dict.sellerDashboard.productCustomizationAddLabel,
+          },
+        },
+        gallery: {
+          title: dict.sellerDashboard.productPhotosTitle,
+          hint: dict.sellerDashboard.productPhotosHint,
+          addPhotoLabel: dict.sellerDashboard.addProductPhotos,
+          photoDisplayNameLabel:
+            dict.sellerDashboard.productPhotoDisplayNameLabel,
+          photoDisplayNamePlaceholder:
+            dict.sellerDashboard.productPhotoDisplayNamePlaceholder,
+          selectForPreviewLabel:
+            dict.sellerDashboard.productPhotoSelectForPreview,
+          removePhotoLabel: dict.sellerDashboard.productPhotoRemoveLabel,
+          uploadingLabel: dict.common.customizationUploading,
+          emptyState: dict.sellerDashboard.productPhotosEmptyState,
+          uploadError: dict.sellerDashboard.productPhotosUploadError,
+          defaultPhotoName: dict.sellerDashboard.productPhotoDefaultName,
+        },
+      }}
+    /&gt;
+  );
+}</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              modules\cart\presentation\components\add-to-cart-button.tsx (Line 165:32 - Line 193:6),
+              modules\cart\presentation\components\add-to-cart-button.tsx (Line 242:36 - Line 270:4)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-tsx-11')">Show code</button>
+            </div>
+            <pre id="code-tsx-11" class="code-block">        if (isCancelled) return;
+        const items = data.items ?? [];
+        const anyInCart = items.find(
+          (item: { productId: string }) =&gt; item.productId === productId,
+        );
+        const found = items.find(
+          (item: {
+            productId: string;
+            customizations?: Array&lt;{
+              text?: string | null;
+              color?: string | null;
+              size?: string | null;
+              imageUrl?: string | null;
+            }&gt;;
+          }) =&gt;
+            item.productId === productId &amp;&amp;
+            isAuthCustomizationMatching(
+              item.customizations ?? [],
+              normalizedCustomization,
+            ),
+        );
+        setCartItemInfo(
+          found ? { cartItemId: found.id, quantity: found.quantity } : null,
+        );
+        setHasDifferentCustomization(!!anyInCart &amp;&amp; !found);
+      } catch {
+        /* fallback to &quot;Add to Cart&quot; */
+      }
+    }</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              modules\cart\presentation\components\add-to-cart-button.tsx (Line 280:26 - Line 297:39),
+              modules\cart\presentation\components\add-to-cart-button.tsx (Line 358:34 - Line 374:39)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-tsx-12')">Show code</button>
+            </div>
+            <pre id="code-tsx-12" class="code-block">      if (isAuthenticated) {
+        const customizationResponse = await fetch(
+          &#x27;/api/customizations/customer&#x27;,
+          {
+            method: &#x27;POST&#x27;,
+            headers: { &#x27;Content-Type&#x27;: &#x27;application/json&#x27; },
+            body: JSON.stringify({
+              productId,
+              text: draft.text,
+              color: draft.color,
+              size: draft.size,
+              imageUrl: draft.imageUrl,
+              designPosition: draft.designPosition ?? null,
+            }),
+          },
+        );
+
+        if (!customizationResponse.ok) {</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              modules\cart\presentation\components\add-to-cart-button.tsx (Line 484:38 - Line 514:8),
+              modules\cart\presentation\components\add-to-cart-button.tsx (Line 518:38 - Line 548:8)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-tsx-13')">Show code</button>
+            </div>
+            <pre id="code-tsx-13" class="code-block">    const newQty = currentQuantity + 1;
+    if (isAuthenticated &amp;&amp; cartItemInfo) {
+      const prevCartItemInfo = cartItemInfo;
+      setCartItemInfo({ ...cartItemInfo, quantity: newQty });
+      try {
+        const res = await fetch(`/api/cart/items/${cartItemInfo.cartItemId}`, {
+          method: &#x27;PATCH&#x27;,
+          headers: { &#x27;Content-Type&#x27;: &#x27;application/json&#x27; },
+          body: JSON.stringify({ quantity: newQty }),
+        });
+        if (!res.ok) {
+          setCartItemInfo(prevCartItemInfo);
+          return;
+        }
+        dispatchCartUpdated();
+      } catch {
+        setCartItemInfo(prevCartItemInfo);
+      }
+    } else if (guestMatch?.id) {
+      updateItemQuantity(guestMatch.id, newQty);
+    }
+  }, [
+    isInCart,
+    currentQuantity,
+    isAuthenticated,
+    cartItemInfo,
+    guestMatch,
+    updateItemQuantity,
+  ]);
+
+  const handleDecrement = useCallback(async () =&gt; {</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              modules\products\presentation\components\product-actions.tsx (Line 106:18 - Line 130:11),
+              modules\products\presentation\components\product-actions.tsx (Line 156:21 - Line 180:11)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-tsx-14')">Show code</button>
+            </div>
+            <pre id="code-tsx-14" class="code-block">        {isDraft &amp;&amp; (
+          &lt;&gt;
+            &lt;button
+              type=&quot;button&quot;
+              className={`${styles.button} ${styles.activate}`}
+              disabled={loading}
+              onClick={() =&gt; handleStatusChange(ACTIVE_STATUS)}
+            &gt;
+              {loading ? dict.common.loading : dict.admin.activateProduct}
+            &lt;/button&gt;
+            &lt;button
+              type=&quot;button&quot;
+              className={styles.iconButton}
+              disabled={loading}
+              aria-label={
+                loading ? dict.common.loading : dict.admin.eliminateProduct
+              }
+              onClick={() =&gt; handleStatusChange(ELIMINATED_STATUS)}
+            &gt;
+              &lt;svg aria-hidden=&quot;true&quot; className={styles.iconTrash}&gt;
+                &lt;use href=&quot;/img/icons/sprites.svg#icon-trash&quot; /&gt;
+              &lt;/svg&gt;
+            &lt;/button&gt;
+          &lt;/&gt;
+        )}</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              modules\products\presentation\components\product-actions.tsx (Line 114:74 - Line 131:10),
+              modules\products\presentation\components\product-actions.tsx (Line 139:73 - Line 156:10)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-tsx-15')">Show code</button>
+            </div>
+            <pre id="code-tsx-15" class="code-block">              {loading ? dict.common.loading : dict.admin.activateProduct}
+            &lt;/button&gt;
+            &lt;button
+              type=&quot;button&quot;
+              className={styles.iconButton}
+              disabled={loading}
+              aria-label={
+                loading ? dict.common.loading : dict.admin.eliminateProduct
+              }
+              onClick={() =&gt; handleStatusChange(ELIMINATED_STATUS)}
+            &gt;
+              &lt;svg aria-hidden=&quot;true&quot; className={styles.iconTrash}&gt;
+                &lt;use href=&quot;/img/icons/sprites.svg#icon-trash&quot; /&gt;
+              &lt;/svg&gt;
+            &lt;/button&gt;
+          &lt;/&gt;
+        )}
+        {isActive &amp;&amp; (</pre>
+          </div>
+          
+        </div>
+      </section>
+    </div>
+    
+    <div class="card">
+      <section class="clone-section">
+        <a name="typescript-clones"></a>
+        <h2>typescript</h2>
+        <div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\api\auth\forgot-password\route.ts (Line 45:47 - Line 55:59),
+              app\api\auth\reset-password\route.ts (Line 50:44 - Line 60:59)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-1')">Show code</button>
+            </div>
+            <pre id="code-typescript-1" class="code-block">    await rateLimiter.recordLoginAttempt(email, ip, true);
+
+    return NextResponse.json(result);
+  } catch (error: unknown) {
+    // Record rate-limiting on errors too — every request should count
+    try {
+      const ip =
+        req.headers.get(&#x27;x-forwarded-for&#x27;)?.split(&#x27;,&#x27;, 1)[0]?.trim() ??
+        req.headers.get(&#x27;x-real-ip&#x27;) ??
+        &#x27;unknown&#x27;;
+      await container.getRateLimiter().recordLoginAttempt(&#x27;unknown&#x27;, ip, false);</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\api\cart\checkout\confirm\route.ts (Line 35:5 - Line 51:10),
+              app\api\cart\checkout\route.ts (Line 28:5 - Line 44:10)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-2')">Show code</button>
+            </div>
+            <pre id="code-typescript-2" class="code-block">    const cartRepository = container.getCartRepository();
+    const productRepository = container.getCartProductRepository();
+    const outboxRepository = container.getOutboxRepository();
+    const paidOrderCountPort = container.getPaidOrderCountPort();
+    const transactionRunner = container.getTransactionRunner();
+    const customizationLookup = container.getCustomizationLookup();
+
+    const checkoutCart = new CheckoutCart(
+      cartRepository,
+      productRepository,
+      outboxRepository,
+      paidOrderCountPort,
+      transactionRunner,
+      customizationLookup,
+    );
+
+    const result = await checkoutCart.confirm(</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\api\cart\checkout\confirm\route.ts (Line 62:21 - Line 81:4),
+              app\api\cart\checkout\route.ts (Line 58:21 - Line 77:4)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-3')">Show code</button>
+            </div>
+            <pre id="code-typescript-3" class="code-block">      { status: 201 },
+    );
+  } catch (error: unknown) {
+    // PriceChangedError needs special handling: return 409 with priceChanges[]
+    if (error instanceof PriceChangedError) {
+      return NextResponse.json(
+        {
+          error: error.safeMessage,
+          priceChanges: error.priceChanges.map((pc) =&gt; ({
+            itemId: pc.itemId,
+            oldPrice: pc.oldPrice.amount,
+            newPrice: pc.newPrice.amount,
+          })),
+        },
+        { status: 409 },
+      );
+    }
+    return handleApiError(error);
+  }
+});</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\api\cart\items\[itemId]\route.ts (Line 105:49 - Line 144:2),
+              app\api\cart\items\route.ts (Line 65:54 - Line 104:2)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-4')">Show code</button>
+            </div>
+            <pre id="code-typescript-4" class="code-block">    return new NextResponse(null, { status: 204 });
+  } catch (error: unknown) {
+    return handleApiError(error);
+  }
+});
+
+// --- Enrichment helper ---
+
+function enrichCartItem(
+  item: CartItemEntity,
+  product: ProductEntity | undefined,
+  customizations: CustomizationSnapshot[],
+): Record&lt;string, unknown&gt; {
+  const productName = product?.translations?.[0]?.name ?? &#x27;Unknown Product&#x27;;
+  const productImageUrl = product?.images?.[0]?.url ?? null;
+  const sellerName = product?.sellerName ?? &#x27;Unknown Seller&#x27;;
+  const unitPrice = item.unitPriceSnapshot.amount;
+  const lineTotal = unitPrice * item.quantity;
+
+  return {
+    id: item.id,
+    productId: item.productId.value,
+    productName,
+    productImageUrl,
+    sellerId: item.sellerId.value,
+    sellerName,
+    quantity: item.quantity,
+    unitPrice,
+    lineTotal,
+    customizationIdList: item.customizationIdList,
+    customizations: customizations.map((c) =&gt; ({
+      id: c.id,
+      text: c.text,
+      color: c.color,
+      size: c.size,
+      imageUrl: c.imageUrl,
+      designPosition: c.designPosition,
+    })),
+  };
+}</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\api\cart\items\[itemId]\route.ts (Line 105:50 - Line 144:2),
+              app\api\cart\migrate\route.ts (Line 155:5 - Line 194:2)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-5')">Show code</button>
+            </div>
+            <pre id="code-typescript-5" class="code-block">    return new NextResponse(null, { status: 204 });
+  } catch (error: unknown) {
+    return handleApiError(error);
+  }
+});
+
+// --- Enrichment helper ---
+
+function enrichCartItem(
+  item: CartItemEntity,
+  product: ProductEntity | undefined,
+  customizations: CustomizationSnapshot[],
+): Record&lt;string, unknown&gt; {
+  const productName = product?.translations?.[0]?.name ?? &#x27;Unknown Product&#x27;;
+  const productImageUrl = product?.images?.[0]?.url ?? null;
+  const sellerName = product?.sellerName ?? &#x27;Unknown Seller&#x27;;
+  const unitPrice = item.unitPriceSnapshot.amount;
+  const lineTotal = unitPrice * item.quantity;
+
+  return {
+    id: item.id,
+    productId: item.productId.value,
+    productName,
+    productImageUrl,
+    sellerId: item.sellerId.value,
+    sellerName,
+    quantity: item.quantity,
+    unitPrice,
+    lineTotal,
+    customizationIdList: item.customizationIdList,
+    customizations: customizations.map((c) =&gt; ({
+      id: c.id,
+      text: c.text,
+      color: c.color,
+      size: c.size,
+      imageUrl: c.imageUrl,
+      designPosition: c.designPosition,
+    })),
+  };
+}</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\api\cart\migrate\route.ts (Line 152:78 - Line 184:51),
+              app\api\cart\route.ts (Line 71:48 - Line 103:51)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-6')">Show code</button>
+            </div>
+            <pre id="code-typescript-6" class="code-block">        skippedCustomizationProductIds: result.skippedCustomizationProductIds,
+      },
+      { status: 200 },
+    );
+  } catch (error: unknown) {
+    return handleApiError(error);
+  }
+});
+
+// --- Enrichment helper ---
+
+function enrichCartItem(
+  item: CartItemEntity,
+  product: ProductEntity | undefined,
+  customizations: CustomizationSnapshot[],
+): Record&lt;string, unknown&gt; {
+  const productName = product?.translations?.[0]?.name ?? &#x27;Unknown Product&#x27;;
+  const productImageUrl = product?.images?.[0]?.url ?? null;
+  const sellerName = product?.sellerName ?? &#x27;Unknown Seller&#x27;;
+  const unitPrice = item.unitPriceSnapshot.amount;
+  const lineTotal = unitPrice * item.quantity;
+
+  return {
+    id: item.id,
+    productId: item.productId.value,
+    productName,
+    productImageUrl,
+    sellerId: item.sellerId.value,
+    sellerName,
+    quantity: item.quantity,
+    unitPrice,
+    lineTotal,
+    customizationIdList: item.customizationIdList,</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\api\customizations\[id]\route.ts (Line 129:58 - Line 167:2),
+              app\api\customizations\customer\route.ts (Line 50:5 - Line 88:2)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-7')">Show code</button>
+            </div>
+            <pre id="code-typescript-7" class="code-block">    return NextResponse.json({ ok: true }, { status: 200 });
+  } catch (error: unknown) {
+    return handleApiError(error);
+  }
+});
+
+function toCustomizationResponse(customization: {
+  id: string;
+  productId: string;
+  text: string | null;
+  color: string | null;
+  size: string | null;
+  imageUrl: string | null;
+  designPosition: unknown;
+  createdAt: Date;
+}) {
+  return customizationResponseSchema.parse({
+    id: customization.id,
+    productId: customization.productId,
+    text: customization.text,
+    color: customization.color,
+    size: customization.size,
+    imageUrl: customization.imageUrl,
+    designPosition:
+      (customization.designPosition as
+        | {
+            imageUrl: string;
+            x: number;
+            y: number;
+            scale: number;
+            rotation_deg: number;
+            opacity: number;
+            blend_mode: string;
+          }
+        | null
+        | undefined) ?? null,
+    createdAt: customization.createdAt.toISOString(),
+  });
+}</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\api\customizations\customer\route.ts (Line 46:27 - Line 88:2),
+              app\api\customizations\route.ts (Line 61:53 - Line 103:2)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-8')">Show code</button>
+            </div>
+            <pre id="code-typescript-8" class="code-block">    ).execute(body, userId);
+
+    return NextResponse.json(toCustomizationResponse(customization), {
+      status: 201,
+    });
+  } catch (error: unknown) {
+    return handleApiError(error);
+  }
+});
+
+function toCustomizationResponse(customization: {
+  id: string;
+  productId: string;
+  text: string | null;
+  color: string | null;
+  size: string | null;
+  imageUrl: string | null;
+  designPosition: unknown;
+  createdAt: Date;
+}) {
+  return customizationResponseSchema.parse({
+    id: customization.id,
+    productId: customization.productId,
+    text: customization.text,
+    color: customization.color,
+    size: customization.size,
+    imageUrl: customization.imageUrl,
+    designPosition:
+      (customization.designPosition as
+        | {
+            imageUrl: string;
+            x: number;
+            y: number;
+            scale: number;
+            rotation_deg: number;
+            opacity: number;
+            blend_mode: string;
+          }
+        | null
+        | undefined) ?? null,
+    createdAt: customization.createdAt.toISOString(),
+  });
+}</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\api\products\[id]\route.ts (Line 16:62 - Line 33:10),
+              app\api\products\route.ts (Line 73:49 - Line 90:10)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-9')">Show code</button>
+            </div>
+            <pre id="code-typescript-9" class="code-block">    const body = productFormSchema.parse(await request.json());
+    const session = await container.getSession().getSession();
+
+    if (!session?.id) {
+      return NextResponse.json({ error: &#x27;Unauthorized&#x27; }, { status: 401 });
+    }
+
+    const seller = await container
+      .getSellerRepository()
+      .findByUserId(session.id);
+    if (!seller) {
+      return NextResponse.json(
+        { error: &#x27;No seller account found for this user&#x27; },
+        { status: 403 },
+      );
+    }
+
+    const product = await container</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\api\sellers\[id]\route.ts (Line 10:91 - Line 32:2),
+              app\api\sellers\route.ts (Line 89:3 - Line 111:2)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-10')">Show code</button>
+            </div>
+            <pre id="code-typescript-10" class="code-block">import { updateSellerSchema } from &#x27;@/modules/sellers/presentation/schemas/seller-schemas&#x27;;
+
+/** Shape returned for any seller in JSON responses. */
+function toSellerResponse(seller: {
+  sellerId: { value: string };
+  name: string;
+  description: string | null;
+  userId: string;
+  status: SellerStatus;
+  deletedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}) {
+  return {
+    id: seller.sellerId.value,
+    name: seller.name,
+    description: seller.description,
+    userId: seller.userId,
+    status: seller.status,
+    createdAt: seller.createdAt.toISOString(),
+    updatedAt: seller.updatedAt.toISOString(),
+  };
+}</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\api\sellers\[id]\route.ts (Line 81:6 - Line 106:10),
+              app\api\sellers\[id]\route.ts (Line 130:7 - Line 154:10)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-11')">Show code</button>
+            </div>
+            <pre id="code-typescript-11" class="code-block">  req: NextRequest,
+  context: { params: Promise&lt;{ id: string }&gt; },
+) {
+  try {
+    const { id } = await context.params;
+
+    // Auth check FIRST — 401 must come before any 404
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: &#x27;Unauthorized&#x27; }, { status: 401 });
+    }
+    const userId = (session.user as { id?: string } | undefined)?.id;
+    const role = (session.user as { role?: string } | undefined)?.role;
+
+    // Load seller
+    const sellerRepository = container.getSellerRepository();
+    const existing = await sellerRepository.findById(id);
+    if (!existing) {
+      return NextResponse.json({ error: &#x27;Seller not found&#x27; }, { status: 404 });
+    }
+
+    if (role !== &#x27;ADMIN&#x27; &amp;&amp; userId !== existing.userId) {
+      return NextResponse.json({ error: &#x27;Forbidden&#x27; }, { status: 403 });
+    }
+
+    const body = updateSellerSchema.parse(await req.json());</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\api\sellers\[id]\route.ts (Line 119:72 - Line 141:52),
+              app\api\uploads\[id]\route.ts (Line 44:5 - Line 66:52)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-12')">Show code</button>
+            </div>
+            <pre id="code-typescript-12" class="code-block">    return NextResponse.json(toSellerResponse(updated), { status: 200 });
+  } catch (error: unknown) {
+    return handleApiError(error);
+  }
+}
+
+/**
+ * DELETE /api/sellers/[id]
+ * Admin OR the seller themselves can soft-delete.
+ */
+export async function DELETE(
+  _req: NextRequest,
+  context: { params: Promise&lt;{ id: string }&gt; },
+) {
+  try {
+    const { id } = await context.params;
+
+    // Auth check FIRST — 401 must come before any 404
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: &#x27;Unauthorized&#x27; }, { status: 401 });
+    }
+    const userId = (session.user as { id?: string } | undefined)?.id;</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\api\uploads\[id]\confirm\route.ts (Line 12:27 - Line 27:10),
+              app\api\uploads\[id]\route.ts (Line 13:26 - Line 28:10)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-13')">Show code</button>
+            </div>
+            <pre id="code-typescript-13" class="code-block">export async function POST(
+  _req: NextRequest,
+  context: { params: Promise&lt;{ id: string }&gt; },
+) {
+  try {
+    const { id } = await context.params;
+
+    // Auth check
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: &#x27;Unauthorized&#x27; }, { status: 401 });
+    }
+
+    // Execute use case
+    const uploadRepo = container.getUploadRepository();
+    const outboxRepo = container.getOutboxRepository();</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              modules\auth\presentation\schemas\auth-schemas.ts (Line 20:31 - Line 30:4),
+              modules\auth\presentation\schemas\auth-schemas.ts (Line 72:37 - Line 81:4)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-14')">Show code</button>
+            </div>
+            <pre id="code-typescript-14" class="code-block">    confirmPassword: z.string().optional(),
+    address: z
+      .object({
+        street: z.string().min(1),
+        city: z.string().min(1),
+        postalCode: z.string().min(1),
+        country: z.string().min(1),
+      })
+      .optional(),
+  })
+  .refine(</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              modules\cart\application\remove-cart-item.ts (Line 41:5 - Line 75:10),
+              modules\cart\application\update-cart-item.ts (Line 48:5 - Line 82:10)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-15')">Show code</button>
+            </div>
+            <pre id="code-typescript-15" class="code-block">    const item = await this.cartRepository.findItemById(
+      CartItemId.create(dto.itemId),
+    );
+    if (!item) {
+      throw new ItemNotFoundError(
+        `Cart item ${dto.itemId} not found`,
+        `Cart item not found`,
+      );
+    }
+
+    // 2. Load the parent cart.
+    const cart = await this.cartRepository.findById(CartId.create(item.cartId));
+    if (!cart) {
+      throw new CartNotFoundError(
+        `Cart ${item.cartId} not found`,
+        `Cart not found`,
+      );
+    }
+
+    // 3. Ownership check.
+    if (cart.userId !== dto.userId) {
+      throw new ForbiddenError(
+        `User ${dto.userId} cannot modify item in cart owned by ${cart.userId}`,
+      );
+    }
+
+    // 4. Cart state check.
+    if (cart.status !== CartStatus.Active) {
+      throw new CartImmutableError(
+        `Cart ${cart.id} is not editable (status=${cart.status})`,
+      );
+    }
+
+    // 5. Remove the item from the cart and save.
+    const updatedItems = cart.items.filter((i) =&gt; i.id !== item.id);</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              modules\cart\infrastructure\customization-lookup-adapter.ts (Line 54:40 - Line 76:2),
+              modules\customizations\infrastructure\prisma-customization-repository.ts (Line 112:68 - Line 134:2)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-16')">Show code</button>
+            </div>
+            <pre id="code-typescript-16" class="code-block">): CustomizationDesignPositionSnapshot | null {
+  if (!value || typeof value !== &#x27;object&#x27;) return null;
+  const candidate = value as Record&lt;string, unknown&gt;;
+  if (
+    typeof candidate.imageUrl !== &#x27;string&#x27; ||
+    candidate.imageUrl.length === 0
+  ) {
+    return null;
+  }
+  return {
+    imageUrl: candidate.imageUrl,
+    x: typeof candidate.x === &#x27;number&#x27; ? candidate.x : 0.5,
+    y: typeof candidate.y === &#x27;number&#x27; ? candidate.y : 0.5,
+    scale: typeof candidate.scale === &#x27;number&#x27; ? candidate.scale : 100,
+    rotation_deg:
+      typeof candidate.rotation_deg === &#x27;number&#x27; ? candidate.rotation_deg : 0,
+    opacity: typeof candidate.opacity === &#x27;number&#x27; ? candidate.opacity : 100,
+    blend_mode:
+      typeof candidate.blend_mode === &#x27;string&#x27;
+        ? candidate.blend_mode
+        : &#x27;source-over&#x27;,
+  };
+}</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              modules\cart\infrastructure\customization-lookup-adapter.ts (Line 54:47 - Line 76:2),
+              modules\orders\infrastructure\prisma-order-repository.ts (Line 314:44 - Line 336:2)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-17')">Show code</button>
+            </div>
+            <pre id="code-typescript-17" class="code-block">): CustomizationDesignPositionSnapshot | null {
+  if (!value || typeof value !== &#x27;object&#x27;) return null;
+  const candidate = value as Record&lt;string, unknown&gt;;
+  if (
+    typeof candidate.imageUrl !== &#x27;string&#x27; ||
+    candidate.imageUrl.length === 0
+  ) {
+    return null;
+  }
+  return {
+    imageUrl: candidate.imageUrl,
+    x: typeof candidate.x === &#x27;number&#x27; ? candidate.x : 0.5,
+    y: typeof candidate.y === &#x27;number&#x27; ? candidate.y : 0.5,
+    scale: typeof candidate.scale === &#x27;number&#x27; ? candidate.scale : 100,
+    rotation_deg:
+      typeof candidate.rotation_deg === &#x27;number&#x27; ? candidate.rotation_deg : 0,
+    opacity: typeof candidate.opacity === &#x27;number&#x27; ? candidate.opacity : 100,
+    blend_mode:
+      typeof candidate.blend_mode === &#x27;string&#x27;
+        ? candidate.blend_mode
+        : &#x27;source-over&#x27;,
+  };
+}</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              modules\cart\presentation\components\customization-draft-schema.ts (Line 1:1 - Line 20:13),
+              modules\customizations\presentation\schemas\customization-schemas.ts (Line 1:1 - Line 20:13)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-18')">Show code</button>
+            </div>
+            <pre id="code-typescript-18" class="code-block">import { z } from &#x27;zod&#x27;;
+
+const designBlendModeSchema = z.enum([
+  &#x27;source-over&#x27;,
+  &#x27;multiply&#x27;,
+  &#x27;overlay&#x27;,
+  &#x27;soft-light&#x27;,
+]);
+
+export const designPositionSchema = z
+  .object({
+    imageUrl: z.string().min(1),
+    x: z.number().min(0).max(1),
+    y: z.number().min(0).max(1),
+    scale: z.number().min(10).max(200),
+    rotation_deg: z.number().min(-45).max(45),
+    opacity: z.number().min(0).max(100),
+    blend_mode: designBlendModeSchema,
+  })
+  .strict();</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              modules\customizations\application\create-customer-customization.ts (Line 110:36 - Line 125:2),
+              modules\customizations\application\create-customization.ts (Line 56:6 - Line 71:2)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-19')">Show code</button>
+            </div>
+            <pre id="code-typescript-19" class="code-block">    CustomizationOptions.create(dto);
+
+    const entity: CustomizationEntity = {
+      id: crypto.randomUUID(),
+      productId: dto.productId,
+      text: dto.text ?? null,
+      color: dto.color ?? null,
+      size: dto.size ?? null,
+      imageUrl: dto.imageUrl ?? null,
+      designPosition: dto.designPosition ?? null,
+      createdAt: new Date(),
+    };
+
+    return this.repo.save(entity);
+  }
+}</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              modules\orders\infrastructure\prisma-order-repository.ts (Line 72:9 - Line 92:8),
+              modules\orders\infrastructure\prisma-order-repository.ts (Line 211:5 - Line 230:4)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-20')">Show code</button>
+            </div>
+            <pre id="code-typescript-20" class="code-block">        const { checkoutGroup, lineItems, total, ...rest } = order;
+        return {
+          ...rest,
+          total: Number(total),
+          checkoutGroupPaymentStatus: checkoutGroup?.paymentStatus ?? null,
+          lineItems: lineItems.map((item) =&gt; ({
+            id: item.id,
+            orderId: item.orderId,
+            productId: item.productId,
+            productName: item.product?.translations?.[0]?.name,
+            productImageUrl:
+              item.product?.images?.[0]?.url ?? item.productImageUrl,
+            unitPrice: Number(item.unitPrice),
+            quantity: item.quantity,
+            customizationIdList: item.customizationIdList,
+            customizationSnapshot: coerceCustomizationSnapshot(
+              item.customizationSnapshot,
+            ),
+          })),
+        };
+      }),</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              modules\users\application\use-cases\register-user-use-case.ts (Line 11:64 - Line 37:13),
+              modules\users\application\use-cases\update-user-use-case.ts (Line 10:60 - Line 36:13)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-21')">Show code</button>
+            </div>
+            <pre id="code-typescript-21" class="code-block">import type { RegisterUserDTO } from &#x27;../dto/register-user.dto&#x27;;
+
+/** Default max length for firstName/lastName domain rule. */
+const NAME_MAX_LENGTH = 50;
+
+/** Allowed characters for names: letters (including accented), spaces, hyphens, apostrophes. */
+const NAME_PATTERN = /^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\s&#x27;-]+$/;
+
+function validateName(value: string, field: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    throw new ValidationError(`${field} is required`);
+  }
+  if (trimmed.length &gt; NAME_MAX_LENGTH) {
+    throw new ValidationError(
+      `${field} cannot exceed ${NAME_MAX_LENGTH} characters`,
+    );
+  }
+  if (!NAME_PATTERN.test(trimmed)) {
+    throw new ValidationError(
+      `${field} can only contain letters, spaces, hyphens, and apostrophes`,
+    );
+  }
+  return trimmed;
+}
+
+export class RegisterUserUseCase {</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              modules\users\infrastructure\prisma-user-repository.ts (Line 64:9 - Line 74:9),
+              modules\users\infrastructure\prisma-user-repository.ts (Line 77:9 - Line 87:9)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-22')">Show code</button>
+            </div>
+            <pre id="code-typescript-22" class="code-block">        email: user.email.value,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        passwordHash: user.passwordHash?.value ?? null,
+        role: user.roleId.value,
+        addressStreet: user.address?.street ?? null,
+        addressCity: user.address?.city ?? null,
+        addressPostalCode: user.address?.postalCode ?? null,
+        addressCountry: user.address?.country ?? null,
+        deletedAt: user.deletedAt ?? null,
+      },</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              modules\users\infrastructure\prisma-user-repository.ts (Line 79:32 - Line 90:21),
+              modules\users\infrastructure\prisma-user-repository.ts (Line 127:32 - Line 138:21)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-23')">Show code</button>
+            </div>
+            <pre id="code-typescript-23" class="code-block">        lastName: user.lastName,
+        passwordHash: user.passwordHash?.value ?? null,
+        role: user.roleId.value,
+        addressStreet: user.address?.street ?? null,
+        addressCity: user.address?.city ?? null,
+        addressPostalCode: user.address?.postalCode ?? null,
+        addressCountry: user.address?.country ?? null,
+        deletedAt: user.deletedAt ?? null,
+      },
+    });
+
+    return toDomain(savedUser);</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              tests\doubles\memory-customization-lookup.ts (Line 31:17 - Line 63:2),
+              tests\doubles\memory-order-customization-lookup.ts (Line 23:18 - Line 53:2)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-typescript-24')">Show code</button>
+            </div>
+            <pre id="code-typescript-24" class="code-block">      .toArray();
+  }
+
+  /** Seed customizations in plain-JSON form for readability in tests. */
+  seed(
+    customizations: Array&lt;{
+      id: string;
+      productId: string;
+      text?: string | null;
+      color?: string | null;
+      size?: string | null;
+      imageUrl?: string | null;
+      designPosition?: CustomizationDesignPositionSnapshot | null;
+    }&gt;,
+  ): void {
+    for (const c of customizations) {
+      this.customizations.set(c.id, {
+        id: c.id,
+        productId: c.productId,
+        text: c.text ?? null,
+        color: c.color ?? null,
+        size: c.size ?? null,
+        imageUrl: c.imageUrl ?? null,
+        designPosition: c.designPosition ?? null,
+      });
+    }
+  }
+
+  /** Test helper — clear all stored customizations between tests. */
+  clear(): void {
+    this.customizations.clear();
+  }
+}</pre>
+          </div>
+          
+        </div>
+      </section>
+    </div>
+    
+    
+  </div>
+
+  <div class="footer">
+    <p>Generated by <a href="https://jscpd.dev" target="_blank">jscpd</a> v0.1.7 by <a href="https://github.com/kucherenko" target="_blank">Andrey Kucherenko</a></p>
+    <p><a href="https://www.npmjs.com/package/jscpd" target="_blank"><img src="https://img.shields.io/npm/dw/jscpd.svg?style=flat-square" alt="npm weekly downloads" style="vertical-align: middle;"></a></p>
+  </div>
+
+  <script>
+    function toggle(id) {
+      var el = document.getElementById(id);
+      if (el) { el.classList.toggle('visible'); }
+    }
+  </script>
+</body>
+</html>

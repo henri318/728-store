@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { FileUploadDropzone } from '@/shared/presentation/components/file-upload-dropzone';
+import { FileUploadDropzone } from '@/shared/ui/file-upload-dropzone';
 import styles from './product-form.module.css';
 
 export interface ProductPhotoDraft {

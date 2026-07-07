@@ -5,9 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Modal } from '@/shared/ui/modal';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
 import type { MergeStrategy } from '@/modules/cart/application/migrate-guest-cart';
+import { dispatchCartUpdated } from '@/modules/cart/presentation/cart-events';
 import styles from './merge-dialog.module.css';
-
-const CART_UPDATED_EVENT = 'cart:updated';
 
 interface MergeDialogProps {
   isOpen: boolean;
@@ -55,7 +54,7 @@ export function MergeDialog({ isOpen, onClose, labels }: MergeDialogProps) {
 
       if (res.ok) {
         clearCart();
-        globalThis.dispatchEvent(new Event(CART_UPDATED_EVENT));
+        dispatchCartUpdated();
         router.refresh();
         onClose();
       }

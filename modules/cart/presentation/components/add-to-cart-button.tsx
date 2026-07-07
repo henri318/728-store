@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
+import { dispatchCartUpdated } from '@/modules/cart/presentation/cart-events';
 import { AddToCartChoiceModal } from './add-to-cart-choice-modal';
 import {
   customizationDraftSchema,
@@ -53,7 +54,6 @@ interface CartItemInfo {
 
 type ButtonState = 'idle' | 'adding' | 'success' | 'error';
 const MAX_QUANTITY = 99;
-const CART_UPDATED_EVENT = 'cart:updated';
 
 function isGuestCustomizationMatching(
   item: {
@@ -101,10 +101,6 @@ function isAuthCustomizationMatching(
       (c.size ?? null) === (norm.size ?? null) &&
       (c.imageUrl ?? null) === (norm.imageUrl ?? null),
   );
-}
-
-function dispatchCartUpdated() {
-  globalThis.dispatchEvent(new Event(CART_UPDATED_EVENT));
 }
 
 /**

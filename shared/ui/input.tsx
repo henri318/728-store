@@ -6,9 +6,20 @@ import {
   type FocusEvent,
   type ReactNode,
 } from 'react';
-import styles from './input.module.css';
+import baseStyles from './input.module.css';
 
-interface InputProps {
+interface InputClassNames {
+  wrapper?: string;
+  label?: string;
+  inputRow?: string;
+  input?: string;
+  suffix?: string;
+  errorText?: string;
+  inputError?: string;
+  hasSuffix?: string;
+}
+
+export interface InputProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
@@ -22,6 +33,7 @@ interface InputProps {
   step?: string;
   /** Elemento renderizado dentro del input row (ej: toggle password) */
   rightElement?: ReactNode;
+  classNames?: InputClassNames;
 }
 
 export function Input({
@@ -36,6 +48,7 @@ export function Input({
   disabled,
   step,
   rightElement,
+  classNames,
 }: InputProps) {
   const id = useId();
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -43,13 +56,14 @@ export function Input({
   };
 
   const errorId = error ? `${id}-error` : undefined;
+  const s = classNames ?? baseStyles;
 
   return (
-    <div className={styles.wrapper}>
-      <label htmlFor={id} className={styles.label}>
+    <div className={s.wrapper}>
+      <label htmlFor={id} className={s.label}>
         {label}
       </label>
-      <div className={styles.inputRow}>
+      <div className={s.inputRow}>
         <input
           id={id}
           type={type}
@@ -62,12 +76,12 @@ export function Input({
           step={step}
           aria-invalid={error ? true : undefined}
           aria-describedby={errorId}
-          className={`${styles.input} ${error ? styles.inputError : ''} ${rightElement ? styles.hasSuffix : ''}`}
+          className={`${s.input} ${error ? s.inputError : ''} ${rightElement ? s.hasSuffix : ''}`}
         />
-        {rightElement && <span className={styles.suffix}>{rightElement}</span>}
+        {rightElement && <span className={s.suffix}>{rightElement}</span>}
       </div>
       {error && (
-        <span id={errorId} role="alert" className={styles.errorText}>
+        <span id={errorId} role="alert" className={s.errorText}>
           {error}
         </span>
       )}

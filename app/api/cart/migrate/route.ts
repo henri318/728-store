@@ -4,6 +4,10 @@ import { container } from '@/composition-root/container';
 import { MigrateGuestCart } from '@/modules/cart/application/migrate-guest-cart';
 import { migrateGuestCartSchema } from '@/modules/cart/presentation/schemas/cart-schemas';
 import { handleApiError } from '@/shared/presentation/error-handler';
+import {
+  getAuthenticatedUserId,
+  parseBody,
+} from '@/shared/presentation/route-helpers';
 import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
 import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
@@ -28,15 +32,13 @@ import type { GuestCartItemInput } from '@/modules/cart/presentation/schemas/car
 export const POST = requireRole('CUSTOMER')(async function POST(
   request: NextRequest,
 ) {
-  const session = await container.getSession().getSession();
-  const userId = session?.id;
+  const userId = await getAuthenticatedUserId();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const body = await request.json();
-    const validated = migrateGuestCartSchema.parse(body);
+    const validated = await parseBody(request, migrateGuestCartSchema);
 
     const cartRepository = container.getCartRepository();
     const productRepository = container.getCartProductRepository();

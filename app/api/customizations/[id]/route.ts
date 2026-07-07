@@ -9,6 +9,11 @@ import {
   updateCustomizationSchema,
   customizationResponseSchema,
 } from '@/modules/customizations/presentation/schemas/customization-schemas';
+import {
+  getCurrentSellerId,
+  getRouteParams,
+  parseBody,
+} from '@/shared/presentation/route-helpers';
 
 export const GET = requireRole('DESIGNER')(async function GET(
   _request: NextRequest,
@@ -20,8 +25,7 @@ export const GET = requireRole('DESIGNER')(async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { id } = await (context as { params: Promise<{ id: string }> })
-      .params;
+    const { id } = await getRouteParams<{ id: string }>(context);
     const customization = await new GetCustomizationById(
       container.getCustomizationRepository(),
     ).execute({ id });
@@ -65,9 +69,8 @@ export const PATCH = requireRole('DESIGNER')(async function PATCH(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { id } = await (context as { params: Promise<{ id: string }> })
-      .params;
-    const body = updateCustomizationSchema.parse(await request.json());
+    const { id } = await getRouteParams<{ id: string }>(context);
+    const body = await parseBody(request, updateCustomizationSchema);
 
     const customizationRepository = container.getCustomizationRepository();
     const productRepository = container.getProductRepository();
@@ -109,8 +112,7 @@ export const DELETE = requireRole('DESIGNER')(async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { id } = await (context as { params: Promise<{ id: string }> })
-      .params;
+    const { id } = await getRouteParams<{ id: string }>(context);
     const customizationRepository = container.getCustomizationRepository();
     const productRepository = container.getProductRepository();
     const useCase = new DeleteCustomization(customizationRepository, {
@@ -133,14 +135,6 @@ export const DELETE = requireRole('DESIGNER')(async function DELETE(
     return handleApiError(error);
   }
 });
-
-async function getCurrentSellerId(): Promise<string | null> {
-  const session = await container.getSession().getSession();
-  if (!session?.id) return null;
-
-  const seller = await container.getSellerRepository().findByUserId(session.id);
-  return seller?.sellerId.value ?? null;
-}
 
 function toCustomizationResponse(customization: {
   id: string;

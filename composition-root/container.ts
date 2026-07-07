@@ -57,7 +57,7 @@ import type { CustomizationLookupPort as CartCustomizationLookupPort } from '@/m
 import type { CustomizationRepository } from '@/modules/customizations/domain/customization-repository';
 import type { SearchHistoryRepository } from '@/modules/search-history/domain/search-history-repository';
 
-import { BrevoEmailSender } from '@/modules/email/infrastructure/brevo-email-sender';
+import { BrevoEmailSender } from '@/shared/kernel/brevo-email-sender';
 import { ConsoleEmailSender } from '@/modules/email/infrastructure/console-email-sender';
 import { eventBus } from '@/modules/events/infrastructure/in-memory-event-bus';
 import { PrismaOutboxRepository } from '@/shared/infrastructure/prisma-outbox-repository';

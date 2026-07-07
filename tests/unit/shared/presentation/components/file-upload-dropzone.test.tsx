@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { FileUploadDropzone } from '@/shared/presentation/components/file-upload-dropzone';
+import { FileUploadDropzone } from '@/shared/ui/file-upload-dropzone';
 
 describe('FileUploadDropzone', () => {
   it('renders a full dropzone with selectable files and removable items', async () => {

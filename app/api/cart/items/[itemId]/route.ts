@@ -5,6 +5,11 @@ import { UpdateCartItemQuantity } from '@/modules/cart/application/update-cart-i
 import { RemoveCartItem } from '@/modules/cart/application/remove-cart-item';
 import { updateQuantitySchema } from '@/modules/cart/presentation/schemas/cart-schemas';
 import { handleApiError } from '@/shared/presentation/error-handler';
+import {
+  getAuthenticatedUserId,
+  getRouteParams,
+  parseBody,
+} from '@/shared/presentation/route-helpers';
 import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
 import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
@@ -23,18 +28,14 @@ export const PATCH = requireRole('CUSTOMER')(async function PATCH(
   request: NextRequest,
   context?: unknown,
 ) {
-  const session = await container.getSession().getSession();
-  const userId = session?.id;
+  const userId = await getAuthenticatedUserId();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const { itemId } = (await (
-      context as { params: Promise<{ itemId: string }> }
-    ).params) as { itemId: string };
-    const body = await request.json();
-    const validated = updateQuantitySchema.parse(body);
+    const { itemId } = await getRouteParams<{ itemId: string }>(context);
+    const validated = await parseBody(request, updateQuantitySchema);
 
     const cartRepository = container.getCartRepository();
     const outboxRepository = container.getOutboxRepository();
@@ -90,16 +91,13 @@ export const DELETE = requireRole('CUSTOMER')(async function DELETE(
   _request: NextRequest,
   context?: unknown,
 ) {
-  const session = await container.getSession().getSession();
-  const userId = session?.id;
+  const userId = await getAuthenticatedUserId();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const { itemId } = (await (
-      context as { params: Promise<{ itemId: string }> }
-    ).params) as { itemId: string };
+    const { itemId } = await getRouteParams<{ itemId: string }>(context);
 
     const cartRepository = container.getCartRepository();
     const outboxRepository = container.getOutboxRepository();

@@ -3,6 +3,7 @@ import { requireRole } from '@/shared/authorization/authorization';
 import { container } from '@/composition-root/container';
 import { GetCart } from '@/modules/cart/application/get-cart';
 import { handleApiError } from '@/shared/presentation/error-handler';
+import { getAuthenticatedUserId } from '@/shared/presentation/route-helpers';
 import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
 import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
@@ -19,8 +20,7 @@ import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-
  * these into a flat DTO with display-friendly fields.
  */
 export const GET = requireRole('CUSTOMER')(async function GET() {
-  const session = await container.getSession().getSession();
-  const userId = session?.id;
+  const userId = await getAuthenticatedUserId();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
