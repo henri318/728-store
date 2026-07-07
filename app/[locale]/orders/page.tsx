@@ -12,6 +12,7 @@ import { SearchForm } from '@/shared/ui/search-form';
 import type { OrderEntity } from '@/modules/orders/domain/order-repository';
 import { createOrderCommonColumns } from '@/modules/orders/presentation/components/order-table-columns';
 import { computePaginationState } from '@/shared/presentation/pagination-utils';
+import { buildOrderPageUrl } from '@/modules/orders/presentation/order-page-url';
 import styles from './page.module.css';
 
 export default async function CustomerOrdersPage({
@@ -98,17 +99,6 @@ export default async function CustomerOrdersPage({
 
   const { hasItems: hasOrders, currentPage } = computePaginationState(result);
 
-  const buildPageUrl = (page: number) => {
-    const params = new URLSearchParams();
-    if (page > 1) params.set('page', String(page));
-    if (filter.status !== 'all') params.set('status', filter.status);
-    if (filter.sortDir !== 'desc') params.set('sortDir', filter.sortDir);
-    if (filter.pageSize !== 20) params.set('pageSize', String(filter.pageSize));
-    if (filter.q) params.set('q', filter.q);
-    const qs = params.toString();
-    return qs ? `/${locale}/orders?${qs}` : `/${locale}/orders`;
-  };
-
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -143,7 +133,9 @@ export default async function CustomerOrdersPage({
           <Pagination
             currentPage={currentPage}
             totalPages={result.totalPages}
-            buildPageUrl={buildPageUrl}
+            buildPageUrl={(page) =>
+              buildOrderPageUrl(locale, '/orders', filter, page)
+            }
             prevLabel={dict.orders?.previous ?? '← Previous'}
             nextLabel={dict.orders?.next ?? 'Next →'}
           />

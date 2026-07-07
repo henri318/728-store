@@ -58,19 +58,19 @@
         <div class="dashboard">
           <div class="stat-card stat-blue">
             <h3>Total Files</h3>
-            <div class="val">308</div>
+            <div class="val">317</div>
           </div>
           <div class="stat-card stat-green">
             <h3>Total Lines of Code</h3>
-            <div class="val">28207</div>
+            <div class="val">28062</div>
           </div>
           <div class="stat-card stat-yellow">
             <h3>Number of Clones</h3>
-            <div class="val">31</div>
+            <div class="val">18</div>
           </div>
           <div class="stat-card stat-red">
             <h3>Duplicated Lines</h3>
-            <div class="val">666 (2.36%)</div>
+            <div class="val">322 (1.15%)</div>
           </div>
         </div>
       </section>
@@ -104,28 +104,28 @@
             <tr>
               <td><a href="#tsx-clones">tsx</a></td>
               <td>83</td>
-              <td>10840</td>
-              <td>11</td>
-              <td>270 (2.49%)</td>
-              <td>1432 (2.45%)</td>
+              <td>10625</td>
+              <td>6</td>
+              <td>105 (0.99%)</td>
+              <td>522 (0.92%)</td>
             </tr>
             
             <tr>
               <td><a href="#typescript-clones">typescript</a></td>
-              <td>223</td>
-              <td>16955</td>
-              <td>20</td>
-              <td>396 (2.34%)</td>
-              <td>2165 (2.76%)</td>
+              <td>232</td>
+              <td>17025</td>
+              <td>12</td>
+              <td>217 (1.27%)</td>
+              <td>1122 (1.42%)</td>
             </tr>
             
             <tr style="font-weight: 700;">
               <td>Total</td>
-              <td>308</td>
-              <td>28207</td>
-              <td>31</td>
-              <td>666 (2.36%)</td>
-              <td>3597 (2.60%)</td>
+              <td>317</td>
+              <td>28062</td>
+              <td>18</td>
+              <td>322 (1.15%)</td>
+              <td>1644 (1.20%)</td>
             </tr>
           </tbody>
         </table>
@@ -142,8 +142,8 @@
           
           <div class="clone-item">
             <div class="clone-info">
-              app\[locale]\orders\page.tsx (Line 92:15 - Line 107:81),
-              app\[locale]\seller\orders\page.tsx (Line 121:13 - Line 136:81)
+              app\[locale]\orders\page.tsx (Line 93:15 - Line 107:27),
+              app\[locale]\seller\orders\page.tsx (Line 122:13 - Line 136:27)
             </div>
             <div>
               <button class="toggle-btn" onclick="toggle('code-tsx-1')">Show code</button>
@@ -155,21 +155,20 @@
     },
   ];
 
-  const { hasItems: hasOrders, currentPage } =
-    computePaginationState(result);
+  const { hasItems: hasOrders, currentPage } = computePaginationState(result);
 
-  const buildPageUrl = (page: number) =&gt; {
-    const params = new URLSearchParams();
-    if (page &gt; 1) params.set(&#x27;page&#x27;, String(page));
-    if (filter.status !== &#x27;all&#x27;) params.set(&#x27;status&#x27;, filter.status);
-    if (filter.sortDir !== &#x27;desc&#x27;) params.set(&#x27;sortDir&#x27;, filter.sortDir);
-    if (filter.pageSize !== 20) params.set(&#x27;pageSize&#x27;, String(filter.pageSize));</pre>
+  return (
+    &lt;div className={styles.container}&gt;
+      &lt;div className={styles.header}&gt;
+        &lt;div className={styles.headerLead}&gt;
+          &lt;h1 className={styles.title}&gt;
+            {dict.orders?.myOrders ?? &#x27;My orders&#x27;}</pre>
           </div>
           
           <div class="clone-item">
             <div class="clone-info">
-              app\[locale]\orders\page.tsx (Line 132:14 - Line 159:2),
-              app\[locale]\seller\orders\page.tsx (Line 193:15 - Line 220:2)
+              app\[locale]\orders\page.tsx (Line 121:14 - Line 136:62),
+              app\[locale]\seller\orders\page.tsx (Line 183:15 - Line 198:62)
             </div>
             <div>
               <button class="toggle-btn" onclick="toggle('code-tsx-2')">Show code</button>
@@ -189,7 +188,18 @@
           &lt;Pagination
             currentPage={currentPage}
             totalPages={result.totalPages}
-            buildPageUrl={buildPageUrl}
+            buildPageUrl={(page) =&gt; buildOrderPageUrl(locale, &#x27;/orders&#x27;, filter, page)}</pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              app\[locale]\orders\page.tsx (Line 136:72 - Line 148:2),
+              app\[locale]\seller\orders\page.tsx (Line 198:79 - Line 210:2)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-tsx-3')">Show code</button>
+            </div>
+            <pre id="code-tsx-3" class="code-block">            buildPageUrl={(page) =&gt; buildOrderPageUrl(locale, &#x27;/orders&#x27;, filter, page)}
             prevLabel={dict.orders?.previous ?? &#x27;← Previous&#x27;}
             nextLabel={dict.orders?.next ?? &#x27;Next →&#x27;}
           /&gt;
@@ -210,9 +220,9 @@
               app\[locale]\products\[id]\customization-form.tsx (Line 24:33 - Line 41:36)
             </div>
             <div>
-              <button class="toggle-btn" onclick="toggle('code-tsx-3')">Show code</button>
+              <button class="toggle-btn" onclick="toggle('code-tsx-4')">Show code</button>
             </div>
-            <pre id="code-tsx-3" class="code-block">  customizationInvalidImageUrl: string;
+            <pre id="code-tsx-4" class="code-block">  customizationInvalidImageUrl: string;
   customizationCanvasLabel: string;
   customizationCanvasHelp: string;
   customizationProductImageAlt: string;
@@ -234,180 +244,13 @@
           
           <div class="clone-item">
             <div class="clone-info">
-              app\[locale]\products\[id]\mockup-canvas-control.tsx (Line 481:15 - Line 511:12),
-              modules\presentation\components\design-preview.tsx (Line 93:5 - Line 123:12)
-            </div>
-            <div>
-              <button class="toggle-btn" onclick="toggle('code-tsx-4')">Show code</button>
-            </div>
-            <pre id="code-tsx-4" class="code-block">  return value;
-}
-
-function drawCover(
-  ctx: CanvasRenderingContext2D,
-  image: HTMLImageElement,
-  width: number,
-  height: number,
-) {
-  const ratio = image.naturalWidth / image.naturalHeight;
-  const targetRatio = width / height;
-  let drawWidth: number;
-  let drawHeight: number;
-
-  if (ratio &gt; targetRatio) {
-    drawHeight = height;
-    drawWidth = height * ratio;
-  } else {
-    drawWidth = width;
-    drawHeight = width / ratio;
-  }
-
-  const offsetX = (width - drawWidth) / 2;
-  const offsetY = (height - drawHeight) / 2;
-  ctx.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
-}
-
-function drawDesign(
-  ctx: CanvasRenderingContext2D,
-  image: HTMLImageElement,
-  position: DesignPosition,</pre>
-          </div>
-          
-          <div class="clone-item">
-            <div class="clone-info">
-              app\[locale]\products\[id]\mockup-canvas-control.tsx (Line 511:27 - Line 527:2),
-              modules\presentation\components\design-preview.tsx (Line 123:31 - Line 139:2)
+              modules\cart\presentation\components\add-to-cart-button.tsx (Line 283:26 - Line 300:39),
+              modules\cart\presentation\components\add-to-cart-button.tsx (Line 361:34 - Line 377:39)
             </div>
             <div>
               <button class="toggle-btn" onclick="toggle('code-tsx-5')">Show code</button>
             </div>
-            <pre id="code-tsx-5" class="code-block">  position: DesignPosition,
-  width: number,
-  height: number,
-) {
-  const scaleFactor = position.scale / 100;
-  const baseWidth = Math.min(width, image.naturalWidth);
-  const ratio = image.naturalHeight / image.naturalWidth;
-  const drawWidth = baseWidth * scaleFactor;
-  const drawHeight = drawWidth * ratio;
-
-  const centerX = position.x * width;
-  const centerY = position.y * height;
-
-  ctx.translate(centerX, centerY);
-  ctx.rotate((position.rotation_deg * Math.PI) / 180);
-  ctx.drawImage(image, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
-}</pre>
-          </div>
-          
-          <div class="clone-item">
-            <div class="clone-info">
-              app\[locale]\seller\products\[id]\edit\page.tsx (Line 64:47 - Line 113:2),
-              app\[locale]\seller\products\new\page.tsx (Line 36:49 - Line 85:2)
-            </div>
-            <div>
-              <button class="toggle-btn" onclick="toggle('code-tsx-6')">Show code</button>
-            </div>
-            <pre id="code-tsx-6" class="code-block">        save: dict.sellerDashboard.editProduct,
-        saved: dict.sellerDashboard.productSaved,
-        error: dict.sellerDashboard.productFormError,
-        customization: {
-          label: dict.sellerDashboard.productCustomizationConfigLabel,
-          hint: dict.sellerDashboard.productCustomizationConfigHint,
-          editor: {
-            sizeOptionsLabel:
-              dict.sellerDashboard.productCustomizationSizeOptionsLabel,
-            sizeOptionsPlaceholder:
-              dict.sellerDashboard.productCustomizationSizeOptionsPlaceholder,
-            allowPhotoDesignLabel:
-              dict.sellerDashboard.productCustomizationAllowPhotoDesignLabel,
-            designChangeDescriptionLabel:
-              dict.sellerDashboard
-                .productCustomizationDesignChangeDescriptionLabel,
-            designChangeDescriptionPlaceholder:
-              dict.sellerDashboard
-                .productCustomizationDesignChangeDescriptionPlaceholder,
-            categoryLabel:
-              dict.sellerDashboard.productCustomizationCategoryLabel,
-            categoryPlaceholder:
-              dict.sellerDashboard.productCustomizationCategoryPlaceholder,
-            tagsLabel: dict.sellerDashboard.productCustomizationTagsLabel,
-            tagsPlaceholder:
-              dict.sellerDashboard.productCustomizationTagsPlaceholder,
-            tagsHelp: dict.sellerDashboard.productCustomizationTagsHelp,
-            addLabel: dict.sellerDashboard.productCustomizationAddLabel,
-          },
-        },
-        gallery: {
-          title: dict.sellerDashboard.productPhotosTitle,
-          hint: dict.sellerDashboard.productPhotosHint,
-          addPhotoLabel: dict.sellerDashboard.addProductPhotos,
-          photoDisplayNameLabel:
-            dict.sellerDashboard.productPhotoDisplayNameLabel,
-          photoDisplayNamePlaceholder:
-            dict.sellerDashboard.productPhotoDisplayNamePlaceholder,
-          selectForPreviewLabel:
-            dict.sellerDashboard.productPhotoSelectForPreview,
-          removePhotoLabel: dict.sellerDashboard.productPhotoRemoveLabel,
-          uploadingLabel: dict.common.customizationUploading,
-          emptyState: dict.sellerDashboard.productPhotosEmptyState,
-          uploadError: dict.sellerDashboard.productPhotosUploadError,
-          defaultPhotoName: dict.sellerDashboard.productPhotoDefaultName,
-        },
-      }}
-    /&gt;
-  );
-}</pre>
-          </div>
-          
-          <div class="clone-item">
-            <div class="clone-info">
-              modules\cart\presentation\components\add-to-cart-button.tsx (Line 165:32 - Line 193:6),
-              modules\cart\presentation\components\add-to-cart-button.tsx (Line 242:36 - Line 270:4)
-            </div>
-            <div>
-              <button class="toggle-btn" onclick="toggle('code-tsx-7')">Show code</button>
-            </div>
-            <pre id="code-tsx-7" class="code-block">        if (isCancelled) return;
-        const items = data.items ?? [];
-        const anyInCart = items.find(
-          (item: { productId: string }) =&gt; item.productId === productId,
-        );
-        const found = items.find(
-          (item: {
-            productId: string;
-            customizations?: Array&lt;{
-              text?: string | null;
-              color?: string | null;
-              size?: string | null;
-              imageUrl?: string | null;
-            }&gt;;
-          }) =&gt;
-            item.productId === productId &amp;&amp;
-            isAuthCustomizationMatching(
-              item.customizations ?? [],
-              normalizedCustomization,
-            ),
-        );
-        setCartItemInfo(
-          found ? { cartItemId: found.id, quantity: found.quantity } : null,
-        );
-        setHasDifferentCustomization(!!anyInCart &amp;&amp; !found);
-      } catch {
-        /* fallback to &quot;Add to Cart&quot; */
-      }
-    }</pre>
-          </div>
-          
-          <div class="clone-item">
-            <div class="clone-info">
-              modules\cart\presentation\components\add-to-cart-button.tsx (Line 280:26 - Line 297:39),
-              modules\cart\presentation\components\add-to-cart-button.tsx (Line 358:34 - Line 374:39)
-            </div>
-            <div>
-              <button class="toggle-btn" onclick="toggle('code-tsx-8')">Show code</button>
-            </div>
-            <pre id="code-tsx-8" class="code-block">      if (isAuthenticated) {
+            <pre id="code-tsx-5" class="code-block">      if (isAuthenticated) {
         const customizationResponse = await fetch(
           &#x27;/api/customizations/customer&#x27;,
           {
@@ -429,13 +272,13 @@ function drawDesign(
           
           <div class="clone-item">
             <div class="clone-info">
-              modules\cart\presentation\components\add-to-cart-button.tsx (Line 484:38 - Line 514:8),
-              modules\cart\presentation\components\add-to-cart-button.tsx (Line 518:38 - Line 548:8)
+              modules\cart\presentation\components\add-to-cart-button.tsx (Line 487:38 - Line 517:8),
+              modules\cart\presentation\components\add-to-cart-button.tsx (Line 521:38 - Line 551:8)
             </div>
             <div>
-              <button class="toggle-btn" onclick="toggle('code-tsx-9')">Show code</button>
+              <button class="toggle-btn" onclick="toggle('code-tsx-6')">Show code</button>
             </div>
-            <pre id="code-tsx-9" class="code-block">    const newQty = currentQuantity + 1;
+            <pre id="code-tsx-6" class="code-block">    const newQty = currentQuantity + 1;
     if (isAuthenticated &amp;&amp; cartItemInfo) {
       const prevCartItemInfo = cartItemInfo;
       setCartItemInfo({ ...cartItemInfo, quantity: newQty });
@@ -466,69 +309,6 @@ function drawDesign(
   ]);
 
   const handleDecrement = useCallback(async () =&gt; {</pre>
-          </div>
-          
-          <div class="clone-item">
-            <div class="clone-info">
-              modules\products\presentation\components\product-actions.tsx (Line 106:18 - Line 130:11),
-              modules\products\presentation\components\product-actions.tsx (Line 156:21 - Line 180:11)
-            </div>
-            <div>
-              <button class="toggle-btn" onclick="toggle('code-tsx-10')">Show code</button>
-            </div>
-            <pre id="code-tsx-10" class="code-block">        {isDraft &amp;&amp; (
-          &lt;&gt;
-            &lt;button
-              type=&quot;button&quot;
-              className={`${styles.button} ${styles.activate}`}
-              disabled={loading}
-              onClick={() =&gt; handleStatusChange(ACTIVE_STATUS)}
-            &gt;
-              {loading ? dict.common.loading : dict.admin.activateProduct}
-            &lt;/button&gt;
-            &lt;button
-              type=&quot;button&quot;
-              className={styles.iconButton}
-              disabled={loading}
-              aria-label={
-                loading ? dict.common.loading : dict.admin.eliminateProduct
-              }
-              onClick={() =&gt; handleStatusChange(ELIMINATED_STATUS)}
-            &gt;
-              &lt;svg aria-hidden=&quot;true&quot; className={styles.iconTrash}&gt;
-                &lt;use href=&quot;/img/icons/sprites.svg#icon-trash&quot; /&gt;
-              &lt;/svg&gt;
-            &lt;/button&gt;
-          &lt;/&gt;
-        )}</pre>
-          </div>
-          
-          <div class="clone-item">
-            <div class="clone-info">
-              modules\products\presentation\components\product-actions.tsx (Line 114:74 - Line 131:10),
-              modules\products\presentation\components\product-actions.tsx (Line 139:73 - Line 156:10)
-            </div>
-            <div>
-              <button class="toggle-btn" onclick="toggle('code-tsx-11')">Show code</button>
-            </div>
-            <pre id="code-tsx-11" class="code-block">              {loading ? dict.common.loading : dict.admin.activateProduct}
-            &lt;/button&gt;
-            &lt;button
-              type=&quot;button&quot;
-              className={styles.iconButton}
-              disabled={loading}
-              aria-label={
-                loading ? dict.common.loading : dict.admin.eliminateProduct
-              }
-              onClick={() =&gt; handleStatusChange(ELIMINATED_STATUS)}
-            &gt;
-              &lt;svg aria-hidden=&quot;true&quot; className={styles.iconTrash}&gt;
-                &lt;use href=&quot;/img/icons/sprites.svg#icon-trash&quot; /&gt;
-              &lt;/svg&gt;
-            &lt;/button&gt;
-          &lt;/&gt;
-        )}
-        {isActive &amp;&amp; (</pre>
           </div>
           
         </div>
@@ -689,58 +469,25 @@ export const POST = requireRole(&#x27;CUSTOMER&#x27;)(async function POST(
           
           <div class="clone-item">
             <div class="clone-info">
-              app\api\sellers\[id]\route.ts (Line 10:91 - Line 32:2),
-              app\api\sellers\route.ts (Line 89:3 - Line 111:2)
+              app\api\sellers\[id]\route.ts (Line 45:6 - Line 70:10),
+              app\api\sellers\[id]\route.ts (Line 94:7 - Line 118:10)
             </div>
             <div>
               <button class="toggle-btn" onclick="toggle('code-typescript-6')">Show code</button>
             </div>
-            <pre id="code-typescript-6" class="code-block">import { updateSellerSchema } from &#x27;@/modules/sellers/presentation/schemas/seller-schemas&#x27;;
-
-/** Shape returned for any seller in JSON responses. */
-function toSellerResponse(seller: {
-  sellerId: { value: string };
-  name: string;
-  description: string | null;
-  userId: string;
-  status: SellerStatus;
-  deletedAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-}) {
-  return {
-    id: seller.sellerId.value,
-    name: seller.name,
-    description: seller.description,
-    userId: seller.userId,
-    status: seller.status,
-    createdAt: seller.createdAt.toISOString(),
-    updatedAt: seller.updatedAt.toISOString(),
-  };
-}</pre>
-          </div>
-          
-          <div class="clone-item">
-            <div class="clone-info">
-              app\api\sellers\[id]\route.ts (Line 81:6 - Line 106:10),
-              app\api\sellers\[id]\route.ts (Line 130:7 - Line 154:10)
-            </div>
-            <div>
-              <button class="toggle-btn" onclick="toggle('code-typescript-7')">Show code</button>
-            </div>
-            <pre id="code-typescript-7" class="code-block">  req: NextRequest,
+            <pre id="code-typescript-6" class="code-block">  req: NextRequest,
   context: { params: Promise&lt;{ id: string }&gt; },
 ) {
   try {
     const { id } = await context.params;
 
     // Auth check FIRST — 401 must come before any 404
-    const session = await getServerSession(authOptions);
+    const session = await getSessionUserContext();
     if (!session) {
       return NextResponse.json({ error: &#x27;Unauthorized&#x27; }, { status: 401 });
     }
-    const userId = (session.user as { id?: string } | undefined)?.id;
-    const role = (session.user as { role?: string } | undefined)?.role;
+    const userId = session.userId;
+    const role = session.role;
 
     // Load seller
     const sellerRepository = container.getSellerRepository();
@@ -758,13 +505,13 @@ function toSellerResponse(seller: {
           
           <div class="clone-item">
             <div class="clone-info">
-              app\api\sellers\[id]\route.ts (Line 119:72 - Line 141:52),
-              app\api\uploads\[id]\route.ts (Line 44:5 - Line 66:52)
+              app\api\sellers\[id]\route.ts (Line 83:72 - Line 106:10),
+              app\api\uploads\[id]\route.ts (Line 43:5 - Line 66:10)
             </div>
             <div>
-              <button class="toggle-btn" onclick="toggle('code-typescript-8')">Show code</button>
+              <button class="toggle-btn" onclick="toggle('code-typescript-7')">Show code</button>
             </div>
-            <pre id="code-typescript-8" class="code-block">    return NextResponse.json(toSellerResponse(updated), { status: 200 });
+            <pre id="code-typescript-7" class="code-block">    return NextResponse.json(toSellerResponse(updated), { status: 200 });
   } catch (error: unknown) {
     return handleApiError(error);
   }
@@ -782,37 +529,12 @@ export async function DELETE(
     const { id } = await context.params;
 
     // Auth check FIRST — 401 must come before any 404
-    const session = await getServerSession(authOptions);
+    const session = await getSessionUserContext();
     if (!session) {
       return NextResponse.json({ error: &#x27;Unauthorized&#x27; }, { status: 401 });
     }
-    const userId = (session.user as { id?: string } | undefined)?.id;</pre>
-          </div>
-          
-          <div class="clone-item">
-            <div class="clone-info">
-              app\api\uploads\[id]\confirm\route.ts (Line 12:27 - Line 27:10),
-              app\api\uploads\[id]\route.ts (Line 13:26 - Line 28:10)
-            </div>
-            <div>
-              <button class="toggle-btn" onclick="toggle('code-typescript-9')">Show code</button>
-            </div>
-            <pre id="code-typescript-9" class="code-block">export async function POST(
-  _req: NextRequest,
-  context: { params: Promise&lt;{ id: string }&gt; },
-) {
-  try {
-    const { id } = await context.params;
-
-    // Auth check
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: &#x27;Unauthorized&#x27; }, { status: 401 });
-    }
-
-    // Execute use case
-    const uploadRepo = container.getUploadRepository();
-    const outboxRepo = container.getOutboxRepository();</pre>
+    const userId = session.userId;
+    const role = session.role;</pre>
           </div>
           
           <div class="clone-item">
@@ -821,9 +543,9 @@ export async function DELETE(
               modules\auth\presentation\schemas\auth-schemas.ts (Line 72:37 - Line 81:4)
             </div>
             <div>
-              <button class="toggle-btn" onclick="toggle('code-typescript-10')">Show code</button>
+              <button class="toggle-btn" onclick="toggle('code-typescript-8')">Show code</button>
             </div>
-            <pre id="code-typescript-10" class="code-block">    confirmPassword: z.string().optional(),
+            <pre id="code-typescript-8" class="code-block">    confirmPassword: z.string().optional(),
     address: z
       .object({
         street: z.string().min(1),
@@ -838,154 +560,13 @@ export async function DELETE(
           
           <div class="clone-item">
             <div class="clone-info">
-              modules\cart\application\remove-cart-item.ts (Line 41:5 - Line 75:10),
-              modules\cart\application\update-cart-item.ts (Line 48:5 - Line 82:10)
-            </div>
-            <div>
-              <button class="toggle-btn" onclick="toggle('code-typescript-11')">Show code</button>
-            </div>
-            <pre id="code-typescript-11" class="code-block">    const item = await this.cartRepository.findItemById(
-      CartItemId.create(dto.itemId),
-    );
-    if (!item) {
-      throw new ItemNotFoundError(
-        `Cart item ${dto.itemId} not found`,
-        `Cart item not found`,
-      );
-    }
-
-    // 2. Load the parent cart.
-    const cart = await this.cartRepository.findById(CartId.create(item.cartId));
-    if (!cart) {
-      throw new CartNotFoundError(
-        `Cart ${item.cartId} not found`,
-        `Cart not found`,
-      );
-    }
-
-    // 3. Ownership check.
-    if (cart.userId !== dto.userId) {
-      throw new ForbiddenError(
-        `User ${dto.userId} cannot modify item in cart owned by ${cart.userId}`,
-      );
-    }
-
-    // 4. Cart state check.
-    if (cart.status !== CartStatus.Active) {
-      throw new CartImmutableError(
-        `Cart ${cart.id} is not editable (status=${cart.status})`,
-      );
-    }
-
-    // 5. Remove the item from the cart and save.
-    const updatedItems = cart.items.filter((i) =&gt; i.id !== item.id);</pre>
-          </div>
-          
-          <div class="clone-item">
-            <div class="clone-info">
-              modules\cart\infrastructure\customization-lookup-adapter.ts (Line 54:40 - Line 76:2),
-              modules\customizations\infrastructure\prisma-customization-repository.ts (Line 112:68 - Line 134:2)
-            </div>
-            <div>
-              <button class="toggle-btn" onclick="toggle('code-typescript-12')">Show code</button>
-            </div>
-            <pre id="code-typescript-12" class="code-block">): CustomizationDesignPositionSnapshot | null {
-  if (!value || typeof value !== &#x27;object&#x27;) return null;
-  const candidate = value as Record&lt;string, unknown&gt;;
-  if (
-    typeof candidate.imageUrl !== &#x27;string&#x27; ||
-    candidate.imageUrl.length === 0
-  ) {
-    return null;
-  }
-  return {
-    imageUrl: candidate.imageUrl,
-    x: typeof candidate.x === &#x27;number&#x27; ? candidate.x : 0.5,
-    y: typeof candidate.y === &#x27;number&#x27; ? candidate.y : 0.5,
-    scale: typeof candidate.scale === &#x27;number&#x27; ? candidate.scale : 100,
-    rotation_deg:
-      typeof candidate.rotation_deg === &#x27;number&#x27; ? candidate.rotation_deg : 0,
-    opacity: typeof candidate.opacity === &#x27;number&#x27; ? candidate.opacity : 100,
-    blend_mode:
-      typeof candidate.blend_mode === &#x27;string&#x27;
-        ? candidate.blend_mode
-        : &#x27;source-over&#x27;,
-  };
-}</pre>
-          </div>
-          
-          <div class="clone-item">
-            <div class="clone-info">
-              modules\cart\infrastructure\customization-lookup-adapter.ts (Line 54:47 - Line 76:2),
-              modules\orders\infrastructure\prisma-order-repository.ts (Line 314:44 - Line 336:2)
-            </div>
-            <div>
-              <button class="toggle-btn" onclick="toggle('code-typescript-13')">Show code</button>
-            </div>
-            <pre id="code-typescript-13" class="code-block">): CustomizationDesignPositionSnapshot | null {
-  if (!value || typeof value !== &#x27;object&#x27;) return null;
-  const candidate = value as Record&lt;string, unknown&gt;;
-  if (
-    typeof candidate.imageUrl !== &#x27;string&#x27; ||
-    candidate.imageUrl.length === 0
-  ) {
-    return null;
-  }
-  return {
-    imageUrl: candidate.imageUrl,
-    x: typeof candidate.x === &#x27;number&#x27; ? candidate.x : 0.5,
-    y: typeof candidate.y === &#x27;number&#x27; ? candidate.y : 0.5,
-    scale: typeof candidate.scale === &#x27;number&#x27; ? candidate.scale : 100,
-    rotation_deg:
-      typeof candidate.rotation_deg === &#x27;number&#x27; ? candidate.rotation_deg : 0,
-    opacity: typeof candidate.opacity === &#x27;number&#x27; ? candidate.opacity : 100,
-    blend_mode:
-      typeof candidate.blend_mode === &#x27;string&#x27;
-        ? candidate.blend_mode
-        : &#x27;source-over&#x27;,
-  };
-}</pre>
-          </div>
-          
-          <div class="clone-item">
-            <div class="clone-info">
-              modules\cart\presentation\components\customization-draft-schema.ts (Line 1:1 - Line 20:13),
-              modules\customizations\presentation\schemas\customization-schemas.ts (Line 1:1 - Line 20:13)
-            </div>
-            <div>
-              <button class="toggle-btn" onclick="toggle('code-typescript-14')">Show code</button>
-            </div>
-            <pre id="code-typescript-14" class="code-block">import { z } from &#x27;zod&#x27;;
-
-const designBlendModeSchema = z.enum([
-  &#x27;source-over&#x27;,
-  &#x27;multiply&#x27;,
-  &#x27;overlay&#x27;,
-  &#x27;soft-light&#x27;,
-]);
-
-export const designPositionSchema = z
-  .object({
-    imageUrl: z.string().min(1),
-    x: z.number().min(0).max(1),
-    y: z.number().min(0).max(1),
-    scale: z.number().min(10).max(200),
-    rotation_deg: z.number().min(-45).max(45),
-    opacity: z.number().min(0).max(100),
-    blend_mode: designBlendModeSchema,
-  })
-  .strict();</pre>
-          </div>
-          
-          <div class="clone-item">
-            <div class="clone-info">
               modules\customizations\application\create-customer-customization.ts (Line 110:36 - Line 125:2),
               modules\customizations\application\create-customization.ts (Line 56:6 - Line 71:2)
             </div>
             <div>
-              <button class="toggle-btn" onclick="toggle('code-typescript-15')">Show code</button>
+              <button class="toggle-btn" onclick="toggle('code-typescript-9')">Show code</button>
             </div>
-            <pre id="code-typescript-15" class="code-block">    CustomizationOptions.create(dto);
+            <pre id="code-typescript-9" class="code-block">    CustomizationOptions.create(dto);
 
     const entity: CustomizationEntity = {
       id: crypto.randomUUID(),
@@ -1005,81 +586,13 @@ export const designPositionSchema = z
           
           <div class="clone-item">
             <div class="clone-info">
-              modules\orders\infrastructure\prisma-order-repository.ts (Line 72:9 - Line 92:8),
-              modules\orders\infrastructure\prisma-order-repository.ts (Line 211:5 - Line 230:4)
-            </div>
-            <div>
-              <button class="toggle-btn" onclick="toggle('code-typescript-16')">Show code</button>
-            </div>
-            <pre id="code-typescript-16" class="code-block">        const { checkoutGroup, lineItems, total, ...rest } = order;
-        return {
-          ...rest,
-          total: Number(total),
-          checkoutGroupPaymentStatus: checkoutGroup?.paymentStatus ?? null,
-          lineItems: lineItems.map((item) =&gt; ({
-            id: item.id,
-            orderId: item.orderId,
-            productId: item.productId,
-            productName: item.product?.translations?.[0]?.name,
-            productImageUrl:
-              item.product?.images?.[0]?.url ?? item.productImageUrl,
-            unitPrice: Number(item.unitPrice),
-            quantity: item.quantity,
-            customizationIdList: item.customizationIdList,
-            customizationSnapshot: coerceCustomizationSnapshot(
-              item.customizationSnapshot,
-            ),
-          })),
-        };
-      }),</pre>
-          </div>
-          
-          <div class="clone-item">
-            <div class="clone-info">
-              modules\users\application\use-cases\register-user-use-case.ts (Line 11:64 - Line 37:13),
-              modules\users\application\use-cases\update-user-use-case.ts (Line 10:60 - Line 36:13)
-            </div>
-            <div>
-              <button class="toggle-btn" onclick="toggle('code-typescript-17')">Show code</button>
-            </div>
-            <pre id="code-typescript-17" class="code-block">import type { RegisterUserDTO } from &#x27;../dto/register-user.dto&#x27;;
-
-/** Default max length for firstName/lastName domain rule. */
-const NAME_MAX_LENGTH = 50;
-
-/** Allowed characters for names: letters (including accented), spaces, hyphens, apostrophes. */
-const NAME_PATTERN = /^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\s&#x27;-]+$/;
-
-function validateName(value: string, field: string): string {
-  const trimmed = value.trim();
-  if (!trimmed) {
-    throw new ValidationError(`${field} is required`);
-  }
-  if (trimmed.length &gt; NAME_MAX_LENGTH) {
-    throw new ValidationError(
-      `${field} cannot exceed ${NAME_MAX_LENGTH} characters`,
-    );
-  }
-  if (!NAME_PATTERN.test(trimmed)) {
-    throw new ValidationError(
-      `${field} can only contain letters, spaces, hyphens, and apostrophes`,
-    );
-  }
-  return trimmed;
-}
-
-export class RegisterUserUseCase {</pre>
-          </div>
-          
-          <div class="clone-item">
-            <div class="clone-info">
               modules\users\infrastructure\prisma-user-repository.ts (Line 64:9 - Line 74:9),
               modules\users\infrastructure\prisma-user-repository.ts (Line 77:9 - Line 87:9)
             </div>
             <div>
-              <button class="toggle-btn" onclick="toggle('code-typescript-18')">Show code</button>
+              <button class="toggle-btn" onclick="toggle('code-typescript-10')">Show code</button>
             </div>
-            <pre id="code-typescript-18" class="code-block">        email: user.email.value,
+            <pre id="code-typescript-10" class="code-block">        email: user.email.value,
         firstName: user.firstName,
         lastName: user.lastName,
         passwordHash: user.passwordHash?.value ?? null,
@@ -1098,9 +611,9 @@ export class RegisterUserUseCase {</pre>
               modules\users\infrastructure\prisma-user-repository.ts (Line 127:32 - Line 138:21)
             </div>
             <div>
-              <button class="toggle-btn" onclick="toggle('code-typescript-19')">Show code</button>
+              <button class="toggle-btn" onclick="toggle('code-typescript-11')">Show code</button>
             </div>
-            <pre id="code-typescript-19" class="code-block">        lastName: user.lastName,
+            <pre id="code-typescript-11" class="code-block">        lastName: user.lastName,
         passwordHash: user.passwordHash?.value ?? null,
         role: user.roleId.value,
         addressStreet: user.address?.street ?? null,
@@ -1120,9 +633,9 @@ export class RegisterUserUseCase {</pre>
               tests\doubles\memory-order-customization-lookup.ts (Line 23:18 - Line 53:2)
             </div>
             <div>
-              <button class="toggle-btn" onclick="toggle('code-typescript-20')">Show code</button>
+              <button class="toggle-btn" onclick="toggle('code-typescript-12')">Show code</button>
             </div>
-            <pre id="code-typescript-20" class="code-block">      .toArray();
+            <pre id="code-typescript-12" class="code-block">      .toArray();
   }
 
   /** Seed customizations in plain-JSON form for readability in tests. */

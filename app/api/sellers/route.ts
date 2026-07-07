@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/composition-root/container';
+import { toSellerResponse } from '@/modules/sellers/presentation/seller-response';
 import { handleApiError } from '@/shared/presentation/error-handler';
 import { ListSellersUseCase } from '@/modules/sellers/application/use-cases/list-sellers-use-case';
 import { CreateSellerWithUserUseCase } from '@/modules/sellers/application/use-cases/create-seller-with-user-use-case';
-import { SellerStatus } from '@/modules/sellers/domain/seller-status';
 import {
   createSellerSchema,
   listSellersQuerySchema,
@@ -87,25 +87,3 @@ export const POST = requireRole('ADMIN')(async function POST(req: NextRequest) {
     return handleApiError(error);
   }
 });
-
-/** Convert a SellerEntity to a JSON-friendly shape. */
-function toSellerResponse(seller: {
-  sellerId: { value: string };
-  name: string;
-  description: string | null;
-  userId: string;
-  status: SellerStatus;
-  deletedAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-}) {
-  return {
-    id: seller.sellerId.value,
-    name: seller.name,
-    description: seller.description,
-    userId: seller.userId,
-    status: seller.status,
-    createdAt: seller.createdAt.toISOString(),
-    updatedAt: seller.updatedAt.toISOString(),
-  };
-}

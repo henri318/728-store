@@ -94,6 +94,35 @@ export function ProductActions({
     return null;
   }
 
+  const renderStatusButton = (
+    label: string,
+    className: string,
+    status: string,
+  ) => (
+    <button
+      type="button"
+      className={className}
+      disabled={loading}
+      onClick={() => handleStatusChange(status)}
+    >
+      {loading ? dict.common.loading : label}
+    </button>
+  );
+
+  const renderEliminateButton = () => (
+    <button
+      type="button"
+      className={styles.iconButton}
+      disabled={loading}
+      aria-label={loading ? dict.common.loading : dict.admin.eliminateProduct}
+      onClick={() => handleStatusChange(ELIMINATED_STATUS)}
+    >
+      <svg aria-hidden="true" className={styles.iconTrash}>
+        <use href="/img/icons/sprites.svg#icon-trash" />
+      </svg>
+    </button>
+  );
+
   return (
     <>
       <span className={styles.actions}>
@@ -105,77 +134,32 @@ export function ProductActions({
         </Link>
         {isDraft && (
           <>
-            <button
-              type="button"
-              className={`${styles.button} ${styles.activate}`}
-              disabled={loading}
-              onClick={() => handleStatusChange(ACTIVE_STATUS)}
-            >
-              {loading ? dict.common.loading : dict.admin.activateProduct}
-            </button>
-            <button
-              type="button"
-              className={styles.iconButton}
-              disabled={loading}
-              aria-label={
-                loading ? dict.common.loading : dict.admin.eliminateProduct
-              }
-              onClick={() => handleStatusChange(ELIMINATED_STATUS)}
-            >
-              <svg aria-hidden="true" className={styles.iconTrash}>
-                <use href="/img/icons/sprites.svg#icon-trash" />
-              </svg>
-            </button>
+            {renderStatusButton(
+              dict.admin.activateProduct,
+              `${styles.button} ${styles.activate}`,
+              ACTIVE_STATUS,
+            )}
+            {renderEliminateButton()}
           </>
         )}
         {isActive && (
           <>
-            <button
-              type="button"
-              className={`${styles.button} ${styles.suspend}`}
-              disabled={loading}
-              onClick={() => handleStatusChange(ARCHIVED_STATUS)}
-            >
-              {loading ? dict.common.loading : dict.admin.suspendProduct}
-            </button>
-            <button
-              type="button"
-              className={styles.iconButton}
-              disabled={loading}
-              aria-label={
-                loading ? dict.common.loading : dict.admin.eliminateProduct
-              }
-              onClick={() => handleStatusChange(ELIMINATED_STATUS)}
-            >
-              <svg aria-hidden="true" className={styles.iconTrash}>
-                <use href="/img/icons/sprites.svg#icon-trash" />
-              </svg>
-            </button>
+            {renderStatusButton(
+              dict.admin.suspendProduct,
+              `${styles.button} ${styles.suspend}`,
+              ARCHIVED_STATUS,
+            )}
+            {renderEliminateButton()}
           </>
         )}
         {isArchived && (
           <>
-            <button
-              type="button"
-              className={`${styles.button} ${styles.activate}`}
-              disabled={loading}
-              onClick={() => handleStatusChange(ACTIVE_STATUS)}
-            >
-              {loading ? dict.common.loading : dict.admin.activateProduct}
-            </button>
-            <button
-              type="button"
-              className={styles.iconButton}
-              disabled={loading}
-              aria-label={
-                loading ? dict.common.loading : dict.admin.eliminateProduct
-              }
-              onClick={() => handleStatusChange(ELIMINATED_STATUS)}
-            >
-              <svg aria-hidden="true" className={styles.iconTrash}>
-                <use href="/img/icons/sprites.svg#icon-trash" />
-              </svg>
-            </button>
+            {renderStatusButton(
+              dict.admin.activateProduct,
+              `${styles.button} ${styles.activate}`,
+              ACTIVE_STATUS,
+            )}
+            {renderEliminateButton()}
           </>
         )}
       </span>

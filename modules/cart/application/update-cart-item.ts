@@ -1,14 +1,6 @@
 import type { CartRepository } from '../domain/cart-repository';
-import { CartItemId } from '../domain/value-objects/cart-item-id';
-import { CartId } from '../domain/value-objects/cart-id';
+import { loadAndVerifyCart } from './cart-access';
 import { Quantity } from '../domain/value-objects/quantity';
-import { CartStatus } from '../domain/value-objects/cart-status';
-import {
-  ItemNotFoundError,
-  ForbiddenError,
-  CartImmutableError,
-  CartNotFoundError,
-} from '../domain/errors';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import type { CartItemEntity } from '../domain/entities/cart-item';
@@ -44,39 +36,11 @@ export class UpdateCartItemQuantity {
     // 1. Validate quantity.
     const quantity = Quantity.create(dto.quantity);
 
-    // 2. Load the item.
-    const item = await this.cartRepository.findItemById(
-      CartItemId.create(dto.itemId),
+    const { item, cart } = await loadAndVerifyCart(
+      this.cartRepository,
+      dto.userId,
+      dto.itemId,
     );
-    if (!item) {
-      throw new ItemNotFoundError(
-        `Cart item ${dto.itemId} not found`,
-        `Cart item not found`,
-      );
-    }
-
-    // 3. Load the parent cart.
-    const cart = await this.cartRepository.findById(CartId.create(item.cartId));
-    if (!cart) {
-      throw new CartNotFoundError(
-        `Cart ${item.cartId} not found`,
-        `Cart not found`,
-      );
-    }
-
-    // 4. Ownership check.
-    if (cart.userId !== dto.userId) {
-      throw new ForbiddenError(
-        `User ${dto.userId} cannot modify item in cart owned by ${cart.userId}`,
-      );
-    }
-
-    // 5. Cart state check.
-    if (cart.status !== CartStatus.Active) {
-      throw new CartImmutableError(
-        `Cart ${cart.id} is not editable (status=${cart.status})`,
-      );
-    }
 
     // 6. Update the item, preserving the snapshot.
     const updatedItem: CartItemEntity = {
@@ -86,7 +50,7 @@ export class UpdateCartItemQuantity {
         customizationIdList: dto.customizationIdList,
       }),
     };
-    const updatedItems = cart.items.map((i) =>
+    const updatedItems = cart.items.map((i: CartItemEntity) =>
       i.id === item.id ? updatedItem : i,
     );
 
