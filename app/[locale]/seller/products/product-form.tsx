@@ -382,15 +382,12 @@ export function ProductForm({
       });
 
       if (!response.ok) {
-        const data = (() => {
-          try {
-            return await response.json();
-          } catch {
-            return null;
-          }
-        })() as {
-          error?: string;
-        } | null;
+        let data: { error?: string } | null = null;
+        try {
+          data = (await response.json()) as { error?: string } | null;
+        } catch {
+          data = null;
+        }
         throw new Error(data?.error || labels.error);
       }
 

@@ -62,7 +62,7 @@ export default async function SellerProductsPage({
 
   let result: PaginatedResult<ProductEntity>;
   try {
-    result = await useCase.execute({
+    result = (await useCase.execute({
       userId: session?.id ?? '',
       q: filter.q,
       page: filter.page,
@@ -71,7 +71,7 @@ export default async function SellerProductsPage({
       sortBy: filter.sortBy,
       sortDir: filter.sortDir,
       audience: 'seller',
-    });
+    })) as PaginatedResult<ProductEntity>;
   } catch (error: unknown) {
     if (error instanceof NotFoundError) {
       result = fallbackResult;

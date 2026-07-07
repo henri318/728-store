@@ -60,7 +60,8 @@ export function CustomizationForm({
   const config = ProductCustomizationConfig.fromJson(customizationConfig);
 
   const textErrorId = errors.text ? 'customization-text-error' : undefined;
-  const sizeErrorId = errors.size > 0 ? 'customization-size-error' : undefined;
+  const sizeErrorId =
+    errors.size == null ? undefined : 'customization-size-error';
 
   return (
     <form
@@ -133,7 +134,7 @@ export function CustomizationForm({
         <select
           value={draft.size ?? ''}
           onChange={(event) => setSize(event.target.value || null)}
-          aria-invalid={errors.size > 0 ? 'true' : undefined}
+          aria-invalid={errors.size == null ? undefined : 'true'}
           aria-describedby={sizeErrorId}
         >
           <option value="">{labels.customizationSizePlaceholder}</option>

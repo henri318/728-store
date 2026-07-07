@@ -355,7 +355,7 @@ export function AddToCartButton({
         draft &&
         (draft.text ||
           draft.color ||
-          draft.size > 0 ||
+          Boolean(draft?.size) ||
           draft.imageUrl ||
           draft.designPosition);
 
