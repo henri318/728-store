@@ -244,7 +244,7 @@ describe('CreateUploadUseCase', () => {
     ).rejects.toThrow('File too large');
   });
 
-  it('should throw ValidationError for zero-size files', async () => {
+  it('should throw InvalidUploadError for zero-size files', async () => {
     await expect(
       useCase.execute({
         userId: 'user-1',
@@ -253,10 +253,10 @@ describe('CreateUploadUseCase', () => {
         mimeType: 'image/webp',
         size: 0,
       }),
-    ).rejects.toThrow('Invalid file size');
+    ).rejects.toThrow('File size must be greater than zero');
   });
 
-  it('should throw ValidationError for negative size', async () => {
+  it('should throw InvalidUploadError for negative size', async () => {
     await expect(
       useCase.execute({
         userId: 'user-1',
@@ -265,7 +265,7 @@ describe('CreateUploadUseCase', () => {
         mimeType: 'image/webp',
         size: -1,
       }),
-    ).rejects.toThrow('Invalid file size');
+    ).rejects.toThrow('File size must be greater than zero');
   });
 
   // ── StorageKey Format ───────────────────────────────────────
