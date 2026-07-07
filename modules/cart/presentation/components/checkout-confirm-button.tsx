@@ -117,7 +117,7 @@ export function CheckoutConfirmButton({
       const confirmRes = await fetch('/api/cart/checkout/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ shouldAcceptPriceChanges }),
+        body: JSON.stringify({ acceptPriceChanges: shouldAcceptPriceChanges }),
       });
 
       if (confirmRes.ok) {
