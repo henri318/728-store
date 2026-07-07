@@ -10,10 +10,7 @@ import {
 import { createPortal } from 'react-dom';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import {
-  useGuestCart,
-  type GuestCartItem,
-} from '@/modules/cart/presentation/guest-cart-context';
+import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
 import { useCartPopup } from './cart-popup-context';
 import {
   DesignPreview,
@@ -22,33 +19,15 @@ import {
 import { Money } from '@/shared/kernel/domain/value-objects/money';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import { QuantityControls } from '@/shared/ui/quantity-controls';
+import {
+  CART_UPDATED_EVENT,
+  dispatchCartUpdated,
+} from '@/modules/cart/presentation/cart-events';
+import {
+  guestItemToDTO,
+  type CartItemDTO,
+} from '@/modules/cart/presentation/cart-dto';
 import styles from './cart-popup.module.css';
-
-const CART_UPDATED_EVENT = 'cart:updated';
-
-function dispatchCartUpdated() {
-  globalThis.dispatchEvent(new Event(CART_UPDATED_EVENT));
-}
-
-interface CartItemDTO {
-  id: string;
-  productId: string;
-  productName: string;
-  productImageUrl: string | null;
-  sellerId: string;
-  sellerName: string;
-  quantity: number;
-  unitPrice: number;
-  lineTotal: number;
-  customization?: {
-    text: string | null;
-    color: string | null;
-    size: string | null;
-    imageUrl: string | null;
-    colorImageUrl?: string | null;
-    designPosition?: Record<string, unknown> | null;
-  } | null;
-}
 
 interface CartPopupLabels {
   title: string;
@@ -69,30 +48,6 @@ interface CartPopupLabels {
 
 interface CartPopupProps {
   labels: CartPopupLabels;
-}
-
-function guestItemToDTO(
-  item: GuestCartItem,
-  fallback: { productName: string; sellerName: string },
-): CartItemDTO {
-  return {
-    id: item.id ?? item.productId,
-    productId: item.productId,
-    productName: item.productName ?? fallback.productName,
-    productImageUrl: item.productImageUrl ?? null,
-    sellerId: item.sellerId,
-    sellerName: item.sellerName ?? fallback.sellerName,
-    quantity: item.quantity,
-    unitPrice: item.unitPriceSnapshot,
-    lineTotal: +(item.unitPriceSnapshot * item.quantity).toFixed(2),
-    customization: {
-      text: item.customizationText ?? null,
-      color: item.customizationColor ?? null,
-      size: item.customizationSize ?? null,
-      imageUrl: item.customizationImageUrl ?? null,
-      colorImageUrl: item.productImageUrl ?? null,
-    },
-  };
 }
 
 export function CartPopup({ labels }: CartPopupProps) {

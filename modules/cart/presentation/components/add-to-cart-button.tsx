@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
+import { dispatchCartUpdated } from '@/modules/cart/presentation/cart-events';
 import { AddToCartChoiceModal } from './add-to-cart-choice-modal';
 import {
   customizationDraftSchema,
@@ -53,23 +54,22 @@ interface CartItemInfo {
 
 type ButtonState = 'idle' | 'adding' | 'success' | 'error';
 const MAX_QUANTITY = 99;
-const CART_UPDATED_EVENT = 'cart:updated';
 
-function isGuestCustomizationMatching(
-  item: {
-    customizationText?: string | null;
-    customizationColor?: string | null;
-    customizationSize?: string | null;
-    customizationImageUrl?: string | null;
+function isCustomizationMatching(
+  fields: {
+    text?: string | null;
+    color?: string | null;
+    size?: string | null;
+    imageUrl?: string | null;
   },
   draft: CustomizationDraftPayload | null,
 ): boolean {
   const norm = normalizeCustomizationDraft(draft);
   return (
-    (item.customizationText ?? null) === (norm.text ?? null) &&
-    (item.customizationColor ?? null) === (norm.color ?? null) &&
-    (item.customizationSize ?? null) === (norm.size ?? null) &&
-    (item.customizationImageUrl ?? null) === (norm.imageUrl ?? null)
+    (fields.text ?? null) === (norm.text ?? null) &&
+    (fields.color ?? null) === (norm.color ?? null) &&
+    (fields.size ?? null) === (norm.size ?? null) &&
+    (fields.imageUrl ?? null) === (norm.imageUrl ?? null)
   );
 }
 
@@ -94,17 +94,42 @@ function isAuthCustomizationMatching(
     return customizations.length === 0;
   }
 
-  return customizations.some(
-    (c) =>
-      (c.text ?? null) === (norm.text ?? null) &&
-      (c.color ?? null) === (norm.color ?? null) &&
-      (c.size ?? null) === (norm.size ?? null) &&
-      (c.imageUrl ?? null) === (norm.imageUrl ?? null),
-  );
+  return customizations.some((c) => isCustomizationMatching(c, draft));
 }
 
-function dispatchCartUpdated() {
-  globalThis.dispatchEvent(new Event(CART_UPDATED_EVENT));
+interface CartItemInfoResult {
+  found: { cartItemId: string; quantity: number } | null;
+  hasDifferent: boolean;
+}
+
+function findCartItemInfo(
+  items: Array<{
+    id: string;
+    productId: string;
+    quantity: number;
+    customizations?: Array<{
+      text?: string | null;
+      color?: string | null;
+      size?: string | null;
+      imageUrl?: string | null;
+    }>;
+  }>,
+  productId: string,
+  normalizedCustomization: CustomizationDraftPayload,
+): CartItemInfoResult {
+  const anyInCart = items.some((item) => item.productId === productId);
+  const found = items.find(
+    (item) =>
+      item.productId === productId &&
+      isAuthCustomizationMatching(
+        item.customizations ?? [],
+        normalizedCustomization,
+      ),
+  );
+  return {
+    found: found ? { cartItemId: found.id, quantity: found.quantity } : null,
+    hasDifferent: anyInCart && !found,
+  };
 }
 
 /**
@@ -167,30 +192,13 @@ export function AddToCartButton({
         if (isCancelled || !res.ok) return;
         const data = await res.json();
         if (isCancelled) return;
-        const items = data.items ?? [];
-        const anyInCart = items.find(
-          (item: { productId: string }) => item.productId === productId,
+        const result = findCartItemInfo(
+          data.items ?? [],
+          productId,
+          normalizedCustomization,
         );
-        const found = items.find(
-          (item: {
-            productId: string;
-            customizations?: Array<{
-              text?: string | null;
-              color?: string | null;
-              size?: string | null;
-              imageUrl?: string | null;
-            }>;
-          }) =>
-            item.productId === productId &&
-            isAuthCustomizationMatching(
-              item.customizations ?? [],
-              normalizedCustomization,
-            ),
-        );
-        setCartItemInfo(
-          found ? { cartItemId: found.id, quantity: found.quantity } : null,
-        );
-        setHasDifferentCustomization(!!anyInCart && !found);
+        setCartItemInfo(result.found);
+        setHasDifferentCustomization(result.hasDifferent);
       } catch {
         /* fallback to "Add to Cart" */
       }
@@ -208,7 +216,15 @@ export function AddToCartButton({
     : items.find(
         (i) =>
           i.productId === productId &&
-          isGuestCustomizationMatching(i, normalizedCustomization),
+          isCustomizationMatching(
+            {
+              text: i.customizationText,
+              color: i.customizationColor,
+              size: i.customizationSize,
+              imageUrl: i.customizationImageUrl,
+            },
+            normalizedCustomization,
+          ),
       );
   const guestDiffMatch =
     !isAuthenticated && !guestMatch
@@ -244,30 +260,13 @@ export function AddToCartButton({
       const res = await fetch('/api/cart');
       if (!res.ok) return;
       const data = await res.json();
-      const items = data.items ?? [];
-      const anyInCart = items.find(
-        (item: { productId: string }) => item.productId === productId,
+      const result = findCartItemInfo(
+        data.items ?? [],
+        productId,
+        normalizedCustomization,
       );
-      const found = items.find(
-        (item: {
-          productId: string;
-          customizations?: Array<{
-            text?: string | null;
-            color?: string | null;
-            size?: string | null;
-            imageUrl?: string | null;
-          }>;
-        }) =>
-          item.productId === productId &&
-          isAuthCustomizationMatching(
-            item.customizations ?? [],
-            normalizedCustomization,
-          ),
-      );
-      setCartItemInfo(
-        found ? { cartItemId: found.id, quantity: found.quantity } : null,
-      );
-      setHasDifferentCustomization(!!anyInCart && !found);
+      setCartItemInfo(result.found);
+      setHasDifferentCustomization(result.hasDifferent);
     } catch {
       /* ignore */
     }

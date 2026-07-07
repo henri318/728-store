@@ -1,9 +1,7 @@
 import { prisma } from '@/shared/infrastructure/prisma';
 import type { CustomizationRepository } from '../domain/customization-repository';
-import type {
-  CustomizationEntity,
-  DesignPositionValue,
-} from '../domain/entities/customization';
+import { coerceDesignPosition } from '@/shared/kernel/domain/value-objects/design-position';
+import type { CustomizationEntity } from '../domain/entities/customization';
 
 /**
  * PrismaCustomizationRepository — Prisma adapter for the CustomizationRepository port.
@@ -107,28 +105,4 @@ export class PrismaCustomizationRepository implements CustomizationRepository {
     });
     return count > 0;
   }
-}
-
-function coerceDesignPosition(value: unknown): DesignPositionValue | null {
-  if (!value || typeof value !== 'object') return null;
-  const candidate = value as Record<string, unknown>;
-  if (
-    typeof candidate.imageUrl !== 'string' ||
-    candidate.imageUrl.length === 0
-  ) {
-    return null;
-  }
-  return {
-    imageUrl: candidate.imageUrl,
-    x: typeof candidate.x === 'number' ? candidate.x : 0.5,
-    y: typeof candidate.y === 'number' ? candidate.y : 0.5,
-    scale: typeof candidate.scale === 'number' ? candidate.scale : 100,
-    rotation_deg:
-      typeof candidate.rotation_deg === 'number' ? candidate.rotation_deg : 0,
-    opacity: typeof candidate.opacity === 'number' ? candidate.opacity : 100,
-    blend_mode:
-      typeof candidate.blend_mode === 'string'
-        ? candidate.blend_mode
-        : 'source-over',
-  };
 }

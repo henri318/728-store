@@ -4,9 +4,11 @@ import { container } from '@/composition-root/container';
 import { AddItemToCart } from '@/modules/cart/application/add-item-to-cart';
 import { addItemSchema } from '@/modules/cart/presentation/schemas/cart-schemas';
 import { handleApiError } from '@/shared/presentation/error-handler';
-import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
-import type { ProductEntity } from '@/modules/products/domain/product-repository';
-import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
+import { enrichCartItem } from '@/modules/cart/presentation/enrich-cart-item';
+import {
+  getAuthenticatedUserId,
+  parseBody,
+} from '@/shared/presentation/route-helpers';
 
 /**
  * POST /api/cart/items — adds a product to the user's ACTIVE cart.
@@ -20,15 +22,13 @@ import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-
 export const POST = requireRole('CUSTOMER')(async function POST(
   request: NextRequest,
 ) {
-  const session = await container.getSession().getSession();
-  const userId = session?.id;
+  const userId = await getAuthenticatedUserId();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const body = await request.json();
-    const validated = addItemSchema.parse(body);
+    const validated = await parseBody(request, addItemSchema);
 
     const cartRepository = container.getCartRepository();
     const productRepository = container.getCartProductRepository();
@@ -68,38 +68,3 @@ export const POST = requireRole('CUSTOMER')(async function POST(
     return handleApiError(error);
   }
 });
-
-// --- Enrichment helper ---
-
-function enrichCartItem(
-  item: CartItemEntity,
-  product: ProductEntity | undefined,
-  customizations: CustomizationSnapshot[],
-): Record<string, unknown> {
-  const productName = product?.translations?.[0]?.name ?? 'Unknown Product';
-  const productImageUrl = product?.images?.[0]?.url ?? null;
-  const sellerName = product?.sellerName ?? 'Unknown Seller';
-  const unitPrice = item.unitPriceSnapshot.amount;
-  const lineTotal = unitPrice * item.quantity;
-
-  return {
-    id: item.id,
-    productId: item.productId.value,
-    productName,
-    productImageUrl,
-    sellerId: item.sellerId.value,
-    sellerName,
-    quantity: item.quantity,
-    unitPrice,
-    lineTotal,
-    customizationIdList: item.customizationIdList,
-    customizations: customizations.map((c) => ({
-      id: c.id,
-      text: c.text,
-      color: c.color,
-      size: c.size,
-      imageUrl: c.imageUrl,
-      designPosition: c.designPosition,
-    })),
-  };
-}

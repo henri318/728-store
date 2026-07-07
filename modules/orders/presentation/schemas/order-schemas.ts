@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DEFAULT_ORDER_PAGE_SIZE } from '../order-page-url';
 
 export const createOrderFormSchema = z.object({
   productId: z.string().min(1, 'Product ID is required'),
@@ -11,7 +12,12 @@ export const createOrderFormSchema = z.object({
 export const orderListQuerySchema = z.object({
   status: z.enum(['all', 'new', 'in_progress', 'completed']).default('all'),
   page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  pageSize: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .default(DEFAULT_ORDER_PAGE_SIZE),
   sortDir: z.enum(['asc', 'desc']).default('desc'),
   q: z.string().trim().max(200).optional(),
 });

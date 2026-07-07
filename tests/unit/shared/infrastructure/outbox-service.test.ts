@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { OutboxService } from '@/shared/infrastructure/outbox-service';
+import { OutboxService } from '@/shared/kernel/outbox-service';
 import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
 import { EventBus } from '@/modules/events/infrastructure/in-memory-event-bus';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';

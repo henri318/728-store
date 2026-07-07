@@ -1,4 +1,4 @@
-import { OutboxService } from '@/shared/infrastructure/outbox-service';
+import { OutboxService } from '@/shared/kernel/outbox-service';
 import { container } from '@/composition-root/container';
 
 /**

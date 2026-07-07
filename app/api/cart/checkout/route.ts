@@ -4,6 +4,7 @@ import { container } from '@/composition-root/container';
 import { CheckoutCart } from '@/modules/cart/application/checkout-cart';
 import { handleApiError } from '@/shared/presentation/error-handler';
 import { PriceChangedError } from '@/modules/cart/domain/errors';
+import { getAuthenticatedUserId } from '@/shared/presentation/route-helpers';
 
 /**
  * POST /api/cart/checkout — previews the checkout totals.
@@ -18,8 +19,7 @@ import { PriceChangedError } from '@/modules/cart/domain/errors';
  * checkout happens in POST /api/cart/checkout/confirm.
  */
 export const POST = requireRole('CUSTOMER')(async function POST() {
-  const session = await container.getSession().getSession();
-  const userId = session?.id;
+  const userId = await getAuthenticatedUserId();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

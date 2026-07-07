@@ -5,6 +5,10 @@ import { CheckoutCart } from '@/modules/cart/application/checkout-cart';
 import { confirmCheckoutSchema } from '@/modules/cart/presentation/schemas/cart-schemas';
 import { handleApiError } from '@/shared/presentation/error-handler';
 import { PriceChangedError } from '@/modules/cart/domain/errors';
+import {
+  getAuthenticatedUserId,
+  parseBody,
+} from '@/shared/presentation/route-helpers';
 
 /**
  * POST /api/cart/checkout/confirm — confirms the checkout.
@@ -23,15 +27,13 @@ import { PriceChangedError } from '@/modules/cart/domain/errors';
 export const POST = requireRole('CUSTOMER')(async function POST(
   request: NextRequest,
 ) {
-  const session = await container.getSession().getSession();
-  const userId = session?.id;
+  const userId = await getAuthenticatedUserId();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const body = await request.json();
-    const validated = confirmCheckoutSchema.parse(body);
+    const validated = await parseBody(request, confirmCheckoutSchema);
 
     const cartRepository = container.getCartRepository();
     const productRepository = container.getCartProductRepository();

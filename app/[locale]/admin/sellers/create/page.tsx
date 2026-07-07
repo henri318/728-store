@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { type ZodError, type ZodIssue } from 'zod';
+import type { ZodIssue } from 'zod';
 import { TextField } from '@/shared/ui/text-field';
 import { DescriptionField } from '@/shared/ui/description-field';
 import { BackLink } from '@/shared/ui/back-link';
@@ -13,6 +13,8 @@ import { EyeToggleWrapper } from '@/shared/ui/eye-toggle-wrapper';
 import { createSellerSchema } from '@/modules/sellers/presentation/schemas/seller-schemas';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 import { checkPasswordMatch } from '@/shared/validation/password-match';
+import { validateForm as validateFormGeneric } from '@/shared/validation/validate-form';
+import { useFormField } from '@/shared/presentation/use-form-field';
 import styles from './page.module.css';
 
 interface FormState {
@@ -60,7 +62,6 @@ function applyIssue(errors: FormErrors, issue: ZodIssue) {
     }
     case 'description': {
       errors.description = issue.message;
-      // No default
       break;
     }
   }
@@ -77,65 +78,47 @@ function normalizePayload(form: FormState) {
   };
 }
 
-function validateForm(
-  form: FormState,
-  passwordsDoNotMatch: string,
-): FormErrors | null {
-  const mismatch = checkPasswordMatch(
-    form.password,
-    form.confirmPassword,
-    passwordsDoNotMatch,
-  );
-  if (mismatch) return mismatch;
-
-  const payload = normalizePayload(form);
-  const result = createSellerSchema.safeParse(payload);
-  if (result.success) return null;
-
-  const errors: FormErrors = {};
-  const issues = (result.error as ZodError).issues ?? [];
-
-  for (const issue of issues) {
-    applyIssue(errors, issue);
-  }
-
-  return Object.keys(errors).length > 0 ? errors : null;
-}
-
 export default function CreateSellerPage() {
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
   const dict = useDictionary();
-  const [form, setForm] = useState<FormState>({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    firstName: '',
-    lastName: '',
-    name: '',
-    description: '',
-  });
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const updateField = (field: keyof FormState, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    if (Object.hasOwn(errors, field)) {
-      setErrors((prev) => {
-        const next = { ...prev };
-        delete next[field];
-        return next;
-      });
-    }
-  };
+  const { form, loading, setLoading, updateField } = useFormField(
+    {
+      email: '',
+      password: '',
+      confirmPassword: '',
+      firstName: '',
+      lastName: '',
+      name: '',
+      description: '',
+    },
+    errors,
+    setErrors,
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setServerError(null);
 
-    const validationErrors = validateForm(form, dict.auth.passwordsDoNotMatch);
+    const mismatch = checkPasswordMatch(
+      form.password,
+      form.confirmPassword,
+      dict.auth.passwordsDoNotMatch,
+    );
+    if (mismatch) {
+      setErrors(mismatch);
+      return;
+    }
+
+    const payload = normalizePayload(form);
+    const validationErrors = validateFormGeneric(
+      payload,
+      createSellerSchema,
+      applyIssue,
+    );
     if (validationErrors) {
       setErrors(validationErrors);
       return;

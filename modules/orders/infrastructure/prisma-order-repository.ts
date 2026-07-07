@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { Prisma } from '@prisma/client';
 import type { PaginatedResult } from '@/shared/kernel/domain/value-objects/pagination';
+import { coerceDesignPosition } from '@/shared/kernel/domain/value-objects/design-position';
 import type { CustomizationSnapshot } from '../domain/customization-lookup-port';
 import {
   OrderEntity,
@@ -74,20 +75,7 @@ export class PrismaOrderRepository implements OrderRepository {
           ...rest,
           total: Number(total),
           checkoutGroupPaymentStatus: checkoutGroup?.paymentStatus ?? null,
-          lineItems: lineItems.map((item) => ({
-            id: item.id,
-            orderId: item.orderId,
-            productId: item.productId,
-            productName: item.product?.translations?.[0]?.name,
-            productImageUrl:
-              item.product?.images?.[0]?.url ?? item.productImageUrl,
-            unitPrice: Number(item.unitPrice),
-            quantity: item.quantity,
-            customizationIdList: item.customizationIdList,
-            customizationSnapshot: coerceCustomizationSnapshot(
-              item.customizationSnapshot,
-            ),
-          })),
+          lineItems: lineItems.map((item) => mapOrderLineItem(item)),
         };
       }),
       total,
@@ -213,19 +201,7 @@ export class PrismaOrderRepository implements OrderRepository {
       ...rest,
       total: Number(total),
       checkoutGroupPaymentStatus: checkoutGroup?.paymentStatus ?? null,
-      lineItems: lineItems.map((item) => ({
-        id: item.id,
-        orderId: item.orderId,
-        productId: item.productId,
-        productName: item.product?.translations?.[0]?.name,
-        productImageUrl: item.product?.images?.[0]?.url ?? item.productImageUrl,
-        unitPrice: Number(item.unitPrice),
-        quantity: item.quantity,
-        customizationIdList: item.customizationIdList,
-        customizationSnapshot: coerceCustomizationSnapshot(
-          item.customizationSnapshot,
-        ),
-      })),
+      lineItems: lineItems.map((item) => mapOrderLineItem(item)),
     };
   }
 
@@ -309,36 +285,41 @@ function coerceCustomizationSnapshotItem(
   };
 }
 
-function coerceDesignPosition(
-  value: unknown,
-): CustomizationSnapshot['designPosition'] {
-  if (!value || typeof value !== 'object') return null;
-  const candidate = value as Record<string, unknown>;
-  if (
-    typeof candidate.imageUrl !== 'string' ||
-    candidate.imageUrl.length === 0
-  ) {
-    return null;
-  }
-  return {
-    imageUrl: candidate.imageUrl,
-    x: typeof candidate.x === 'number' ? candidate.x : 0.5,
-    y: typeof candidate.y === 'number' ? candidate.y : 0.5,
-    scale: typeof candidate.scale === 'number' ? candidate.scale : 100,
-    rotation_deg:
-      typeof candidate.rotation_deg === 'number' ? candidate.rotation_deg : 0,
-    opacity: typeof candidate.opacity === 'number' ? candidate.opacity : 100,
-    blend_mode:
-      typeof candidate.blend_mode === 'string'
-        ? candidate.blend_mode
-        : 'source-over',
-  };
-}
-
 function normalizeNullableString(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
+}
+
+function mapOrderLineItem(item: {
+  id: string;
+  orderId: string;
+  productId: string;
+  productName?: string | null;
+  productImageUrl?: string | null;
+  product?: {
+    translations?: Array<{ name?: string | null }>;
+    images?: Array<{ url: string }>;
+  } | null;
+  unitPrice: unknown;
+  quantity: number;
+  customizationIdList: string[];
+  customizationSnapshot: unknown;
+}) {
+  return {
+    id: item.id,
+    orderId: item.orderId,
+    productId: item.productId,
+    productName:
+      item.product?.translations?.[0]?.name ?? item.productName ?? undefined,
+    productImageUrl: item.product?.images?.[0]?.url ?? item.productImageUrl,
+    unitPrice: Number(item.unitPrice),
+    quantity: item.quantity,
+    customizationIdList: item.customizationIdList,
+    customizationSnapshot: coerceCustomizationSnapshot(
+      item.customizationSnapshot,
+    ),
+  };
 }

@@ -4,22 +4,14 @@ import { ProductListQueryUseCase } from '@/modules/products/application/product-
 import { productListQuerySchema } from '@/modules/products/presentation/schemas/product-list-query-schema';
 import { GetSellerUseCase } from '@/modules/sellers/application/use-cases/get-seller-use-case';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
-import { LocalizedDate } from '@/shared/kernel/domain/value-objects/localized-date';
 import { PaginationDefaults } from '@/shared/kernel/domain/value-objects/pagination';
-import { ProductActions } from '@/modules/products/presentation/components/product-actions';
 import { SearchForm } from '@/shared/ui/search-form';
 import { DataTable } from '@/shared/ui/data-table';
-import type { DataTableColumn } from '@/shared/ui/data-table';
-import { StatusBadge } from '@/shared/ui/status-badge';
 import { Pagination } from '@/shared/ui/pagination';
 import { Card } from '@/shared/ui/card';
 import { requireAdmin } from '@/shared/authorization/require-admin';
 import { buildPageUrl } from '@/shared/presentation/build-page-url';
-import {
-  resolveStatusLabel,
-  PRODUCT_STATUS_LABELS,
-} from '@/shared/presentation/status-labels';
-import type { ProductEntity } from '@/modules/products/domain/product-repository';
+import { createProductTableColumns } from '@/modules/products/presentation/components/product-table-columns';
 import styles from './page.module.css';
 
 export default async function AdminSellerProductsPage({
@@ -64,55 +56,12 @@ export default async function AdminSellerProductsPage({
   }
   const hasProducts = products.length > 0;
 
-  const columns: DataTableColumn<ProductEntity>[] = [
-    {
-      key: 'name',
-      header: dict.admin.productName,
-      render: (product) => (
-        <span className={styles.nameCell}>
-          {product.translations.find(
-            (translation) => translation.locale === locale,
-          )?.name ?? dict.admin.untranslatedProduct}
-        </span>
-      ),
-    },
-    {
-      key: 'status',
-      header: dict.admin.productStatus,
-      render: (product) => (
-        <StatusBadge
-          status={product.status}
-          label={resolveStatusLabel(
-            product.status,
-            PRODUCT_STATUS_LABELS,
-            dict.admin,
-          )}
-        />
-      ),
-    },
-    {
-      key: 'price',
-      header: dict.admin.productPrice,
-      render: (product) => product.basePrice.format(),
-    },
-    {
-      key: 'updated',
-      header: dict.admin.productUpdated,
-      render: (product) =>
-        LocalizedDate.create(product.updatedAt, locale).toString(),
-    },
-    {
-      key: 'actions',
-      header: dict.admin.actions,
-      render: (product) => (
-        <ProductActions
-          locale={locale}
-          productId={product.id}
-          currentStatus={product.status}
-        />
-      ),
-    },
-  ];
+  const columns = createProductTableColumns(
+    locale,
+    dict.admin,
+    dict.admin,
+    styles,
+  );
 
   return (
     <div className={styles.container}>

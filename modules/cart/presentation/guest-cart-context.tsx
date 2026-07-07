@@ -100,7 +100,14 @@ export const GUEST_CART_STORAGE_KEY = 'cart:guest:v1';
 
 const GuestCartContext = createContext<GuestCartContextType | null>(null);
 
-// --- Helpers ---
+type CustomizationInput = {
+  text?: string | null;
+  color?: string | null;
+  size?: string | null;
+  imageUrl?: string | null;
+  imageUploadId?: string | null;
+  designPosition?: Record<string, unknown> | null;
+};
 
 function readFromStorage(): GuestCartItem[] {
   if (typeof window === 'undefined') return [];
@@ -124,6 +131,47 @@ function writeToStorage(items: GuestCartItem[]): void {
   localStorage.setItem(GUEST_CART_STORAGE_KEY, JSON.stringify(shape));
 }
 
+function clampQuantity(quantity: number): number {
+  return Math.max(1, Math.min(99, Math.floor(quantity)));
+}
+
+function ensureItemId(item: GuestCartItem): GuestCartItem {
+  return { ...item, id: item.id ?? crypto.randomUUID() };
+}
+
+function applyCustomizationFields(
+  item: GuestCartItem,
+  customization: CustomizationInput,
+): GuestCartItem {
+  return {
+    ...item,
+    customizationText:
+      customization.text === undefined
+        ? item.customizationText
+        : customization.text,
+    customizationColor:
+      customization.color === undefined
+        ? item.customizationColor
+        : customization.color,
+    customizationSize:
+      customization.size === undefined
+        ? item.customizationSize
+        : customization.size,
+    customizationImageUrl:
+      customization.imageUrl === undefined
+        ? item.customizationImageUrl
+        : customization.imageUrl,
+    customizationImageUploadId:
+      customization.imageUploadId === undefined
+        ? item.customizationImageUploadId
+        : customization.imageUploadId,
+    customizationDesignPosition:
+      customization.designPosition === undefined
+        ? item.customizationDesignPosition
+        : (customization.designPosition as GuestCartItem['customizationDesignPosition']),
+  };
+}
+
 // --- Provider ---
 
 export function GuestCartProvider({ children }: { children: ReactNode }) {
@@ -136,11 +184,7 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
   /* eslint-disable react-hooks/set-state-in-effect, @eslint-react/set-state-in-effect -- intentional hydration from localStorage */
   useEffect(() => {
     const stored = readFromStorage();
-    setItems(
-      stored.map((item) =>
-        item.id ? item : { ...item, id: crypto.randomUUID() },
-      ),
-    );
+    setItems(stored.map((item) => ensureItemId(item)));
     setHydrated(true);
   }, []);
 
@@ -156,14 +200,11 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
   /* eslint-enable react-hooks/set-state-in-effect, @eslint-react/set-state-in-effect */
 
   const addItem = useCallback((item: GuestCartItem) => {
-    setItems((prev) => [
-      ...prev,
-      { ...item, id: item.id ?? crypto.randomUUID() },
-    ]);
+    setItems((prev) => [...prev, ensureItemId(item)]);
   }, []);
 
   const updateQuantity = useCallback((productId: string, quantity: number) => {
-    const clamped = Math.max(1, Math.min(99, Math.floor(quantity)));
+    const clamped = clampQuantity(quantity);
     setItems((prev) =>
       prev.map((i) =>
         i.productId === productId ? { ...i, quantity: clamped } : i,
@@ -176,47 +217,11 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateCustomization = useCallback(
-    (
-      productId: string,
-      customization: {
-        text?: string | null;
-        color?: string | null;
-        size?: string | null;
-        imageUrl?: string | null;
-        imageUploadId?: string | null;
-        designPosition?: Record<string, unknown> | null;
-      },
-    ) => {
+    (productId: string, customization: CustomizationInput) => {
       setItems((prev) =>
         prev.map((item) =>
           item.productId === productId
-            ? {
-                ...item,
-                customizationText:
-                  customization.text === undefined
-                    ? item.customizationText
-                    : customization.text,
-                customizationColor:
-                  customization.color === undefined
-                    ? item.customizationColor
-                    : customization.color,
-                customizationSize:
-                  customization.size === undefined
-                    ? item.customizationSize
-                    : customization.size,
-                customizationImageUrl:
-                  customization.imageUrl === undefined
-                    ? item.customizationImageUrl
-                    : customization.imageUrl,
-                customizationImageUploadId:
-                  customization.imageUploadId === undefined
-                    ? item.customizationImageUploadId
-                    : customization.imageUploadId,
-                customizationDesignPosition:
-                  customization.designPosition === undefined
-                    ? item.customizationDesignPosition
-                    : (customization.designPosition as GuestCartItem['customizationDesignPosition']),
-              }
+            ? applyCustomizationFields(item, customization)
             : item,
         ),
       );
@@ -225,7 +230,7 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
   );
 
   const updateItemQuantity = useCallback((itemId: string, quantity: number) => {
-    const clamped = Math.max(1, Math.min(99, Math.floor(quantity)));
+    const clamped = clampQuantity(quantity);
     setItems((prev) =>
       prev.map((i) => (i.id === itemId ? { ...i, quantity: clamped } : i)),
     );
@@ -236,47 +241,11 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateItemCustomization = useCallback(
-    (
-      itemId: string,
-      customization: {
-        text?: string | null;
-        color?: string | null;
-        size?: string | null;
-        imageUrl?: string | null;
-        imageUploadId?: string | null;
-        designPosition?: Record<string, unknown> | null;
-      },
-    ) => {
+    (itemId: string, customization: CustomizationInput) => {
       setItems((prev) =>
         prev.map((item) =>
           item.id === itemId
-            ? {
-                ...item,
-                customizationText:
-                  customization.text === undefined
-                    ? item.customizationText
-                    : customization.text,
-                customizationColor:
-                  customization.color === undefined
-                    ? item.customizationColor
-                    : customization.color,
-                customizationSize:
-                  customization.size === undefined
-                    ? item.customizationSize
-                    : customization.size,
-                customizationImageUrl:
-                  customization.imageUrl === undefined
-                    ? item.customizationImageUrl
-                    : customization.imageUrl,
-                customizationImageUploadId:
-                  customization.imageUploadId === undefined
-                    ? item.customizationImageUploadId
-                    : customization.imageUploadId,
-                customizationDesignPosition:
-                  customization.designPosition === undefined
-                    ? item.customizationDesignPosition
-                    : (customization.designPosition as GuestCartItem['customizationDesignPosition']),
-              }
+            ? applyCustomizationFields(item, customization)
             : item,
         ),
       );

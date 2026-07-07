@@ -1,49 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/shared/infrastructure/auth-options';
 import { container } from '@/composition-root/container';
+import { toSellerResponse } from '@/modules/sellers/presentation/seller-response';
 import { handleApiError } from '@/shared/presentation/error-handler';
 import { GetSellerUseCase } from '@/modules/sellers/application/use-cases/get-seller-use-case';
 import { UpdateSellerUseCase } from '@/modules/sellers/application/use-cases/update-seller-use-case';
 import { DeleteSellerUseCase } from '@/modules/sellers/application/use-cases/delete-seller-use-case';
 import { SellerStatus } from '@/modules/sellers/domain/seller-status';
 import { updateSellerSchema } from '@/modules/sellers/presentation/schemas/seller-schemas';
-
-/** Shape returned for any seller in JSON responses. */
-function toSellerResponse(seller: {
-  sellerId: { value: string };
-  name: string;
-  description: string | null;
-  userId: string;
-  status: SellerStatus;
-  deletedAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-}) {
-  return {
-    id: seller.sellerId.value,
-    name: seller.name,
-    description: seller.description,
-    userId: seller.userId,
-    status: seller.status,
-    createdAt: seller.createdAt.toISOString(),
-    updatedAt: seller.updatedAt.toISOString(),
-  };
-}
-
-/**
- * GET /api/sellers/[id]
- * Public for active sellers.
- * Admin can see any seller (including banned).
- * Banned / soft-deleted sellers are hidden from non-admin callers.
- */
-
-/**
- * GET /api/sellers/[id]
- * Public for active sellers.
- * Admin can see any seller (including banned).
- * Banned / soft-deleted sellers are hidden from non-admin callers.
- */
+import { getSessionUserContext } from '@/shared/authorization/session-user-context';
 export async function GET(
   _req: NextRequest,
   context: { params: Promise<{ id: string }> },
@@ -56,8 +20,8 @@ export async function GET(
     const seller = await getSeller.execute({ sellerId: id });
 
     // Visibility check: banned or soft-deleted are hidden from non-admin
-    const session = await getServerSession(authOptions);
-    const role = (session?.user as { role?: string } | undefined)?.role;
+    const session = await getSessionUserContext();
+    const role = session?.role;
     const isAdmin = role === 'ADMIN';
 
     if (seller.deletedAt && !isAdmin) {
@@ -85,12 +49,12 @@ export async function PATCH(
     const { id } = await context.params;
 
     // Auth check FIRST — 401 must come before any 404
-    const session = await getServerSession(authOptions);
+    const session = await getSessionUserContext();
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const userId = (session.user as { id?: string } | undefined)?.id;
-    const role = (session.user as { role?: string } | undefined)?.role;
+    const userId = session.userId;
+    const role = session.role;
 
     // Load seller
     const sellerRepository = container.getSellerRepository();
@@ -134,12 +98,12 @@ export async function DELETE(
     const { id } = await context.params;
 
     // Auth check FIRST — 401 must come before any 404
-    const session = await getServerSession(authOptions);
+    const session = await getSessionUserContext();
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const userId = (session.user as { id?: string } | undefined)?.id;
-    const role = (session.user as { role?: string } | undefined)?.role;
+    const userId = session.userId;
+    const role = session.role;
 
     const sellerRepository = container.getSellerRepository();
     const existing = await sellerRepository.findById(id);

@@ -5,10 +5,13 @@ import { handleApiError } from '@/shared/presentation/error-handler';
 import { GetCustomizationById } from '@/modules/customizations/application/get-customization-by-id';
 import { UpdateCustomization } from '@/modules/customizations/application/update-customization';
 import { DeleteCustomization } from '@/modules/customizations/application/delete-customization';
+import { toCustomizationResponse } from '@/modules/customizations/presentation/to-customization-response';
+import { updateCustomizationSchema } from '@/modules/customizations/presentation/schemas/customization-schemas';
 import {
-  updateCustomizationSchema,
-  customizationResponseSchema,
-} from '@/modules/customizations/presentation/schemas/customization-schemas';
+  getCurrentSellerId,
+  getRouteParams,
+  parseBody,
+} from '@/shared/presentation/route-helpers';
 
 export const GET = requireRole('DESIGNER')(async function GET(
   _request: NextRequest,
@@ -20,8 +23,7 @@ export const GET = requireRole('DESIGNER')(async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { id } = await (context as { params: Promise<{ id: string }> })
-      .params;
+    const { id } = await getRouteParams<{ id: string }>(context);
     const customization = await new GetCustomizationById(
       container.getCustomizationRepository(),
     ).execute({ id });
@@ -65,9 +67,8 @@ export const PATCH = requireRole('DESIGNER')(async function PATCH(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { id } = await (context as { params: Promise<{ id: string }> })
-      .params;
-    const body = updateCustomizationSchema.parse(await request.json());
+    const { id } = await getRouteParams<{ id: string }>(context);
+    const body = await parseBody(request, updateCustomizationSchema);
 
     const customizationRepository = container.getCustomizationRepository();
     const productRepository = container.getProductRepository();
@@ -109,8 +110,7 @@ export const DELETE = requireRole('DESIGNER')(async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { id } = await (context as { params: Promise<{ id: string }> })
-      .params;
+    const { id } = await getRouteParams<{ id: string }>(context);
     const customizationRepository = container.getCustomizationRepository();
     const productRepository = container.getProductRepository();
     const useCase = new DeleteCustomization(customizationRepository, {
@@ -133,45 +133,3 @@ export const DELETE = requireRole('DESIGNER')(async function DELETE(
     return handleApiError(error);
   }
 });
-
-async function getCurrentSellerId(): Promise<string | null> {
-  const session = await container.getSession().getSession();
-  if (!session?.id) return null;
-
-  const seller = await container.getSellerRepository().findByUserId(session.id);
-  return seller?.sellerId.value ?? null;
-}
-
-function toCustomizationResponse(customization: {
-  id: string;
-  productId: string;
-  text: string | null;
-  color: string | null;
-  size: string | null;
-  imageUrl: string | null;
-  designPosition: unknown;
-  createdAt: Date;
-}) {
-  return customizationResponseSchema.parse({
-    id: customization.id,
-    productId: customization.productId,
-    text: customization.text,
-    color: customization.color,
-    size: customization.size,
-    imageUrl: customization.imageUrl,
-    designPosition:
-      (customization.designPosition as
-        | {
-            imageUrl: string;
-            x: number;
-            y: number;
-            scale: number;
-            rotation_deg: number;
-            opacity: number;
-            blend_mode: string;
-          }
-        | null
-        | undefined) ?? null,
-    createdAt: customization.createdAt.toISOString(),
-  });
-}

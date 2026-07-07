@@ -5,22 +5,18 @@ import { redirect } from 'next/navigation';
 import { orderListQuerySchema } from '@/modules/orders/presentation/schemas/order-schemas';
 import { ListCustomerOrdersUseCase } from '@/modules/orders/application/list-customer-orders-use-case';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
-import { Money } from '@/shared/kernel/domain/value-objects/money';
-import { Currency } from '@/shared/kernel/domain/value-objects/currency';
-import { DataTable } from '@/shared/ui/data-table';
-import type { DataTableColumn } from '@/shared/ui/data-table';
-import { StatusBadge } from '@/shared/ui/status-badge';
+import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
 import { Pagination } from '@/shared/ui/pagination';
 import { Card } from '@/shared/ui/card';
 import { SearchForm } from '@/shared/ui/search-form';
 import type { OrderEntity } from '@/modules/orders/domain/order-repository';
+import { createOrderCommonColumns } from '@/modules/orders/presentation/components/order-table-columns';
+import { computePaginationState } from '@/shared/presentation/pagination-utils';
+import {
+  buildOrderPageUrl,
+  DEFAULT_ORDER_PAGE_SIZE,
+} from '@/modules/orders/presentation/order-page-url';
 import styles from './page.module.css';
-
-const ORDER_STATUS_LABELS: Record<string, string> = {
-  new: 'new',
-  in_progress: 'inProgress',
-  completed: 'completed',
-};
 
 export default async function CustomerOrdersPage({
   params,
@@ -50,7 +46,7 @@ export default async function CustomerOrdersPage({
     : {
         status: 'all' as const,
         page: 1,
-        pageSize: 10,
+        pageSize: DEFAULT_ORDER_PAGE_SIZE,
         sortDir: 'desc' as const,
       };
   const useCase = new ListCustomerOrdersUseCase(container.getOrderRepository());
@@ -69,30 +65,13 @@ export default async function CustomerOrdersPage({
   );
 
   const columns: DataTableColumn<OrderEntity>[] = [
-    {
-      key: 'status',
-      header: dict.orders?.status ?? 'Status',
-      render: (order) => {
-        const labelKey = ORDER_STATUS_LABELS[order.status];
-        const label = labelKey
-          ? (dict.orders?.[labelKey] ?? order.status)
-          : order.status;
-        return <StatusBadge status={order.status} label={label} />;
-      },
-    },
-    {
-      key: 'date',
-      header: dict.orders?.date ?? 'Date',
-      render: (order) =>
-        order.createdAt
-          ? new Date(order.createdAt).toLocaleDateString(locale)
-          : '',
-    },
-    {
-      key: 'total',
-      header: dict.orders?.total ?? 'Total',
-      render: (order) => Money.format(order.total, Currency.EUR),
-    },
+    ...createOrderCommonColumns(
+      locale,
+      dict.orders?.status ?? 'Status',
+      dict.orders?.date ?? 'Date',
+      dict.orders?.total ?? 'Total',
+      dict.orders ?? {},
+    ),
     {
       key: 'actions',
       header: dict.orders?.actions ?? 'Actions',
@@ -121,22 +100,7 @@ export default async function CustomerOrdersPage({
     },
   ];
 
-  const hasOrders = result.items.length > 0;
-  const currentPage =
-    result.totalPages > 0 && result.page > result.totalPages
-      ? result.totalPages
-      : result.page;
-
-  const buildPageUrl = (page: number) => {
-    const params = new URLSearchParams();
-    if (page > 1) params.set('page', String(page));
-    if (filter.status !== 'all') params.set('status', filter.status);
-    if (filter.sortDir !== 'desc') params.set('sortDir', filter.sortDir);
-    if (filter.pageSize !== 20) params.set('pageSize', String(filter.pageSize));
-    if (filter.q) params.set('q', filter.q);
-    const qs = params.toString();
-    return qs ? `/${locale}/orders?${qs}` : `/${locale}/orders`;
-  };
+  const { hasItems: hasOrders, currentPage } = computePaginationState(result);
 
   return (
     <div className={styles.container}>
@@ -172,7 +136,9 @@ export default async function CustomerOrdersPage({
           <Pagination
             currentPage={currentPage}
             totalPages={result.totalPages}
-            buildPageUrl={buildPageUrl}
+            buildPageUrl={(page) =>
+              buildOrderPageUrl(locale, '/orders', filter, page)
+            }
             prevLabel={dict.orders?.previous ?? '← Previous'}
             nextLabel={dict.orders?.next ?? 'Next →'}
           />
