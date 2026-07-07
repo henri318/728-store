@@ -51,9 +51,9 @@ export class UpdateProductUseCase {
     }
 
     const nextPrice =
-      dto.price !== undefined
-        ? ProductPrice.create(dto.price, 'EUR' as Currency)
-        : product.basePrice;
+      dto.price === undefined
+        ? product.basePrice
+        : ProductPrice.create(dto.price, 'EUR' as Currency);
 
     const nextStatus = dto.status ?? product.status;
     if (dto.status && dto.status !== product.status) {
@@ -82,9 +82,9 @@ export class UpdateProductUseCase {
       locale: dto.locale,
       name: nextName ?? currentTranslation?.name ?? '',
       description:
-        dto.description !== undefined
-          ? dto.description.trim() || null
-          : (currentTranslation?.description ?? null),
+        dto.description === undefined
+          ? (currentTranslation?.description ?? null)
+          : dto.description.trim() || null,
     };
 
     const translations = product.translations.some(
@@ -102,20 +102,20 @@ export class UpdateProductUseCase {
       basePrice: nextPrice,
       status: nextStatus,
       customizationConfig:
-        dto.customizationConfig !== undefined
-          ? ProductCustomizationConfig.fromJson(dto.customizationConfig)
-          : product.customizationConfig,
+        dto.customizationConfig === undefined
+          ? product.customizationConfig
+          : ProductCustomizationConfig.fromJson(dto.customizationConfig),
       images:
-        dto.images !== undefined
-          ? dto.images.map((image, index) => ({
+        dto.images === undefined
+          ? product.images
+          : dto.images.map((image, index) => ({
               id: randomUUID(),
               url: image.url,
               alt: image.alt,
               position: index,
               productId: product.id,
               createdAt: now,
-            }))
-          : product.images,
+            })),
       updatedAt: now,
       translations,
     };

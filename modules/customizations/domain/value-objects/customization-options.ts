@@ -26,6 +26,93 @@ export interface CustomizationDesignPosition {
 }
 
 export class CustomizationOptions {
+  private static validateText(text: string | undefined): void {
+    if (text !== undefined && text.length > 500) {
+      throw new Error('Customization text must be at most 500 characters');
+    }
+  }
+
+  private static validateColor(color: string | undefined): void {
+    if (color === undefined) {
+      return;
+    }
+
+    if (color.trim().length === 0) {
+      throw new Error('Customization color cannot be empty if provided');
+    }
+    if (color.length > 50) {
+      throw new Error('Customization color must be at most 50 characters');
+    }
+  }
+
+  private static validateSize(size: string | undefined): void {
+    if (size === undefined) {
+      return;
+    }
+
+    if (size.trim().length === 0) {
+      throw new Error('Customization size cannot be empty if provided');
+    }
+    if (size.length > 50) {
+      throw new Error('Customization size must be at most 50 characters');
+    }
+  }
+
+  private static validateImageUrl(imageUrl: string | undefined): void {
+    if (imageUrl === undefined) {
+      return;
+    }
+
+    const urlPattern = /^https?:\/\/.+/;
+    if (!urlPattern.test(imageUrl)) {
+      throw new Error('Customization image URL must be a valid URL');
+    }
+  }
+
+  private static validateDesignPosition(
+    designPosition: CustomizationDesignPosition | null | undefined,
+  ): void {
+    if (
+      designPosition !== undefined &&
+      designPosition !== null &&
+      (typeof designPosition !== 'object' ||
+        typeof designPosition.imageUrl !== 'string' ||
+        designPosition.imageUrl.length === 0)
+    ) {
+      throw new Error(
+        'Customization designPosition must be an object with a non-empty imageUrl',
+      );
+    }
+  }
+
+  static create(data: {
+    text?: string | null;
+    color?: string | null;
+    size?: string | null;
+    imageUrl?: string | null;
+    designPosition?: CustomizationDesignPosition | null;
+  }): CustomizationOptions {
+    const text = data.text ?? undefined;
+    const color = data.color ?? undefined;
+    const size = data.size ?? undefined;
+    const imageUrl = data.imageUrl ?? undefined;
+    const designPosition = data.designPosition ?? undefined;
+
+    this.validateText(text);
+    this.validateColor(color);
+    this.validateSize(size);
+    this.validateImageUrl(imageUrl);
+    this.validateDesignPosition(designPosition);
+
+    return new CustomizationOptions({
+      text,
+      color,
+      size,
+      imageUrl,
+      designPosition: designPosition ?? null,
+    });
+  }
+
   readonly text?: string;
   readonly color?: string;
   readonly size?: string;
@@ -46,72 +133,6 @@ export class CustomizationOptions {
     this.designPosition = data.designPosition;
   }
 
-  static create(data: {
-    text?: string | null;
-    color?: string | null;
-    size?: string | null;
-    imageUrl?: string | null;
-    designPosition?: CustomizationDesignPosition | null;
-  }): CustomizationOptions {
-    // Normalize null to undefined — DB fields return string | null.
-    const text = data.text ?? undefined;
-
-    if (text !== undefined && text.length > 500) {
-      throw new Error('Customization text must be at most 500 characters');
-    }
-
-    const color = data.color ?? undefined;
-    const size = data.size ?? undefined;
-    const imageUrl = data.imageUrl ?? undefined;
-
-    if (color !== undefined) {
-      if (color.trim().length === 0) {
-        throw new Error('Customization color cannot be empty if provided');
-      }
-      if (color.length > 50) {
-        throw new Error('Customization color must be at most 50 characters');
-      }
-    }
-
-    if (size !== undefined) {
-      if (size.trim().length === 0) {
-        throw new Error('Customization size cannot be empty if provided');
-      }
-      if (size.length > 50) {
-        throw new Error('Customization size must be at most 50 characters');
-      }
-    }
-
-    if (imageUrl !== undefined) {
-      const urlPattern = /^https?:\/\/.+/;
-      if (!urlPattern.test(imageUrl)) {
-        throw new Error('Customization image URL must be a valid URL');
-      }
-    }
-
-    const designPosition = data.designPosition ?? undefined;
-
-    if (
-      designPosition !== undefined &&
-      designPosition !== null &&
-      (typeof designPosition !== 'object' ||
-        typeof designPosition.imageUrl !== 'string' ||
-        designPosition.imageUrl.length === 0)
-    ) {
-      throw new Error(
-        'Customization designPosition must be an object with a non-empty imageUrl',
-      );
-    }
-
-    return new CustomizationOptions({
-      text,
-      color,
-      size,
-      imageUrl,
-      designPosition: designPosition ?? null,
-    });
-  }
-
   equals(other: CustomizationOptions): boolean {
     return (
       other instanceof CustomizationOptions &&
@@ -119,12 +140,12 @@ export class CustomizationOptions {
       this.color === other.color &&
       this.size === other.size &&
       this.imageUrl === other.imageUrl &&
-      designPositionEquals(this.designPosition, other.designPosition)
+      isDesignPositionEqual(this.designPosition, other.designPosition)
     );
   }
 }
 
-function designPositionEquals(
+function isDesignPositionEqual(
   a: CustomizationDesignPosition | null | undefined,
   b: CustomizationDesignPosition | null | undefined,
 ): boolean {

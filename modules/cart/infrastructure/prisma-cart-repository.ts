@@ -95,10 +95,10 @@ export class PrismaCartRepository implements CartRepository {
         throw new Error(`Cart ${cart.id} not found after save`);
       }
       return toDomain(saved);
-    } catch (err) {
+    } catch (error) {
       if (
-        err instanceof Prisma.PrismaClientKnownRequestError &&
-        err.code === 'P2002'
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
       ) {
         // Unique constraint violation — most likely the partial
         // unique index `Cart_userId_active_unique`.
@@ -106,7 +106,7 @@ export class PrismaCartRepository implements CartRepository {
           `User ${cart.userId} already has an active cart`,
         );
       }
-      throw err;
+      throw error;
     }
   }
 
@@ -139,7 +139,7 @@ export class PrismaCartRepository implements CartRepository {
     const rows = await prisma.cartItem.findMany({
       where: { cartId: cartId.value },
     });
-    return rows.map(toItemDomain);
+    return rows.map((r) => toItemDomain(r));
   }
 }
 
@@ -171,7 +171,7 @@ function toDomain(row: PrismaCartWithItems): CartEntity {
     id: row.id,
     userId: row.userId,
     status: row.status as CartStatus,
-    items: row.items.map(toItemDomain),
+    items: row.items.map((r) => toItemDomain(r)),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

@@ -55,13 +55,15 @@ export function TagList({
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      commitTags(inputValue);
+    if (e.key !== 'Enter') {
+      return;
     }
+
+    e.preventDefault();
+    commitTags(inputValue);
   };
 
-  const inputId = `tag-list-${label.replace(/\s+/g, '-').toLowerCase()}`;
+  const inputId = `tag-list-${label.replaceAll(/\s+/g, '-').toLowerCase()}`;
 
   return (
     <div className={styles.wrapper}>
@@ -97,7 +99,7 @@ export function TagList({
                 onClick={() => removeTag(i)}
                 aria-label={`${dict.common.removeFromCart ?? 'Remove'} ${tag}`}
               >
-                {'\u00D7'}
+                {'\u{D7}'}
               </button>
             </span>
           ))}

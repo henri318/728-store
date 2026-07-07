@@ -10,11 +10,33 @@ import type {
  *
  * No business logic here — pure delegation to Prisma.
  *
- * `designPosition` is stored as JSONB. We deliberately accept the
- * Prisma `JsonValue` shape and coerce to our `DesignPositionValue`
+ * designPosition is stored as JSONB. We deliberately accept the
+ * Prisma JsonValue shape and coerce to our DesignPositionValue
  * type at the boundary so the domain layer never depends on Prisma.
  */
 export class PrismaCustomizationRepository implements CustomizationRepository {
+  private toDomain(row: {
+    id: string;
+    productId: string;
+    text: string | null;
+    color: string | null;
+    size: string | null;
+    imageUrl: string | null;
+    designPosition: unknown;
+    createdAt: Date;
+  }): CustomizationEntity {
+    return {
+      id: row.id,
+      productId: row.productId,
+      text: row.text,
+      color: row.color,
+      size: row.size,
+      imageUrl: row.imageUrl,
+      designPosition: coerceDesignPosition(row.designPosition),
+      createdAt: row.createdAt,
+    };
+  }
+
   async save(entity: CustomizationEntity): Promise<CustomizationEntity> {
     const result = await prisma.customization.upsert({
       where: { id: entity.id },
@@ -84,28 +106,6 @@ export class PrismaCustomizationRepository implements CustomizationRepository {
       },
     });
     return count > 0;
-  }
-
-  private toDomain(row: {
-    id: string;
-    productId: string;
-    text: string | null;
-    color: string | null;
-    size: string | null;
-    imageUrl: string | null;
-    designPosition: unknown;
-    createdAt: Date;
-  }): CustomizationEntity {
-    return {
-      id: row.id,
-      productId: row.productId,
-      text: row.text,
-      color: row.color,
-      size: row.size,
-      imageUrl: row.imageUrl,
-      designPosition: coerceDesignPosition(row.designPosition),
-      createdAt: row.createdAt,
-    };
   }
 }
 

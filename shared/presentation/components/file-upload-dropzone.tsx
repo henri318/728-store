@@ -56,7 +56,7 @@ export function FileUploadDropzone({
 
   const handleFiles = async (fileList: FileList | File[]) => {
     const files = [...fileList];
-    if (!files.length || disabled || busy) return;
+    if (files.length === 0 || disabled || busy) return;
 
     await onFilesSelected(multiple ? files : files.slice(0, 1));
   };
@@ -114,9 +114,7 @@ export function FileUploadDropzone({
       ) : null}
 
       {items.length === 0 ? (
-        emptyLabel ? (
-          <p className={styles.emptyState}>{emptyLabel}</p>
-        ) : null
+        emptyLabel && <p className={styles.emptyState}>{emptyLabel}</p>
       ) : (
         <ul className={styles.list}>
           {items.map((item) => {

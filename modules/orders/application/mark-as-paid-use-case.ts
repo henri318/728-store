@@ -29,12 +29,40 @@ export interface MarkAsPaidDTO {
  * State Transition: new → in_progress
  *
  * @example
- * ```typescript
+ * `	ypescript
  * const useCase = new MarkAsPaidUseCase(orderRepo, outboxRepo, transactionalService);
  * await useCase.execute({ orderId: 'order-1', paymentId: 'pay-1', amount: 100 });
- * ```
+ * `
  */
 export class MarkAsPaidUseCase {
+  /**
+   * Static method to subscribe to PaymentCompleted events from the event bus.
+   *
+   * This method registers a listener that automatically invokes the use case
+   * when a PaymentCompleted event is emitted by the payments module.
+   *
+   * Error handling: If the use case execution fails, the error is logged
+   * but not re-thrown to prevent breaking the event processing pipeline.
+   *
+   * @param eventBus - The event bus instance to subscribe to
+   * @param useCase - The use case instance to invoke on events
+   *
+   * @example
+   * `	ypescript
+   * const useCase = new MarkAsPaidUseCase(orderRepo, outboxRepo);
+   * MarkAsPaidUseCase.subscribe(eventBus, useCase);
+   * `
+   */
+  static subscribe(eventBus: EventBusPort, useCase: MarkAsPaidUseCase): void {
+    eventBus.on(GlobalEvents.PAYMENT_COMPLETED, async (data: unknown) => {
+      try {
+        await useCase.execute(data as MarkAsPaidDTO);
+      } catch (error) {
+        console.error('Error processing PaymentCompleted event:', error);
+      }
+    });
+  }
+
   /**
    * Creates a new MarkAsPaidUseCase instance.
    *
@@ -62,13 +90,13 @@ export class MarkAsPaidUseCase {
    * @throws Error if order not found or invalid state transition
    *
    * @example
-   * ```typescript
+   * `	ypescript
    * await useCase.execute({
    *   orderId: 'order-123',
    *   paymentId: 'payment-456',
    *   amount: 99.99
    * });
-   * ```
+   * `
    */
   async execute(data: MarkAsPaidDTO): Promise<void> {
     // Find the order
@@ -118,33 +146,5 @@ export class MarkAsPaidUseCase {
         paidAt: new Date().toISOString(),
       });
     }
-  }
-
-  /**
-   * Static method to subscribe to PaymentCompleted events from the event bus.
-   *
-   * This method registers a listener that automatically invokes the use case
-   * when a PaymentCompleted event is emitted by the payments module.
-   *
-   * Error handling: If the use case execution fails, the error is logged
-   * but not re-thrown to prevent breaking the event processing pipeline.
-   *
-   * @param eventBus - The event bus instance to subscribe to
-   * @param useCase - The use case instance to invoke on events
-   *
-   * @example
-   * ```typescript
-   * const useCase = new MarkAsPaidUseCase(orderRepo, outboxRepo);
-   * MarkAsPaidUseCase.subscribe(eventBus, useCase);
-   * ```
-   */
-  static subscribe(eventBus: EventBusPort, useCase: MarkAsPaidUseCase): void {
-    eventBus.on(GlobalEvents.PAYMENT_COMPLETED, async (data: unknown) => {
-      try {
-        await useCase.execute(data as MarkAsPaidDTO);
-      } catch (error) {
-        console.error('Error processing PaymentCompleted event:', error);
-      }
-    });
   }
 }

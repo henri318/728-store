@@ -89,9 +89,9 @@ export default async function OrderDetailPage({
               )?.imageUrl;
               const displayImage = customImage ?? item.productImageUrl;
               const lineTotal =
-                item.unitPrice != null
-                  ? item.unitPrice * item.quantity
-                  : undefined;
+                item.unitPrice == null
+                  ? undefined
+                  : item.unitPrice * item.quantity;
 
               return (
                 <div key={item.id} className={styles.itemRow}>
@@ -113,7 +113,7 @@ export default async function OrderDetailPage({
                         <span className={styles.itemCustomization}>
                           {item.customizationSnapshot
                             .flatMap((c) => [
-                              c.size &&
+                              c.size != null &&
                                 `${dict.common.customizationSize}: ${c.size}`,
                               c.color &&
                                 `${dict.common.customizationColor}: ${c.color}`,

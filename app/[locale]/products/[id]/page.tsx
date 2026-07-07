@@ -18,15 +18,15 @@ export default async function ProductDetailPage({
   const useCase = new GetProductByIdUseCase(repository);
 
   let product = null;
-  let error = false;
+  let isError = false;
 
   try {
     product = await useCase.execute(id, locale);
   } catch {
-    error = true;
+    isError = true;
   }
 
-  if (error || !product) {
+  if (isError || !product) {
     return <div>{dict.common.productDetailsError}</div>;
   }
 

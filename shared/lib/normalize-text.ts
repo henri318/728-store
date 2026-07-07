@@ -10,5 +10,5 @@
  *   "São Paulo" → "Sao Paulo"
  */
 export function normalizeText(text: string): string {
-  return text.normalize('NFD').replace(/[\u0300-\u036F]/g, '');
+  return text.normalize('NFD').replaceAll(/[\u{0300}-\u{036F}]/gu, '');
 }

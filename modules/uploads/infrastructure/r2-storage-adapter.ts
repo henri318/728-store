@@ -26,13 +26,13 @@ import type { StoragePort } from '../domain/storage-port';
  *                         (e.g. "https://cdn.example.com")
  */
 export class R2StorageAdapter implements StoragePort {
+  /** Upload types that route to the public bucket. */
+  private static readonly PUBLIC_TYPES = new Set(['product', 'avatar']);
+
   private readonly client: S3Client;
   private readonly publicBucket: string;
   private readonly privateBucket: string;
   private readonly publicDomain: string;
-
-  /** Upload types that route to the public bucket. */
-  private static readonly PUBLIC_TYPES = new Set(['product', 'avatar']);
 
   constructor() {
     const fallback = requireEnv('R2_BUCKET', 'dummy-bucket');
@@ -58,7 +58,7 @@ export class R2StorageAdapter implements StoragePort {
 
   /** Resolve which bucket to use based on the storage key prefix. */
   private getBucket(key: string): string {
-    const type = key.split('/')[0];
+    const type = key.split('/', 1)[0];
     return R2StorageAdapter.PUBLIC_TYPES.has(type)
       ? this.publicBucket
       : this.privateBucket;

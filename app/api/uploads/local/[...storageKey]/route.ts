@@ -34,7 +34,7 @@ async function resolveStoragePath(
     return null;
   }
 
-  const sanitized = segments.map((s) => s.replace(/[:*?"<>|]/g, '_'));
+  const sanitized = segments.map((s) => s.replaceAll(/[:*?"<>|]/g, '_'));
   const filePath = path.resolve(root, ...sanitized);
 
   return filePath;

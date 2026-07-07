@@ -38,7 +38,7 @@ export const GET = requireRole('ADMIN')(async function GET(req: NextRequest) {
 
     return NextResponse.json(
       {
-        items: result.items.map(toSellerResponse),
+        items: result.items.map((s) => toSellerResponse(s)),
         total: result.total,
         page: result.page,
         pageSize: result.pageSize,

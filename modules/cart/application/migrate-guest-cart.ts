@@ -67,19 +67,51 @@ export class MigrateGuestCart {
     private customizationCreator?: CustomizationCreatePort,
   ) {}
 
-  async execute(dto: MigrateGuestCartDTO): Promise<MigrateGuestCartResult> {
-    const serverCart = await this.cartRepository.findActiveByUserId(dto.userId);
+  private buildItem(
+    g: GuestCartItem,
+    cartId: string,
+    productMap: Map<
+      string,
+      { basePrice: number; currency: Currency; sellerId: SellerId }
+    >,
+    customizationIdList: string[],
+  ): CartItemEntity {
+    const product = productMap.get(g.productId)!;
+    return {
+      id: crypto.randomUUID(),
+      cartId,
+      productId: ProductId.create(g.productId),
+      sellerId: product.sellerId,
+      quantity: g.quantity,
+      unitPriceSnapshot: Money.create(product.basePrice, product.currency),
+      customizationIdList: [...customizationIdList].toSorted((a, b) =>
+        a.localeCompare(b),
+      ),
+    };
+  }
 
-    if (dto.guestItems.length === 0) {
-      return {
-        cart: serverCart ?? this.emptyCart(dto.userId),
-        migratedCount: 0,
-        skippedProductIds: [],
-        skippedCustomizationProductIds: [],
-      };
-    }
+  private emptyCart(userId: string): CartEntity {
+    const now = new Date();
+    return {
+      id: '',
+      userId,
+      status: CartStatus.Active,
+      items: [],
+      createdAt: now,
+      updatedAt: now,
+    };
+  }
 
-    const productIds = dto.guestItems.map((g) => ProductId.create(g.productId));
+  private async fetchRelatedData(guestItems: GuestCartItem[]): Promise<{
+    productMap: Map<
+      string,
+      { basePrice: number; currency: Currency; sellerId: SellerId }
+    >;
+    customizationByProductId: Map<string, CustomizationRecord[]>;
+    capabilityByProductId: Map<string, ProductCustomizationConfig>;
+    createdCustomizationCache: Map<string, string>;
+  }> {
+    const productIds = guestItems.map((g) => ProductId.create(g.productId));
     const uniqueIds = uniqueBy(productIds, (p) => p.value);
     const productMap = await this.productRepository.findByIds(uniqueIds);
 
@@ -87,8 +119,9 @@ export class MigrateGuestCart {
     const capabilityByProductId = new Map<string, ProductCustomizationConfig>();
     const createdCustomizationCache = new Map<string, string>();
     const availableProductIds = [
-      ...new Set(dto.guestItems.map((g) => g.productId)),
+      ...new Set(guestItems.map((g) => g.productId)),
     ].filter((productId) => productMap.has(productId));
+
     for (const productId of availableProductIds) {
       customizationByProductId.set(
         productId,
@@ -106,6 +139,31 @@ export class MigrateGuestCart {
       }
     }
 
+    return {
+      productMap,
+      customizationByProductId,
+      capabilityByProductId,
+      createdCustomizationCache,
+    };
+  }
+
+  private async filterAvailableItems(
+    dto: MigrateGuestCartDTO,
+    productMap: Map<
+      string,
+      { basePrice: number; currency: Currency; sellerId: SellerId }
+    >,
+    customizationByProductId: Map<string, CustomizationRecord[]>,
+    capabilityByProductId: Map<string, ProductCustomizationConfig>,
+    createdCustomizationCache: Map<string, string>,
+  ): Promise<{
+    availableGuest: Array<{
+      item: GuestCartItem;
+      customizationIdList: string[];
+    }>;
+    skippedProductIds: string[];
+    skippedCustomizationProductIds: string[];
+  }> {
     const availableGuest: Array<{
       item: GuestCartItem;
       customizationIdList: string[];
@@ -115,17 +173,13 @@ export class MigrateGuestCart {
 
     for (const g of dto.guestItems) {
       if (!productMap.has(g.productId)) {
-        if (!skippedProductIds.includes(g.productId)) {
-          skippedProductIds.push(g.productId);
-        }
+        skipIfMissing(skippedProductIds, g.productId);
         continue;
       }
 
       const capability = capabilityByProductId.get(g.productId);
       if (capability && !isCustomizationAllowed(g, capability)) {
-        if (!skippedCustomizationProductIds.includes(g.productId)) {
-          skippedCustomizationProductIds.push(g.productId);
-        }
+        skipIfMissing(skippedCustomizationProductIds, g.productId);
         continue;
       }
 
@@ -136,41 +190,46 @@ export class MigrateGuestCart {
         createdCustomizationCache,
       );
       if (customizationIdList === null) {
-        if (!skippedCustomizationProductIds.includes(g.productId)) {
-          skippedCustomizationProductIds.push(g.productId);
-        }
+        skipIfMissing(skippedCustomizationProductIds, g.productId);
         continue;
       }
 
       availableGuest.push({ item: g, customizationIdList });
     }
 
-    if (availableGuest.length === 0) {
-      return {
-        cart: serverCart ?? this.emptyCart(dto.userId),
-        migratedCount: 0,
-        skippedProductIds,
-        skippedCustomizationProductIds,
-      };
-    }
+    return {
+      availableGuest,
+      skippedProductIds,
+      skippedCustomizationProductIds,
+    };
+  }
 
-    let resultCart: CartEntity;
-    let isNewCart = false;
-
-    if (!serverCart) {
-      const now = new Date();
-      resultCart = {
-        id: crypto.randomUUID(),
-        userId: dto.userId,
-        status: CartStatus.Active,
-        items: [],
-        createdAt: now,
-        updatedAt: now,
-      };
-      isNewCart = true;
-    } else {
-      resultCart = serverCart;
-    }
+  private resolveCartAndStrategy(
+    dto: MigrateGuestCartDTO,
+    serverCart: CartEntity | null,
+    availableGuest: Array<{
+      item: GuestCartItem;
+      customizationIdList: string[];
+    }>,
+    productMap: Map<
+      string,
+      { basePrice: number; currency: Currency; sellerId: SellerId }
+    >,
+  ): {
+    cart: CartEntity;
+    isNewCart: boolean;
+    items: CartItemEntity[];
+    touchedIds: Set<string>;
+  } {
+    const isNewCart = !serverCart;
+    const resultCart: CartEntity = serverCart ?? {
+      id: crypto.randomUUID(),
+      userId: dto.userId,
+      status: CartStatus.Active,
+      items: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
 
     let items: CartItemEntity[] = isNewCart ? [] : [...resultCart.items];
     const touchedIds = new Set<string>();
@@ -189,36 +248,109 @@ export class MigrateGuestCart {
         return built;
       });
     } else {
-      for (const { item: g, customizationIdList } of availableGuest) {
-        const productSnap = productMap.get(g.productId)!;
-        const existing = items.find((i) =>
-          isSameVariant(i, g, productSnap, customizationIdList),
-        );
-        if (existing) {
-          items = items.map((i) =>
-            i.id === existing.id
-              ? { ...i, quantity: i.quantity + g.quantity }
-              : i,
-          );
-          touchedIds.add(existing.id);
-        } else {
-          const built = this.buildItem(
-            g,
-            resultCart.id,
-            productMap,
-            customizationIdList,
-          );
-          items.push(built);
-          touchedIds.add(built.id);
-        }
-      }
+      items = this.mergeItems(
+        items,
+        availableGuest,
+        resultCart.id,
+        productMap,
+        touchedIds,
+      );
     }
 
-    resultCart = {
-      ...resultCart,
-      items,
-      updatedAt: new Date(),
-    };
+    const cart = { ...resultCart, items, updatedAt: new Date() };
+    return { cart, isNewCart, items, touchedIds };
+  }
+
+  private mergeItems(
+    initial: CartItemEntity[],
+    availableGuest: Array<{
+      item: GuestCartItem;
+      customizationIdList: string[];
+    }>,
+    cartId: string,
+    productMap: Map<
+      string,
+      { basePrice: number; currency: Currency; sellerId: SellerId }
+    >,
+    touchedIds: Set<string>,
+  ): CartItemEntity[] {
+    let items = [...initial];
+    for (const { item: g, customizationIdList } of availableGuest) {
+      const productSnap = productMap.get(g.productId)!;
+      const existing = items.find((i) =>
+        isSameVariant(i, g, productSnap, customizationIdList),
+      );
+      if (existing) {
+        items = items.map((i) =>
+          i.id === existing.id
+            ? { ...i, quantity: i.quantity + g.quantity }
+            : i,
+        );
+        touchedIds.add(existing.id);
+      } else {
+        const built = this.buildItem(
+          g,
+          cartId,
+          productMap,
+          customizationIdList,
+        );
+        items.push(built);
+        touchedIds.add(built.id);
+      }
+    }
+    return items;
+  }
+
+  async execute(dto: MigrateGuestCartDTO): Promise<MigrateGuestCartResult> {
+    const serverCart = await this.cartRepository.findActiveByUserId(dto.userId);
+
+    if (dto.guestItems.length === 0) {
+      return {
+        cart: serverCart ?? this.emptyCart(dto.userId),
+        migratedCount: 0,
+        skippedProductIds: [],
+        skippedCustomizationProductIds: [],
+      };
+    }
+
+    const {
+      productMap,
+      customizationByProductId,
+      capabilityByProductId,
+      createdCustomizationCache,
+    } = await this.fetchRelatedData(dto.guestItems);
+
+    const {
+      availableGuest,
+      skippedProductIds,
+      skippedCustomizationProductIds,
+    } = await this.filterAvailableItems(
+      dto,
+      productMap,
+      customizationByProductId,
+      capabilityByProductId,
+      createdCustomizationCache,
+    );
+
+    if (availableGuest.length === 0) {
+      return {
+        cart: serverCart ?? this.emptyCart(dto.userId),
+        migratedCount: 0,
+        skippedProductIds,
+        skippedCustomizationProductIds,
+      };
+    }
+
+    const {
+      cart: resultCart,
+      isNewCart,
+      touchedIds,
+    } = this.resolveCartAndStrategy(
+      dto,
+      serverCart,
+      availableGuest,
+      productMap,
+    );
 
     const saved = await this.cartRepository.save(resultCart);
 
@@ -257,39 +389,6 @@ export class MigrateGuestCart {
       skippedCustomizationProductIds,
     };
   }
-
-  private buildItem(
-    g: GuestCartItem,
-    cartId: string,
-    productMap: Map<
-      string,
-      { basePrice: number; currency: Currency; sellerId: SellerId }
-    >,
-    customizationIdList: string[],
-  ): CartItemEntity {
-    const product = productMap.get(g.productId)!;
-    return {
-      id: crypto.randomUUID(),
-      cartId,
-      productId: ProductId.create(g.productId),
-      sellerId: product.sellerId,
-      quantity: g.quantity,
-      unitPriceSnapshot: Money.create(product.basePrice, product.currency),
-      customizationIdList: [...customizationIdList].sort(),
-    };
-  }
-
-  private emptyCart(userId: string): CartEntity {
-    const now = new Date();
-    return {
-      id: '',
-      userId,
-      status: CartStatus.Active,
-      items: [],
-      createdAt: now,
-      updatedAt: now,
-    };
-  }
 }
 
 // --- helpers ---
@@ -304,7 +403,7 @@ type CustomizationRecord = {
   designPosition: unknown;
 };
 
-function resolveGuestCustomizationIds(
+async function resolveGuestCustomizationIds(
   g: GuestCartItem,
   customizations: CustomizationRecord[],
   customizationCreator: CustomizationCreatePort | undefined,
@@ -319,11 +418,8 @@ function resolveGuestCustomizationIds(
     (g.customizationDesignPosition !== undefined &&
       g.customizationDesignPosition !== null);
 
-  if (!hasCustomization) return Promise.resolve([]);
+  if (!hasCustomization) return [];
 
-  // Canvas-only customizations are matched by the imageUrl baked into
-  // designPosition. We still keep the text/color/size matchers so legacy
-  // guest items continue to dedupe.
   const matches = customizations.filter(
     (customization) =>
       customization.text === (g.customizationText ?? null) &&
@@ -332,26 +428,24 @@ function resolveGuestCustomizationIds(
       customization.imageUrl === (g.customizationImageUrl ?? null),
   );
 
-  if (matches.length === 1) return Promise.resolve([matches[0].id]);
-  if (matches.length > 1 || !customizationCreator) return Promise.resolve(null);
+  if (matches.length === 1) return [matches[0].id];
+  if (matches.length > 1 || !customizationCreator) return null;
 
   const cacheKey = guestCustomizationKey(g);
   const cached = createdCustomizationCache.get(cacheKey);
-  if (cached) return Promise.resolve([cached]);
+  if (cached) return [cached];
 
-  return customizationCreator
-    .create({
-      productId: g.productId,
-      text: g.customizationText ?? null,
-      color: g.customizationColor ?? null,
-      size: g.customizationSize ?? null,
-      imageUrl: g.customizationImageUrl ?? null,
-      designPosition: g.customizationDesignPosition ?? null,
-    })
-    .then((created) => {
-      createdCustomizationCache.set(cacheKey, created.id);
-      return [created.id];
-    });
+  const created = await customizationCreator.create({
+    productId: g.productId,
+    text: g.customizationText ?? null,
+    color: g.customizationColor ?? null,
+    size: g.customizationSize ?? null,
+    imageUrl: g.customizationImageUrl ?? null,
+    designPosition: g.customizationDesignPosition ?? null,
+  });
+
+  createdCustomizationCache.set(cacheKey, created.id);
+  return [created.id];
 }
 
 function guestCustomizationKey(g: GuestCartItem): string {
@@ -396,9 +490,18 @@ function isSameVariant(
   if (item.unitPriceSnapshot.amount !== g.unitPriceSnapshot) return false;
   if (item.unitPriceSnapshot.currency !== productSnap.currency) return false;
   return (
-    JSON.stringify([...item.customizationIdList].sort()) ===
-    JSON.stringify([...customizationIdList].sort())
+    JSON.stringify(
+      [...item.customizationIdList].toSorted((a, b) => a.localeCompare(b)),
+    ) ===
+    JSON.stringify(
+      [...customizationIdList].toSorted((a, b) => a.localeCompare(b)),
+    )
   );
+}
+
+function skipIfMissing(arr: string[], item: string): void {
+  if (arr.includes(item)) return;
+  arr.push(item);
 }
 
 function uniqueBy<T>(items: T[], keyFn: (t: T) => string): T[] {

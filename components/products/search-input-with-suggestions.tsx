@@ -225,10 +225,12 @@ export function SearchInputWithSuggestions({
             className={styles.searchToggle}
             aria-label={showInput ? labels.submitLabel : labels.ariaLabel}
             onMouseDown={(e) => {
-              if (!showInput) {
-                e.preventDefault();
-                setShowInput(true);
+              if (showInput) {
+                return;
               }
+
+              e.preventDefault();
+              setShowInput(true);
             }}
           >
             <svg aria-hidden="true" className={styles.searchIcon}>
@@ -244,34 +246,34 @@ export function SearchInputWithSuggestions({
           aria-label={labels.recentSearchesLabel}
           className={styles.suggestionsList}
         >
-          {hasSuggestions ? (
-            suggestions.map((s, idx) => (
-              <li
-                key={s.term}
-                id={`${listboxId}-opt-${idx}`}
-                role="option"
-                aria-selected={idx === activeIndex}
-                className={`${styles.suggestionItem} ${
-                  idx === activeIndex ? styles.suggestionItemActive : ''
-                }`}
-                onMouseDown={(e) => {
-                  // mousedown (not click) so it fires before the input's blur.
-                  e.preventDefault();
-                  handleSelect(s.term);
-                }}
-              >
-                {s.term}
-              </li>
-            ))
-          ) : showEmptySuggestions ? (
-            <li
-              role="option"
-              aria-selected={false}
-              className={styles.suggestionEmpty}
-            >
-              {labels.noRecentSearches}
-            </li>
-          ) : null}
+          {hasSuggestions
+            ? suggestions.map((s, idx) => (
+                <li
+                  key={s.term}
+                  id={`${listboxId}-opt-${idx}`}
+                  role="option"
+                  aria-selected={idx === activeIndex}
+                  className={`${styles.suggestionItem} ${
+                    idx === activeIndex ? styles.suggestionItemActive : ''
+                  }`}
+                  onMouseDown={(e) => {
+                    // mousedown (not click) so it fires before the input's blur.
+                    e.preventDefault();
+                    handleSelect(s.term);
+                  }}
+                >
+                  {s.term}
+                </li>
+              ))
+            : showEmptySuggestions && (
+                <li
+                  role="option"
+                  aria-selected={false}
+                  className={styles.suggestionEmpty}
+                >
+                  {labels.noRecentSearches}
+                </li>
+              )}
         </ul>
       )}
     </div>

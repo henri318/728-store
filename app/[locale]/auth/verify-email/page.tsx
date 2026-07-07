@@ -12,7 +12,7 @@ export default function VerifyEmailPage() {
   const token = searchParams.get('token');
   const [status, setStatus] = useState<
     'loading' | 'success' | 'expired' | 'invalid'
-  >(() => (!token ? 'invalid' : 'loading'));
+  >(() => (token ? 'loading' : 'invalid'));
   const dict = useDictionary();
 
   useEffect(() => {
@@ -22,11 +22,15 @@ export default function VerifyEmailPage() {
 
     const controller = new AbortController();
 
-    fetch(`/api/auth/verify-email?token=${encodeURIComponent(token)}`, {
-      signal: controller.signal,
-    })
-      .then((res) => res.json())
-      .then((data) => {
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/auth/verify-email?token=${encodeURIComponent(token)}`,
+          {
+            signal: controller.signal,
+          },
+        );
+        const data = await res.json();
         if (data.success) {
           setStatus('success');
         } else if (data.error?.includes('expired')) {
@@ -34,10 +38,10 @@ export default function VerifyEmailPage() {
         } else {
           setStatus('invalid');
         }
-      })
-      .catch(() => {
+      } catch {
         setStatus('invalid');
-      });
+      }
+    })();
 
     return () => controller.abort();
   }, [token]);

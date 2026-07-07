@@ -17,19 +17,23 @@ export function QuantityControls({
   onChange,
   min = 1,
   max = 99,
-  decrementLabel = '\u2212',
+  decrementLabel = '\u{2212}',
   incrementLabel = '+',
   variant = 'default',
 }: QuantityControlsProps) {
   const clamp = (n: number) => Math.max(min, Math.min(max, n));
   // Mostrar siempre el símbolo como contenido visual,
   // el label se usa solo para accesibilidad.
-  const decSymbol = '\u2212';
+  const decSymbol = '\u{2212}';
   const incSymbol = '+';
 
   return (
     <div
-      className={`${styles.controls}${variant === 'compact' ? ` ${styles.compact}` : ''}`}
+      className={
+        variant === 'compact'
+          ? `${styles.controls} ${styles.compact}`
+          : styles.controls
+      }
     >
       <button
         type="button"

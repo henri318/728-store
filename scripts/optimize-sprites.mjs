@@ -56,7 +56,7 @@ function resolveClassFills(svgContent) {
     const className = rule
       .slice(dotIdx + 1, braceIdx)
       .trim()
-      .split(/\s+/)[0];
+      .split(/\s+/, 1)[0];
     const fillMatch = rule.slice(braceIdx).match(/fill:\s*([^;}\s]+)/);
     if (className && fillMatch) {
       classMap[className] = fillMatch[1].trim();
@@ -68,7 +68,7 @@ function resolveClassFills(svgContent) {
   let result = svgContent;
   for (const [cls, fill] of Object.entries(classMap)) {
     const classAttr = new RegExp(`class="${cls}"`, 'g');
-    result = result.replace(classAttr, `fill="${fill}"`);
+    result = result.replace(classAttr, () => `fill="${fill}"`);
   }
 
   result = result.replace(styleRegex, '');

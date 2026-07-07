@@ -1,7 +1,5 @@
 import type { UploadEntity } from './entities/upload';
 
-export type { UploadEntity };
-
 /**
  * UploadRepository — the persistence port for uploads.
  *
@@ -14,3 +12,5 @@ export interface UploadRepository {
   remove(id: string): Promise<void>;
   findPendingOlderThan(hours: number): Promise<UploadEntity[]>;
 }
+
+export { type UploadEntity } from './entities/upload';

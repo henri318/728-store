@@ -99,30 +99,6 @@ const productCustomizationConfigSchema = z
   .strip();
 
 export class ProductCustomizationConfig {
-  readonly mode: CustomizationMode;
-  readonly previewEnabled: boolean;
-  readonly previewTemplateUrl: string | null;
-  readonly sizeOptions: string[] | null;
-  readonly textOffset: PreviewOffset | null;
-  readonly imageOffset: PreviewOffset | null;
-  readonly allowPhotoDesign: boolean;
-  readonly designChangeDescription: string | null;
-  readonly categoryId: string | null;
-  readonly tagNames: string[] | null;
-
-  private constructor(data: ProductCustomizationConfigJson) {
-    this.mode = data.mode;
-    this.previewEnabled = data.previewEnabled;
-    this.previewTemplateUrl = data.previewTemplateUrl;
-    this.sizeOptions = data.sizeOptions;
-    this.textOffset = data.textOffset;
-    this.imageOffset = data.imageOffset;
-    this.allowPhotoDesign = data.allowPhotoDesign ?? false;
-    this.designChangeDescription = data.designChangeDescription ?? null;
-    this.categoryId = data.categoryId ?? null;
-    this.tagNames = data.tagNames ?? null;
-  }
-
   static default(): ProductCustomizationConfig {
     return new ProductCustomizationConfig({
       mode: 'description',
@@ -157,6 +133,30 @@ export class ProductCustomizationConfig {
       categoryId: data.categoryId ?? null,
       tagNames: normalizeTagNames(data.tagNames ?? null),
     });
+  }
+
+  readonly mode: CustomizationMode;
+  readonly previewEnabled: boolean;
+  readonly previewTemplateUrl: string | null;
+  readonly sizeOptions: string[] | null;
+  readonly textOffset: PreviewOffset | null;
+  readonly imageOffset: PreviewOffset | null;
+  readonly allowPhotoDesign: boolean;
+  readonly designChangeDescription: string | null;
+  readonly categoryId: string | null;
+  readonly tagNames: string[] | null;
+
+  private constructor(data: ProductCustomizationConfigJson) {
+    this.mode = data.mode;
+    this.previewEnabled = data.previewEnabled;
+    this.previewTemplateUrl = data.previewTemplateUrl;
+    this.sizeOptions = data.sizeOptions;
+    this.textOffset = data.textOffset;
+    this.imageOffset = data.imageOffset;
+    this.allowPhotoDesign = data.allowPhotoDesign ?? false;
+    this.designChangeDescription = data.designChangeDescription ?? null;
+    this.categoryId = data.categoryId ?? null;
+    this.tagNames = data.tagNames ?? null;
   }
 
   isDefault(): boolean {

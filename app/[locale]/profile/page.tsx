@@ -36,7 +36,7 @@ export default function ProfilePage() {
   const { locale } = useParams<{ locale: string }>();
   const dict = useDictionary();
   const role = session?.user?.role;
-  const showAddress = role === 'CUSTOMER';
+  const isShowAddress = role === 'CUSTOMER';
   const [form, setForm] = useState<ProfileForm>({
     firstName: '',
     lastName: '',
@@ -56,7 +56,7 @@ export default function ProfilePage() {
     }
     if (status !== 'authenticated') return;
 
-    let cancelled = false;
+    let isCancelled = false;
     (async () => {
       setLoading(true);
       setError(null);
@@ -66,7 +66,7 @@ export default function ProfilePage() {
         if (!res.ok) {
           throw new Error(data.error || 'Failed to load profile');
         }
-        if (!cancelled) {
+        if (!isCancelled) {
           setForm({
             firstName: data.firstName || '',
             lastName: data.lastName || '',
@@ -79,20 +79,20 @@ export default function ProfilePage() {
             },
           });
         }
-      } catch (err: unknown) {
-        if (!cancelled) {
+      } catch (error_: unknown) {
+        if (!isCancelled) {
           setError(
-            err instanceof Error ? err.message : 'Failed to load profile',
+            error_ instanceof Error ? error_.message : 'Failed to load profile',
           );
         }
       } finally {
-        if (!cancelled) {
+        if (!isCancelled) {
           setLoading(false);
         }
       }
     })();
     return () => {
-      cancelled = true;
+      isCancelled = true;
     };
   }, [status, locale, router]);
 
@@ -110,7 +110,7 @@ export default function ProfilePage() {
     const body: Record<string, unknown> = {};
     if (form.firstName) body.firstName = form.firstName;
     if (form.lastName) body.lastName = form.lastName;
-    if (showAddress && hasAddress) body.address = form.address;
+    if (isShowAddress && hasAddress) body.address = form.address;
 
     try {
       const res = await fetch('/api/users/me', {
@@ -123,8 +123,10 @@ export default function ProfilePage() {
         throw new Error(data.error || 'Failed to update profile');
       }
       setSuccess(dict.profile.updateSuccess);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to update profile');
+    } catch (error_: unknown) {
+      setError(
+        error_ instanceof Error ? error_.message : 'Failed to update profile',
+      );
     } finally {
       setSaving(false);
     }
@@ -140,9 +142,11 @@ export default function ProfilePage() {
         throw new Error(data.error || 'Failed to delete account');
       }
       // Redirect to home after soft-delete
-      window.location.assign('/');
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to delete account');
+      globalThis.location.assign('/');
+    } catch (error_: unknown) {
+      setError(
+        error_ instanceof Error ? error_.message : 'Failed to delete account',
+      );
     } finally {
       setSaving(false);
       setShowDeleteModal(false);
@@ -184,7 +188,7 @@ export default function ProfilePage() {
             disabled
           />
 
-          {showAddress && (
+          {isShowAddress && (
             <div className={styles.addressSection}>
               <h3 className={styles.addressTitle}>{dict.auth.address}</h3>
               <div className={styles.addressFields}>

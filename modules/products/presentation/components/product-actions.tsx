@@ -52,7 +52,12 @@ export function ProductActions({
       });
 
       if (!res.ok) {
-        const errorData = await res.json().catch(() => null);
+        let errorData: { error?: string } | null = null;
+        try {
+          errorData = await res.json();
+        } catch {
+          /* ignore parse errors */
+        }
         throw new Error(errorData?.error || `HTTP ${res.status}`);
       }
 

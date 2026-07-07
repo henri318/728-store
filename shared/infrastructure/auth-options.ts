@@ -25,7 +25,7 @@ export const authOptions: NextAuthOptions = {
             'x-forwarded-for'
           ]
             ?.toString()
-            .split(',')[0]
+            .split(',', 1)[0]
             ?.trim() ||
           (req?.headers as Record<string, string | string[] | undefined>)?.[
             'x-real-ip'

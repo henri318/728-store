@@ -122,7 +122,7 @@ export default function CreateSellerPage() {
 
   const updateField = (field: keyof FormState, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
+    if (Object.hasOwn(errors, field)) {
       setErrors((prev) => {
         const next = { ...prev };
         delete next[field];
@@ -158,9 +158,9 @@ export default function CreateSellerPage() {
 
       router.push(`/${locale}/admin/sellers`);
       router.refresh();
-    } catch (err: unknown) {
+    } catch (error: unknown) {
       setServerError(
-        err instanceof Error ? err.message : dict.admin.createSellerError,
+        error instanceof Error ? error.message : dict.admin.createSellerError,
       );
     } finally {
       setLoading(false);

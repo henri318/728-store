@@ -21,6 +21,23 @@ import { RecordSearchUseCase } from './record-search-use-case';
  *    single failure does not break the in-process bus.
  */
 export class HandleProductSearchExecuted {
+  /**
+   * Wire the handler to the event bus. Mirrors the
+   * `HandleCartCheckedOut.subscribe` pattern so HMR doesn't double-register.
+   */
+  static subscribe(
+    eventBus: EventBusPort,
+    handler: HandleProductSearchExecuted,
+  ): void {
+    eventBus.on(GlobalEvents.PRODUCT_SEARCH_EXECUTED, async (data: unknown) => {
+      try {
+        await handler.handle(data as ProductSearchExecutedPayload);
+      } catch (error) {
+        console.error('Error processing ProductSearchExecuted event:', error);
+      }
+    });
+  }
+
   constructor(private readonly recordSearch: RecordSearchUseCase) {}
 
   async handle(
@@ -41,23 +58,6 @@ export class HandleProductSearchExecuted {
       userId: payload.userId,
       term: payload.term,
       locale: payload.locale,
-    });
-  }
-
-  /**
-   * Wire the handler to the event bus. Mirrors the
-   * `HandleCartCheckedOut.subscribe` pattern so HMR doesn't double-register.
-   */
-  static subscribe(
-    eventBus: EventBusPort,
-    handler: HandleProductSearchExecuted,
-  ): void {
-    eventBus.on(GlobalEvents.PRODUCT_SEARCH_EXECUTED, async (data: unknown) => {
-      try {
-        await handler.handle(data as ProductSearchExecutedPayload);
-      } catch (error) {
-        console.error('Error processing ProductSearchExecuted event:', error);
-      }
     });
   }
 }

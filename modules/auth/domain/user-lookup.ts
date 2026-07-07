@@ -1,7 +1,5 @@
 import type { UserLookupResult } from './entities/user-lookup-result';
 
-export type { UserLookupResult };
-
 /**
  * UserLookupPort — the port for fetching a minimal user record used by
  * authorization proxy.
@@ -18,3 +16,5 @@ export type { UserLookupResult };
 export interface UserLookupPort {
   findById(userId: string): Promise<UserLookupResult | null>;
 }
+
+export { type UserLookupResult } from './entities/user-lookup-result';

@@ -10,14 +10,42 @@ import type {
 /**
  * Prisma adapter for the EmailQueueRepository port.
  *
- * Maps the kernel `EmailQueueEntry` shape to the `EmailQueue` Prisma model
+ * Maps the kernel EmailQueueEntry shape to the EmailQueue Prisma model
  * and back. This is the only file that knows about the Prisma model shape.
  *
  * The 4 worker methods (claimPending, markSent, markFailed, reschedule) are
- * the seam that lets `workers/email-worker.ts` stay free of `prisma.*`
+ * the seam that lets workers/email-worker.ts stay free of prisma.*
  * imports — the worker resolves them through the container.
  */
 export class PrismaEmailQueueRepository implements EmailQueueRepository {
+  private toWorkerEntry(row: {
+    id: string;
+    to: string;
+    subject: string;
+    htmlBody: string;
+    template: string | null;
+    metadata: unknown;
+    createdAt: Date;
+    status: string;
+    retryCount: number;
+    maxRetries: number;
+    scheduledAt: Date;
+  }): EmailQueueWorkerEntry {
+    return {
+      id: row.id,
+      to: row.to,
+      subject: row.subject,
+      htmlBody: row.htmlBody,
+      template: row.template ?? '',
+      metadata: (row.metadata as Record<string, unknown> | null) ?? undefined,
+      createdAt: row.createdAt,
+      status: row.status,
+      retryCount: row.retryCount,
+      maxRetries: row.maxRetries,
+      scheduledAt: row.scheduledAt,
+    };
+  }
+
   async create(entry: CreateEmailQueueInput): Promise<EmailQueueEntry> {
     const row = await prisma.emailQueue.create({
       data: {
@@ -72,7 +100,7 @@ export class PrismaEmailQueueRepository implements EmailQueueRepository {
   // -------------------------------------------------------------------------
 
   /**
-   * Atomically claim up to `batchSize` entries that are due for processing.
+   * Atomically claim up to atchSize entries that are due for processing.
    * Implemented as: find PENDING + scheduledAt <= now, then updateMany
    * marking them PROCESSING. Both operations hit the same model so the
    * race window is small; for stricter guarantees a transaction can be
@@ -138,33 +166,5 @@ export class PrismaEmailQueueRepository implements EmailQueueRepository {
         error,
       },
     });
-  }
-
-  private toWorkerEntry(row: {
-    id: string;
-    to: string;
-    subject: string;
-    htmlBody: string;
-    template: string | null;
-    metadata: unknown;
-    createdAt: Date;
-    status: string;
-    retryCount: number;
-    maxRetries: number;
-    scheduledAt: Date;
-  }): EmailQueueWorkerEntry {
-    return {
-      id: row.id,
-      to: row.to,
-      subject: row.subject,
-      htmlBody: row.htmlBody,
-      template: row.template ?? '',
-      metadata: (row.metadata as Record<string, unknown> | null) ?? undefined,
-      createdAt: row.createdAt,
-      status: row.status,
-      retryCount: row.retryCount,
-      maxRetries: row.maxRetries,
-      scheduledAt: row.scheduledAt,
-    };
   }
 }

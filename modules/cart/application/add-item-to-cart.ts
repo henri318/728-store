@@ -54,6 +54,44 @@ export class AddItemToCart {
     private customizationLookup: CustomizationLookupPort,
   ) {}
 
+  /**
+   * Validates that all customization IDs exist and belong to the
+   * target product (and therefore the same seller). Throws
+   * InvalidCustomizationError if any ID is missing or belongs to
+   * a different product.
+   */
+  private async validateCustomizations(
+    customizationIdList: string[],
+    productId: string,
+    _sellerId: string,
+  ): Promise<void> {
+    const snapshots =
+      await this.customizationLookup.findByIds(customizationIdList);
+
+    // Check all IDs were found
+    if (snapshots.length !== customizationIdList.length) {
+      throw new InvalidCustomizationError(
+        `Some customization IDs do not exist`,
+        `One or more selected customizations are not available`,
+      );
+    }
+
+    // Check all customizations belong to the product
+    for (const snapshot of snapshots) {
+      if (snapshot.productId !== productId) {
+        throw new InvalidCustomizationError(
+          `Customization ${snapshot.id} does not belong to product ${productId}`,
+          `One or more selected customizations are not available for this product`,
+        );
+      }
+    }
+
+    // Note: sellerId validation is implicit — customizations derive
+    // their sellerId from the Product. If productId matches, the
+    // sellerId is guaranteed to match (enforced at customization
+    // creation time by the customizations module).
+  }
+
   async execute(dto: AddItemToCartDTO): Promise<CartItemEntity> {
     // 1. Validate quantity (throws InvalidQuantityError on out-of-range)
     const quantity = Quantity.create(dto.quantity);
@@ -128,7 +166,9 @@ export class AddItemToCart {
         sellerId: product.sellerId,
         quantity: quantity.value,
         unitPriceSnapshot: Money.create(product.basePrice, product.currency),
-        customizationIdList: [...customizationIdList].sort(),
+        customizationIdList: [...customizationIdList].toSorted((a, b) =>
+          a.localeCompare(b),
+        ),
       };
       updatedItems = [...cart!.items, updatedItem];
     }
@@ -160,44 +200,6 @@ export class AddItemToCart {
 
     return updatedItem;
   }
-
-  /**
-   * Validates that all customization IDs exist and belong to the
-   * target product (and therefore the same seller). Throws
-   * InvalidCustomizationError if any ID is missing or belongs to
-   * a different product.
-   */
-  private async validateCustomizations(
-    customizationIdList: string[],
-    productId: string,
-    _sellerId: string,
-  ): Promise<void> {
-    const snapshots =
-      await this.customizationLookup.findByIds(customizationIdList);
-
-    // Check all IDs were found
-    if (snapshots.length !== customizationIdList.length) {
-      throw new InvalidCustomizationError(
-        `Some customization IDs do not exist`,
-        `One or more selected customizations are not available`,
-      );
-    }
-
-    // Check all customizations belong to the product
-    for (const snapshot of snapshots) {
-      if (snapshot.productId !== productId) {
-        throw new InvalidCustomizationError(
-          `Customization ${snapshot.id} does not belong to product ${productId}`,
-          `One or more selected customizations are not available for this product`,
-        );
-      }
-    }
-
-    // Note: sellerId validation is implicit — customizations derive
-    // their sellerId from the Product. If productId matches, the
-    // sellerId is guaranteed to match (enforced at customization
-    // creation time by the customizations module).
-  }
 }
 
 // --- helpers ---
@@ -210,7 +212,9 @@ function isSameVariant(
   if (!item.productId.equals(productId)) return false;
   // Compare sorted customization ID lists — same IDs in any order
   // means the same variant.
-  const a = [...item.customizationIdList].sort();
-  const b = [...customizationIdList].sort();
+  const a = [...item.customizationIdList].toSorted((a, b) =>
+    a.localeCompare(b),
+  );
+  const b = [...customizationIdList].toSorted((a, b) => a.localeCompare(b));
   return JSON.stringify(a) === JSON.stringify(b);
 }

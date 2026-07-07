@@ -9,14 +9,6 @@
  *   {d.toString()}  // "25/6/2026" for es
  */
 export class LocalizedDate {
-  readonly date: Date;
-  readonly locale: string;
-
-  private constructor(date: Date, locale: string) {
-    this.date = date;
-    this.locale = locale;
-  }
-
   static create(date: Date | string | number, locale: string): LocalizedDate {
     if (!locale) {
       throw new Error('LocalizedDate requires a locale');
@@ -24,10 +16,18 @@ export class LocalizedDate {
 
     const d = date instanceof Date ? date : new Date(date);
     if (Number.isNaN(d.getTime())) {
-      throw new Error('LocalizedDate received an invalid date');
+      throw new TypeError('LocalizedDate received an invalid date');
     }
 
     return new LocalizedDate(d, locale);
+  }
+
+  readonly date: Date;
+  readonly locale: string;
+
+  private constructor(date: Date, locale: string) {
+    this.date = date;
+    this.locale = locale;
   }
 
   /** Format using the route locale, e.g. "25/6/2026". */

@@ -56,10 +56,10 @@ export class PrismaRateLimiter implements RateLimiter {
   async recordLoginAttempt(
     email: string,
     ip: string,
-    success: boolean,
+    isSuccess: boolean,
   ): Promise<void> {
     await prisma.loginAttempt.create({
-      data: { email, ipAddress: ip, success },
+      data: { email, ipAddress: ip, success: isSuccess },
     });
   }
 }

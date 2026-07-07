@@ -94,7 +94,7 @@ function CustomizationExperienceInner({
   const { draft, setImage, setDesignPosition } = useCustomizationDraft();
   const customizationModel =
     ProductCustomizationConfig.fromJson(customizationConfig);
-  const allowsPhoto = customizationModel.allowPhotoDesign !== false;
+  const isAllowsPhoto = customizationModel.allowPhotoDesign !== false;
   const activeProductImageUrl =
     productImages.find((img) => img.alt === draft.color)?.url ??
     previewBaseImageUrl;
@@ -146,7 +146,7 @@ function CustomizationExperienceInner({
 
       <div className={styles.columns}>
         <div className={styles.canvasCol}>
-          {allowsPhoto && previewBaseImageUrl && (
+          {isAllowsPhoto && previewBaseImageUrl && (
             <MockupCanvasControl
               productImageUrl={activeProductImageUrl}
               initialDesignUrl={draft.imageUrl}

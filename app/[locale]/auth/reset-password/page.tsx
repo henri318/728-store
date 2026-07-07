@@ -20,7 +20,7 @@ export default function ResetPasswordPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(() =>
-    !token ? dict.auth.tokenExpired : null,
+    token ? null : dict.auth.tokenExpired,
   );
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -64,9 +64,11 @@ export default function ResetPasswordPage() {
       }
       setSuccess(true);
       router.push('/');
-    } catch (err: unknown) {
+    } catch (error_: unknown) {
       setError(
-        err instanceof Error ? err.message : dict.auth.failedToResetPassword,
+        error_ instanceof Error
+          ? error_.message
+          : dict.auth.failedToResetPassword,
       );
     } finally {
       setLoading(false);

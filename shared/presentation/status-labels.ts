@@ -18,7 +18,15 @@ export function resolveStatusLabel(
   dict: Record<string, any>,
   fallback = status,
 ): string {
-  const key =
-    map[status] ?? map[status.toLowerCase()] ?? map[status.toUpperCase()];
-  return key && dict[key] ? dict[key] : fallback;
+  let key: string | undefined;
+  if (Object.hasOwn(map, status)) {
+    key = map[status];
+  } else if (Object.hasOwn(map, status.toLowerCase())) {
+    key = map[status.toLowerCase()];
+  } else if (Object.hasOwn(map, status.toUpperCase())) {
+    key = map[status.toUpperCase()];
+  }
+
+  if (key && Object.hasOwn(dict, key)) return dict[key];
+  return fallback;
 }

@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
 function getClientIp(req: NextRequest): string {
   const forwardedFor = req.headers.get('x-forwarded-for');
   if (forwardedFor) {
-    return forwardedFor.split(',')[0]?.trim() || '0.0.0.0';
+    return forwardedFor.split(',', 1)[0]?.trim() || '0.0.0.0';
   }
 
   return req.headers.get('x-real-ip') ?? '0.0.0.0';

@@ -111,12 +111,12 @@ export function InfiniteProductList({
       if (next.length > 0) {
         const template =
           next.length === 1 ? labels.itemsLoadedOne : labels.itemsLoadedMany;
-        setAnnouncement(template.replace('{count}', String(next.length)));
+        setAnnouncement(template.split('{count}').join(String(next.length)));
       } else {
         setAnnouncement('');
       }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+    } catch (error_: unknown) {
+      setError(error_ instanceof Error ? error_.message : 'Unknown error');
     } finally {
       setIsLoading(false);
     }
@@ -145,7 +145,7 @@ export function InfiniteProductList({
     return (
       <p className={styles.emptyMessage} role="status">
         {q.trim().length > 0
-          ? labels.noSearchResults.replace('{term}', q)
+          ? labels.noSearchResults.replace('{term}', () => q)
           : labels.noProducts}
       </p>
     );

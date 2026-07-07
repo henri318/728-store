@@ -198,7 +198,7 @@ async function uploadPhoto(file: File, defaultName: string) {
     id: result.id,
     url: toAbsoluteUrl(result.publicUrl),
     alt: normalizePhotoName(
-      file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' '),
+      file.name.replace(/\.[^.]+$/, '').replaceAll(/[-_]+/g, ' '),
       defaultName,
     ),
     size: file.size,
@@ -258,7 +258,7 @@ export function ProductForm({
   ) => {
     setForm((current) => ({ ...current, [field]: value }));
     setErrors((current) => {
-      if (!current[field]) return current;
+      if (!Object.hasOwn(current, field)) return current;
       const next = { ...current };
       delete next[field];
       return next;
@@ -337,9 +337,9 @@ export function ProductForm({
             null,
         };
       });
-    } catch (e) {
+    } catch (error) {
       setPhotoError(
-        e instanceof Error ? e.message : labels.gallery.uploadError,
+        error instanceof Error ? error.message : labels.gallery.uploadError,
       );
     } finally {
       setUploading(false);
@@ -351,7 +351,7 @@ export function ProductForm({
 
     for (const issue of error.issues) {
       const path = issue.path[0] as keyof FormErrors | undefined;
-      if (path && !next[path]) {
+      if (path !== undefined && !Object.hasOwn(next, path)) {
         next[path] = issue.message;
       }
     }
@@ -382,9 +382,12 @@ export function ProductForm({
       });
 
       if (!response.ok) {
-        const data = (await response.json().catch(() => null)) as {
-          error?: string;
-        } | null;
+        let data: { error?: string } | null = null;
+        try {
+          data = (await response.json()) as { error?: string } | null;
+        } catch {
+          data = null;
+        }
         throw new Error(data?.error || labels.error);
       }
 

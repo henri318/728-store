@@ -1,7 +1,5 @@
 import type { RateLimitResult } from './entities/rate-limit-result';
 
-export type { RateLimitResult };
-
 /**
  * RateLimiter — the port for login attempt rate limiting.
  *
@@ -36,6 +34,8 @@ export interface RateLimiter {
   recordLoginAttempt(
     email: string,
     ip: string,
-    success: boolean,
+    isSuccess: boolean,
   ): Promise<void>;
 }
+
+export { type RateLimitResult } from './entities/rate-limit-result';

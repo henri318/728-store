@@ -28,12 +28,49 @@ export interface AssignToProductionDTO {
  * State Transition: in_progress → completed
  *
  * @example
- * ```typescript
+ * `	ypescript
  * const useCase = new AssignToProductionUseCase(orderRepo, outboxRepo, transactionalService);
  * await useCase.execute({ orderId: 'order-1', customizationId: 'custom-1' });
- * ```
+ * `
  */
 export class AssignToProductionUseCase {
+  /**
+   * Static method to subscribe to ProductCustomizationCreated events from the event bus.
+   *
+   * This method registers a listener that automatically invokes the use case
+   * when a ProductCustomizationCreated event is emitted by the product-customization module.
+   *
+   * Error handling: If the use case execution fails, the error is logged
+   * but not re-thrown to prevent breaking the event processing pipeline.
+   *
+   * @param eventBus - The event bus instance to subscribe to
+   * @param useCase - The use case instance to invoke on events
+   *
+   * @example
+   * `	ypescript
+   * const useCase = new AssignToProductionUseCase(orderRepo, outboxRepo);
+   * AssignToProductionUseCase.subscribe(eventBus, useCase);
+   * `
+   */
+  static subscribe(
+    eventBus: EventBusPort,
+    useCase: AssignToProductionUseCase,
+  ): void {
+    eventBus.on(
+      GlobalEvents.PRODUCT_CUSTOMIZATION_CREATED,
+      async (data: unknown) => {
+        try {
+          await useCase.execute(data as AssignToProductionDTO);
+        } catch (error) {
+          console.error(
+            'Error processing ProductCustomizationCreated event:',
+            error,
+          );
+        }
+      },
+    );
+  }
+
   /**
    * Creates a new AssignToProductionUseCase instance.
    *
@@ -61,12 +98,12 @@ export class AssignToProductionUseCase {
    * @throws Error if order not found, order not in progress, or invalid state transition
    *
    * @example
-   * ```typescript
+   * `	ypescript
    * await useCase.execute({
    *   orderId: 'order-123',
    *   customizationId: 'custom-456'
    * });
-   * ```
+   * `
    */
   async execute(data: AssignToProductionDTO): Promise<void> {
     // Find the order
@@ -122,42 +159,5 @@ export class AssignToProductionUseCase {
         },
       );
     }
-  }
-
-  /**
-   * Static method to subscribe to ProductCustomizationCreated events from the event bus.
-   *
-   * This method registers a listener that automatically invokes the use case
-   * when a ProductCustomizationCreated event is emitted by the product-customization module.
-   *
-   * Error handling: If the use case execution fails, the error is logged
-   * but not re-thrown to prevent breaking the event processing pipeline.
-   *
-   * @param eventBus - The event bus instance to subscribe to
-   * @param useCase - The use case instance to invoke on events
-   *
-   * @example
-   * ```typescript
-   * const useCase = new AssignToProductionUseCase(orderRepo, outboxRepo);
-   * AssignToProductionUseCase.subscribe(eventBus, useCase);
-   * ```
-   */
-  static subscribe(
-    eventBus: EventBusPort,
-    useCase: AssignToProductionUseCase,
-  ): void {
-    eventBus.on(
-      GlobalEvents.PRODUCT_CUSTOMIZATION_CREATED,
-      async (data: unknown) => {
-        try {
-          await useCase.execute(data as AssignToProductionDTO);
-        } catch (error) {
-          console.error(
-            'Error processing ProductCustomizationCreated event:',
-            error,
-          );
-        }
-      },
-    );
   }
 }

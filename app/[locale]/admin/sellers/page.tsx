@@ -165,8 +165,8 @@ export default async function AdminSellersPage({
             defaultValue={filter.q ?? ''}
             hiddenFields={{
               pageSize: String(pageSize),
-              ...(filter.sortBy ? { sortBy: filter.sortBy } : {}),
-              ...(filter.sortDir ? { sortDir: filter.sortDir } : {}),
+              ...(filter.sortBy && { sortBy: filter.sortBy }),
+              ...(filter.sortDir && { sortDir: filter.sortDir }),
             }}
           />
         </div>
@@ -195,8 +195,10 @@ export default async function AdminSellersPage({
             prevLabel={dict.admin.pagePrev}
             nextLabel={dict.admin.pageNext}
             pageInfo={dict.admin.pageXofY
-              .replace('{current}', String(currentPage))
-              .replace('{total}', String(totalPages))}
+              .split('{current}')
+              .join(currentPage.toString())
+              .split('{total}')
+              .join(totalPages.toString())}
           />
         </>
       )}

@@ -55,7 +55,7 @@ export function MergeDialog({ isOpen, onClose, labels }: MergeDialogProps) {
 
       if (res.ok) {
         clearCart();
-        window.dispatchEvent(new Event(CART_UPDATED_EVENT));
+        globalThis.dispatchEvent(new Event(CART_UPDATED_EVENT));
         router.refresh();
         onClose();
       }

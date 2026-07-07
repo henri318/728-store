@@ -47,16 +47,16 @@ export default async function HomePage({
   // Server-backed recent suggestions for authenticated users only.
   // v1 spec: guests receive null; no localStorage / sessionStorage / cookies
   // are ever written by the search feature.
-  const recent: RecentSearchSuggestion[] | null = session
-    ? await new GetRecentSearchesUseCase(container.getSearchHistoryRepository())
-        .execute({ userId: session.id, locale })
-        .then((entries) =>
-          entries.map((e) => ({
-            term: e.term,
-            searchedAt: e.searchedAt.toISOString(),
-          })),
-        )
-    : null;
+  let recent: RecentSearchSuggestion[] | null = null;
+  if (session) {
+    const entries = await new GetRecentSearchesUseCase(
+      container.getSearchHistoryRepository(),
+    ).execute({ userId: session.id, locale });
+    recent = entries.map((e) => ({
+      term: e.term,
+      searchedAt: e.searchedAt.toISOString(),
+    }));
+  }
 
   // Client island receives a stable JSON shape. We pre-format
   // the price string on the server so the client never receives

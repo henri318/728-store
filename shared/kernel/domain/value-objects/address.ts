@@ -1,21 +1,4 @@
 export class Address {
-  readonly street: string;
-  readonly city: string;
-  readonly postalCode: string;
-  readonly country: string;
-
-  private constructor(
-    street: string,
-    city: string,
-    postalCode: string,
-    country: string,
-  ) {
-    this.street = street;
-    this.city = city;
-    this.postalCode = postalCode;
-    this.country = country;
-  }
-
   static create(
     street: string,
     city: string,
@@ -42,6 +25,23 @@ export class Address {
       trimmedPostalCode,
       trimmedCountry,
     );
+  }
+
+  readonly street: string;
+  readonly city: string;
+  readonly postalCode: string;
+  readonly country: string;
+
+  private constructor(
+    street: string,
+    city: string,
+    postalCode: string,
+    country: string,
+  ) {
+    this.street = street;
+    this.city = city;
+    this.postalCode = postalCode;
+    this.country = country;
   }
 
   equals(other: Address): boolean {

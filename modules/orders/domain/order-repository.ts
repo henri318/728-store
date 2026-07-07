@@ -3,8 +3,6 @@ import type { OrderLineItemEntity } from './entities/order-line-item';
 import type { OrderStatus } from './value-objects/order-status-type';
 import type { PaginatedResult } from '@/shared/kernel/domain/value-objects/pagination';
 
-export type { OrderEntity, OrderLineItemEntity, OrderStatus };
-
 /**
  * Repository interface for order persistence operations.
  * Follows the Repository pattern for data access abstraction.
@@ -77,3 +75,7 @@ export interface OrderListFilter {
   page?: number;
   pageSize?: number;
 }
+
+export { type OrderEntity } from './entities/order';
+export { type OrderLineItemEntity } from './entities/order-line-item';
+export { type OrderStatus } from './value-objects/order-status-type';

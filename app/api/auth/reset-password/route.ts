@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
     // Rate limit by IP — prevent abuse of this public endpoint
     const ip =
-      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+      req.headers.get('x-forwarded-for')?.split(',', 1)[0]?.trim() ??
       req.headers.get('x-real-ip') ??
       'unknown';
     const rateLimiter = container.getRateLimiter();
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     // Record rate-limiting on errors too
     try {
       const ip =
-        req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+        req.headers.get('x-forwarded-for')?.split(',', 1)[0]?.trim() ??
         req.headers.get('x-real-ip') ??
         'unknown';
       await container.getRateLimiter().recordLoginAttempt(ip, ip, false);

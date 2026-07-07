@@ -27,6 +27,27 @@ import { prisma } from '@/shared/infrastructure/prisma';
  * (Transactional Outbox Pattern).
  */
 export class PrismaSellerRepository implements SellerRepository {
+  private buildWhere(
+    filter: SellersListFilter,
+  ): import('@prisma/client').Prisma.SellerWhereInput {
+    const where: import('@prisma/client').Prisma.SellerWhereInput = {
+      deletedAt: null,
+    };
+
+    if (filter.status !== undefined) {
+      where.status = filter.status;
+    }
+
+    if (filter.q !== undefined && filter.q.trim() !== '') {
+      where.OR = [
+        { name: { contains: filter.q.trim(), mode: 'insensitive' } },
+        { description: { contains: filter.q.trim(), mode: 'insensitive' } },
+      ];
+    }
+
+    return where;
+  }
+
   async save(
     seller: SellerEntity,
     tx: PrismaClient = prisma,
@@ -64,14 +85,14 @@ export class PrismaSellerRepository implements SellerRepository {
     const rows = await prisma.seller.findMany({
       where: { deletedAt: null },
     });
-    return rows.map(toDomain);
+    return rows.map((r) => toDomain(r));
   }
 
   async findAllByStatus(status: SellerStatus): Promise<SellerEntity[]> {
     const rows = await prisma.seller.findMany({
       where: { status, deletedAt: null },
     });
-    return rows.map(toDomain);
+    return rows.map((r) => toDomain(r));
   }
 
   async findPaginated(
@@ -93,33 +114,12 @@ export class PrismaSellerRepository implements SellerRepository {
     const total = await prisma.seller.count({ where });
 
     return {
-      items: rows.map(toDomain),
+      items: rows.map((r) => toDomain(r)),
       total,
       page,
       pageSize,
       totalPages: Math.ceil(total / pageSize),
     };
-  }
-
-  private buildWhere(
-    filter: SellersListFilter,
-  ): import('@prisma/client').Prisma.SellerWhereInput {
-    const where: import('@prisma/client').Prisma.SellerWhereInput = {
-      deletedAt: null,
-    };
-
-    if (filter.status !== undefined) {
-      where.status = filter.status;
-    }
-
-    if (filter.q !== undefined && filter.q.trim() !== '') {
-      where.OR = [
-        { name: { contains: filter.q.trim(), mode: 'insensitive' } },
-        { description: { contains: filter.q.trim(), mode: 'insensitive' } },
-      ];
-    }
-
-    return where;
   }
 
   async update(

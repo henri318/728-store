@@ -37,10 +37,10 @@ export class DeleteUploadUseCase {
     // 4. Delete from R2 AFTER transaction succeeds (best-effort)
     try {
       await this.storage.delete(upload.storageKey);
-    } catch (err) {
+    } catch (error) {
       console.error(
         `[DeleteUploadUseCase] R2 delete failed for key ${upload.storageKey}:`,
-        err,
+        error,
       );
     }
   }

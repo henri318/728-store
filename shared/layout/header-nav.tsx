@@ -20,7 +20,7 @@ export function HeaderNav({ loginLabel, cartAlt }: HeaderNavProps) {
   const { data: session, status } = useSession();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const isAuthPage = pathname.includes('/auth/');
-  const locale = pathname.split('/')[1] ?? 'es';
+  const locale = pathname.split('/', 2)[1] ?? 'es';
 
   if (status === 'authenticated' && session?.user) {
     const isInternal =

@@ -13,12 +13,6 @@ const MAX_QUANTITY = 99;
  * Quantity rather than mutating the receiver.
  */
 export class Quantity {
-  readonly value: number;
-
-  private constructor(value: number) {
-    this.value = value;
-  }
-
   static create(amount: number): Quantity {
     if (!Number.isSafeInteger(amount)) {
       throw new InvalidQuantityError(
@@ -31,6 +25,12 @@ export class Quantity {
       );
     }
     return new Quantity(amount);
+  }
+
+  readonly value: number;
+
+  private constructor(value: number) {
+    this.value = value;
   }
 
   equals(other: Quantity): boolean {

@@ -135,7 +135,7 @@ export default async function CustomerOrdersPage({
     if (filter.pageSize !== 20) params.set('pageSize', String(filter.pageSize));
     if (filter.q) params.set('q', filter.q);
     const qs = params.toString();
-    return `/${locale}/orders${qs ? `?${qs}` : ''}`;
+    return qs ? `/${locale}/orders?${qs}` : `/${locale}/orders`;
   };
 
   return (
@@ -153,7 +153,7 @@ export default async function CustomerOrdersPage({
               ariaLabel={dict.orders?.searchItems ?? 'Search by product'}
               defaultValue={filter.q}
               hiddenFields={
-                filter.status !== 'all' ? { status: filter.status } : undefined
+                filter.status === 'all' ? undefined : { status: filter.status }
               }
             />
           </div>

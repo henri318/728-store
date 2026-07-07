@@ -94,12 +94,12 @@ export default async function RootLayout({
   // ADMIN/DESIGNER and have no orders
   const role = (session?.user as { role?: string } | undefined)?.role;
   const isInternal = role === ADMIN_ROLE || role === DESIGNER_ROLE;
-  let showBanner = !isInternal;
-  if (showBanner && session?.user?.id) {
+  let isShowBanner = !isInternal;
+  if (isShowBanner && session?.user?.id) {
     const orderCount = await prisma.order.count({
       where: { userId: session.user.id },
     });
-    showBanner = orderCount === 0;
+    isShowBanner = orderCount === 0;
   }
 
   return (
@@ -142,7 +142,7 @@ export default async function RootLayout({
                 </div>
               </header>
 
-              {showBanner && <HeaderBanner text={dict.common.promoBanner} />}
+              {isShowBanner && <HeaderBanner text={dict.common.promoBanner} />}
 
               <main className={styles.main}>
                 <DictionaryProvider dict={dict}>

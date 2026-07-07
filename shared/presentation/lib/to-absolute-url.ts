@@ -7,5 +7,5 @@ export function toAbsoluteUrl(url: string): string {
     return url;
   }
 
-  return new URL(url, window.location.origin).href;
+  return new URL(url, globalThis.location.origin).href;
 }

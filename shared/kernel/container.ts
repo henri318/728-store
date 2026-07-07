@@ -2,7 +2,7 @@
  * Composition Root — central place where all dependencies are wired
  * according to the current environment.
  *
- * Call `initContainer()` once at each process entry point (worker, Next.js
+ * Call initContainer() once at each process entry point (worker, Next.js
  * server, test setup). After that, retrieve bindings via the typed getters.
  *
  * Architecture:
@@ -14,12 +14,14 @@
  */
 
 import type { EmailSender } from './email-sender';
+import { BrevoEmailSender } from './brevo-email-sender';
+import { ConsoleEmailSender } from './console-email-sender';
 
 // ---------------------------------------------------------------------------
 // State
 // ---------------------------------------------------------------------------
 
-let _emailSender: EmailSender | null = null;
+const state: Record<string, unknown> = {};
 
 // ---------------------------------------------------------------------------
 // Initialization
@@ -27,18 +29,11 @@ let _emailSender: EmailSender | null = null;
 
 /**
  * Initialize all dependency bindings for the current environment.
- * Must be called exactly once per process before any getter is used.
+ * Idempotent — safe to call multiple times. Each getter lazily initializes
+ * its own dependency on first access.
  */
-export async function initContainer(): Promise<void> {
-  if (_emailSender) return; // idempotent — safe to call multiple times
-
-  if (process.env.NODE_ENV === 'production') {
-    const { BrevoEmailSender } = await import('./brevo-email-sender');
-    _emailSender = new BrevoEmailSender();
-  } else {
-    const { ConsoleEmailSender } = await import('./console-email-sender');
-    _emailSender = new ConsoleEmailSender();
-  }
+export function initContainer(): void {
+  getEmailSender();
 }
 
 // ---------------------------------------------------------------------------
@@ -47,21 +42,22 @@ export async function initContainer(): Promise<void> {
 
 /**
  * Returns the EmailSender bound for the current environment.
- * Throws if `initContainer()` has not been called yet.
+ * Lazily initializes on first call.
  */
 export function getEmailSender(): EmailSender {
-  if (!_emailSender) {
-    throw new Error(
-      '[Container] Not initialized. Call initContainer() at your process entry point before using getters.',
-    );
+  if (!state.emailSender) {
+    state.emailSender =
+      process.env.NODE_ENV === 'production'
+        ? new BrevoEmailSender()
+        : new ConsoleEmailSender();
   }
-  return _emailSender;
+  return state.emailSender as EmailSender;
 }
 
 // ---------------------------------------------------------------------------
 // Testing helpers
 // ---------------------------------------------------------------------------
-// In tests you can call `initContainer()` or override individual bindings:
+// In tests you can call initContainer() or override individual bindings:
 //
 //   import { container } from '@/shared/kernel/container';
 //   container.setEmailSender(new MockEmailSender());
@@ -73,6 +69,6 @@ export const container = {
   getEmailSender,
   /** Override — useful in tests to inject a mock without touching env vars. */
   setEmailSender(sender: EmailSender): void {
-    _emailSender = sender;
+    state.emailSender = sender;
   },
 };
