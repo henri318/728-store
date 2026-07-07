@@ -130,7 +130,6 @@ export function CartView({
           productName: labels.unknownProduct,
           sellerName: labels.unknownSeller,
         }),
-        id: gi.productId,
       }));
 
   const subtotal = items.reduce((acc, i) => acc + i.lineTotal, 0);
@@ -142,7 +141,7 @@ export function CartView({
 
       // Guest: update via context (localStorage)
       if (!isAuthenticated) {
-        guestCart.updateQuantity(item.productId, newQty);
+        guestCart.updateItemQuantity(item.id, newQty);
         return;
       }
 
@@ -194,7 +193,7 @@ export function CartView({
     async (item: CartItemDTO) => {
       // Guest: remove via context
       if (!isAuthenticated) {
-        guestCart.removeItem(item.productId);
+        guestCart.removeItemById(item.id);
         return;
       }
 

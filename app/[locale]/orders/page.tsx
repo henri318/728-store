@@ -12,7 +12,10 @@ import { SearchForm } from '@/shared/ui/search-form';
 import type { OrderEntity } from '@/modules/orders/domain/order-repository';
 import { createOrderCommonColumns } from '@/modules/orders/presentation/components/order-table-columns';
 import { computePaginationState } from '@/shared/presentation/pagination-utils';
-import { buildOrderPageUrl } from '@/modules/orders/presentation/order-page-url';
+import {
+  buildOrderPageUrl,
+  DEFAULT_ORDER_PAGE_SIZE,
+} from '@/modules/orders/presentation/order-page-url';
 import styles from './page.module.css';
 
 export default async function CustomerOrdersPage({
@@ -43,7 +46,7 @@ export default async function CustomerOrdersPage({
     : {
         status: 'all' as const,
         page: 1,
-        pageSize: 10,
+        pageSize: DEFAULT_ORDER_PAGE_SIZE,
         sortDir: 'desc' as const,
       };
   const useCase = new ListCustomerOrdersUseCase(container.getOrderRepository());

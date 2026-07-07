@@ -56,7 +56,14 @@ export function Input({
   };
 
   const errorId = error ? `${id}-error` : undefined;
-  const s = classNames ?? baseStyles;
+  const s = { ...baseStyles, ...classNames };
+  const inputClassName = [
+    s.input,
+    error ? s.inputError : '',
+    rightElement ? s.hasSuffix : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className={s.wrapper}>
@@ -76,7 +83,7 @@ export function Input({
           step={step}
           aria-invalid={error ? true : undefined}
           aria-describedby={errorId}
-          className={`${s.input} ${error ? s.inputError : ''} ${rightElement ? s.hasSuffix : ''}`}
+          className={inputClassName}
         />
         {rightElement && <span className={s.suffix}>{rightElement}</span>}
       </div>
