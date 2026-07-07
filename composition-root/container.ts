@@ -102,46 +102,11 @@ import { RecordSearchUseCase } from '@/modules/search-history/application/record
 // State
 // ---------------------------------------------------------------------------
 
-let _emailSender: EmailSender | null = null;
-let _outboxRepository: OutboxRepository | null = null;
-let _passwordHasher: PasswordHasher | null = null;
-let _rateLimiter: RateLimiter | null = null;
-let _resetTokenCodec: ResetTokenCodec | null = null;
-let _eventBus: EventBusPort | null = null;
-let _secrets: SecretsPort | null = null;
-let _session: SessionPort | null = null;
-let _userRepository: UserRepository | null = null;
-let _roleRepository: RoleRepository | null = null;
-let _orderRepository: OrderRepository | null = null;
-let _productRepository: ProductRepository | null = null;
-let _emailQueueRepository: EmailQueueRepository | null = null;
-let _userLookup: UserLookupPort | null = null;
-let _forgotPasswordEmailPort: ForgotPasswordEmailPort | null = null;
-let _usedResetTokenStore: UsedResetTokenStorePort | null = null;
-let _checkoutGroupLookup: CheckoutGroupLookupPort | null = null;
-let _checkoutGroupPaymentPort: CheckoutGroupPaymentPort | null = null;
-let _sellerRepository: SellerRepository | null = null;
-let _sellerLookup: SellerLookupPort | null = null;
-let _transactionRunner: TransactionRunner | null = null;
-let _userVerification: UserVerificationPort | null = null;
-let _roleValidator: RoleValidatorPort | null = null;
-let _storagePort: StoragePort | null = null;
-let _uploadRepository: UploadRepository | null = null;
-let _cartRepository: CartRepository | null = null;
-let _cartProductRepository: CartProductRepository | null = null;
-let _paidOrderCountPort: PaidOrderCountPort | null = null;
-let _customizationLookup: CartCustomizationLookupPort | null = null;
-let _customizationRepository: CustomizationRepository | null = null;
-let _searchHistoryRepository: SearchHistoryRepository | null = null;
+const state: Record<string, unknown> = {};
 
 function isLocalUploadStorage(): boolean {
   return process.env.SEED_PRODUCT_ASSET_LOCAL_STORAGE === 'true';
 }
-
-// Idempotency flag for event subscriptions — prevents double registration
-// during HMR in development.
-let _isCartEventsSubscribed = false;
-let _isSearchHistoryEventsSubscribed = false;
 
 // ---------------------------------------------------------------------------
 // Initialization
@@ -162,7 +127,6 @@ let _isSearchHistoryEventsSubscribed = false;
  * calls every getter to trigger first-time initialization.
  */
 export function initContainer(): void {
-  // Calling each getter triggers lazy initialization of its dependency.
   getEmailSender();
   getOutboxRepository();
   getPasswordHasher();
@@ -196,24 +160,29 @@ export function initContainer(): void {
   getResetTokenCodec();
 
   // --- Cart event subscriptions (idempotent for HMR) ---
-  if (!_isCartEventsSubscribed) {
+  if (!state.isCartEventsSubscribed) {
     const handler = new HandleCartCheckedOut(
-      _orderRepository!,
-      _outboxRepository!,
-      _transactionRunner!,
-      _customizationLookup!,
+      state.orderRepository as OrderRepository,
+      state.outboxRepository as OutboxRepository,
+      state.transactionRunner as TransactionRunner,
+      state.customizationLookup as CartCustomizationLookupPort,
     );
-    HandleCartCheckedOut.subscribe(_eventBus!, handler);
-    _isCartEventsSubscribed = true;
+    HandleCartCheckedOut.subscribe(state.eventBus as EventBusPort, handler);
+    state.isCartEventsSubscribed = true;
   }
 
   // --- Search-history event subscriptions (idempotent for HMR) ---
-  if (!_isSearchHistoryEventsSubscribed) {
+  if (!state.isSearchHistoryEventsSubscribed) {
     const subscriber = new HandleProductSearchExecuted(
-      new RecordSearchUseCase(_searchHistoryRepository!),
+      new RecordSearchUseCase(
+        state.searchHistoryRepository as SearchHistoryRepository,
+      ),
     );
-    HandleProductSearchExecuted.subscribe(_eventBus!, subscriber);
-    _isSearchHistoryEventsSubscribed = true;
+    HandleProductSearchExecuted.subscribe(
+      state.eventBus as EventBusPort,
+      subscriber,
+    );
+    state.isSearchHistoryEventsSubscribed = true;
   }
 }
 
@@ -221,121 +190,71 @@ export function initContainer(): void {
 // Getters (auto-initialize on first access)
 // ---------------------------------------------------------------------------
 
-/**
- * Returns the EmailSender bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getEmailSender(): EmailSender {
-  if (!_emailSender) {
-    _emailSender =
+  if (!state.emailSender) {
+    state.emailSender =
       process.env.NODE_ENV === 'production'
         ? new BrevoEmailSender()
         : new ConsoleEmailSender();
   }
-  return _emailSender;
+  return state.emailSender as EmailSender;
 }
 
-/**
- * Returns the OutboxRepository bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getOutboxRepository(): OutboxRepository {
-  if (!_outboxRepository) {
-    _outboxRepository = new PrismaOutboxRepository();
-  }
-  return _outboxRepository;
+  state.outboxRepository ??= new PrismaOutboxRepository();
+  return state.outboxRepository as OutboxRepository;
 }
 
-/**
- * Returns the PasswordHasher bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getPasswordHasher(): PasswordHasher {
-  if (!_passwordHasher) {
-    _passwordHasher = {
+  if (!state.passwordHasher) {
+    state.passwordHasher = {
       hash: hashPassword,
       verify: verifyPassword,
     };
   }
-  return _passwordHasher;
+  return state.passwordHasher as PasswordHasher;
 }
 
-/**
- * Returns the RateLimiter bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getRateLimiter(): RateLimiter {
-  if (!_rateLimiter) {
-    _rateLimiter = new PrismaRateLimiter();
-  }
-  return _rateLimiter;
+  state.rateLimiter ??= new PrismaRateLimiter();
+  return state.rateLimiter as RateLimiter;
 }
 
-/**
- * Returns the ResetTokenCodec bound for the current environment.
- * Lazily initializes on first access.
- * Needs SecretsPort, which is also lazy-initialized on first access.
- */
 export function getResetTokenCodec(): ResetTokenCodec {
-  if (!_resetTokenCodec) {
-    _resetTokenCodec = new JwtResetTokenCodec(getSecrets().getAuthSecret());
+  if (!state.resetTokenCodec) {
+    state.resetTokenCodec = new JwtResetTokenCodec(
+      getSecrets().getAuthSecret(),
+    );
   }
-  return _resetTokenCodec;
+  return state.resetTokenCodec as ResetTokenCodec;
 }
 
-/**
- * Returns the EventBus bound for the current environment.
- * Default binding is the in-memory eventBus singleton.
- */
 export function getEventBus(): EventBusPort {
-  if (!_eventBus) {
-    _eventBus = eventBus;
-  }
-  return _eventBus;
+  state.eventBus ??= eventBus;
+  return state.eventBus as EventBusPort;
 }
 
-/**
- * Returns the SecretsPort bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getSecrets(): SecretsPort {
-  if (!_secrets) {
-    _secrets = new ProcessEnvSecrets();
-  }
-  return _secrets;
+  state.secrets ??= new ProcessEnvSecrets();
+  return state.secrets as SecretsPort;
 }
 
-/**
- * Returns the SessionPort bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getSession(): SessionPort {
-  if (!_session) {
-    _session = new NextAuthSessionAdapter();
-  }
-  return _session;
+  state.session ??= new NextAuthSessionAdapter();
+  return state.session as SessionPort;
 }
 
-/**
- * Returns the UserRepository bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getUserRepository(): UserRepository {
-  if (!_userRepository) {
-    _userRepository = new PrismaUserRepository();
-  }
-  return _userRepository;
+  state.userRepository ??= new PrismaUserRepository();
+  return state.userRepository as UserRepository;
 }
 
-/**
- * Returns the RoleRepository bound for the current environment.
- * Lazily initializes on first access and seeds default roles.
- */
 export function getRoleRepository(): RoleRepository {
-  if (!_roleRepository) {
-    _roleRepository = new PrismaRoleRepository();
-    // Seed default roles on first boot (idempotent, no-op if roles exist).
-    const seedRoles = new SeedRolesUseCase(_roleRepository);
+  if (!state.roleRepository) {
+    state.roleRepository = new PrismaRoleRepository();
+    const seedRoles = new SeedRolesUseCase(
+      state.roleRepository as RoleRepository,
+    );
     (async () => {
       try {
         await seedRoles.execute();
@@ -344,244 +263,134 @@ export function getRoleRepository(): RoleRepository {
       }
     })();
   }
-  return _roleRepository;
+  return state.roleRepository as RoleRepository;
 }
 
-/**
- * Returns the OrderRepository bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getOrderRepository(): OrderRepository {
-  if (!_orderRepository) {
-    _orderRepository = new PrismaOrderRepository();
-  }
-  return _orderRepository;
+  state.orderRepository ??= new PrismaOrderRepository();
+  return state.orderRepository as OrderRepository;
 }
 
-/**
- * Returns the CheckoutGroupLookupPort bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getCheckoutGroupLookup(): CheckoutGroupLookupPort {
-  if (!_checkoutGroupLookup) {
-    _checkoutGroupLookup = new PrismaCheckoutGroupLookup();
-  }
-  return _checkoutGroupLookup;
+  state.checkoutGroupLookup ??= new PrismaCheckoutGroupLookup();
+  return state.checkoutGroupLookup as CheckoutGroupLookupPort;
 }
 
-/**
- * Returns the CheckoutGroupPaymentPort bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getCheckoutGroupPaymentPort(): CheckoutGroupPaymentPort {
-  if (!_checkoutGroupPaymentPort) {
-    _checkoutGroupPaymentPort = new PrismaCheckoutGroupPaymentPort();
-  }
-  return _checkoutGroupPaymentPort;
+  state.checkoutGroupPaymentPort ??= new PrismaCheckoutGroupPaymentPort();
+  return state.checkoutGroupPaymentPort as CheckoutGroupPaymentPort;
 }
 
-/**
- * Returns the ProductRepository bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getProductRepository(): ProductRepository {
-  if (!_productRepository) {
-    _productRepository = new PrismaProductRepository();
-  }
-  return _productRepository;
+  state.productRepository ??= new PrismaProductRepository();
+  return state.productRepository as ProductRepository;
 }
 
-/**
- * Returns the EmailQueueRepository bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getEmailQueueRepository(): EmailQueueRepository {
-  if (!_emailQueueRepository) {
-    _emailQueueRepository = new PrismaEmailQueueRepository();
-  }
-  return _emailQueueRepository;
+  state.emailQueueRepository ??= new PrismaEmailQueueRepository();
+  return state.emailQueueRepository as EmailQueueRepository;
 }
 
-/**
- * Returns the UserLookupPort bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getUserLookup(): UserLookupPort {
-  if (!_userLookup) {
-    _userLookup = new PrismaUserLookup();
-  }
-  return _userLookup;
+  state.userLookup ??= new PrismaUserLookup();
+  return state.userLookup as UserLookupPort;
 }
 
-/**
- * Returns the ForgotPasswordEmailPort bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getForgotPasswordEmailPort(): ForgotPasswordEmailPort {
-  if (!_forgotPasswordEmailPort) {
-    _forgotPasswordEmailPort = new ConsoleForgotPasswordEmail();
-  }
-  return _forgotPasswordEmailPort;
+  state.forgotPasswordEmailPort ??= new ConsoleForgotPasswordEmail();
+  return state.forgotPasswordEmailPort as ForgotPasswordEmailPort;
 }
 
-/**
- * Returns the UsedResetTokenStore bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getUsedResetTokenStore(): UsedResetTokenStorePort {
-  if (!_usedResetTokenStore) {
-    _usedResetTokenStore = new MemoryUsedResetTokenStore();
-  }
-  return _usedResetTokenStore;
+  state.usedResetTokenStore ??= new MemoryUsedResetTokenStore();
+  return state.usedResetTokenStore as UsedResetTokenStorePort;
 }
 
-/**
- * Returns the SellerRepository bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getSellerRepository(): SellerRepository {
-  if (!_sellerRepository) {
-    _sellerRepository = new PrismaSellerRepository();
-  }
-  return _sellerRepository;
+  state.sellerRepository ??= new PrismaSellerRepository();
+  return state.sellerRepository as SellerRepository;
 }
 
-/**
- * Returns the SellerLookupPort bound for the current environment.
- * Lazily initializes on first access, resolving SellerRepository via its own getter.
- */
 export function getSellerLookup(): SellerLookupPort {
-  if (!_sellerLookup) {
-    _sellerLookup = new SellerLookupAdapter(getSellerRepository());
+  if (!state.sellerLookup) {
+    state.sellerLookup = new SellerLookupAdapter(getSellerRepository());
   }
-  return _sellerLookup;
+  return state.sellerLookup as SellerLookupPort;
 }
 
-/**
- * Returns the TransactionRunner bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getTransactionRunner(): TransactionRunner {
-  if (!_transactionRunner) {
-    _transactionRunner = new PrismaTransactionRunner();
-  }
-  return _transactionRunner;
+  state.transactionRunner ??= new PrismaTransactionRunner();
+  return state.transactionRunner as TransactionRunner;
 }
 
-/**
- * Returns the UserVerificationPort bound for the current environment.
- * Lazily initializes on first access, resolving UserRepository via its own getter.
- */
 export function getUserVerification(): UserVerificationPort {
-  if (!_userVerification) {
-    _userVerification = new UserVerificationAdapter(getUserRepository());
+  if (!state.userVerification) {
+    state.userVerification = new UserVerificationAdapter(getUserRepository());
   }
-  return _userVerification;
+  return state.userVerification as UserVerificationPort;
 }
 
-/**
- * Returns the RoleValidatorPort bound for the current environment.
- * Lazily initializes on first access, resolving RoleRepository via its own getter.
- */
 export function getRoleValidator(): RoleValidatorPort {
-  if (!_roleValidator) {
-    _roleValidator = new RoleValidatorAdapter(getRoleRepository());
+  if (!state.roleValidator) {
+    state.roleValidator = new RoleValidatorAdapter(getRoleRepository());
   }
-  return _roleValidator;
+  return state.roleValidator as RoleValidatorPort;
 }
 
-/**
- * Returns the StoragePort bound for the current environment.
- * Lazily initializes on first access — R2 in production, local storage for seed/data tasks.
- */
 export function getStoragePort(): StoragePort {
-  if (!_storagePort) {
-    _storagePort = isLocalUploadStorage()
+  if (!state.storagePort) {
+    state.storagePort = isLocalUploadStorage()
       ? new LocalStorageAdapter()
       : new R2StorageAdapter();
   }
-  return _storagePort;
+  return state.storagePort as StoragePort;
 }
 
-/**
- * Returns the UploadRepository bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getUploadRepository(): UploadRepository {
-  if (!_uploadRepository) {
-    _uploadRepository = new PrismaUploadRepository();
-  }
-  return _uploadRepository;
+  state.uploadRepository ??= new PrismaUploadRepository();
+  return state.uploadRepository as UploadRepository;
 }
 
-/**
- * Returns the CartRepository bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getCartRepository(): CartRepository {
-  if (!_cartRepository) {
-    _cartRepository = new PrismaCartRepository();
-  }
-  return _cartRepository;
+  state.cartRepository ??= new PrismaCartRepository();
+  return state.cartRepository as CartRepository;
 }
 
-/**
- * Returns the CartProductRepository bound for the current environment.
- * Lazily initializes on first access, resolving ProductRepository via its own getter.
- */
 export function getCartProductRepository(): CartProductRepository {
-  if (!_cartProductRepository) {
-    _cartProductRepository = new CartProductRepositoryAdapter(
+  if (!state.cartProductRepository) {
+    state.cartProductRepository = new CartProductRepositoryAdapter(
       getProductRepository(),
     );
   }
-  return _cartProductRepository;
+  return state.cartProductRepository as CartProductRepository;
 }
 
-/**
- * Returns the PaidOrderCountPort bound for the current environment.
- * Lazily initializes on first access, resolving OrderRepository via its own getter.
- */
 export function getPaidOrderCountPort(): PaidOrderCountPort {
-  if (!_paidOrderCountPort) {
-    _paidOrderCountPort = new PrismaPaidOrderCountAdapter(getOrderRepository());
+  if (!state.paidOrderCountPort) {
+    state.paidOrderCountPort = new PrismaPaidOrderCountAdapter(
+      getOrderRepository(),
+    );
   }
-  return _paidOrderCountPort;
+  return state.paidOrderCountPort as PaidOrderCountPort;
 }
 
-/**
- * Returns the CustomizationRepository bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getCustomizationRepository(): CustomizationRepository {
-  if (!_customizationRepository) {
-    _customizationRepository = new PrismaCustomizationRepository();
-  }
-  return _customizationRepository;
+  state.customizationRepository ??= new PrismaCustomizationRepository();
+  return state.customizationRepository as CustomizationRepository;
 }
 
-/**
- * Returns the CustomizationLookupPort bound for the current environment.
- * Lazily initializes on first access, resolving CustomizationRepository via its own getter.
- */
 export function getCustomizationLookup(): CartCustomizationLookupPort {
-  if (!_customizationLookup) {
-    _customizationLookup = new CustomizationLookupAdapter(
+  if (!state.customizationLookup) {
+    state.customizationLookup = new CustomizationLookupAdapter(
       getCustomizationRepository(),
     );
   }
-  return _customizationLookup;
+  return state.customizationLookup as CartCustomizationLookupPort;
 }
 
-/**
- * Returns the SearchHistoryRepository bound for the current environment.
- * Lazily initializes on first access.
- */
 export function getSearchHistoryRepository(): SearchHistoryRepository {
-  if (!_searchHistoryRepository) {
-    _searchHistoryRepository = new PrismaSearchHistoryRepository();
-  }
-  return _searchHistoryRepository;
+  state.searchHistoryRepository ??= new PrismaSearchHistoryRepository();
+  return state.searchHistoryRepository as SearchHistoryRepository;
 }
 
 // ---------------------------------------------------------------------------
@@ -627,135 +436,103 @@ export const container = {
   getCustomizationLookup,
   getCustomizationRepository,
   getSearchHistoryRepository,
-  /** Override — useful in tests to inject a mock without touching env vars. */
   setEmailSender(sender: EmailSender): void {
-    _emailSender = sender;
+    state.emailSender = sender;
   },
-  /** Override — useful in tests to inject an in-memory outbox. */
   setOutboxRepository(repo: OutboxRepository): void {
-    _outboxRepository = repo;
+    state.outboxRepository = repo;
   },
-  /** Override — useful in tests to inject a fake/stub hasher. */
   setPasswordHasher(hasher: PasswordHasher): void {
-    _passwordHasher = hasher;
+    state.passwordHasher = hasher;
   },
-  /** Override — useful in tests to inject an in-memory rate limiter. */
   setRateLimiter(limiter: RateLimiter): void {
-    _rateLimiter = limiter;
+    state.rateLimiter = limiter;
   },
-  /** Override — useful in tests to inject a Base64ResetTokenCodec. */
   setResetTokenCodec(codec: ResetTokenCodec): void {
-    _resetTokenCodec = codec;
+    state.resetTokenCodec = codec;
   },
-  /** Override — useful in tests to inject a fresh event bus (avoids handler leakage). */
   setEventBus(bus: EventBusPort): void {
-    _eventBus = bus;
+    state.eventBus = bus;
   },
-  /** Override — useful in tests to inject mock secrets. */
   setSecrets(secrets: SecretsPort): void {
-    _secrets = secrets;
+    state.secrets = secrets;
   },
-  /** Override — useful in tests to simulate authenticated/unauthenticated sessions. */
   setSession(session: SessionPort): void {
-    _session = session;
+    state.session = session;
   },
-  /** Override — useful in tests to inject an in-memory user repository. */
   setUserRepository(repo: UserRepository): void {
-    _userRepository = repo;
+    state.userRepository = repo;
   },
-  /** Override — useful in tests to inject an in-memory role repository. */
   setRoleRepository(repo: RoleRepository): void {
-    _roleRepository = repo;
+    state.roleRepository = repo;
   },
-  /** Override — useful in tests to inject an in-memory order repository. */
   setOrderRepository(repo: OrderRepository): void {
-    _orderRepository = repo;
+    state.orderRepository = repo;
   },
-  /** Override — useful in tests to inject a mock checkout-group lookup port. */
   setCheckoutGroupLookup(port: CheckoutGroupLookupPort): void {
-    _checkoutGroupLookup = port;
+    state.checkoutGroupLookup = port;
   },
-  /** Override — useful in tests to inject a mock checkout-group payment port. */
   setCheckoutGroupPaymentPort(port: CheckoutGroupPaymentPort): void {
-    _checkoutGroupPaymentPort = port;
+    state.checkoutGroupPaymentPort = port;
   },
-  /** Override — useful in tests to inject an in-memory product repository. */
   setProductRepository(repo: ProductRepository): void {
-    _productRepository = repo;
+    state.productRepository = repo;
   },
-  /** Override — useful in tests to inject an in-memory email queue. */
   setEmailQueueRepository(repo: EmailQueueRepository): void {
-    _emailQueueRepository = repo;
+    state.emailQueueRepository = repo;
   },
-  /** Override — useful in tests to inject an in-memory user lookup. */
   setUserLookup(port: UserLookupPort): void {
-    _userLookup = port;
+    state.userLookup = port;
   },
-  /** Override — useful in tests to inject a mock ForgotPasswordEmailPort. */
   setForgotPasswordEmailPort(port: ForgotPasswordEmailPort): void {
-    _forgotPasswordEmailPort = port;
+    state.forgotPasswordEmailPort = port;
   },
-  /** Override — useful in tests to inject a fresh UsedResetTokenStore. */
   setUsedResetTokenStore(store: UsedResetTokenStorePort): void {
-    _usedResetTokenStore = store;
+    state.usedResetTokenStore = store;
   },
-  /** Override — useful in tests to inject an in-memory seller repository. */
   setSellerRepository(repo: SellerRepository): void {
-    _sellerRepository = repo;
+    state.sellerRepository = repo;
   },
-  /** Override — useful in tests to inject a mock seller lookup port. */
   setSellerLookup(port: SellerLookupPort): void {
-    _sellerLookup = port;
+    state.sellerLookup = port;
   },
-  /** Override — useful in tests to inject a fake/stub transaction runner. */
   setTransactionRunner(runner: TransactionRunner): void {
-    _transactionRunner = runner;
+    state.transactionRunner = runner;
   },
-  /** Override — useful in tests to inject a mock UserVerificationPort. */
   setUserVerification(port: UserVerificationPort): void {
-    _userVerification = port;
+    state.userVerification = port;
   },
-  /** Override — useful in tests to inject a mock RoleValidatorPort. */
   setRoleValidator(port: RoleValidatorPort): void {
-    _roleValidator = port;
+    state.roleValidator = port;
   },
-  /** Override — useful in tests to inject a mock StoragePort. */
   setStoragePort(port: StoragePort): void {
-    _storagePort = port;
+    state.storagePort = port;
   },
-  /** Override — useful in tests to inject an in-memory upload repository. */
   setUploadRepository(repo: UploadRepository): void {
-    _uploadRepository = repo;
+    state.uploadRepository = repo;
   },
-  /** Override — useful in tests to inject an in-memory cart repository. */
   setCartRepository(repo: CartRepository): void {
-    _cartRepository = repo;
+    state.cartRepository = repo;
   },
-  /** Override — useful in tests to inject a mock cart product repository. */
   setCartProductRepository(repo: CartProductRepository): void {
-    _cartProductRepository = repo;
+    state.cartProductRepository = repo;
   },
-  /** Override — useful in tests to inject a mock paid order count port. */
   setPaidOrderCountPort(port: PaidOrderCountPort): void {
-    _paidOrderCountPort = port;
+    state.paidOrderCountPort = port;
   },
-  /** Override — useful in tests to inject a mock customization lookup port. */
   setCustomizationLookup(port: CartCustomizationLookupPort): void {
-    _customizationLookup = port;
+    state.customizationLookup = port;
   },
-  /** Override — useful in tests to inject a mock customization repository. */
   setCustomizationRepository(repo: CustomizationRepository): void {
-    _customizationRepository = repo;
+    state.customizationRepository = repo;
   },
-  /** Override — useful in tests to inject an in-memory search-history repository. */
   setSearchHistoryRepository(repo: SearchHistoryRepository): void {
-    _searchHistoryRepository = repo;
+    state.searchHistoryRepository = repo;
   },
-  /** Reset the search-history event subscription flag — useful in tests to allow re-subscription. */
   resetSearchHistoryEventSubscriptions(): void {
-    _isSearchHistoryEventsSubscribed = false;
-  } /** Reset the event subscription flag — useful in tests to allow re-subscription. */,
+    state.isSearchHistoryEventsSubscribed = false;
+  },
   resetCartEventSubscriptions(): void {
-    _isCartEventsSubscribed = false;
+    state.isCartEventsSubscribed = false;
   },
 };
