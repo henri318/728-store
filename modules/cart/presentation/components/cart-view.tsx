@@ -141,7 +141,7 @@ export function CartView({
 
       // Guest: update via context (localStorage)
       if (!isAuthenticated) {
-        guestCart.updateItemQuantity(item.id, newQty);
+        guestCart.updateQuantity(item.productId, newQty);
         return;
       }
 
@@ -193,7 +193,7 @@ export function CartView({
     async (item: CartItemDTO) => {
       // Guest: remove via context
       if (!isAuthenticated) {
-        guestCart.removeItemById(item.id);
+        guestCart.removeItem(item.productId);
         return;
       }
 
