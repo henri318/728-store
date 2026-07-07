@@ -68,7 +68,7 @@ function resolveClassFills(svgContent) {
   let result = svgContent;
   for (const [cls, fill] of Object.entries(classMap)) {
     const classAttr = new RegExp(`class="${cls}"`, 'g');
-    result = result.replace(classAttr, `fill="${fill}"`);
+    result = result.replace(classAttr, () => `fill="${fill}"`);
   }
 
   result = result.replace(styleRegex, '');

@@ -110,19 +110,6 @@ export class ProductCustomizationConfig {
   readonly categoryId: string | null;
   readonly tagNames: string[] | null;
 
-  private constructor(data: ProductCustomizationConfigJson) {
-    this.mode = data.mode;
-    this.previewEnabled = data.previewEnabled;
-    this.previewTemplateUrl = data.previewTemplateUrl;
-    this.sizeOptions = data.sizeOptions;
-    this.textOffset = data.textOffset;
-    this.imageOffset = data.imageOffset;
-    this.allowPhotoDesign = data.allowPhotoDesign ?? false;
-    this.designChangeDescription = data.designChangeDescription ?? null;
-    this.categoryId = data.categoryId ?? null;
-    this.tagNames = data.tagNames ?? null;
-  }
-
   static default(): ProductCustomizationConfig {
     return new ProductCustomizationConfig({
       mode: 'description',
@@ -157,6 +144,19 @@ export class ProductCustomizationConfig {
       categoryId: data.categoryId ?? null,
       tagNames: normalizeTagNames(data.tagNames ?? null),
     });
+  }
+
+  private constructor(data: ProductCustomizationConfigJson) {
+    this.mode = data.mode;
+    this.previewEnabled = data.previewEnabled;
+    this.previewTemplateUrl = data.previewTemplateUrl;
+    this.sizeOptions = data.sizeOptions;
+    this.textOffset = data.textOffset;
+    this.imageOffset = data.imageOffset;
+    this.allowPhotoDesign = data.allowPhotoDesign ?? false;
+    this.designChangeDescription = data.designChangeDescription ?? null;
+    this.categoryId = data.categoryId ?? null;
+    this.tagNames = data.tagNames ?? null;
   }
 
   isDefault(): boolean {

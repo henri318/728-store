@@ -70,73 +70,16 @@ export class PrismaProductRepository implements ProductRepository {
     return products.map((product) => toDomainProduct(product));
   }
 
-  async findPaginated(
-    filter: ProductsListFilter,
-  ): Promise<PaginatedResult<ProductEntity>> {
-    const locale = filter.lang ?? 'es';
-    const sortDir = filter.sortDir ?? 'desc';
-    const page = filter.page ?? 1;
-    const pageSize = filter.pageSize ?? 20;
-
-    // Build WHERE conditions WITHOUT the q filter — the search term
-    // is matched with PostgreSQL unaccent() for accent-insensitive
-    // comparison (handles "café" ↔ "cafe" both directions).
-    const where = this.buildWhere(filter, locale, true);
-
-    if (filter.q !== undefined && filter.q !== '') {
-      const ids = await this.searchByUnaccent(filter.q, locale);
-      if (ids.length > 0) {
-        if (Object.keys(where).length === 0) {
-          where.id = { in: ids };
-        } else {
-          if (!Array.isArray(where.AND)) where.AND = [where.AND ?? {}];
-          where.AND.push({ id: { in: ids } });
-        }
-      } else {
-        // No matches — force empty result so the Prisma query
-        // returns zero items without a full table scan.
-        return { items: [], total: 0, page, pageSize, totalPages: 0 };
-      }
-    }
-
-    const products = await prisma.product.findMany({
-      where,
-      include: {
-        seller: true,
-        category: true,
-        translations: {
-          where: { locale: { in: [locale, 'es'] } },
-        },
-        images: {
-          orderBy: { position: 'asc' },
-        },
-        tags: true,
-      },
-      orderBy: { createdAt: sortDir },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    });
-    const total = await prisma.product.count({ where });
-
-    return {
-      items: products.map((product) => toDomainProduct(product)),
-      total,
-      page,
-      pageSize,
-      totalPages: Math.ceil(total / pageSize),
-    };
-  }
-
   /**
    * Build Prisma WHERE conditions, optionally skipping the q filter.
-   * When skipQ is true, the search term is handled separately via
+   * When shouldSkipQ is true, the search term is handled separately via
    * `searchByUnaccent()` so the query can use PostgreSQL's unaccent
    * extension for accent-insensitive matching.
    */
   private buildWhere(
     filter: ProductsListFilter,
     locale: string,
-    skipQ: boolean = false,
+    shouldSkipQ: boolean = false,
   ): import('@prisma/client').Prisma.ProductWhereInput {
     const conditions: import('@prisma/client').Prisma.ProductWhereInput[] = [];
 
@@ -156,9 +99,9 @@ export class PrismaProductRepository implements ProductRepository {
       conditions.push({ tags: { some: { slug: { in: filter.tags } } } });
     }
 
-    if (!skipQ && filter.q !== undefined && filter.q !== '') {
+    if (!shouldSkipQ && filter.q !== undefined && filter.q !== '') {
       // Case-insensitive fallback when unaccent is not needed or
-      // when skipQ is false (e.g. seller queries without search).
+      // when shouldSkipQ is false (e.g. seller queries without search).
       conditions.push({
         OR: [
           {
@@ -225,6 +168,63 @@ export class PrismaProductRepository implements ProductRepository {
       `%${normQ}%`,
     );
     return rows.map((r) => r.id);
+  }
+
+  async findPaginated(
+    filter: ProductsListFilter,
+  ): Promise<PaginatedResult<ProductEntity>> {
+    const locale = filter.lang ?? 'es';
+    const sortDir = filter.sortDir ?? 'desc';
+    const page = filter.page ?? 1;
+    const pageSize = filter.pageSize ?? 20;
+
+    // Build WHERE conditions WITHOUT the q filter — the search term
+    // is matched with PostgreSQL unaccent() for accent-insensitive
+    // comparison (handles "café" ↔ "cafe" both directions).
+    const where = this.buildWhere(filter, locale, true);
+
+    if (filter.q !== undefined && filter.q !== '') {
+      const ids = await this.searchByUnaccent(filter.q, locale);
+      if (ids.length > 0) {
+        if (Object.keys(where).length === 0) {
+          where.id = { in: ids };
+        } else {
+          if (!Array.isArray(where.AND)) where.AND = [where.AND ?? {}];
+          where.AND.push({ id: { in: ids } });
+        }
+      } else {
+        // No matches — force empty result so the Prisma query
+        // returns zero items without a full table scan.
+        return { items: [], total: 0, page, pageSize, totalPages: 0 };
+      }
+    }
+
+    const products = await prisma.product.findMany({
+      where,
+      include: {
+        seller: true,
+        category: true,
+        translations: {
+          where: { locale: { in: [locale, 'es'] } },
+        },
+        images: {
+          orderBy: { position: 'asc' },
+        },
+        tags: true,
+      },
+      orderBy: { createdAt: sortDir },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
+    const total = await prisma.product.count({ where });
+
+    return {
+      items: products.map((product) => toDomainProduct(product)),
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
   }
 
   async save(entity: ProductEntity): Promise<void> {

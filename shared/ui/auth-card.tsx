@@ -7,7 +7,7 @@ interface AuthCardProps {
 
 export function AuthCard({ children, className }: AuthCardProps) {
   return (
-    <div className={`${styles.card}${className ? ` ${className}` : ''}`}>
+    <div className={className ? `${styles.card} ${className}` : styles.card}>
       {children}
     </div>
   );

@@ -163,7 +163,7 @@ export default async function SellerOrdersPage({
     if (filter.sortDir !== 'desc') params.set('sortDir', filter.sortDir);
     if (filter.pageSize !== 20) params.set('pageSize', String(filter.pageSize));
     const qs = params.toString();
-    return `/${locale}/seller/orders${qs ? `?${qs}` : ''}`;
+    return qs ? `/${locale}/seller/orders?${qs}` : `/${locale}/seller/orders`;
   };
 
   return (

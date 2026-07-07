@@ -125,7 +125,7 @@ export default function SignUpPage() {
 
   const updateField = (field: keyof FormState, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
+    if (field in errors) {
       setErrors((prev) => {
         const next = { ...prev };
         delete next[field];
@@ -139,7 +139,7 @@ export default function SignUpPage() {
       ...prev,
       address: { ...prev.address, [field]: value },
     }));
-    if (errors.address?.[field]) {
+    if (errors.address?.[field] !== undefined) {
       setErrors((prev) => {
         const next = {
           ...prev,

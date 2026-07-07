@@ -54,10 +54,9 @@ export function PhotoUploadField({
     }
 
     setError(null);
-    startTransition(() => {
-      onUpload(file).then((result) => {
-        onUploaded?.(result);
-      });
+    startTransition(async () => {
+      const result = await onUpload(file);
+      onUploaded?.(result);
     });
   };
 

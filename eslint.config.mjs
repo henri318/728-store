@@ -91,7 +91,7 @@ export default [
   scopeToCodeFiles(eslintJs.configs.recommended),
 
   // TypeScript recommended + type-checked rules
-  ...tseslint.configs.recommended.map(scopeToCodeFiles),
+  ...tseslint.configs.recommended.map((c) => scopeToCodeFiles(c)),
 
   // ESLint React for TypeScript (replaces eslint-plugin-react)
   scopeToCodeFiles(eslintReact.configs['recommended-typescript']),

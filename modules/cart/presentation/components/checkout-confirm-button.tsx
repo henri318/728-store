@@ -32,7 +32,7 @@ interface AddressFields {
  * Client component for the checkout confirmation flow.
  *
  * 1. POST /api/cart/checkout → preview totals.
- * 2. If 200 → POST /api/cart/checkout/confirm with acceptPriceChanges=false.
+ * 2. If 200 → POST /api/cart/checkout/confirm with shouldAcceptPriceChanges=false.
  * 3. If 409 → show price-change dialog; user can accept or cancel.
  * 4. On success → redirect to /orders/{orderId} and clear guest cart.
  */
@@ -107,7 +107,7 @@ export function CheckoutConfirmButton({
     }
   };
 
-  const confirmCheckout = async (acceptPriceChanges: boolean) => {
+  const confirmCheckout = async (shouldAcceptPriceChanges: boolean) => {
     try {
       const saved = await persistProfileAddress();
       if (!saved) {
@@ -117,7 +117,7 @@ export function CheckoutConfirmButton({
       const confirmRes = await fetch('/api/cart/checkout/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ acceptPriceChanges }),
+        body: JSON.stringify({ shouldAcceptPriceChanges }),
       });
 
       if (confirmRes.ok) {

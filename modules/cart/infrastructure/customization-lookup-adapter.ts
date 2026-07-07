@@ -20,12 +20,12 @@ export class CustomizationLookupAdapter implements CustomizationLookupPort {
     if (ids.length === 0) return [];
 
     const entities = await this.delegate.findByIds(ids);
-    return entities.map(toSnapshot);
+    return entities.map((e) => toSnapshot(e));
   }
 
   async findByProductId(productId: string): Promise<CustomizationSnapshot[]> {
     const entities = await this.delegate.findByProductId(productId);
-    return entities.map(toSnapshot);
+    return entities.map((e) => toSnapshot(e));
   }
 }
 

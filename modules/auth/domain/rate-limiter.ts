@@ -34,7 +34,7 @@ export interface RateLimiter {
   recordLoginAttempt(
     email: string,
     ip: string,
-    success: boolean,
+    isSuccess: boolean,
   ): Promise<void>;
 }
 

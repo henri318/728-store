@@ -41,7 +41,7 @@ export class PrismaRoleRepository implements RoleRepository {
       orderBy: { name: 'asc' },
     });
 
-    return rows.map(toEntity);
+    return rows.map((r) => toEntity(r));
   }
 
   async findByName(name: string): Promise<RoleEntity | null> {

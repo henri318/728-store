@@ -29,7 +29,11 @@ export function QuantityControls({
 
   return (
     <div
-      className={`${styles.controls}${variant === 'compact' ? ` ${styles.compact}` : ''}`}
+      className={
+        variant === 'compact'
+          ? `${styles.controls} ${styles.compact}`
+          : styles.controls
+      }
     >
       <button
         type="button"

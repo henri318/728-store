@@ -60,8 +60,9 @@ export default async function SellerProductsPage({
     totalPages: 0,
   };
 
-  const result = (await useCase
-    .execute({
+  let result: PaginatedResult<ProductEntity>;
+  try {
+    result = await useCase.execute({
       userId: session?.id ?? '',
       q: filter.q,
       page: filter.page,
@@ -70,14 +71,14 @@ export default async function SellerProductsPage({
       sortBy: filter.sortBy,
       sortDir: filter.sortDir,
       audience: 'seller',
-    })
-    .catch((error: unknown) => {
-      if (error instanceof NotFoundError) {
-        return fallbackResult;
-      }
-
+    });
+  } catch (error: unknown) {
+    if (error instanceof NotFoundError) {
+      result = fallbackResult;
+    } else {
       throw error;
-    })) as PaginatedResult<ProductEntity>;
+    }
+  }
 
   const hasProducts = result.items.length > 0;
   const currentPage =

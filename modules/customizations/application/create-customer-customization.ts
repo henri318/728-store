@@ -91,35 +91,30 @@ export class CreateCustomerCustomization {
       );
     }
 
-    switch (config.mode) {
-      case 'description':
-      case 'text': {
-        if (!hasText) {
-          throw new ValidationError(
-            'Text customization is required for this product',
-            'Customization is not allowed for this product',
-          );
-        }
-        break;
-      }
-      case 'photo': {
-        if (!hasImageForCapability) {
-          throw new ValidationError(
-            'Photo customization is required for this product',
-            'Customization is not allowed for this product',
-          );
-        }
-        break;
-      }
-      case 'text_photo': {
-        if (!hasText && !hasImageForCapability) {
-          throw new ValidationError(
-            'Text or photo customization is required for this product',
-            'Customization is not allowed for this product',
-          );
-        }
-        break;
-      }
+    const mode = config.mode;
+    const textRequired = mode === 'description' || mode === 'text';
+
+    if (textRequired && !hasText) {
+      throw new ValidationError(
+        'Text customization is required for this product',
+        'Customization is not allowed for this product',
+      );
+    }
+
+    const photoRequired = mode === 'photo' || mode === 'text_photo';
+
+    if (photoRequired && !hasImageForCapability) {
+      throw new ValidationError(
+        'Photo customization is required for this product',
+        'Customization is not allowed for this product',
+      );
+    }
+
+    if (mode === 'text_photo' && (!hasText || !hasImageForCapability)) {
+      throw new ValidationError(
+        'Both text and photo customization are required for this product',
+        'Customization is not allowed for this product',
+      );
     }
   }
 }

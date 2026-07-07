@@ -12,5 +12,5 @@ const dictionaries: Record<string, () => Promise<Dictionary>> = {
 export const getDictionary = async (
   locale: 'es' | 'cat',
 ): Promise<Dictionary> => {
-  return dictionaries[locale] ? dictionaries[locale]() : dictionaries.es();
+  return locale in dictionaries ? dictionaries[locale]() : dictionaries.es();
 };

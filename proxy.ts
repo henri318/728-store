@@ -20,7 +20,7 @@ function isKnownLocale(segment: string): boolean {
   return locales.includes(segment);
 }
 
-function matchesProtectedPath(
+function doesMatchProtectedPath(
   pathname: string,
   protectedPath: string,
 ): boolean {
@@ -51,7 +51,7 @@ export async function proxy(request: NextRequest) {
 
   // ---- Auth gate for protected routes ----
   const isProtected = protectedPaths.some((path) =>
-    matchesProtectedPath(pathname, path),
+    doesMatchProtectedPath(pathname, path),
   );
 
   if (isProtected) {

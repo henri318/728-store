@@ -15,10 +15,6 @@ const MAX_QUANTITY = 99;
 export class Quantity {
   readonly value: number;
 
-  private constructor(value: number) {
-    this.value = value;
-  }
-
   static create(amount: number): Quantity {
     if (!Number.isSafeInteger(amount)) {
       throw new InvalidQuantityError(
@@ -31,6 +27,10 @@ export class Quantity {
       );
     }
     return new Quantity(amount);
+  }
+
+  private constructor(value: number) {
+    this.value = value;
   }
 
   equals(other: Quantity): boolean {

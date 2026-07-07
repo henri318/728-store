@@ -139,7 +139,7 @@ export class PrismaCartRepository implements CartRepository {
     const rows = await prisma.cartItem.findMany({
       where: { cartId: cartId.value },
     });
-    return rows.map(toItemDomain);
+    return rows.map((r) => toItemDomain(r));
   }
 }
 
@@ -171,7 +171,7 @@ function toDomain(row: PrismaCartWithItems): CartEntity {
     id: row.id,
     userId: row.userId,
     status: row.status as CartStatus,
-    items: row.items.map(toItemDomain),
+    items: row.items.map((r) => toItemDomain(r)),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

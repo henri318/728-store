@@ -8,11 +8,11 @@ import { EntityId } from '@/shared/kernel/domain/value-objects/entity-id';
  * never considered equal.
  */
 export class CartId extends EntityId {
-  private constructor(value: string) {
-    super(value);
-  }
-
   static create(value: string): CartId {
     return new CartId(value);
+  }
+
+  private constructor(value: string) {
+    super(value);
   }
 }

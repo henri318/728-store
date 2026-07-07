@@ -143,7 +143,7 @@ export function CustomizationForm({
             </option>
           ))}
         </select>
-        {errors.size && (
+        {errors.size != null && (
           <p id={sizeErrorId} role="alert">
             {errors.size}
           </p>

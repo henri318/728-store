@@ -64,14 +64,14 @@ export class PrismaSellerRepository implements SellerRepository {
     const rows = await prisma.seller.findMany({
       where: { deletedAt: null },
     });
-    return rows.map(toDomain);
+    return rows.map((r) => toDomain(r));
   }
 
   async findAllByStatus(status: SellerStatus): Promise<SellerEntity[]> {
     const rows = await prisma.seller.findMany({
       where: { status, deletedAt: null },
     });
-    return rows.map(toDomain);
+    return rows.map((r) => toDomain(r));
   }
 
   async findPaginated(

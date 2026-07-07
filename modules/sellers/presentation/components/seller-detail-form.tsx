@@ -50,7 +50,13 @@ export function SellerDetailForm({
         }),
       });
 
-      const responseText = await response.text().catch(() => '');
+      const responseText = (() => {
+        try {
+          return await response.text();
+        } catch {
+          return '';
+        }
+      })();
 
       if (!response.ok) {
         let errorMessage = '';

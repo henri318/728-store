@@ -67,6 +67,41 @@ export class MigrateGuestCart {
     private customizationCreator?: CustomizationCreatePort,
   ) {}
 
+  private buildItem(
+    g: GuestCartItem,
+    cartId: string,
+    productMap: Map<
+      string,
+      { basePrice: number; currency: Currency; sellerId: SellerId }
+    >,
+    customizationIdList: string[],
+  ): CartItemEntity {
+    const product = productMap.get(g.productId)!;
+    return {
+      id: crypto.randomUUID(),
+      cartId,
+      productId: ProductId.create(g.productId),
+      sellerId: product.sellerId,
+      quantity: g.quantity,
+      unitPriceSnapshot: Money.create(product.basePrice, product.currency),
+      customizationIdList: [...customizationIdList].toSorted((a, b) =>
+        a.localeCompare(b),
+      ),
+    };
+  }
+
+  private emptyCart(userId: string): CartEntity {
+    const now = new Date();
+    return {
+      id: '',
+      userId,
+      status: CartStatus.Active,
+      items: [],
+      createdAt: now,
+      updatedAt: now,
+    };
+  }
+
   async execute(dto: MigrateGuestCartDTO): Promise<MigrateGuestCartResult> {
     const serverCart = await this.cartRepository.findActiveByUserId(dto.userId);
 
@@ -257,39 +292,6 @@ export class MigrateGuestCart {
       skippedCustomizationProductIds,
     };
   }
-
-  private buildItem(
-    g: GuestCartItem,
-    cartId: string,
-    productMap: Map<
-      string,
-      { basePrice: number; currency: Currency; sellerId: SellerId }
-    >,
-    customizationIdList: string[],
-  ): CartItemEntity {
-    const product = productMap.get(g.productId)!;
-    return {
-      id: crypto.randomUUID(),
-      cartId,
-      productId: ProductId.create(g.productId),
-      sellerId: product.sellerId,
-      quantity: g.quantity,
-      unitPriceSnapshot: Money.create(product.basePrice, product.currency),
-      customizationIdList: [...customizationIdList].sort(),
-    };
-  }
-
-  private emptyCart(userId: string): CartEntity {
-    const now = new Date();
-    return {
-      id: '',
-      userId,
-      status: CartStatus.Active,
-      items: [],
-      createdAt: now,
-      updatedAt: now,
-    };
-  }
 }
 
 // --- helpers ---
@@ -396,8 +398,12 @@ function isSameVariant(
   if (item.unitPriceSnapshot.amount !== g.unitPriceSnapshot) return false;
   if (item.unitPriceSnapshot.currency !== productSnap.currency) return false;
   return (
-    JSON.stringify([...item.customizationIdList].sort()) ===
-    JSON.stringify([...customizationIdList].sort())
+    JSON.stringify(
+      [...item.customizationIdList].toSorted((a, b) => a.localeCompare(b)),
+    ) ===
+    JSON.stringify(
+      [...customizationIdList].toSorted((a, b) => a.localeCompare(b)),
+    )
   );
 }
 

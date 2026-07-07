@@ -12,11 +12,6 @@ export class LocalizedDate {
   readonly date: Date;
   readonly locale: string;
 
-  private constructor(date: Date, locale: string) {
-    this.date = date;
-    this.locale = locale;
-  }
-
   static create(date: Date | string | number, locale: string): LocalizedDate {
     if (!locale) {
       throw new Error('LocalizedDate requires a locale');
@@ -28,6 +23,11 @@ export class LocalizedDate {
     }
 
     return new LocalizedDate(d, locale);
+  }
+
+  private constructor(date: Date, locale: string) {
+    this.date = date;
+    this.locale = locale;
   }
 
   /** Format using the route locale, e.g. "25/6/2026". */

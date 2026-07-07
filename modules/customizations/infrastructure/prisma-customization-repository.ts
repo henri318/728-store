@@ -10,8 +10,8 @@ import type {
  *
  * No business logic here — pure delegation to Prisma.
  *
- * `designPosition` is stored as JSONB. We deliberately accept the
- * Prisma `JsonValue` shape and coerce to our `DesignPositionValue`
+ * designPosition is stored as JSONB. We deliberately accept the
+ * Prisma JsonValue shape and coerce to our DesignPositionValue
  * type at the boundary so the domain layer never depends on Prisma.
  */
 export class PrismaCustomizationRepository implements CustomizationRepository {
@@ -74,18 +74,6 @@ export class PrismaCustomizationRepository implements CustomizationRepository {
     await prisma.customization.delete({ where: { id } });
   }
 
-  async isReferencedByOrders(id: string): Promise<boolean> {
-    // Check if any OrderLineItem has this id in its customizationIdList array
-    const count = await prisma.orderLineItem.count({
-      where: {
-        customizationIdList: {
-          has: id,
-        },
-      },
-    });
-    return count > 0;
-  }
-
   private toDomain(row: {
     id: string;
     productId: string;
@@ -106,6 +94,18 @@ export class PrismaCustomizationRepository implements CustomizationRepository {
       designPosition: coerceDesignPosition(row.designPosition),
       createdAt: row.createdAt,
     };
+  }
+
+  async isReferencedByOrders(id: string): Promise<boolean> {
+    // Check if any OrderLineItem has this id in its customizationIdList array
+    const count = await prisma.orderLineItem.count({
+      where: {
+        customizationIdList: {
+          has: id,
+        },
+      },
+    });
+    return count > 0;
   }
 }
 

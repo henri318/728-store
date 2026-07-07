@@ -114,9 +114,7 @@ export function FileUploadDropzone({
       ) : null}
 
       {items.length === 0 ? (
-        emptyLabel ? (
-          <p className={styles.emptyState}>{emptyLabel}</p>
-        ) : null
+        emptyLabel && <p className={styles.emptyState}>{emptyLabel}</p>
       ) : (
         <ul className={styles.list}>
           {items.map((item) => {

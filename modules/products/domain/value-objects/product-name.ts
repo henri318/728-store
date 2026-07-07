@@ -11,10 +11,6 @@
 export class ProductName {
   readonly value: string;
 
-  private constructor(value: string) {
-    this.value = value;
-  }
-
   static create(value: string): ProductName {
     const trimmed = value.trim();
 
@@ -27,6 +23,10 @@ export class ProductName {
     }
 
     return new ProductName(trimmed);
+  }
+
+  private constructor(value: string) {
+    this.value = value;
   }
 
   equals(other: ProductName): boolean {

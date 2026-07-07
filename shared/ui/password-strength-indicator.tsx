@@ -25,12 +25,14 @@ export function PasswordStrengthIndicator({
   const metCount = criteria.filter((c) => c.met).length;
   const percentage = Math.round((metCount / 3) * 100);
 
-  const strengthClass =
-    percentage === 100
-      ? styles.strong
-      : percentage >= 33
-        ? styles.medium
-        : styles.weak;
+  let strengthClass: string;
+  if (percentage === 100) {
+    strengthClass = styles.strong;
+  } else if (percentage >= 33) {
+    strengthClass = styles.medium;
+  } else {
+    strengthClass = styles.weak;
+  }
 
   return (
     <div className={styles.container}>

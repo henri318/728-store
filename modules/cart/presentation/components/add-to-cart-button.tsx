@@ -53,7 +53,7 @@ type ButtonState = 'idle' | 'adding' | 'success' | 'error';
 const MAX_QUANTITY = 99;
 const CART_UPDATED_EVENT = 'cart:updated';
 
-function guestCustomizationMatches(
+function isGuestCustomizationMatching(
   item: {
     customizationText?: string | null;
     customizationColor?: string | null;
@@ -71,7 +71,7 @@ function guestCustomizationMatches(
   );
 }
 
-function authCustomizationMatches(
+function isAuthCustomizationMatching(
   customizations: Array<{
     text?: string | null;
     color?: string | null;
@@ -182,7 +182,7 @@ export function AddToCartButton({
             }>;
           }) =>
             item.productId === productId &&
-            authCustomizationMatches(
+            isAuthCustomizationMatching(
               item.customizations ?? [],
               normalizedCustomization,
             ),
@@ -208,7 +208,7 @@ export function AddToCartButton({
     : items.find(
         (i) =>
           i.productId === productId &&
-          guestCustomizationMatches(i, normalizedCustomization),
+          isGuestCustomizationMatching(i, normalizedCustomization),
       );
   const guestDiffMatch =
     !isAuthenticated && !guestMatch
@@ -259,7 +259,7 @@ export function AddToCartButton({
           }>;
         }) =>
           item.productId === productId &&
-          authCustomizationMatches(
+          isAuthCustomizationMatching(
             item.customizations ?? [],
             normalizedCustomization,
           ),
@@ -343,102 +343,96 @@ export function AddToCartButton({
     updateItemCustomization,
   ]);
 
-  const performAdd = useCallback(
+  const performAuthenticatedAdd = useCallback(
     async (draft: CustomizationDraftPayload | null) => {
-      setState('adding');
+      const validation = customizationDraftSchema.safeParse(
+        draft ?? normalizeCustomizationDraft(null),
+      );
+      if (!validation.success) return false;
 
-      try {
-        if (isAuthenticated) {
-          const customizationValidation = customizationDraftSchema.safeParse(
-            draft ?? normalizeCustomizationDraft(null),
-          );
+      let customizationIdList: string[] = [];
+      const hasCustomizationContent =
+        draft &&
+        (draft.text ||
+          draft.color ||
+          draft.size > 0 ||
+          draft.imageUrl ||
+          draft.designPosition);
 
-          if (!customizationValidation.success) {
-            setState('error');
-            setTimeout(() => setState('idle'), 3000);
-            return;
-          }
-
-          let customizationIdList: string[] = [];
-
-          if (
-            draft &&
-            (draft.text ||
-              draft.color ||
-              draft.size > 0 ||
-              draft.imageUrl ||
-              draft.designPosition)
-          ) {
-            const customizationResponse = await fetch(
-              '/api/customizations/customer',
-              {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  productId,
-                  text: draft.text,
-                  color: draft.color,
-                  size: draft.size,
-                  imageUrl: draft.imageUrl,
-                  designPosition: draft.designPosition ?? null,
-                }),
-              },
-            );
-
-            if (!customizationResponse.ok) {
-              setState('error');
-              setTimeout(() => setState('idle'), 3000);
-              return;
-            }
-
-            const customizationData = (await customizationResponse.json()) as {
-              id?: string;
-            };
-            if (customizationData.id) {
-              customizationIdList = [customizationData.id];
-            }
-          }
-
-          const res = await fetch('/api/cart/items', {
+      if (hasCustomizationContent) {
+        const customizationResponse = await fetch(
+          '/api/customizations/customer',
+          {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               productId,
-              quantity: 1,
-              customizationIdList,
+              text: draft.text,
+              color: draft.color,
+              size: draft.size,
+              imageUrl: draft.imageUrl,
+              designPosition: draft.designPosition ?? null,
             }),
-          });
-          if (!res.ok) {
-            setState('error');
-            setTimeout(() => setState('idle'), 3000);
-            return;
-          }
+          },
+        );
+        if (!customizationResponse.ok) return false;
+
+        const customizationData = (await customizationResponse.json()) as {
+          id?: string;
+        };
+        if (customizationData.id) {
+          customizationIdList = [customizationData.id];
+        }
+      }
+
+      const res = await fetch('/api/cart/items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId, quantity: 1, customizationIdList }),
+      });
+
+      return res.ok;
+    },
+    [productId],
+  );
+
+  const performAdd = useCallback(
+    async (draft: CustomizationDraftPayload | null) => {
+      setState('adding');
+
+      let isOk = false;
+      try {
+        if (isAuthenticated) {
+          isOk = await performAuthenticatedAdd(draft);
         } else {
           const normalized = draft ?? normalizeCustomizationDraft(null);
           const validation = customizationDraftSchema.safeParse(normalized);
-
-          if (!validation.success) {
-            setState('error');
-            setTimeout(() => setState('idle'), 3000);
-            return;
+          if (validation.success) {
+            addItem({
+              productId,
+              sellerId,
+              quantity: 1,
+              unitPriceSnapshot: price,
+              productName,
+              sellerName,
+              productImageUrl: imageUrl,
+              customizationText: normalized.text,
+              customizationColor: normalized.color,
+              customizationSize: normalized.size,
+              customizationImageUrl: normalized.imageUrl,
+              customizationImageUploadId: normalized.imageUploadId,
+              customizationDesignPosition: normalized.designPosition ?? null,
+            });
+            isOk = true;
           }
-
-          addItem({
-            productId,
-            sellerId,
-            quantity: 1,
-            unitPriceSnapshot: price,
-            productName,
-            sellerName,
-            productImageUrl: imageUrl,
-            customizationText: normalized.text,
-            customizationColor: normalized.color,
-            customizationSize: normalized.size,
-            customizationImageUrl: normalized.imageUrl,
-            customizationImageUploadId: normalized.imageUploadId,
-            customizationDesignPosition: normalized.designPosition ?? null,
-          });
         }
+
+        if (!isOk) {
+          setState('error');
+          setTimeout(() => setState('idle'), 3000);
+          return;
+        }
+
         setState('success');
         setTimeout(() => setState('idle'), 2000);
         dispatchCartUpdated();
@@ -458,6 +452,7 @@ export function AddToCartButton({
       imageUrl,
       addItem,
       refreshCartForProduct,
+      performAuthenticatedAdd,
     ],
   );
 
@@ -575,14 +570,12 @@ export function AddToCartButton({
     }
   }, [isAuthenticated, cartItemInfo, guestMatch, removeItemById]);
 
-  const feedbackLabel =
-    state === 'adding'
-      ? labels.adding
-      : state === 'success'
-        ? labels.added
-        : state === 'error'
-          ? labels.error
-          : labels.addToCart;
+  const feedbackLabel = (() => {
+    if (state === 'adding') return labels.adding;
+    if (state === 'success') return labels.added;
+    if (state === 'error') return labels.error;
+    return labels.addToCart;
+  })();
 
   // Success / Error feedback.
   if (state === 'success' || state === 'error') {

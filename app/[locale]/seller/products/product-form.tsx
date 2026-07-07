@@ -258,7 +258,7 @@ export function ProductForm({
   ) => {
     setForm((current) => ({ ...current, [field]: value }));
     setErrors((current) => {
-      if (!current[field]) return current;
+      if (!(field in current)) return current;
       const next = { ...current };
       delete next[field];
       return next;
@@ -351,7 +351,7 @@ export function ProductForm({
 
     for (const issue of error.issues) {
       const path = issue.path[0] as keyof FormErrors | undefined;
-      if (path && !next[path]) {
+      if (path !== undefined && !(path in next)) {
         next[path] = issue.message;
       }
     }
@@ -382,7 +382,13 @@ export function ProductForm({
       });
 
       if (!response.ok) {
-        const data = (await response.json().catch(() => null)) as {
+        const data = (() => {
+          try {
+            return await response.json();
+          } catch {
+            return null;
+          }
+        })() as {
           error?: string;
         } | null;
         throw new Error(data?.error || labels.error);

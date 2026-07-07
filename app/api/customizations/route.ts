@@ -21,7 +21,7 @@ export const GET = requireRole('DESIGNER')(async function GET() {
 
     return NextResponse.json(
       {
-        items: customizations.map(toCustomizationResponse),
+        items: customizations.map((c) => toCustomizationResponse(c)),
       },
       { status: 200 },
     );

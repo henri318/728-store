@@ -135,7 +135,7 @@ export default async function CustomerOrdersPage({
     if (filter.pageSize !== 20) params.set('pageSize', String(filter.pageSize));
     if (filter.q) params.set('q', filter.q);
     const qs = params.toString();
-    return `/${locale}/orders${qs ? `?${qs}` : ''}`;
+    return qs ? `/${locale}/orders?${qs}` : `/${locale}/orders`;
   };
 
   return (

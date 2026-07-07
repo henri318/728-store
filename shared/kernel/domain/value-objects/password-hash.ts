@@ -1,10 +1,6 @@
 export class PasswordHash {
   readonly value: string;
 
-  private constructor(value: string) {
-    this.value = value;
-  }
-
   static create(hash: string): PasswordHash {
     const trimmed = hash.trim();
 
@@ -17,6 +13,10 @@ export class PasswordHash {
     }
 
     return new PasswordHash(trimmed);
+  }
+
+  private constructor(value: string) {
+    this.value = value;
   }
 
   equals(other: PasswordHash): boolean {

@@ -109,7 +109,9 @@ function buildCustomizationHref(
     );
 
   const query = params.toString();
-  return `/${locale}/products/${productId}${query ? `?${query}` : ''}`;
+  return query
+    ? `/${locale}/products/${productId}?${query}`
+    : `/${locale}/products/${productId}`;
 }
 
 /**
@@ -289,14 +291,16 @@ export function CartView({
                     height={100}
                     borderRadius={6}
                   />
-                ) : previewUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={previewUrl}
-                    alt={item.productName}
-                    className={styles.previewImage}
-                  />
-                ) : null}
+                ) : (
+                  previewUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={previewUrl}
+                      alt={item.productName}
+                      className={styles.previewImage}
+                    />
+                  )
+                )}
                 {!showCombined && item.customization.imageUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -313,7 +317,7 @@ export function CartView({
                   {labels.soldBy} {item.sellerName}
                 </span>
 
-                {item.customization.size && (
+                {item.customization.size != null && (
                   <span className={styles.customizationLine}>
                     {labels.customizationSize}: {item.customization.size}
                   </span>

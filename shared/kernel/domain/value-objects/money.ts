@@ -4,16 +4,6 @@ export class Money {
   readonly amount: number;
   readonly currency: Currency;
 
-  /**
-   * Direct construction bypasses create() validation — used only internally by
-   * arithmetic methods that may produce valid intermediate states
-   * (e.g., negative from subtraction).
-   */
-  private constructor(amount: number, currency: Currency) {
-    this.amount = amount;
-    this.currency = currency;
-  }
-
   static create(amount: number, currency: Currency): Money {
     if (!Number.isFinite(amount)) {
       throw new TypeError('Money amount must be a finite number');
@@ -28,6 +18,16 @@ export class Money {
     }
 
     return new Money(amount, currency);
+  }
+
+  /**
+   * Direct construction bypasses create() validation — used only internally by
+   * arithmetic methods that may produce valid intermediate states
+   * (e.g., negative from subtraction).
+   */
+  private constructor(amount: number, currency: Currency) {
+    this.amount = amount;
+    this.currency = currency;
   }
 
   add(other: Money): Money {

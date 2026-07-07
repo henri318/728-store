@@ -152,171 +152,48 @@ let _isSearchHistoryEventsSubscribed = false;
  * Idempotent — calling it again is a no-op because every binding is
  * short-circuited by a null check.
  */
+
+/**
+ * Initialize all dependency bindings for the current environment.
+ * Idempotent — calling it again is a no-op because each getter is guarded
+ * by a null check.
+ *
+ * Each getter lazily initializes its own dependency so this function simply
+ * calls every getter to trigger first-time initialization.
+ */
 export function initContainer(): void {
-  // --- EmailSender: env-dependent (Brevo in production, console otherwise) ---
-  if (!_emailSender) {
-    _emailSender =
-      process.env.NODE_ENV === 'production'
-        ? new BrevoEmailSender()
-        : new ConsoleEmailSender();
-  }
-
-  // --- OutboxRepository: single Prisma adapter works in every env ---
-  if (!_outboxRepository) {
-    _outboxRepository = new PrismaOutboxRepository();
-  }
-
-  // --- PasswordHasher: bcrypt adapter wrapped to match the port ---
-  if (!_passwordHasher) {
-    _passwordHasher = {
-      hash: hashPassword,
-      verify: verifyPassword,
-    };
-  }
-
-  // --- RateLimiter: Prisma-backed adapter (works in every env) ---
-  if (!_rateLimiter) {
-    _rateLimiter = new PrismaRateLimiter();
-  }
-
-  // --- EventBus: process-wide in-memory bus (single-process default) ---
-  if (!_eventBus) {
-    _eventBus = eventBus;
-  }
-
-  // --- SecretsPort: process.env with fail-fast validation ---
-  if (!_secrets) {
-    _secrets = new ProcessEnvSecrets();
-  }
-
-  // --- SessionPort: NextAuth adapter ---
-  if (!_session) {
-    _session = new NextAuthSessionAdapter();
-  }
-
-  // --- UserRepository: Prisma adapter ---
-  if (!_userRepository) {
-    _userRepository = new PrismaUserRepository();
-  }
-
-  // --- RoleRepository: Prisma adapter + seed ---
-  if (!_roleRepository) {
-    _roleRepository = new PrismaRoleRepository();
-    // Seed default roles on first boot (idempotent, no-op if roles exist).
-    const seedRoles = new SeedRolesUseCase(_roleRepository);
-    seedRoles.execute().catch((error) => {
-      console.error('[container] Role seed failed:', error);
-    });
-  }
-
-  // --- OrderRepository: Prisma adapter ---
-  if (!_orderRepository) {
-    _orderRepository = new PrismaOrderRepository();
-  }
-
-  // --- CheckoutGroup payment wiring: Prisma adapters ---
-  if (!_checkoutGroupLookup) {
-    _checkoutGroupLookup = new PrismaCheckoutGroupLookup();
-  }
-  if (!_checkoutGroupPaymentPort) {
-    _checkoutGroupPaymentPort = new PrismaCheckoutGroupPaymentPort();
-  }
-
-  // --- ProductRepository: Prisma adapter ---
-  if (!_productRepository) {
-    _productRepository = new PrismaProductRepository();
-  }
-
-  // --- EmailQueueRepository: Prisma adapter ---
-  if (!_emailQueueRepository) {
-    _emailQueueRepository = new PrismaEmailQueueRepository();
-  }
-
-  // --- UserLookupPort: Prisma adapter ---
-  if (!_userLookup) {
-    _userLookup = new PrismaUserLookup();
-  }
-
-  // --- ForgotPasswordEmailPort: console mock in dev (real email sender in prod via EmailSender) ---
-  if (!_forgotPasswordEmailPort) {
-    _forgotPasswordEmailPort = new ConsoleForgotPasswordEmail();
-  }
-
-  // --- UsedResetTokenStore: in-memory adapter (single process) ---
-  if (!_usedResetTokenStore) {
-    _usedResetTokenStore = new MemoryUsedResetTokenStore();
-  }
-
-  // --- SellerRepository: Prisma adapter ---
-  if (!_sellerRepository) {
-    _sellerRepository = new PrismaSellerRepository();
-  }
-
-  // --- SellerLookupPort: adapter bridging orders' port to sellers infrastructure ---
-  if (!_sellerLookup) {
-    _sellerLookup = new SellerLookupAdapter(_sellerRepository!);
-  }
-
-  // --- TransactionRunner: Prisma-backed atomic unit-of-work ---
-  if (!_transactionRunner) {
-    _transactionRunner = new PrismaTransactionRunner();
-  }
-
-  // --- UserVerificationPort: adapter bridging auth's port to users infrastructure ---
-  if (!_userVerification) {
-    _userVerification = new UserVerificationAdapter(_userRepository!);
-  }
-
-  // --- RoleValidatorPort: adapter bridging users' port to roles infrastructure ---
-  if (!_roleValidator) {
-    _roleValidator = new RoleValidatorAdapter(_roleRepository!);
-  }
-
-  // --- StoragePort: R2 or local adapter for uploads ---
-  if (!_storagePort) {
-    _storagePort = isLocalUploadStorage()
-      ? new LocalStorageAdapter()
-      : new R2StorageAdapter();
-  }
-
-  // --- UploadRepository: Prisma adapter ---
-  if (!_uploadRepository) {
-    _uploadRepository = new PrismaUploadRepository();
-  }
-
-  // --- CartRepository: Prisma adapter ---
-  if (!_cartRepository) {
-    _cartRepository = new PrismaCartRepository();
-  }
-
-  // --- CartProductRepository: adapter bridging cart's port to the products module ---
-  if (!_cartProductRepository) {
-    _cartProductRepository = new CartProductRepositoryAdapter(
-      _productRepository!,
-    );
-  }
-
-  // --- PaidOrderCountPort: adapter bridging cart's port to the orders module ---
-  if (!_paidOrderCountPort) {
-    _paidOrderCountPort = new PrismaPaidOrderCountAdapter(_orderRepository!);
-  }
-
-  // --- CustomizationRepository: Prisma adapter ---
-  if (!_customizationRepository) {
-    _customizationRepository = new PrismaCustomizationRepository();
-  }
-
-  // --- CustomizationLookupPort: shared adapter for cart and orders ports ---
-  if (!_customizationLookup) {
-    _customizationLookup = new CustomizationLookupAdapter(
-      _customizationRepository!,
-    );
-  }
-
-  // --- SearchHistoryRepository: Prisma adapter ---
-  if (!_searchHistoryRepository) {
-    _searchHistoryRepository = new PrismaSearchHistoryRepository();
-  }
+  // Calling each getter triggers lazy initialization of its dependency.
+  getEmailSender();
+  getOutboxRepository();
+  getPasswordHasher();
+  getRateLimiter();
+  getEventBus();
+  getSecrets();
+  getSession();
+  getUserRepository();
+  getRoleRepository();
+  getOrderRepository();
+  getCheckoutGroupLookup();
+  getCheckoutGroupPaymentPort();
+  getProductRepository();
+  getEmailQueueRepository();
+  getUserLookup();
+  getForgotPasswordEmailPort();
+  getUsedResetTokenStore();
+  getSellerRepository();
+  getSellerLookup();
+  getTransactionRunner();
+  getUserVerification();
+  getRoleValidator();
+  getStoragePort();
+  getUploadRepository();
+  getCartRepository();
+  getCartProductRepository();
+  getPaidOrderCountPort();
+  getCustomizationRepository();
+  getCustomizationLookup();
+  getSearchHistoryRepository();
+  getResetTokenCodec();
 
   // --- Cart event subscriptions (idempotent for HMR) ---
   if (!_isCartEventsSubscribed) {
@@ -346,290 +223,365 @@ export function initContainer(): void {
 
 /**
  * Returns the EmailSender bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access.
  */
 export function getEmailSender(): EmailSender {
-  if (!_emailSender) initContainer();
-  return _emailSender!;
+  if (!_emailSender) {
+    _emailSender =
+      process.env.NODE_ENV === 'production'
+        ? new BrevoEmailSender()
+        : new ConsoleEmailSender();
+  }
+  return _emailSender;
 }
 
 /**
  * Returns the OutboxRepository bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access.
  */
 export function getOutboxRepository(): OutboxRepository {
-  if (!_outboxRepository) initContainer();
-  return _outboxRepository!;
+  if (!_outboxRepository) {
+    _outboxRepository = new PrismaOutboxRepository();
+  }
+  return _outboxRepository;
 }
 
 /**
  * Returns the PasswordHasher bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access.
  */
 export function getPasswordHasher(): PasswordHasher {
-  if (!_passwordHasher) initContainer();
-  return _passwordHasher!;
+  if (!_passwordHasher) {
+    _passwordHasher = {
+      hash: hashPassword,
+      verify: verifyPassword,
+    };
+  }
+  return _passwordHasher;
 }
 
 /**
  * Returns the RateLimiter bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access.
  */
 export function getRateLimiter(): RateLimiter {
-  if (!_rateLimiter) initContainer();
-  return _rateLimiter!;
+  if (!_rateLimiter) {
+    _rateLimiter = new PrismaRateLimiter();
+  }
+  return _rateLimiter;
 }
 
 /**
  * Returns the ResetTokenCodec bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
- * Lazy-creates a JwtResetTokenCodec using the secret from SecretsPort.
- * In tests, call `container.setResetTokenCodec()` BEFORE any getter to
- * inject a Base64ResetTokenCodec that doesn't need NEXTAUTH_SECRET.
+ * Lazily initializes on first access.
+ * Needs SecretsPort, which is also lazy-initialized on first access.
  */
 export function getResetTokenCodec(): ResetTokenCodec {
   if (!_resetTokenCodec) {
-    initContainer();
-    _resetTokenCodec = new JwtResetTokenCodec(_secrets!.getAuthSecret());
+    _resetTokenCodec = new JwtResetTokenCodec(getSecrets().getAuthSecret());
   }
   return _resetTokenCodec;
 }
 
 /**
  * Returns the EventBus bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
- * Default binding is the in-memory `eventBus` singleton.
+ * Default binding is the in-memory eventBus singleton.
  */
 export function getEventBus(): EventBusPort {
-  if (!_eventBus) initContainer();
-  return _eventBus!;
+  if (!_eventBus) {
+    _eventBus = eventBus;
+  }
+  return _eventBus;
 }
 
 /**
  * Returns the SecretsPort bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access.
  */
 export function getSecrets(): SecretsPort {
-  if (!_secrets) initContainer();
-  return _secrets!;
+  if (!_secrets) {
+    _secrets = new ProcessEnvSecrets();
+  }
+  return _secrets;
 }
 
 /**
  * Returns the SessionPort bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access.
  */
 export function getSession(): SessionPort {
-  if (!_session) initContainer();
-  return _session!;
+  if (!_session) {
+    _session = new NextAuthSessionAdapter();
+  }
+  return _session;
 }
 
 /**
  * Returns the UserRepository bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access.
  */
 export function getUserRepository(): UserRepository {
-  if (!_userRepository) initContainer();
-  return _userRepository!;
+  if (!_userRepository) {
+    _userRepository = new PrismaUserRepository();
+  }
+  return _userRepository;
 }
 
 /**
  * Returns the RoleRepository bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access and seeds default roles.
  */
 export function getRoleRepository(): RoleRepository {
-  if (!_roleRepository) initContainer();
-  return _roleRepository!;
+  if (!_roleRepository) {
+    _roleRepository = new PrismaRoleRepository();
+    // Seed default roles on first boot (idempotent, no-op if roles exist).
+    const seedRoles = new SeedRolesUseCase(_roleRepository);
+    (async () => {
+      try {
+        await seedRoles.execute();
+      } catch (error) {
+        console.error('[container] Role seed failed:', error);
+      }
+    })();
+  }
+  return _roleRepository;
 }
 
 /**
  * Returns the OrderRepository bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access.
  */
 export function getOrderRepository(): OrderRepository {
-  if (!_orderRepository) initContainer();
-  return _orderRepository!;
+  if (!_orderRepository) {
+    _orderRepository = new PrismaOrderRepository();
+  }
+  return _orderRepository;
 }
 
 /**
  * Returns the CheckoutGroupLookupPort bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access.
  */
 export function getCheckoutGroupLookup(): CheckoutGroupLookupPort {
-  if (!_checkoutGroupLookup) initContainer();
-  return _checkoutGroupLookup!;
+  if (!_checkoutGroupLookup) {
+    _checkoutGroupLookup = new PrismaCheckoutGroupLookup();
+  }
+  return _checkoutGroupLookup;
 }
 
 /**
  * Returns the CheckoutGroupPaymentPort bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access.
  */
 export function getCheckoutGroupPaymentPort(): CheckoutGroupPaymentPort {
-  if (!_checkoutGroupPaymentPort) initContainer();
-  return _checkoutGroupPaymentPort!;
+  if (!_checkoutGroupPaymentPort) {
+    _checkoutGroupPaymentPort = new PrismaCheckoutGroupPaymentPort();
+  }
+  return _checkoutGroupPaymentPort;
 }
 
 /**
  * Returns the ProductRepository bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access.
  */
 export function getProductRepository(): ProductRepository {
-  if (!_productRepository) initContainer();
-  return _productRepository!;
+  if (!_productRepository) {
+    _productRepository = new PrismaProductRepository();
+  }
+  return _productRepository;
 }
 
 /**
  * Returns the EmailQueueRepository bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access.
  */
 export function getEmailQueueRepository(): EmailQueueRepository {
-  if (!_emailQueueRepository) initContainer();
-  return _emailQueueRepository!;
+  if (!_emailQueueRepository) {
+    _emailQueueRepository = new PrismaEmailQueueRepository();
+  }
+  return _emailQueueRepository;
 }
 
 /**
  * Returns the UserLookupPort bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access.
  */
 export function getUserLookup(): UserLookupPort {
-  if (!_userLookup) initContainer();
-  return _userLookup!;
+  if (!_userLookup) {
+    _userLookup = new PrismaUserLookup();
+  }
+  return _userLookup;
 }
 
 /**
  * Returns the ForgotPasswordEmailPort bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access.
  */
 export function getForgotPasswordEmailPort(): ForgotPasswordEmailPort {
-  if (!_forgotPasswordEmailPort) initContainer();
-  return _forgotPasswordEmailPort!;
+  if (!_forgotPasswordEmailPort) {
+    _forgotPasswordEmailPort = new ConsoleForgotPasswordEmail();
+  }
+  return _forgotPasswordEmailPort;
 }
 
 /**
  * Returns the UsedResetTokenStore bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access.
  */
 export function getUsedResetTokenStore(): UsedResetTokenStorePort {
-  if (!_usedResetTokenStore) initContainer();
-  return _usedResetTokenStore!;
+  if (!_usedResetTokenStore) {
+    _usedResetTokenStore = new MemoryUsedResetTokenStore();
+  }
+  return _usedResetTokenStore;
 }
 
 /**
  * Returns the SellerRepository bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access.
  */
 export function getSellerRepository(): SellerRepository {
-  if (!_sellerRepository) initContainer();
-  return _sellerRepository!;
+  if (!_sellerRepository) {
+    _sellerRepository = new PrismaSellerRepository();
+  }
+  return _sellerRepository;
 }
 
 /**
  * Returns the SellerLookupPort bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access, resolving SellerRepository via its own getter.
  */
 export function getSellerLookup(): SellerLookupPort {
-  if (!_sellerLookup) initContainer();
-  return _sellerLookup!;
+  if (!_sellerLookup) {
+    _sellerLookup = new SellerLookupAdapter(getSellerRepository());
+  }
+  return _sellerLookup;
 }
 
 /**
  * Returns the TransactionRunner bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
- * Use this in use cases that need to persist multiple writes atomically
- * (e.g. user + seller in one go).
+ * Lazily initializes on first access.
  */
 export function getTransactionRunner(): TransactionRunner {
-  if (!_transactionRunner) initContainer();
-  return _transactionRunner!;
+  if (!_transactionRunner) {
+    _transactionRunner = new PrismaTransactionRunner();
+  }
+  return _transactionRunner;
 }
 
 /**
  * Returns the UserVerificationPort bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access, resolving UserRepository via its own getter.
  */
 export function getUserVerification(): UserVerificationPort {
-  if (!_userVerification) initContainer();
-  return _userVerification!;
+  if (!_userVerification) {
+    _userVerification = new UserVerificationAdapter(getUserRepository());
+  }
+  return _userVerification;
 }
 
 /**
  * Returns the RoleValidatorPort bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access, resolving RoleRepository via its own getter.
  */
 export function getRoleValidator(): RoleValidatorPort {
-  if (!_roleValidator) initContainer();
-  return _roleValidator!;
+  if (!_roleValidator) {
+    _roleValidator = new RoleValidatorAdapter(getRoleRepository());
+  }
+  return _roleValidator;
 }
 
 /**
  * Returns the StoragePort bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access — R2 in production, local storage for seed/data tasks.
  */
 export function getStoragePort(): StoragePort {
-  if (!_storagePort) initContainer();
-  return _storagePort!;
+  if (!_storagePort) {
+    _storagePort = isLocalUploadStorage()
+      ? new LocalStorageAdapter()
+      : new R2StorageAdapter();
+  }
+  return _storagePort;
 }
 
 /**
  * Returns the UploadRepository bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access.
  */
 export function getUploadRepository(): UploadRepository {
-  if (!_uploadRepository) initContainer();
-  return _uploadRepository!;
+  if (!_uploadRepository) {
+    _uploadRepository = new PrismaUploadRepository();
+  }
+  return _uploadRepository;
 }
 
 /**
  * Returns the CartRepository bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access.
  */
 export function getCartRepository(): CartRepository {
-  if (!_cartRepository) initContainer();
-  return _cartRepository!;
+  if (!_cartRepository) {
+    _cartRepository = new PrismaCartRepository();
+  }
+  return _cartRepository;
 }
 
 /**
  * Returns the CartProductRepository bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access, resolving ProductRepository via its own getter.
  */
 export function getCartProductRepository(): CartProductRepository {
-  if (!_cartProductRepository) initContainer();
-  return _cartProductRepository!;
+  if (!_cartProductRepository) {
+    _cartProductRepository = new CartProductRepositoryAdapter(
+      getProductRepository(),
+    );
+  }
+  return _cartProductRepository;
 }
 
 /**
  * Returns the PaidOrderCountPort bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access, resolving OrderRepository via its own getter.
  */
 export function getPaidOrderCountPort(): PaidOrderCountPort {
-  if (!_paidOrderCountPort) initContainer();
-  return _paidOrderCountPort!;
-}
-
-/**
- * Returns the CustomizationLookupPort bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
- */
-export function getCustomizationLookup(): CartCustomizationLookupPort {
-  if (!_customizationLookup) initContainer();
-  return _customizationLookup!;
+  if (!_paidOrderCountPort) {
+    _paidOrderCountPort = new PrismaPaidOrderCountAdapter(getOrderRepository());
+  }
+  return _paidOrderCountPort;
 }
 
 /**
  * Returns the CustomizationRepository bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access.
  */
 export function getCustomizationRepository(): CustomizationRepository {
-  if (!_customizationRepository) initContainer();
-  return _customizationRepository!;
+  if (!_customizationRepository) {
+    _customizationRepository = new PrismaCustomizationRepository();
+  }
+  return _customizationRepository;
+}
+
+/**
+ * Returns the CustomizationLookupPort bound for the current environment.
+ * Lazily initializes on first access, resolving CustomizationRepository via its own getter.
+ */
+export function getCustomizationLookup(): CartCustomizationLookupPort {
+  if (!_customizationLookup) {
+    _customizationLookup = new CustomizationLookupAdapter(
+      getCustomizationRepository(),
+    );
+  }
+  return _customizationLookup;
 }
 
 /**
  * Returns the SearchHistoryRepository bound for the current environment.
- * Auto-initializes the container on first call if not already initialized.
+ * Lazily initializes on first access.
  */
 export function getSearchHistoryRepository(): SearchHistoryRepository {
-  if (!_searchHistoryRepository) initContainer();
-  return _searchHistoryRepository!;
+  if (!_searchHistoryRepository) {
+    _searchHistoryRepository = new PrismaSearchHistoryRepository();
+  }
+  return _searchHistoryRepository;
 }
 
 // ---------------------------------------------------------------------------

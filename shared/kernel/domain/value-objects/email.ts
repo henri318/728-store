@@ -1,10 +1,6 @@
 export class Email {
   readonly value: string;
 
-  private constructor(value: string) {
-    this.value = value;
-  }
-
   static create(email: string): Email {
     const trimmed = email.trim().toLowerCase();
 
@@ -22,6 +18,10 @@ export class Email {
     }
 
     return new Email(trimmed);
+  }
+
+  private constructor(value: string) {
+    this.value = value;
   }
 
   equals(other: Email): boolean {

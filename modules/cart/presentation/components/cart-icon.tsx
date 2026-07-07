@@ -68,7 +68,7 @@ export function CartIcon({ alt }: CartIconProps) {
       type="button"
       onClick={open}
       className={styles.cartIconWrapper}
-      aria-label={`${alt}${count > 0 ? ` (${count})` : ''}`}
+      aria-label={count > 0 ? `${alt} (${count})` : alt}
     >
       <svg className={styles.userIcon} aria-hidden="true">
         <use href="/img/icons/sprites.svg#icon-cart" />

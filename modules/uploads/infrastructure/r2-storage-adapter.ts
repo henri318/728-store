@@ -26,13 +26,13 @@ import type { StoragePort } from '../domain/storage-port';
  *                         (e.g. "https://cdn.example.com")
  */
 export class R2StorageAdapter implements StoragePort {
+  /** Upload types that route to the public bucket. */
+  private static readonly PUBLIC_TYPES = new Set(['product', 'avatar']);
+
   private readonly client: S3Client;
   private readonly publicBucket: string;
   private readonly privateBucket: string;
   private readonly publicDomain: string;
-
-  /** Upload types that route to the public bucket. */
-  private static readonly PUBLIC_TYPES = new Set(['product', 'avatar']);
 
   constructor() {
     const fallback = requireEnv('R2_BUCKET', 'dummy-bucket');

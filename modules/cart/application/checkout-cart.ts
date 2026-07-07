@@ -66,7 +66,7 @@ export interface CheckoutResult {
  *        surface a 409 with the diff.
  *      - Never mutates state and never emits events.
  *
- *  confirm(userId, acceptPriceChanges)
+ *  confirm(userId, shouldAcceptPriceChanges)
  *      - Atomically:
  *          1. Mark the cart CHECKED_OUT
  *          2. Emit CART_CHECKED_OUT with the snapshot payload
@@ -76,7 +76,7 @@ export interface CheckoutResult {
  *        versa) — this is the Transactional Outbox Pattern (REQ-CART-022).
  *      - The actual Order creation is the Orders module's job (handled
  *        by HandleCartCheckedOut subscribed to CART_CHECKED_OUT).
- *      - `acceptPriceChanges=true` updates each item's unitPriceSnapshot
+ *      - `shouldAcceptPriceChanges=true` updates each item's unitPriceSnapshot
  *        to the current product price before locking the cart.
  *
  * The use case depends only on ports (CartRepository, ProductRepository,
@@ -94,6 +94,129 @@ export class CheckoutCart {
     private customizationLookup: CustomizationLookupPort,
   ) {}
 
+  // --- internals ---
+
+  /**
+   * Loads the cart, fetches the current product prices, computes
+   * totals, and (optionally) updates snapshots. Returns the cart
+   * (with updated snapshots when `shouldAcceptPriceChanges` is true) and
+   * the computed totals. Throws PriceChangedError on price drift
+   * when `shouldAcceptPriceChanges` is false.
+   */
+  private async buildTotals(
+    userId: string,
+    shouldAcceptPriceChanges: boolean,
+  ): Promise<{
+    cart: CartEntity;
+    totals: CheckoutTotals;
+    priceChanges: PriceChange[];
+  }> {
+    const cart = await this.cartRepository.findActiveByUserId(userId);
+    if (!cart) {
+      throw new CartNotFoundError(
+        `No active cart for user ${userId}`,
+        `No active cart found`,
+      );
+    }
+    if (cart.status !== CartStatus.Active) {
+      throw new CartImmutableError(
+        `Cart ${cart.id} is not editable (status=${cart.status})`,
+      );
+    }
+    if (cart.items.length === 0) {
+      throw new EmptyCartError();
+    }
+
+    // Fetch current prices for every distinct product in the cart.
+    const productIds = uniqueProductIds(cart.items);
+    const current = await this.productRepository.findByIds(productIds);
+
+    const priceChanges: PriceChange[] = [];
+    const updatedItems: CartItemEntity[] = cart.items.map((item) => {
+      const snap = current.get(item.productId.value);
+      if (!snap) {
+        // The product disappeared from the catalog — treat as price
+        // change to (zero?) — for now, surface a price change with
+        // newPrice=0 to force the user to re-confirm.
+        priceChanges.push({
+          itemId: item.id,
+          oldPrice: item.unitPriceSnapshot,
+          newPrice: Money.create(0, Currency.EUR),
+        });
+        return item;
+      }
+      if (snap.basePrice !== item.unitPriceSnapshot.amount) {
+        const change: PriceChange = {
+          itemId: item.id,
+          oldPrice: item.unitPriceSnapshot,
+          newPrice: Money.create(
+            snap.basePrice,
+            item.unitPriceSnapshot.currency,
+          ),
+        };
+        priceChanges.push(change);
+        if (shouldAcceptPriceChanges) {
+          return {
+            ...item,
+            unitPriceSnapshot: Money.create(
+              snap.basePrice,
+              item.unitPriceSnapshot.currency,
+            ),
+          };
+        }
+      }
+      return item;
+    });
+
+    if (priceChanges.length > 0 && !shouldAcceptPriceChanges) {
+      throw new PriceChangedError(
+        `${priceChanges.length} item(s) have a different price than when added`,
+        priceChanges,
+      );
+    }
+
+    // Persist the updated snapshots (if any) so the cart reflects the
+    // new prices. Status stays ACTIVE — checkout hasn't run yet.
+    const liveCart =
+      shouldAcceptPriceChanges && priceChanges.length > 0
+        ? await this.cartRepository.save({
+            ...cart,
+            items: updatedItems,
+            updatedAt: new Date(),
+          })
+        : cart;
+
+    // Compute totals from the live items (so shouldAcceptPriceChanges reflects
+    // the updated snapshot prices in subtotal/discount/total).
+    const subtotal = round2(
+      liveCart.items.reduce(
+        (acc, i) => acc + i.unitPriceSnapshot.amount * i.quantity,
+        0,
+      ),
+    );
+    const paidOrderCount =
+      await this.paidOrderCountPort.countPaidOrdersByUserId(userId);
+    const isFirstPurchase = paidOrderCount === 0;
+    const discount = isFirstPurchase
+      ? round2(subtotal * FIRST_PURCHASE_DISCOUNT_RATE)
+      : 0;
+    const shipping = FLAT_SHIPPING_EUR;
+    const total = round2(subtotal - discount + shipping);
+
+    return {
+      cart: liveCart,
+      totals: {
+        subtotal,
+        discount,
+        shipping,
+        total,
+        currency: Currency.EUR,
+        isFirstPurchase,
+      },
+      priceChanges,
+    };
+  }
+
   async preview(userId: string): Promise<CheckoutPreview> {
     const { totals } = await this.buildTotals(userId, false);
     return totals;
@@ -101,11 +224,11 @@ export class CheckoutCart {
 
   async confirm(
     userId: string,
-    acceptPriceChanges: boolean,
+    shouldAcceptPriceChanges: boolean,
   ): Promise<CheckoutResult> {
     const { cart, totals, priceChanges } = await this.buildTotals(
       userId,
-      acceptPriceChanges,
+      shouldAcceptPriceChanges,
     );
 
     // Resolve customization snapshots for all items. We collect all
@@ -126,7 +249,7 @@ export class CheckoutCart {
     );
 
     // Build the event payload. Each item carries the live snapshot
-    // (already updated if `acceptPriceChanges` was true) plus a
+    // (already updated if `shouldAcceptPriceChanges` was true) plus a
     // frozen customization snapshot for the order module.
     const itemsPayload = cart.items.map((item) => ({
       productId: item.productId.value,
@@ -180,129 +303,6 @@ export class CheckoutCart {
       // Keep the linter happy when the value is empty.
       ...(priceChanges.length > 0 && { priceChanges }),
     } as CheckoutResult & { priceChanges?: PriceChange[] };
-  }
-
-  // --- internals ---
-
-  /**
-   * Loads the cart, fetches the current product prices, computes
-   * totals, and (optionally) updates snapshots. Returns the cart
-   * (with updated snapshots when `acceptPriceChanges` is true) and
-   * the computed totals. Throws PriceChangedError on price drift
-   * when `acceptPriceChanges` is false.
-   */
-  private async buildTotals(
-    userId: string,
-    acceptPriceChanges: boolean,
-  ): Promise<{
-    cart: CartEntity;
-    totals: CheckoutTotals;
-    priceChanges: PriceChange[];
-  }> {
-    const cart = await this.cartRepository.findActiveByUserId(userId);
-    if (!cart) {
-      throw new CartNotFoundError(
-        `No active cart for user ${userId}`,
-        `No active cart found`,
-      );
-    }
-    if (cart.status !== CartStatus.Active) {
-      throw new CartImmutableError(
-        `Cart ${cart.id} is not editable (status=${cart.status})`,
-      );
-    }
-    if (cart.items.length === 0) {
-      throw new EmptyCartError();
-    }
-
-    // Fetch current prices for every distinct product in the cart.
-    const productIds = uniqueProductIds(cart.items);
-    const current = await this.productRepository.findByIds(productIds);
-
-    const priceChanges: PriceChange[] = [];
-    const updatedItems: CartItemEntity[] = cart.items.map((item) => {
-      const snap = current.get(item.productId.value);
-      if (!snap) {
-        // The product disappeared from the catalog — treat as price
-        // change to (zero?) — for now, surface a price change with
-        // newPrice=0 to force the user to re-confirm.
-        priceChanges.push({
-          itemId: item.id,
-          oldPrice: item.unitPriceSnapshot,
-          newPrice: Money.create(0, Currency.EUR),
-        });
-        return item;
-      }
-      if (snap.basePrice !== item.unitPriceSnapshot.amount) {
-        const change: PriceChange = {
-          itemId: item.id,
-          oldPrice: item.unitPriceSnapshot,
-          newPrice: Money.create(
-            snap.basePrice,
-            item.unitPriceSnapshot.currency,
-          ),
-        };
-        priceChanges.push(change);
-        if (acceptPriceChanges) {
-          return {
-            ...item,
-            unitPriceSnapshot: Money.create(
-              snap.basePrice,
-              item.unitPriceSnapshot.currency,
-            ),
-          };
-        }
-      }
-      return item;
-    });
-
-    if (priceChanges.length > 0 && !acceptPriceChanges) {
-      throw new PriceChangedError(
-        `${priceChanges.length} item(s) have a different price than when added`,
-        priceChanges,
-      );
-    }
-
-    // Persist the updated snapshots (if any) so the cart reflects the
-    // new prices. Status stays ACTIVE — checkout hasn't run yet.
-    const liveCart =
-      acceptPriceChanges && priceChanges.length > 0
-        ? await this.cartRepository.save({
-            ...cart,
-            items: updatedItems,
-            updatedAt: new Date(),
-          })
-        : cart;
-
-    // Compute totals from the live items (so acceptPriceChanges reflects
-    // the updated snapshot prices in subtotal/discount/total).
-    const subtotal = round2(
-      liveCart.items.reduce(
-        (acc, i) => acc + i.unitPriceSnapshot.amount * i.quantity,
-        0,
-      ),
-    );
-    const paidOrderCount =
-      await this.paidOrderCountPort.countPaidOrdersByUserId(userId);
-    const isFirstPurchase = paidOrderCount === 0;
-    const discount = isFirstPurchase
-      ? round2(subtotal * FIRST_PURCHASE_DISCOUNT_RATE)
-      : 0;
-    const shipping = FLAT_SHIPPING_EUR;
-    const total = round2(subtotal - discount + shipping);
-
-    return {
-      cart: liveCart,
-      totals: {
-        subtotal,
-        discount,
-        shipping,
-        total,
-        currency: Currency.EUR,
-        isFirstPurchase,
-      },
-      priceChanges,
-    };
   }
 }
 

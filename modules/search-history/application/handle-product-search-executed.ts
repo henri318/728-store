@@ -23,6 +23,23 @@ import { RecordSearchUseCase } from './record-search-use-case';
 export class HandleProductSearchExecuted {
   constructor(private readonly recordSearch: RecordSearchUseCase) {}
 
+  /**
+   * Wire the handler to the event bus. Mirrors the
+   * `HandleCartCheckedOut.subscribe` pattern so HMR doesn't double-register.
+   */
+  static subscribe(
+    eventBus: EventBusPort,
+    handler: HandleProductSearchExecuted,
+  ): void {
+    eventBus.on(GlobalEvents.PRODUCT_SEARCH_EXECUTED, async (data: unknown) => {
+      try {
+        await handler.handle(data as ProductSearchExecutedPayload);
+      } catch (error) {
+        console.error('Error processing ProductSearchExecuted event:', error);
+      }
+    });
+  }
+
   async handle(
     payload: ProductSearchExecutedPayload | null | undefined,
   ): Promise<void> {
@@ -41,23 +58,6 @@ export class HandleProductSearchExecuted {
       userId: payload.userId,
       term: payload.term,
       locale: payload.locale,
-    });
-  }
-
-  /**
-   * Wire the handler to the event bus. Mirrors the
-   * `HandleCartCheckedOut.subscribe` pattern so HMR doesn't double-register.
-   */
-  static subscribe(
-    eventBus: EventBusPort,
-    handler: HandleProductSearchExecuted,
-  ): void {
-    eventBus.on(GlobalEvents.PRODUCT_SEARCH_EXECUTED, async (data: unknown) => {
-      try {
-        await handler.handle(data as ProductSearchExecutedPayload);
-      } catch (error) {
-        console.error('Error processing ProductSearchExecuted event:', error);
-      }
     });
   }
 }

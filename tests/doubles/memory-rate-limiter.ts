@@ -8,7 +8,7 @@ import type {
  *
  * Stores login attempts in plain arrays. Test cases can:
  *   - call checkRateLimit / recordLoginAttempt as the production code would
- *   - inspect `attempts` to assert what was persisted
+ *   - inspect ttempts to assert what was persisted
  *
  * Enforces the SAME thresholds as the production Prisma adapter so unit
  * tests exercise the same boundary conditions:
@@ -24,7 +24,6 @@ export class MemoryRateLimiter implements RateLimiter {
   public readonly IP_FAIL_THRESHOLD = 20;
   public readonly WINDOW_MS = 15 * 60 * 1000;
   public readonly EMAIL_BLOCK_SECONDS = 15 * 60;
-  public readonly IP_BLOCK_SECONDS = 60 * 60;
 
   private store: Array<{
     email: string;
@@ -32,6 +31,8 @@ export class MemoryRateLimiter implements RateLimiter {
     success: boolean;
     createdAt: Date;
   }> = [];
+
+  public readonly IP_BLOCK_SECONDS = 60 * 60;
 
   async checkRateLimit(email: string, ip: string): Promise<RateLimitResult> {
     const since = new Date(Date.now() - this.WINDOW_MS);
@@ -70,9 +71,9 @@ export class MemoryRateLimiter implements RateLimiter {
   async recordLoginAttempt(
     email: string,
     ip: string,
-    success: boolean,
+    isSuccess: boolean,
   ): Promise<void> {
-    this.store.push({ email, ip, success, createdAt: new Date() });
+    this.store.push({ email, ip, success: isSuccess, createdAt: new Date() });
   }
 
   /** Test helper — return the full list of stored attempts. */

@@ -19,7 +19,10 @@ export default function LanguageSelector({
   const toggle = TOGGLE[currentLocale] ?? TOGGLE.es;
 
   const handleToggle = () => {
-    const newPath = pathname.replace(`/${currentLocale}`, `/${toggle.target}`);
+    const newPath = pathname.replace(
+      `/${currentLocale}`,
+      () => `/${toggle.target}`,
+    );
     router.push(newPath);
   };
 

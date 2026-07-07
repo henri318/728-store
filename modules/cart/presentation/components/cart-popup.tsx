@@ -1,6 +1,12 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback, useReducer } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useState,
+  useReducer,
+  type ReactNode,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -100,26 +106,26 @@ export function CartPopup({ labels }: CartPopupProps) {
 
   const [authItems, setAuthItems] = useState<CartItemDTO[]>([]);
   const [loading, setLoading] = useReducer(
-    (_state: boolean, next: boolean) => next,
+    (_isLoading: boolean, shouldLoad: boolean) => shouldLoad,
     false,
   );
-  const abortRef = useRef<AbortController | null>(null);
   const unknownProduct = labels.unknownProduct;
   const unknownSeller = labels.unknownSeller;
 
-  const refreshAuthCart = useCallback(() => {
+  useEffect(() => {
     if (!isOpen || !isAuthenticated) return;
-    abortRef.current?.abort();
     const ctrl = new AbortController();
-    abortRef.current = ctrl;
-    setLoading(true);
-    fetch('/api/cart', { signal: ctrl.signal })
-      .then((r) => (r.ok ? r.json() : { items: [] }))
-      .then((data) => {
-        if (ctrl.signal.aborted) {
+    const doFetch = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch('/api/cart', { signal: ctrl.signal });
+        if (ctrl.signal.aborted) return;
+        if (!res.ok) {
+          setLoading(false);
           return;
         }
-
+        const data = await res.json();
+        if (ctrl.signal.aborted) return;
         setAuthItems(
           (data.items ?? []).map((i: Record<string, unknown>) => {
             const customizations =
@@ -155,22 +161,18 @@ export function CartPopup({ labels }: CartPopupProps) {
           }),
         );
         setLoading(false);
-      })
-      .catch(() => {
+      } catch {
         if (!ctrl.signal.aborted) setLoading(false);
-      });
-  }, [isOpen, isAuthenticated]);
-
-  useEffect(() => {
-    if (!isOpen || !isAuthenticated) return;
-    refreshAuthCart();
-    const handleCartUpdated = () => refreshAuthCart();
+      }
+    };
+    doFetch();
+    const handleCartUpdated = () => doFetch();
     globalThis.addEventListener(CART_UPDATED_EVENT, handleCartUpdated);
     return () => {
-      abortRef.current?.abort();
+      ctrl.abort();
       globalThis.removeEventListener(CART_UPDATED_EVENT, handleCartUpdated);
     };
-  }, [isOpen, isAuthenticated, refreshAuthCart]);
+  }, [isOpen, isAuthenticated]);
 
   const items = isAuthenticated
     ? authItems
@@ -255,6 +257,131 @@ export function CartPopup({ labels }: CartPopupProps) {
   /* eslint-enable react-hooks/set-state-in-effect, @eslint-react/set-state-in-effect */
   if (!mounted || !isOpen) return null;
 
+  function renderThumbnail(item: CartItemDTO) {
+    if (
+      item.customization?.imageUrl != null &&
+      item.customization?.designPosition != null
+    ) {
+      return (
+        <DesignPreview
+          productImageUrl={item.productImageUrl ?? ''}
+          designImageUrl={item.customization.imageUrl}
+          designPosition={
+            item.customization.designPosition as unknown as DesignPositionData
+          }
+          width={40}
+          height={40}
+          borderRadius={4}
+        />
+      );
+    }
+    if (item.productImageUrl) {
+      return (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={item.productImageUrl}
+          alt={item.productName}
+          className={styles.thumb}
+        />
+      );
+    }
+    return null;
+  }
+
+  let content: ReactNode;
+  if (loading) {
+    content = <p className={styles.status}>{labels.loading}</p>;
+  } else if (items.length === 0) {
+    content = (
+      <div className={styles.status}>
+        <p>{labels.empty}</p>
+        <button
+          type="button"
+          onClick={() => go(`/${locale}/products`)}
+          className={styles.cta}
+        >
+          {labels.browseProducts}
+        </button>
+      </div>
+    );
+  } else {
+    content = (
+      <>
+        <ul className={styles.items}>
+          {items.map((item) => (
+            <li key={item.id} className={styles.item}>
+              <div className={styles.itemInfo}>
+                {renderThumbnail(item)}
+                <div className={styles.popupItemDetails}>
+                  <span className={styles.name}>
+                    {item.productName ?? unknownProduct}
+                  </span>
+                  <span className={styles.seller}>
+                    {labels.soldBy} {item.sellerName ?? unknownSeller}
+                  </span>
+                  {item.customization?.size && (
+                    <span className={styles.popupCustLine}>
+                      {item.customization.size}
+                    </span>
+                  )}
+                  {item.customization?.text && (
+                    <span className={styles.popupCustText}>
+                      {item.customization.text}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className={styles.itemCtrls}>
+                <QuantityControls
+                  value={item.quantity}
+                  onChange={(newQty) =>
+                    handleUpdate(item, newQty - item.quantity)
+                  }
+                  variant="compact"
+                  decrementLabel={labels.decreaseQuantity}
+                  incrementLabel={labels.increaseQuantity}
+                />
+                <span className={styles.lineTotal}>
+                  {Money.format(item.lineTotal, Currency.EUR)}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleRemove(item)}
+                  className={styles.rmBtn}
+                  aria-label={labels.remove}
+                >
+                  <svg aria-hidden="true">
+                    <use href="/img/icons/sprites.svg#icon-trash" />
+                  </svg>
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <div className={styles.footer}>
+          <div className={styles.subtotal}>
+            <span>{labels.subtotal}</span>
+            <span>{Money.format(subtotal, Currency.EUR)}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => go(`/${locale}/checkout`)}
+            className={styles.checkoutBtn}
+          >
+            {labels.checkout}
+          </button>
+          <button
+            type="button"
+            onClick={() => go(`/${locale}/cart`)}
+            className={styles.fullCartBtn}
+          >
+            {labels.viewFullCart}
+          </button>
+        </div>
+      </>
+    );
+  }
+
   return createPortal(
     <div className={styles.overlay} onClick={close}>
       <aside
@@ -274,116 +401,7 @@ export function CartPopup({ labels }: CartPopupProps) {
             ✕
           </button>
         </div>
-        <div className={styles.content}>
-          {loading ? (
-            <p className={styles.status}>{labels.loading}</p>
-          ) : items.length === 0 ? (
-            <div className={styles.status}>
-              <p>{labels.empty}</p>
-              <button
-                type="button"
-                onClick={() => go(`/${locale}/products`)}
-                className={styles.cta}
-              >
-                {labels.browseProducts}
-              </button>
-            </div>
-          ) : (
-            <>
-              <ul className={styles.items}>
-                {items.map((item) => (
-                  <li key={item.id} className={styles.item}>
-                    <div className={styles.itemInfo}>
-                      {item.customization?.imageUrl != null &&
-                      item.customization?.designPosition != null ? (
-                        <DesignPreview
-                          productImageUrl={item.productImageUrl ?? ''}
-                          designImageUrl={item.customization.imageUrl}
-                          designPosition={
-                            item.customization
-                              .designPosition as unknown as DesignPositionData
-                          }
-                          width={40}
-                          height={40}
-                          borderRadius={4}
-                        />
-                      ) : item.productImageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={item.productImageUrl}
-                          alt={item.productName}
-                          className={styles.thumb}
-                        />
-                      ) : null}
-                      <div className={styles.popupItemDetails}>
-                        <span className={styles.name}>
-                          {item.productName ?? unknownProduct}
-                        </span>
-                        <span className={styles.seller}>
-                          {labels.soldBy} {item.sellerName ?? unknownSeller}
-                        </span>
-                        {item.customization?.size && (
-                          <span className={styles.popupCustLine}>
-                            {item.customization.size}
-                          </span>
-                        )}
-                        {item.customization?.text && (
-                          <span className={styles.popupCustText}>
-                            {item.customization.text}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className={styles.itemCtrls}>
-                      <QuantityControls
-                        value={item.quantity}
-                        onChange={(newQty) =>
-                          handleUpdate(item, newQty - item.quantity)
-                        }
-                        variant="compact"
-                        decrementLabel={labels.decreaseQuantity}
-                        incrementLabel={labels.increaseQuantity}
-                      />
-                      <span className={styles.lineTotal}>
-                        {Money.format(item.lineTotal, Currency.EUR)}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemove(item)}
-                        className={styles.rmBtn}
-                        aria-label={labels.remove}
-                      >
-                        <svg aria-hidden="true">
-                          <use href="/img/icons/sprites.svg#icon-trash" />
-                        </svg>
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <div className={styles.footer}>
-                <div className={styles.subtotal}>
-                  <span>{labels.subtotal}</span>
-                  <span>{Money.format(subtotal, Currency.EUR)}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => go(`/${locale}/checkout`)}
-                  className={styles.checkoutBtn}
-                >
-                  {labels.checkout}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => go(`/${locale}/cart`)}
-                  className={styles.fullCartBtn}
-                >
-                  {labels.viewFullCart}
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+        <div className={styles.content}>{content}</div>
       </aside>
     </div>,
     document.body,

@@ -209,7 +209,7 @@ export default async function CheckoutPage({
                     <span className={styles.itemCustomization}>
                       {[
                         ...item.customizations.flatMap((c) => [
-                          c.size &&
+                          c.size != null &&
                             `${dict.common.customizationSize}: ${c.size}`,
                           c.color &&
                             `${dict.common.customizationColor}: ${c.color}`,
@@ -262,7 +262,7 @@ export default async function CheckoutPage({
               <span>
                 {dict.common.firstPurchaseDiscount.replace(
                   '{rate}',
-                  String(FIRST_PURCHASE_DISCOUNT_RATE * 100),
+                  (FIRST_PURCHASE_DISCOUNT_RATE * 100).toString(),
                 )}
               </span>
               <span className={styles.discount}>

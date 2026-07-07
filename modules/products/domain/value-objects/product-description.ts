@@ -11,10 +11,6 @@
 export class ProductDescription {
   readonly value: string;
 
-  private constructor(value: string) {
-    this.value = value;
-  }
-
   static create(value: string | null): ProductDescription | null {
     if (value === null) {
       return null;
@@ -27,6 +23,10 @@ export class ProductDescription {
     }
 
     return new ProductDescription(trimmed);
+  }
+
+  private constructor(value: string) {
+    this.value = value;
   }
 
   equals(other: ProductDescription): boolean {

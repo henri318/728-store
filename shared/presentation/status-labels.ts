@@ -19,6 +19,12 @@ export function resolveStatusLabel(
   fallback = status,
 ): string {
   const key =
-    map[status] ?? map[status.toLowerCase()] ?? map[status.toUpperCase()];
+    status in map
+      ? map[status]
+      : status.toLowerCase() in map
+        ? map[status.toLowerCase()]
+        : status.toUpperCase() in map
+          ? map[status.toUpperCase()]
+          : undefined;
   return key && dict[key] ? dict[key] : fallback;
 }

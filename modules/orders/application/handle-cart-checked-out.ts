@@ -182,7 +182,7 @@ async function resolveCustomizationSnapshot(
   const customizationIdList = item.customizationIdList ?? [];
   if (customizationIdList.length === 0) return null;
   const lookedUp = await customizationLookup.findByIds(customizationIdList);
-  return lookedUp.map(toFrozenCustomizationSnapshot);
+  return lookedUp.map((c) => toFrozenCustomizationSnapshot(c));
 }
 
 function toFrozenCustomizationSnapshot(
