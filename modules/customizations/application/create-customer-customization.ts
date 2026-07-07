@@ -92,18 +92,18 @@ export class CreateCustomerCustomization {
     }
 
     const mode = config.mode;
-    const textRequired = mode === 'description' || mode === 'text';
+    const isTextRequired = mode === 'description' || mode === 'text';
 
-    if (textRequired && !hasText) {
+    if (isTextRequired && !hasText) {
       throw new ValidationError(
         'Text customization is required for this product',
         'Customization is not allowed for this product',
       );
     }
 
-    const photoRequired = mode === 'photo' || mode === 'text_photo';
+    const isPhotoRequired = mode === 'photo' || mode === 'text_photo';
 
-    if (photoRequired && !hasImageForCapability) {
+    if (isPhotoRequired && !hasImageForCapability) {
       throw new ValidationError(
         'Photo customization is required for this product',
         'Customization is not allowed for this product',

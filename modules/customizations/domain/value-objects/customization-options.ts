@@ -53,33 +53,39 @@ export class CustomizationOptions {
   }
 
   private static validateColor(color: string | undefined): void {
-    if (color !== undefined) {
-      if (color.trim().length === 0) {
-        throw new Error('Customization color cannot be empty if provided');
-      }
-      if (color.length > 50) {
-        throw new Error('Customization color must be at most 50 characters');
-      }
+    if (color === undefined) {
+      return;
+    }
+
+    if (color.trim().length === 0) {
+      throw new Error('Customization color cannot be empty if provided');
+    }
+    if (color.length > 50) {
+      throw new Error('Customization color must be at most 50 characters');
     }
   }
 
   private static validateSize(size: string | undefined): void {
-    if (size !== undefined) {
-      if (size.trim().length === 0) {
-        throw new Error('Customization size cannot be empty if provided');
-      }
-      if (size.length > 50) {
-        throw new Error('Customization size must be at most 50 characters');
-      }
+    if (size === undefined) {
+      return;
+    }
+
+    if (size.trim().length === 0) {
+      throw new Error('Customization size cannot be empty if provided');
+    }
+    if (size.length > 50) {
+      throw new Error('Customization size must be at most 50 characters');
     }
   }
 
   private static validateImageUrl(imageUrl: string | undefined): void {
-    if (imageUrl !== undefined) {
-      const urlPattern = /^https?:\/\/.+/;
-      if (!urlPattern.test(imageUrl)) {
-        throw new Error('Customization image URL must be a valid URL');
-      }
+    if (imageUrl === undefined) {
+      return;
+    }
+
+    const urlPattern = /^https?:\/\/.+/;
+    if (!urlPattern.test(imageUrl)) {
+      throw new Error('Customization image URL must be a valid URL');
     }
   }
 
