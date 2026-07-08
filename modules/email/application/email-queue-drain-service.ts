@@ -10,6 +10,7 @@ export interface EmailQueueDrainOptions {
 export interface EmailQueueDrainResult {
   claimed: number;
   sent: number;
+  sentButUnconfirmed: number;
   rescheduled: number;
   failed: number;
 }
@@ -54,6 +55,7 @@ export class EmailQueueDrainService {
     const claimed = await this.queueRepository.claimPending(now, batchSize);
 
     let sent = 0;
+    let sentButUnconfirmed = 0;
     let rescheduled = 0;
     let failed = 0;
 
@@ -64,9 +66,6 @@ export class EmailQueueDrainService {
           subject: email.subject,
           htmlBody: email.htmlBody,
         });
-
-        await this.queueRepository.markSent(email.id, new Date());
-        sent += 1;
       } catch (error) {
         const retryCount = email.retryCount + 1;
         if (retryCount >= email.maxRetries) {
@@ -87,12 +86,25 @@ export class EmailQueueDrainService {
           String(error),
         );
         rescheduled += 1;
+        continue;
+      }
+
+      try {
+        await this.queueRepository.markSent(email.id, new Date());
+        sent += 1;
+      } catch (error) {
+        console.error('[EmailQueueDrainService] Failed to persist sent state', {
+          emailId: email.id,
+          error: String(error),
+        });
+        sentButUnconfirmed += 1;
       }
     }
 
     return {
       claimed: claimed.length,
       sent,
+      sentButUnconfirmed,
       rescheduled,
       failed,
     };

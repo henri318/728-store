@@ -29,11 +29,19 @@ function createWorkerEntry(
 describe('EmailQueueDrainService', () => {
   let queueRepository: EmailQueueRepository;
   let emailSender: EmailSender;
-  const ORIGINAL_ENV = process.env;
+  const ORIGINAL_BATCH_SIZE = process.env.EMAIL_QUEUE_DRAIN_BATCH_SIZE;
+
+  function restoreBatchSizeEnv(): void {
+    if (ORIGINAL_BATCH_SIZE === undefined) {
+      delete process.env.EMAIL_QUEUE_DRAIN_BATCH_SIZE;
+      return;
+    }
+
+    process.env.EMAIL_QUEUE_DRAIN_BATCH_SIZE = ORIGINAL_BATCH_SIZE;
+  }
 
   beforeEach(() => {
-    process.env = { ...ORIGINAL_ENV };
-    delete process.env.EMAIL_QUEUE_DRAIN_BATCH_SIZE;
+    restoreBatchSizeEnv();
 
     queueRepository = {
       create: vi.fn(),
@@ -51,7 +59,57 @@ describe('EmailQueueDrainService', () => {
   });
 
   afterEach(() => {
-    process.env = ORIGINAL_ENV;
+    restoreBatchSizeEnv();
+  });
+
+  it('uses EMAIL_QUEUE_DRAIN_BATCH_SIZE when draining', async () => {
+    process.env.EMAIL_QUEUE_DRAIN_BATCH_SIZE = '7';
+    vi.mocked(queueRepository.claimPending).mockResolvedValue([
+      createWorkerEntry(),
+    ]);
+    vi.mocked(emailSender.send).mockResolvedValue(undefined);
+
+    const service = new EmailQueueDrainService(queueRepository, emailSender);
+    const result = await service.drain({
+      now: new Date('2026-07-08T10:05:00.000Z'),
+    });
+
+    expect(queueRepository.claimPending).toHaveBeenCalledWith(
+      new Date('2026-07-08T10:05:00.000Z'),
+      7,
+    );
+    expect(result).toEqual({
+      claimed: 1,
+      sent: 1,
+      sentButUnconfirmed: 0,
+      rescheduled: 0,
+      failed: 0,
+    });
+  });
+
+  it('falls back to the default batch size when EMAIL_QUEUE_DRAIN_BATCH_SIZE is invalid', async () => {
+    process.env.EMAIL_QUEUE_DRAIN_BATCH_SIZE = 'not-a-number';
+    vi.mocked(queueRepository.claimPending).mockResolvedValue([
+      createWorkerEntry(),
+    ]);
+    vi.mocked(emailSender.send).mockResolvedValue(undefined);
+
+    const service = new EmailQueueDrainService(queueRepository, emailSender);
+    const result = await service.drain({
+      now: new Date('2026-07-08T10:05:00.000Z'),
+    });
+
+    expect(queueRepository.claimPending).toHaveBeenCalledWith(
+      new Date('2026-07-08T10:05:00.000Z'),
+      10,
+    );
+    expect(result).toEqual({
+      claimed: 1,
+      sent: 1,
+      sentButUnconfirmed: 0,
+      rescheduled: 0,
+      failed: 0,
+    });
   });
 
   it('drains a batch and marks successful sends as sent using the default batch size', async () => {
@@ -82,7 +140,30 @@ describe('EmailQueueDrainService', () => {
       'email-1',
       expect.any(Date),
     );
-    expect(result).toEqual({ claimed: 1, sent: 1, rescheduled: 0, failed: 0 });
+    expect(result).toEqual({
+      claimed: 1,
+      sent: 1,
+      sentButUnconfirmed: 0,
+      rescheduled: 0,
+      failed: 0,
+    });
+  });
+
+  it('returns zero counters when the queue is empty', async () => {
+    vi.mocked(queueRepository.claimPending).mockResolvedValue([]);
+
+    const service = new EmailQueueDrainService(queueRepository, emailSender);
+    const result = await service.drain({
+      now: new Date('2026-07-08T10:05:00.000Z'),
+    });
+
+    expect(result).toEqual({
+      claimed: 0,
+      sent: 0,
+      sentButUnconfirmed: 0,
+      rescheduled: 0,
+      failed: 0,
+    });
   });
 
   it('reschedules failed sends with exponential backoff when retries remain', async () => {
@@ -105,7 +186,13 @@ describe('EmailQueueDrainService', () => {
       'Error: temporary outage',
     );
     expect(queueRepository.markFailed).not.toHaveBeenCalled();
-    expect(result).toEqual({ claimed: 1, sent: 0, rescheduled: 1, failed: 0 });
+    expect(result).toEqual({
+      claimed: 1,
+      sent: 0,
+      sentButUnconfirmed: 0,
+      rescheduled: 1,
+      failed: 0,
+    });
   });
 
   it('marks failed sends as failed when the retry budget is exhausted', async () => {
@@ -128,6 +215,41 @@ describe('EmailQueueDrainService', () => {
       3,
     );
     expect(queueRepository.reschedule).not.toHaveBeenCalled();
-    expect(result).toEqual({ claimed: 1, sent: 0, rescheduled: 0, failed: 1 });
+    expect(result).toEqual({
+      claimed: 1,
+      sent: 0,
+      sentButUnconfirmed: 0,
+      rescheduled: 0,
+      failed: 1,
+    });
+  });
+
+  it('counts a successful send as unconfirmed when markSent fails', async () => {
+    vi.mocked(queueRepository.claimPending).mockResolvedValue([
+      createWorkerEntry(),
+    ]);
+    vi.mocked(emailSender.send).mockResolvedValue(undefined);
+    vi.mocked(queueRepository.markSent).mockRejectedValue(
+      new Error('database unavailable'),
+    );
+
+    const service = new EmailQueueDrainService(queueRepository, emailSender);
+    const result = await service.drain({
+      now: new Date('2026-07-08T10:05:00.000Z'),
+    });
+
+    expect(queueRepository.markSent).toHaveBeenCalledWith(
+      'email-1',
+      expect.any(Date),
+    );
+    expect(queueRepository.reschedule).not.toHaveBeenCalled();
+    expect(queueRepository.markFailed).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      claimed: 1,
+      sent: 0,
+      sentButUnconfirmed: 1,
+      rescheduled: 0,
+      failed: 0,
+    });
   });
 });
