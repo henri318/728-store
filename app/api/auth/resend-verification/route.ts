@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SignJWT } from 'jose';
 import { container } from '@/composition-root/container';
+import { buildIdempotencyKey } from '@/shared/lib/idempotency-key';
 import { resendVerificationSchema } from '@/modules/auth/presentation/schemas/auth-schemas';
 import { handleApiError } from '@/shared/presentation/error-handler';
 import { escapeHtml } from '@/shared/kernel/escape-html';
@@ -96,6 +97,11 @@ export async function POST(request: NextRequest) {
       htmlBody,
       template: 'verification',
       metadata: { userId: user.userId.value },
+      idempotencyKey: buildIdempotencyKey(
+        'verification',
+        email,
+        user.userId.value,
+      ),
     });
 
     return NextResponse.json({

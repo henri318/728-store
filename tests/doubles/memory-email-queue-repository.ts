@@ -26,6 +26,23 @@ export class MemoryEmailQueueRepository implements EmailQueueRepository {
   })[] = [];
 
   async create(entry: CreateEmailQueueInput): Promise<EmailQueueEntry> {
+    const existing = this.entries.find(
+      (stored) => stored.idempotencyKey === entry.idempotencyKey,
+    );
+
+    if (existing) {
+      return {
+        id: existing.id,
+        to: existing.to,
+        subject: existing.subject,
+        htmlBody: existing.htmlBody,
+        template: existing.template,
+        metadata: existing.metadata,
+        idempotencyKey: existing.idempotencyKey,
+        createdAt: existing.createdAt,
+      };
+    }
+
     const stored = {
       id: randomUUID(),
       to: entry.to,
@@ -33,6 +50,7 @@ export class MemoryEmailQueueRepository implements EmailQueueRepository {
       htmlBody: entry.htmlBody,
       template: entry.template,
       metadata: entry.metadata,
+      idempotencyKey: entry.idempotencyKey,
       createdAt: new Date(),
       status: 'PENDING',
       retryCount: 0,
@@ -48,6 +66,7 @@ export class MemoryEmailQueueRepository implements EmailQueueRepository {
       htmlBody: stored.htmlBody,
       template: stored.template,
       metadata: stored.metadata,
+      idempotencyKey: stored.idempotencyKey,
       createdAt: stored.createdAt,
     };
   }
@@ -76,6 +95,7 @@ export class MemoryEmailQueueRepository implements EmailQueueRepository {
       htmlBody: c.htmlBody,
       template: c.template,
       metadata: c.metadata,
+      idempotencyKey: c.idempotencyKey,
       createdAt: c.createdAt,
     };
   }
@@ -102,6 +122,7 @@ export class MemoryEmailQueueRepository implements EmailQueueRepository {
           htmlBody: e.htmlBody,
           template: e.template,
           metadata: e.metadata,
+          idempotencyKey: e.idempotencyKey,
           createdAt: e.createdAt,
           status: e.status,
           retryCount: e.retryCount,

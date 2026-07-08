@@ -1,5 +1,5 @@
 import { prisma } from '@/shared/infrastructure/prisma';
-import type { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import type {
   CreateEmailQueueInput,
   EmailQueueEntry,
@@ -25,6 +25,7 @@ export class PrismaEmailQueueRepository implements EmailQueueRepository {
     htmlBody: string;
     template: string | null;
     metadata: unknown;
+    idempotencyKey: string;
     createdAt: Date;
     status: string;
     retryCount: number;
@@ -38,6 +39,7 @@ export class PrismaEmailQueueRepository implements EmailQueueRepository {
       htmlBody: row.htmlBody,
       template: row.template ?? '',
       metadata: (row.metadata as Record<string, unknown> | null) ?? undefined,
+      idempotencyKey: row.idempotencyKey,
       createdAt: row.createdAt,
       status: row.status,
       retryCount: row.retryCount,
@@ -47,25 +49,72 @@ export class PrismaEmailQueueRepository implements EmailQueueRepository {
   }
 
   async create(entry: CreateEmailQueueInput): Promise<EmailQueueEntry> {
-    const row = await prisma.emailQueue.create({
-      data: {
-        to: entry.to,
-        subject: entry.subject,
-        htmlBody: entry.htmlBody,
-        template: entry.template,
-        metadata: entry.metadata as Prisma.InputJsonValue,
-      },
-    });
+    try {
+      const row = await prisma.emailQueue.create({
+        data: {
+          to: entry.to,
+          subject: entry.subject,
+          htmlBody: entry.htmlBody,
+          template: entry.template,
+          metadata: entry.metadata as Prisma.InputJsonValue,
+          idempotencyKey: entry.idempotencyKey,
+        },
+      });
 
-    return {
-      id: row.id,
-      to: row.to,
-      subject: row.subject,
-      htmlBody: row.htmlBody,
-      template: row.template ?? '',
-      metadata: (row.metadata as Record<string, unknown> | null) ?? undefined,
-      createdAt: row.createdAt,
-    };
+      return {
+        id: row.id,
+        to: row.to,
+        subject: row.subject,
+        htmlBody: row.htmlBody,
+        template: row.template ?? '',
+        metadata: (row.metadata as Record<string, unknown> | null) ?? undefined,
+        idempotencyKey: row.idempotencyKey,
+        createdAt: row.createdAt,
+      };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const row = await prisma.emailQueue.findFirst({
+          where: { idempotencyKey: entry.idempotencyKey },
+        });
+
+        if (row) {
+          console.warn(
+            '[PrismaEmailQueueRepository] Recovered duplicate email queue entry',
+            {
+              idempotencyKey: entry.idempotencyKey,
+              template: entry.template,
+              to: entry.to,
+            },
+          );
+
+          return {
+            id: row.id,
+            to: row.to,
+            subject: row.subject,
+            htmlBody: row.htmlBody,
+            template: row.template ?? '',
+            metadata:
+              (row.metadata as Record<string, unknown> | null) ?? undefined,
+            idempotencyKey: row.idempotencyKey,
+            createdAt: row.createdAt,
+          };
+        }
+
+        console.warn(
+          '[PrismaEmailQueueRepository] Duplicate email queue insert could not be recovered',
+          {
+            idempotencyKey: entry.idempotencyKey,
+            template: entry.template,
+            to: entry.to,
+          },
+        );
+      }
+
+      throw error;
+    }
   }
 
   async findRecentByRecipient(
@@ -91,6 +140,7 @@ export class PrismaEmailQueueRepository implements EmailQueueRepository {
       htmlBody: row.htmlBody,
       template: row.template ?? '',
       metadata: (row.metadata as Record<string, unknown> | null) ?? undefined,
+      idempotencyKey: row.idempotencyKey,
       createdAt: row.createdAt,
     };
   }

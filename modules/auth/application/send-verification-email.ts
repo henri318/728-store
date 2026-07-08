@@ -1,5 +1,6 @@
 import { SignJWT } from 'jose';
 import type { SecretsPort } from '@/modules/auth/domain/secrets';
+import { buildIdempotencyKey } from '@/shared/lib/idempotency-key';
 import type { EmailQueueRepository } from '@/shared/contracts/email/email-queue-port';
 import { escapeHtml } from '@/shared/kernel/escape-html';
 import { getBaseUrl } from '@/shared/kernel/config';
@@ -66,6 +67,7 @@ export class SendVerificationEmailUseCase {
       htmlBody,
       template: 'verification',
       metadata: { userId },
+      idempotencyKey: buildIdempotencyKey('verification', email, userId),
     });
   }
 }

@@ -11,5 +11,6 @@ export interface EmailQueueEntry {
   htmlBody: string;
   template: string;
   metadata?: Record<string, unknown>;
+  idempotencyKey: string;
   createdAt: Date;
 }
