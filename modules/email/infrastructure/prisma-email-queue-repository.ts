@@ -148,37 +148,80 @@ export class PrismaEmailQueueRepository implements EmailQueueRepository {
   // -------------------------------------------------------------------------
 
   /**
-   * Atomically claim up to atchSize entries that are due for processing.
-   * Implemented as: find PENDING + scheduledAt <= now, then updateMany
-   * marking them PROCESSING. Both operations hit the same model so the
-   * race window is small; for stricter guarantees a transaction can be
-   * added later.
+   * Atomically claim up to batchSize entries that are due for processing.
+   *
+   * PostgreSQL's FOR UPDATE SKIP LOCKED lets concurrent drainers claim
+   * different rows without waiting on each other or returning duplicates.
    */
   async claimPending(
     now: Date,
     batchSize: number,
   ): Promise<EmailQueueWorkerEntry[]> {
-    const due = await prisma.emailQueue.findMany({
+    const rows = await prisma.$queryRaw<
+      Array<{
+        id: string;
+        to: string;
+        subject: string;
+        htmlBody: string;
+        template: string | null;
+        metadata: unknown;
+        idempotencyKey: string;
+        createdAt: Date;
+        status: string;
+        retryCount: number;
+        maxRetries: number;
+        scheduledAt: Date;
+      }>
+    >(Prisma.sql`
+      WITH claimed AS (
+        SELECT "id"
+        FROM "EmailQueue"
+        WHERE "status" = 'PENDING'
+          AND "scheduledAt" <= ${now}
+        ORDER BY "scheduledAt" ASC, "createdAt" ASC, "id" ASC
+        FOR UPDATE SKIP LOCKED
+        LIMIT ${batchSize}
+      )
+      UPDATE "EmailQueue" AS q
+      SET "status" = 'PROCESSING'
+        , "updatedAt" = ${now}
+      FROM claimed
+      WHERE q."id" = claimed."id"
+      RETURNING
+        q."id",
+        q."to",
+        q."subject",
+        q."htmlBody",
+        q."template",
+        q."metadata",
+        q."idempotencyKey",
+        q."createdAt",
+        q."status",
+        q."retryCount",
+        q."maxRetries",
+        q."scheduledAt"
+    `);
+
+    return rows.map((row) => this.toWorkerEntry(row));
+  }
+
+  async recoverStaleProcessing(
+    now: Date,
+    staleAfterMs: number,
+  ): Promise<number> {
+    const cutoff = new Date(now.getTime() - staleAfterMs);
+    const result = await prisma.emailQueue.updateMany({
       where: {
-        status: 'PENDING',
-        scheduledAt: { lte: now },
+        status: 'PROCESSING',
+        updatedAt: { lte: cutoff },
       },
-      take: batchSize,
-      orderBy: { scheduledAt: 'asc' },
+      data: {
+        status: 'PENDING',
+        error: null,
+      },
     });
 
-    if (due.length === 0) return [];
-
-    // Mark them as PROCESSING. The simple equality-by-id update is safe
-    // because each entry has a unique id and the same worker is the only
-    // writer transitioning to PROCESSING in this design.
-    const ids = due.map((r) => r.id);
-    await prisma.emailQueue.updateMany({
-      where: { id: { in: ids }, status: 'PENDING' },
-      data: { status: 'PROCESSING' },
-    });
-
-    return due.map((row) => this.toWorkerEntry(row));
+    return result.count;
   }
 
   async markSent(id: string, sentAt: Date): Promise<void> {

@@ -27,7 +27,6 @@
 
 import type { EmailSender } from '@/modules/email/domain/email-sender';
 import type { EventBusPort } from '@/modules/events/domain/event-bus-port';
-import type { ForgotPasswordEmailPort } from '@/shared/contracts/email/forgot-password-email-port';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import type { PasswordHasher } from '@/modules/users/domain/password-hasher';
 import type { RateLimiter } from '@/modules/auth/domain/rate-limiter';
@@ -56,6 +55,8 @@ import type { PaidOrderCountPort } from '@/modules/cart/domain/paid-order-count-
 import type { CustomizationLookupPort as CartCustomizationLookupPort } from '@/modules/cart/domain/customization-lookup-port';
 import type { CustomizationRepository } from '@/modules/customizations/domain/customization-repository';
 import type { SearchHistoryRepository } from '@/modules/search-history/domain/search-history-repository';
+import type { EmailUserLookupPort } from '@/modules/email/domain/ports/email-user-lookup-port';
+import type { EmailOrderLookupPort } from '@/modules/email/domain/ports/email-order-lookup-port';
 
 import { BrevoEmailSender } from '@/shared/kernel/brevo-email-sender';
 import { ConsoleEmailSender } from '@/modules/email/infrastructure/console-email-sender';
@@ -73,7 +74,6 @@ import { PrismaOrderRepository } from '@/modules/orders/infrastructure/prisma-or
 import { PrismaProductRepository } from '@/modules/products/infrastructure/prisma-product-repository';
 import { PrismaEmailQueueRepository } from '@/modules/email/infrastructure/prisma-email-queue-repository';
 import { PrismaUserLookup } from '@/modules/auth/infrastructure/prisma-user-lookup';
-import { ConsoleForgotPasswordEmail } from '@/modules/auth/infrastructure/console-forgot-password-email';
 import { MemoryUsedResetTokenStore } from '@/modules/auth/infrastructure/memory-used-reset-token-store';
 import { PrismaCheckoutGroupLookup } from '@/modules/payments/infrastructure/prisma-checkout-group-lookup';
 import { PrismaCheckoutGroupPaymentPort } from '@/modules/payments/infrastructure/prisma-checkout-group-payment-port';
@@ -97,6 +97,10 @@ import { PrismaCustomizationRepository } from '@/modules/customizations/infrastr
 import { PrismaSearchHistoryRepository } from '@/modules/search-history/infrastructure/prisma-search-history-repository';
 import { HandleProductSearchExecuted } from '@/modules/search-history/application/handle-product-search-executed';
 import { RecordSearchUseCase } from '@/modules/search-history/application/record-search-use-case';
+import { PrismaEmailUserLookup } from '@/modules/email/infrastructure/prisma-email-user-lookup';
+import { PrismaEmailOrderLookup } from '@/modules/email/infrastructure/prisma-email-order-lookup';
+import { EmailEventSubscribers } from '@/modules/email/application/email-event-subscribers';
+import { EmailQueueDrainService } from '@/modules/email/application/email-queue-drain-service';
 
 // ---------------------------------------------------------------------------
 // State
@@ -142,7 +146,9 @@ export function initContainer(): void {
   getProductRepository();
   getEmailQueueRepository();
   getUserLookup();
-  getForgotPasswordEmailPort();
+  getEmailUserLookup();
+  getEmailOrderLookup();
+  getEmailQueueDrainService();
   getUsedResetTokenStore();
   getSellerRepository();
   getSellerLookup();
@@ -183,6 +189,17 @@ export function initContainer(): void {
       subscriber,
     );
     state.isSearchHistoryEventsSubscribed = true;
+  }
+
+  // --- Email event subscriptions (idempotent for HMR) ---
+  if (!state.isEmailEventsSubscribed) {
+    EmailEventSubscribers.subscribeAll(state.eventBus as EventBusPort, {
+      emailQueueRepository: state.emailQueueRepository as EmailQueueRepository,
+      emailUserLookup: state.emailUserLookup as EmailUserLookupPort,
+      emailOrderLookup: state.emailOrderLookup as EmailOrderLookupPort,
+      emailQueueDrainer: state.emailQueueDrainService as EmailQueueDrainService,
+    });
+    state.isEmailEventsSubscribed = true;
   }
 }
 
@@ -296,9 +313,25 @@ export function getUserLookup(): UserLookupPort {
   return state.userLookup as UserLookupPort;
 }
 
-export function getForgotPasswordEmailPort(): ForgotPasswordEmailPort {
-  state.forgotPasswordEmailPort ??= new ConsoleForgotPasswordEmail();
-  return state.forgotPasswordEmailPort as ForgotPasswordEmailPort;
+export function getEmailUserLookup(): EmailUserLookupPort {
+  state.emailUserLookup ??= new PrismaEmailUserLookup();
+  return state.emailUserLookup as EmailUserLookupPort;
+}
+
+export function getEmailOrderLookup(): EmailOrderLookupPort {
+  state.emailOrderLookup ??= new PrismaEmailOrderLookup();
+  return state.emailOrderLookup as EmailOrderLookupPort;
+}
+
+export function getEmailQueueDrainService(): EmailQueueDrainService {
+  if (!state.emailQueueDrainService) {
+    state.emailQueueDrainService = new EmailQueueDrainService(
+      getEmailQueueRepository(),
+      getEmailSender(),
+    );
+  }
+
+  return state.emailQueueDrainService as EmailQueueDrainService;
 }
 
 export function getUsedResetTokenStore(): UsedResetTokenStorePort {
@@ -421,7 +454,9 @@ export const container = {
   getProductRepository,
   getEmailQueueRepository,
   getUserLookup,
-  getForgotPasswordEmailPort,
+  getEmailUserLookup,
+  getEmailOrderLookup,
+  getEmailQueueDrainService,
   getUsedResetTokenStore,
   getSellerRepository,
   getSellerLookup,
@@ -481,11 +516,11 @@ export const container = {
   setEmailQueueRepository(repo: EmailQueueRepository): void {
     state.emailQueueRepository = repo;
   },
+  setEmailQueueDrainService(service: EmailQueueDrainService): void {
+    state.emailQueueDrainService = service;
+  },
   setUserLookup(port: UserLookupPort): void {
     state.userLookup = port;
-  },
-  setForgotPasswordEmailPort(port: ForgotPasswordEmailPort): void {
-    state.forgotPasswordEmailPort = port;
   },
   setUsedResetTokenStore(store: UsedResetTokenStorePort): void {
     state.usedResetTokenStore = store;
@@ -534,5 +569,8 @@ export const container = {
   },
   resetCartEventSubscriptions(): void {
     state.isCartEventsSubscribed = false;
+  },
+  resetEmailEventSubscriptions(): void {
+    state.isEmailEventsSubscribed = false;
   },
 };

@@ -7,7 +7,7 @@ import { handleApiError } from '@/shared/presentation/error-handler';
 /**
  * POST /api/auth/forgot-password
  * Public endpoint — accepts an email and (if registered and active) dispatches a
- * password-reset email via the ForgotPasswordEmailPort.
+ * password-reset request event via the outbox.
  *
  * Always returns success to prevent user enumeration.
  */
@@ -30,13 +30,13 @@ export async function POST(req: NextRequest) {
     }
 
     const userRepository = container.getUserRepository();
-    const emailPort = container.getForgotPasswordEmailPort();
+    const outboxRepository = container.getOutboxRepository();
     const tokenCodec = container.getResetTokenCodec();
 
     const useCase = new ForgotPasswordUseCase(
       userRepository,
-      emailPort,
       tokenCodec,
+      outboxRepository,
     );
     const result = await useCase.execute({ email });
 
