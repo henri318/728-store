@@ -44,4 +44,34 @@ describe('buildIdempotencyKey', () => {
 
     expect(key).toMatch(/^[a-f0-9]{64}$/);
   });
+
+  it('returns the same key when the same time window is provided', () => {
+    const first = buildIdempotencyKey(
+      'verification',
+      'user@test.com',
+      'user-1',
+      12_345,
+    );
+    const second = buildIdempotencyKey(
+      'verification',
+      'user@test.com',
+      'user-1',
+      12_345,
+    );
+
+    expect(first).toBe(second);
+  });
+
+  it('returns different keys when the time window changes', () => {
+    const base = buildIdempotencyKey(
+      'verification',
+      'user@test.com',
+      'user-1',
+      12_345,
+    );
+
+    expect(
+      buildIdempotencyKey('verification', 'user@test.com', 'user-1', 12_346),
+    ).not.toBe(base);
+  });
 });

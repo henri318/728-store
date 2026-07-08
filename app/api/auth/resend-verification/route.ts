@@ -91,6 +91,8 @@ export async function POST(request: NextRequest) {
       </html>
     `;
 
+    const timeWindow = Math.floor(Date.now() / (5 * 60 * 1000));
+
     await emailQueueRepository.create({
       to: email,
       subject: 'Verify your email — Modular Ecommerce',
@@ -101,6 +103,7 @@ export async function POST(request: NextRequest) {
         'verification',
         email,
         user.userId.value,
+        timeWindow,
       ),
     });
 

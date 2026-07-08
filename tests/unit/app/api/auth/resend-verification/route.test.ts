@@ -91,27 +91,33 @@ describe('POST /api/auth/resend-verification', () => {
   });
 
   it('uses the shared idempotency key helper when queueing the verification email', async () => {
-    mocks.findByEmailMock.mockResolvedValue({
-      userId: { value: 'user-1' },
-      firstName: 'User',
-      deletedAt: null,
-      emailVerified: false,
-    });
-    mocks.findRecentByRecipientMock.mockResolvedValue(null);
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(5 * 60 * 1000 * 123);
+    try {
+      mocks.findByEmailMock.mockResolvedValue({
+        userId: { value: 'user-1' },
+        firstName: 'User',
+        deletedAt: null,
+        emailVerified: false,
+      });
+      mocks.findRecentByRecipientMock.mockResolvedValue(null);
 
-    const response = await POST(makeRequest('user@test.com'));
+      const response = await POST(makeRequest('user@test.com'));
 
-    expect(response.status).toBe(200);
-    expect(mocks.buildIdempotencyKeyMock).toHaveBeenCalledWith(
-      'verification',
-      'user@test.com',
-      'user-1',
-    );
-    expect(mocks.createMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        idempotencyKey: 'mock-idempotency-key',
-        template: 'verification',
-      }),
-    );
+      expect(response.status).toBe(200);
+      expect(mocks.buildIdempotencyKeyMock).toHaveBeenCalledWith(
+        'verification',
+        'user@test.com',
+        'user-1',
+        123,
+      );
+      expect(mocks.createMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          idempotencyKey: 'mock-idempotency-key',
+          template: 'verification',
+        }),
+      );
+    } finally {
+      nowSpy.mockRestore();
+    }
   });
 });

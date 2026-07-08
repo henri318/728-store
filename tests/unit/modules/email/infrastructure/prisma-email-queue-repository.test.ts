@@ -131,8 +131,10 @@ describe('PrismaEmailQueueRepository', () => {
       '[PrismaEmailQueueRepository] Recovered duplicate email queue entry',
       expect.objectContaining({
         idempotencyKey: 'order-placed:buyer@test.com:order-1',
+        template: 'order-placed',
       }),
     );
+    expect(warnSpy.mock.calls[0]?.[1]).not.toHaveProperty('to');
   });
 
   it('returns the first persisted row when a duplicate key is retried with different content', async () => {
@@ -188,8 +190,10 @@ describe('PrismaEmailQueueRepository', () => {
       '[PrismaEmailQueueRepository] Duplicate email queue insert could not be recovered',
       expect.objectContaining({
         idempotencyKey: 'order-placed:buyer@test.com:order-1',
+        template: 'order-placed',
       }),
     );
+    expect(warnSpy.mock.calls[0]?.[1]).not.toHaveProperty('to');
   });
 
   it('rethrows non-P2002 errors without recovery', async () => {

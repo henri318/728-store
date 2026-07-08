@@ -86,7 +86,6 @@ export class PrismaEmailQueueRepository implements EmailQueueRepository {
             {
               idempotencyKey: entry.idempotencyKey,
               template: entry.template,
-              to: entry.to,
             },
           );
 
@@ -108,7 +107,6 @@ export class PrismaEmailQueueRepository implements EmailQueueRepository {
           {
             idempotencyKey: entry.idempotencyKey,
             template: entry.template,
-            to: entry.to,
           },
         );
       }
