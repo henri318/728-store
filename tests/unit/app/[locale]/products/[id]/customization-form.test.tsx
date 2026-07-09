@@ -90,13 +90,13 @@ describe('CustomizationForm', () => {
       mode: 'text_photo',
       previewEnabled: true,
       previewTemplateUrl: '/mug.png',
-      sizeOptions: ['XS', 'S', 'M', 'L'],
     });
 
     render(
       <CustomizationDraftProvider validationLabels={validationLabels}>
         <CustomizationForm
           customizationConfig={config.toJson()}
+          sizes={['XS', 'S', 'M', 'L']}
           productImages={[]}
           labels={labels}
         />
@@ -110,7 +110,7 @@ describe('CustomizationForm', () => {
     expect(screen.getByRole('option', { name: 'L' })).toBeTruthy();
   });
 
-  it('falls back to default size options when the config omits them', () => {
+  it('renders no translated size options when none are provided', () => {
     const config = ProductCustomizationConfig.fromJson({
       mode: 'text',
       previewEnabled: true,
@@ -132,9 +132,9 @@ describe('CustomizationForm', () => {
     });
 
     expect(sizeSelect).toBeTruthy();
-    expect(screen.getByRole('option', { name: 'S' })).toBeTruthy();
-    expect(screen.getByRole('option', { name: 'M' })).toBeTruthy();
-    expect(screen.getByRole('option', { name: 'L' })).toBeTruthy();
+    expect(screen.queryByRole('option', { name: 'S' })).toBeNull();
+    expect(screen.queryByRole('option', { name: 'M' })).toBeNull();
+    expect(screen.queryByRole('option', { name: 'L' })).toBeNull();
   });
 
   it('marks invalid text input with aria-invalid and an error description after validation', async () => {

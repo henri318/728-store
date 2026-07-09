@@ -32,7 +32,6 @@ describe('product customization config mapping', () => {
       mode: 'photo',
       previewEnabled: true,
       previewTemplateUrl: 'https://cdn.example.com/base.png',
-      sizeOptions: ['S', 'M'],
       textOffset: null,
       imageOffset: { x: 1, y: 2 },
     });
@@ -61,7 +60,6 @@ describe('product customization config mapping', () => {
         mode: 'photo',
         previewEnabled: true,
         previewTemplateUrl: 'https://cdn.example.com/base.png',
-        sizeOptions: ['S', 'M'],
         textOffset: null,
         imageOffset: { x: 1, y: 2 },
       }),

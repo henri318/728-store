@@ -30,9 +30,9 @@ async function patchHandler(
       );
     }
 
-    const product = await container
-      .getProductRepository()
-      .findById(id, body.locale);
+    const locale = body.locale ?? body.translations?.[0]?.locale ?? 'es';
+
+    const product = await container.getProductRepository().findById(id, locale);
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
@@ -51,11 +51,13 @@ async function patchHandler(
     const updated = await useCase.execute({
       productId: id,
       sellerId: seller.sellerId.value,
-      locale: body.locale,
+      locale,
       name: body.name,
       description: body.description,
       price: body.price,
       status: body.status as ProductStatus,
+      translation: body.translation,
+      translations: body.translations,
       customizationConfig: body.customizationConfig,
       images: body.images,
     });

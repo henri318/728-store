@@ -143,6 +143,27 @@ describe('ChangeProductStatusUseCase', () => {
     expect(updated.status).toBe(ProductStatus.ELIMINATED);
   });
 
+  it('rejects publishing when the default es translation is missing', async () => {
+    const repository = new MemoryProductRepository();
+    repository.seed([
+      makeProduct({
+        status: ProductStatus.DRAFT,
+        translations: [
+          { locale: 'cat', name: 'Samarreta', description: 'Una samarreta' },
+        ],
+      }),
+    ]);
+    const useCase = new ChangeProductStatusUseCase(repository);
+
+    await expect(
+      useCase.execute({
+        productId: 'p-1',
+        sellerId: 'seller-1',
+        status: ProductStatus.ACTIVE,
+      }),
+    ).rejects.toBeInstanceOf(ValidationError);
+  });
+
   it('rejects same-status transitions as a no-op', async () => {
     const repository = new MemoryProductRepository();
     repository.seed([makeProduct()]);

@@ -1,4 +1,5 @@
 import { ProductRepository } from '../domain/product-repository';
+import { resolveDisplay } from '../domain/entities/product-translation';
 
 export class GetProductsUseCase {
   constructor(private productRepository: ProductRepository) {}
@@ -6,11 +7,12 @@ export class GetProductsUseCase {
   async execute(locale: string) {
     const products = await this.productRepository.findAll(locale);
 
-    // Ensure we always have at least a fallback if translation is missing
     return products.map((product) => ({
       ...product,
-      displayName: product.translations[0]?.name || 'Untranslated',
-      displayDescription: product.translations[0]?.description || '',
+      displayTranslation: resolveDisplay(product.translations, locale),
+      displayName: resolveDisplay(product.translations, locale)?.name ?? '',
+      displayDescription:
+        resolveDisplay(product.translations, locale)?.description ?? '',
     }));
   }
 }

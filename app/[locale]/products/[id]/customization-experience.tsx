@@ -73,6 +73,7 @@ interface CustomizationExperienceProps {
   formattedPrice: string;
   previewBaseImageUrl: string;
   customizationConfig: ProductCustomizationConfigJson;
+  sizes?: string[];
   productImages: ProductImageItem[];
   labels: CustomizationExperienceLabels;
   initialDraft?: Partial<Omit<CustomizationDraft, 'error'>>;
@@ -88,6 +89,7 @@ function CustomizationExperienceInner({
   formattedPrice,
   previewBaseImageUrl,
   customizationConfig,
+  sizes,
   productImages,
   labels,
 }: CustomizationExperienceProps) {
@@ -180,6 +182,7 @@ function CustomizationExperienceInner({
         <div className={styles.formCol}>
           <CustomizationForm
             customizationConfig={customizationConfig}
+            sizes={sizes}
             productImages={productImages}
             labels={labels}
           />

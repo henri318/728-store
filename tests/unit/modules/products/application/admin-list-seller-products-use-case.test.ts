@@ -4,6 +4,7 @@ import { MemoryProductRepository } from '@/tests/doubles/memory-product-reposito
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
 import { ProductPrice } from '@/modules/products/domain/value-objects/product-price';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
+import { resolveDisplay } from '@/modules/products/domain/entities/product-translation';
 
 describe('AdminListSellerProductsUseCase', () => {
   let productRepository: MemoryProductRepository;
@@ -71,17 +72,17 @@ describe('AdminListSellerProductsUseCase', () => {
     expect(result.every((p) => p.sellerId === 's1')).toBe(true);
   });
 
-  it('filters translations by locale', async () => {
+  it('preserves seller translations and resolves the requested locale via fallback', async () => {
     const result = await useCase.execute({ sellerId: 's1', locale: 'cat' });
 
     expect(result).toHaveLength(2);
-    // p1 has a cat translation, p2 does not
     const p1 = result.find((p) => p.id === 'p1');
-    expect(p1?.translations).toHaveLength(1);
-    expect(p1?.translations[0].locale).toBe('cat');
+    expect(p1?.translations).toHaveLength(2);
+    expect(resolveDisplay(p1?.translations ?? [], 'cat')?.locale).toBe('cat');
 
     const p2 = result.find((p) => p.id === 'p2');
-    expect(p2?.translations).toHaveLength(0);
+    expect(p2?.translations).toHaveLength(1);
+    expect(resolveDisplay(p2?.translations ?? [], 'cat')?.locale).toBe('es');
   });
 
   it('returns empty array when seller has no products', async () => {

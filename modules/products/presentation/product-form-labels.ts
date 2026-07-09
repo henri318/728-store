@@ -7,6 +7,26 @@ export interface ProductFormLabels {
   save: string;
   saved: string;
   error: string;
+  localeTabs: {
+    es: string;
+    cat: string;
+  };
+  translationSection: {
+    title: string;
+    hint: string;
+    nameLabel: string;
+    descriptionLabel: string;
+    tagsLabel: string;
+    tagsPlaceholder: string;
+    tagsAddLabel: string;
+    tagsEmptyLabel: string;
+    sizesLabel: string;
+    sizesPlaceholder: string;
+    sizesAddLabel: string;
+    sizesEmptyLabel: string;
+    designChangeDescriptionLabel: string;
+    designChangeDescriptionPlaceholder: string;
+  };
   customization: {
     label: string;
     hint: string;
@@ -58,6 +78,28 @@ export function getProductFormLabels(
     save: (mode === 'create' ? sd.createProduct : sd.editProduct) as string,
     saved: sd.productSaved as string,
     error: sd.productFormError as string,
+    localeTabs: {
+      es: (sd.productLocaleTabsEsLabel ?? 'ES') as string,
+      cat: (sd.productLocaleTabsCatLabel ?? 'CAT') as string,
+    },
+    translationSection: {
+      title: sd.productTranslationSectionTitle as string,
+      hint: sd.productTranslationSectionHint as string,
+      nameLabel: sd.productTranslationNameLabel as string,
+      descriptionLabel: sd.productTranslationDescriptionLabel as string,
+      tagsLabel: sd.productTranslationTagsLabel as string,
+      tagsPlaceholder: sd.productTranslationTagsPlaceholder as string,
+      tagsAddLabel: sd.productTranslationTagsAddLabel as string,
+      tagsEmptyLabel: sd.productTranslationTagsEmptyLabel as string,
+      sizesLabel: sd.productTranslationSizesLabel as string,
+      sizesPlaceholder: sd.productTranslationSizesPlaceholder as string,
+      sizesAddLabel: sd.productTranslationSizesAddLabel as string,
+      sizesEmptyLabel: sd.productTranslationSizesEmptyLabel as string,
+      designChangeDescriptionLabel:
+        sd.productTranslationDesignChangeDescriptionLabel as string,
+      designChangeDescriptionPlaceholder:
+        sd.productTranslationDesignChangeDescriptionPlaceholder as string,
+    },
     customization: {
       label: sd.productCustomizationConfigLabel as string,
       hint: sd.productCustomizationConfigHint as string,

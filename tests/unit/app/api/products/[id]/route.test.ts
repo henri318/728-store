@@ -114,7 +114,10 @@ describe('PATCH /api/products/[id]', () => {
     mocks.findByIdMock.mockResolvedValue(null);
 
     const res = await PATCH(
-      makeRequest({ locale: 'es', name: 'Taza', price: 10 }),
+      makeRequest({
+        price: 10,
+        translations: [{ locale: 'es', name: 'Taza' }],
+      }),
       PARAMS,
     );
 
@@ -125,7 +128,10 @@ describe('PATCH /api/products/[id]', () => {
     mocks.findByIdMock.mockResolvedValue(makeProduct({ sellerId: 'seller-2' }));
 
     const res = await PATCH(
-      makeRequest({ locale: 'es', name: 'Taza', price: 10 }),
+      makeRequest({
+        price: 10,
+        translations: [{ locale: 'es', name: 'Taza' }],
+      }),
       PARAMS,
     );
 
@@ -139,10 +145,12 @@ describe('PATCH /api/products/[id]', () => {
 
     const res = await PATCH(
       makeRequest({
-        locale: 'es',
-        name: 'Taza nueva',
         price: 12,
         status: 'ACTIVE',
+        translations: [
+          { locale: 'es', name: 'Taza nueva', description: 'Nueva' },
+          { locale: 'cat', name: 'Tassa nova', description: 'Nova' },
+        ],
       }),
       PARAMS,
     );
@@ -155,6 +163,7 @@ describe('PATCH /api/products/[id]', () => {
     );
     const body = await res.json();
     expect(body.status).toBe('ACTIVE');
+    expect(body.translations).toHaveLength(2);
     expect(body.translations[0].name).toBe('Taza nueva');
   });
 });

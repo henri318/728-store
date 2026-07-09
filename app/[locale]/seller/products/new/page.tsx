@@ -22,9 +22,25 @@ export default async function SellerProductCreatePage({
       mode="create"
       categories={categories}
       initialValues={{
-        name: '',
-        description: '',
         price: 1,
+        translations: [
+          {
+            locale: 'es',
+            name: '',
+            description: '',
+            tags: [],
+            sizes: [],
+            designChangeDescription: null,
+          },
+          {
+            locale: 'cat',
+            name: '',
+            description: '',
+            tags: [],
+            sizes: [],
+            designChangeDescription: null,
+          },
+        ],
         customizationConfig: ProductCustomizationConfig.default().toJson(),
         images: [],
       }}

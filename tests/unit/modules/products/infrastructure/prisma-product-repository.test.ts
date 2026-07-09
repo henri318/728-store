@@ -51,15 +51,28 @@ function makeProduct(overrides: Partial<ProductEntity> = {}): ProductEntity {
       mode: 'text_photo',
       previewEnabled: true,
       previewTemplateUrl: 'https://cdn.example.com/mock.png',
-      sizeOptions: ['S', 'M', 'L'],
       textOffset: { x: 12, y: 20 },
       imageOffset: { x: 18, y: 30 },
     }),
     createdAt: new Date('2025-01-01T00:00:00.000Z'),
     updatedAt: new Date('2025-01-02T00:00:00.000Z'),
     translations: [
-      { locale: 'es', name: 'Camiseta', description: 'Camiseta base' },
-      { locale: 'cat', name: 'Samarreta', description: 'Samarreta base' },
+      {
+        locale: 'es',
+        name: 'Camiseta',
+        description: 'Camiseta base',
+        tags: ['ropa'],
+        sizes: ['S', 'M'],
+        designChangeDescription: null,
+      },
+      {
+        locale: 'cat',
+        name: 'Samarreta',
+        description: 'Samarreta base',
+        tags: ['roba'],
+        sizes: ['M', 'L'],
+        designChangeDescription: 'Canvi',
+      },
     ],
     images: [],
     tags: [],
@@ -104,16 +117,32 @@ describe('PrismaProductRepository', () => {
           mode: 'text_photo',
           previewEnabled: true,
           previewTemplateUrl: 'https://cdn.example.com/mock.png',
-          sizeOptions: ['S', 'M', 'L'],
           textOffset: { x: 12, y: 20 },
           imageOffset: { x: 18, y: 30 },
+          allowPhotoDesign: true,
+          categoryId: null,
         }),
         translations: {
           create: [
-            { locale: 'es', name: 'Camiseta', description: 'Camiseta base' },
-            { locale: 'cat', name: 'Samarreta', description: 'Samarreta base' },
+            {
+              locale: 'es',
+              name: 'Camiseta',
+              description: 'Camiseta base',
+              tags: ['ropa'],
+              sizes: ['S', 'M'],
+              designChangeDescription: null,
+            },
+            {
+              locale: 'cat',
+              name: 'Samarreta',
+              description: 'Samarreta base',
+              tags: ['roba'],
+              sizes: ['M', 'L'],
+              designChangeDescription: 'Canvi',
+            },
           ],
         },
+        tags: { connect: [] },
         images: {
           create: [
             {
@@ -133,7 +162,14 @@ describe('PrismaProductRepository', () => {
       basePrice: ProductPrice.create(32, Currency.EUR),
       status: ProductStatus.ACTIVE,
       translations: [
-        { locale: 'es', name: 'Taza personalizada', description: 'Nueva' },
+        {
+          locale: 'es',
+          name: 'Taza personalizada',
+          description: 'Nueva',
+          tags: ['ceramica'],
+          sizes: ['S'],
+          designChangeDescription: null,
+        },
       ],
     });
 
@@ -154,9 +190,10 @@ describe('PrismaProductRepository', () => {
           mode: 'text_photo',
           previewEnabled: true,
           previewTemplateUrl: 'https://cdn.example.com/mock.png',
-          sizeOptions: ['S', 'M', 'L'],
           textOffset: { x: 12, y: 20 },
           imageOffset: { x: 18, y: 30 },
+          allowPhotoDesign: true,
+          categoryId: null,
         }),
         updatedAt: product.updatedAt,
         images: {
@@ -174,10 +211,16 @@ describe('PrismaProductRepository', () => {
         locale: 'es',
         name: 'Taza personalizada',
         description: 'Nueva',
+        tags: ['ceramica'],
+        sizes: ['S'],
+        designChangeDescription: null,
       },
       update: {
         name: 'Taza personalizada',
         description: 'Nueva',
+        tags: ['ceramica'],
+        sizes: ['S'],
+        designChangeDescription: null,
       },
     });
   });

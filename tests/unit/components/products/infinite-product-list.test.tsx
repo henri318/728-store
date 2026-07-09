@@ -366,4 +366,23 @@ describe('InfiniteProductList', () => {
     const link = screen.getByRole('link', { name: 'Ver Detalles' });
     expect(link).toHaveAttribute('href', '/es/products/abc');
   });
+
+  it('does not render a literal untranslated placeholder when translations are missing', () => {
+    render(
+      <InfiniteProductList
+        initialItems={[
+          {
+            ...makeProduct('fallback', 'Mug'),
+            translations: [],
+          },
+        ]}
+        pageSize={10}
+        q=""
+        locale="es"
+        labels={baseLabels}
+      />,
+    );
+
+    expect(screen.queryByText('Untranslated')).toBeNull();
+  });
 });

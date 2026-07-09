@@ -10,6 +10,7 @@ describe('ProductCustomizationConfig', () => {
     expect(config.previewTemplateUrl).toBeNull();
     expect(config.textOffset).toBeNull();
     expect(config.imageOffset).toBeNull();
+    expect(config.allowPhotoDesign).toBe(true);
     expect(config.isDefault()).toBe(true);
     expect(config.isPreviewCapable()).toBe(false);
   });
@@ -27,7 +28,6 @@ describe('ProductCustomizationConfig', () => {
     expect(config.mode).toBe('text_photo');
     expect(config.previewEnabled).toBe(true);
     expect(config.previewTemplateUrl).toBe('https://cdn.example.com/mug.png');
-    expect(config.sizeOptions).toEqual(['XS', 'S', 'M']);
     expect(config.textOffset).toEqual({ x: 12, y: 34, rotate: 4 });
     expect(config.imageOffset).toEqual({ x: 5, y: 6, scale: 0.8 });
     expect(config.isPreviewCapable()).toBe(true);
@@ -73,5 +73,22 @@ describe('ProductCustomizationConfig', () => {
     });
 
     expect(config.toJson()).not.toHaveProperty('designPosition');
+  });
+
+  it('strips legacy translated fields from parsed config output', () => {
+    const config = ProductCustomizationConfig.fromJson({
+      mode: 'text_photo',
+      previewEnabled: true,
+      previewTemplateUrl: 'https://cdn.example.com/mug.png',
+      textOffset: null,
+      imageOffset: null,
+      sizeOptions: ['XS', 'S', 'M'],
+      designChangeDescription: 'Legacy copy',
+      tagNames: ['one', 'two'],
+    });
+
+    expect(config.toJson()).not.toHaveProperty('sizeOptions');
+    expect(config.toJson()).not.toHaveProperty('designChangeDescription');
+    expect(config.toJson()).not.toHaveProperty('tagNames');
   });
 });

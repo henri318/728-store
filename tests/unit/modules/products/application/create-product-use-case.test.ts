@@ -43,6 +43,11 @@ describe('CreateProductUseCase', () => {
         textOffset: { x: 12, y: 18 },
         imageOffset: { x: 22, y: 30 },
       },
+      translation: {
+        tags: ['ropa', 'verano'],
+        sizes: ['S', 'M', 'L'],
+        designChangeDescription: 'Cambia el estampado frontal',
+      },
     });
 
     const saved = await repo.findById(result.id, 'es');
@@ -54,6 +59,9 @@ describe('CreateProductUseCase', () => {
       locale: 'es',
       name: 'Camiseta personalizada',
       description: 'Camiseta para diseñar',
+      tags: ['ropa', 'verano'],
+      sizes: ['S', 'M', 'L'],
+      designChangeDescription: 'Cambia el estampado frontal',
     });
     expect(saved?.customizationConfig?.mode).toBe('text_photo');
     expect(saved?.images).toHaveLength(1);
@@ -72,6 +80,51 @@ describe('CreateProductUseCase', () => {
         },
       },
     ]);
+  });
+
+  it('persists multiple locale translations when provided', async () => {
+    const repo = new MemoryProductRepository();
+    const useCase = new CreateProductUseCase(repo);
+
+    const result = await useCase.execute({
+      sellerId: 'seller-1',
+      sellerName: 'Test Shop',
+      price: 19.99,
+      translations: [
+        {
+          locale: 'es',
+          name: 'Camiseta personalizada',
+          description: 'Camiseta para diseñar',
+          tags: ['ropa', 'verano'],
+          sizes: ['S', 'M', 'L'],
+          designChangeDescription: 'Cambia el estampado frontal',
+        },
+        {
+          locale: 'cat',
+          name: 'Samarreta personalitzada',
+          description: 'Samarreta per dissenyar',
+          tags: ['roba'],
+          sizes: ['M'],
+          designChangeDescription: 'Canvia el frontal',
+        },
+      ],
+    });
+
+    const saved = await repo.findById(result.id, 'cat');
+
+    expect(saved?.translations).toHaveLength(2);
+    expect(saved?.translations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          locale: 'es',
+          name: 'Camiseta personalizada',
+        }),
+        expect.objectContaining({
+          locale: 'cat',
+          name: 'Samarreta personalitzada',
+        }),
+      ]),
+    );
   });
 
   it('rejects missing product name', async () => {
@@ -104,5 +157,27 @@ describe('CreateProductUseCase', () => {
         price: 0,
       }),
     ).rejects.toThrow('ProductPrice amount must be greater than zero');
+  });
+
+  it('rejects creating an ACTIVE product without an es translation', async () => {
+    const repo = new MemoryProductRepository();
+    const useCase = new CreateProductUseCase(repo);
+
+    await expect(
+      useCase.execute({
+        sellerId: 'seller-1',
+        sellerName: 'Test Shop',
+        locale: 'cat',
+        name: 'Samarreta',
+        description: 'Desc',
+        price: 19.99,
+        status: ProductStatus.ACTIVE,
+        translation: {
+          tags: [],
+          sizes: [],
+          designChangeDescription: null,
+        },
+      }),
+    ).rejects.toBeInstanceOf(ValidationError);
   });
 });

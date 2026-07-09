@@ -168,7 +168,7 @@ export function InfiniteProductList({
           ) ??
             product.translations.find((t) => t.locale === 'es') ??
             product.translations[0] ?? {
-              name: 'Untranslated',
+              name: '',
               description: '',
             };
           return (

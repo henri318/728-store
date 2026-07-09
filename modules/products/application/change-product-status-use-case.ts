@@ -3,6 +3,7 @@ import type {
   ProductEntity,
   ProductRepository,
 } from '../domain/product-repository';
+import { hasDefaultLocaleTranslation } from '../domain/entities/product';
 import {
   ProductStatus,
   VALID_TRANSITIONS,
@@ -33,6 +34,13 @@ export class ChangeProductStatusUseCase {
       throw new ValidationError(
         `Cannot transition from ${product.status} to ${dto.status}`,
       );
+    }
+
+    if (
+      dto.status === ProductStatus.ACTIVE &&
+      !hasDefaultLocaleTranslation(product)
+    ) {
+      throw new ValidationError('default locale translation required');
     }
 
     const updated: ProductEntity = {

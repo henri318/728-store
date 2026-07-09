@@ -4,6 +4,7 @@ import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { prisma } from '@/shared/infrastructure/prisma';
 import { getProductFormLabels } from '@/modules/products/presentation/product-form-labels';
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
+import type { ProductLocale } from '@/modules/products/presentation/components/product-locale-tabs';
 import { ProductForm } from '../../product-form';
 
 export default async function SellerProductEditPage({
@@ -31,10 +32,9 @@ export default async function SellerProductEditPage({
     notFound();
   }
 
-  const translation =
-    product.translations.find((item) => item.locale === locale) ??
-    product.translations[0] ??
-    null;
+  const customizationConfig =
+    product.customizationConfig?.toJson() ??
+    ProductCustomizationConfig.default().toJson();
 
   return (
     <ProductForm
@@ -43,12 +43,26 @@ export default async function SellerProductEditPage({
       productId={id}
       categories={categories}
       initialValues={{
-        name: translation?.name ?? '',
-        description: translation?.description ?? '',
         price: product.basePrice.amount,
-        customizationConfig:
-          product.customizationConfig?.toJson() ??
-          ProductCustomizationConfig.default().toJson(),
+        translations: [
+          ...product.translations.map((translation) => {
+            const translationLocale: ProductLocale =
+              translation.locale === 'cat' ? 'cat' : 'es';
+
+            return {
+              locale: translationLocale,
+              name: translation.name,
+              description: translation.description ?? '',
+              tags: [...(translation.tags ?? [])],
+              sizes: [...(translation.sizes ?? [])],
+              designChangeDescription:
+                translation.designChangeDescription ?? null,
+            };
+          }),
+        ],
+        customizationConfig: {
+          ...customizationConfig,
+        },
         images: product.images.map((image, index) => ({
           url: image.url,
           alt:

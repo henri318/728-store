@@ -4,6 +4,7 @@ import { handleApiError } from '@/shared/presentation/error-handler';
 import { requireRole } from '@/shared/authorization/authorization';
 import { ProductListQueryUseCase } from '@/modules/products/application/product-list-query-use-case';
 import { productListQuerySchema } from '@/modules/products/presentation/schemas/product-list-query-schema';
+import { resolveDisplay } from '@/modules/products/domain/entities/product-translation';
 
 /**
  * Internal handler — receives the `context` typed as `unknown` so it
@@ -36,7 +37,9 @@ async function getHandler(
         ...result,
         items: result.items.map((product) => ({
           id: product.id,
-          name: product.translations[0]?.name ?? 'Untranslated',
+          name:
+            resolveDisplay(product.translations, filter.lang ?? 'es')?.name ??
+            '',
           status: product.status,
           basePrice: {
             amount: product.basePrice.amount,

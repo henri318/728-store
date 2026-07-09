@@ -139,7 +139,7 @@ describe('GET /api/products', () => {
     expect(body.items).toHaveLength(2);
     expect(body.total).toBe(2);
     expect(body.page).toBe(1);
-    expect(body.pageSize).toBe(20);
+    expect(body.pageSize).toBe(10);
     expect(body.totalPages).toBe(1);
   });
 
@@ -230,6 +230,32 @@ describe('GET /api/products', () => {
     expect(body.items).toHaveLength(1);
     expect(body.items[0].id).toBe('p1');
     expect(body.items[0].translations[0].locale).toBe('es');
+  });
+
+  it('does not expose seller-internal designChangeDescription for unauthenticated callers without audience', async () => {
+    const repo = new MemoryProductRepository();
+    repo.seed([
+      makeProduct('p1', {
+        translations: [
+          {
+            locale: 'es',
+            name: 'Camiseta',
+            description: 'Ropa de verano',
+            designChangeDescription: 'Solo para el equipo vendedor',
+          },
+        ],
+      }),
+    ]);
+    mocks.getProductRepositoryMock.mockReturnValue(repo);
+    mocks.getSessionMock.mockResolvedValue(null);
+
+    const res = await GET(makeGetRequest('http://localhost:3000/api/products'));
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.items[0].translations[0]).not.toHaveProperty(
+      'designChangeDescription',
+    );
   });
 
   it('returns empty result for ghost sellerId without error', async () => {
@@ -340,13 +366,14 @@ describe('GET /api/products', () => {
     expect(body.items).toHaveLength(10);
   });
 
-  it('audience=seller (default) keeps pageSize at 20 and shows all statuses', async () => {
+  it('audience=seller (authenticated default) keeps pageSize at 20 and shows all statuses', async () => {
     const repo = new MemoryProductRepository();
     repo.seed([
       makeProduct('active-1', { status: ProductStatus.ACTIVE }),
       makeProduct('draft-1', { status: ProductStatus.DRAFT }),
     ]);
     mocks.getProductRepositoryMock.mockReturnValue(repo);
+    mocks.getSessionMock.mockResolvedValue({ id: 'user-1' });
 
     const res = await GET(makeGetRequest('http://localhost:3000/api/products'));
 
@@ -519,44 +546,35 @@ describe('POST /api/products', () => {
     mocks.getOutboxRepositoryMock.mockReturnValue(new MemoryOutboxRepository());
 
     const res = await fetchProductRoute({
-      locale: 'es',
-      name: 'Taza',
-      description: 'Con diseño',
       price: 19.99,
+      translations: [
+        {
+          locale: 'es',
+          name: 'Taza',
+          description: 'Con diseño',
+          tags: ['hogar'],
+          sizes: ['S', 'M'],
+          designChangeDescription: 'Mi cambio de diseño',
+        },
+        {
+          locale: 'cat',
+          name: 'Tassa',
+          description: 'Amb disseny',
+          tags: ['llar'],
+          sizes: ['M'],
+          designChangeDescription: 'Canvi de disseny',
+        },
+      ],
       customizationConfig: {
         mode: 'text_photo',
         previewEnabled: true,
         previewTemplateUrl: null,
-        sizeOptions: ['S', 'M'],
         textOffset: { x: 10, y: 20 },
         imageOffset: { x: 30, y: 40 },
       },
-      images: [],
-    });
-
-    expect(res.status).toBe(201);
-    const body = await res.json();
-    expect(body.translations[0].name).toBe('Taza');
-    expect(body.sellerName).toBe('Test Shop');
-  });
-
-  it('accepts customization config with designChangeDescription only', async () => {
-    const repo = new MemoryProductRepository();
-    mocks.getProductRepositoryMock.mockReturnValue(repo);
-    mocks.getOutboxRepositoryMock.mockReturnValue(new MemoryOutboxRepository());
-
-    const res = await fetchProductRoute({
-      locale: 'es',
-      name: 'Taza',
-      description: 'Con diseño',
-      price: 19.99,
-      customizationConfig: {
-        mode: 'description',
-        previewEnabled: false,
-        previewTemplateUrl: null,
-        sizeOptions: null,
-        textOffset: null,
-        imageOffset: null,
+      translation: {
+        tags: ['hogar'],
+        sizes: ['S', 'M'],
         designChangeDescription: 'Mi cambio de diseño',
       },
       images: [],
@@ -564,13 +582,52 @@ describe('POST /api/products', () => {
 
     expect(res.status).toBe(201);
     const body = await res.json();
-    expect(body.customizationConfig.designChangeDescription).toBe(
+    expect(body.translations).toHaveLength(2);
+    expect(body.translations[0].name).toBe('Taza');
+    expect(body.sellerName).toBe('Test Shop');
+  });
+
+  it('keeps designChangeDescription in translation payload only', async () => {
+    const repo = new MemoryProductRepository();
+    mocks.getProductRepositoryMock.mockReturnValue(repo);
+    mocks.getOutboxRepositoryMock.mockReturnValue(new MemoryOutboxRepository());
+
+    const res = await fetchProductRoute({
+      price: 19.99,
+      translations: [
+        {
+          locale: 'es',
+          name: 'Taza',
+          description: 'Con diseño',
+          tags: [],
+          sizes: [],
+          designChangeDescription: 'Mi cambio de diseño',
+        },
+      ],
+      customizationConfig: {
+        mode: 'description',
+        previewEnabled: false,
+        previewTemplateUrl: null,
+        textOffset: null,
+        imageOffset: null,
+      },
+      translation: {
+        tags: [],
+        sizes: [],
+        designChangeDescription: 'Mi cambio de diseño',
+      },
+      images: [],
+    });
+
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.translations[0].designChangeDescription).toBe(
       'Mi cambio de diseño',
     );
   });
 
   it('returns 400 for invalid payload', async () => {
-    const res = await fetchProductRoute({ locale: '', name: '', price: 0 });
+    const res = await fetchProductRoute({ price: 0, translations: [] });
 
     expect(res.status).toBe(400);
   });
