@@ -1,12 +1,11 @@
 import { BrevoClient } from '@getbrevo/brevo';
+import { resolveBrevoClientConfig } from './brevo-client-config';
 
-if (!process.env.BREVO_API_KEY) {
-  throw new Error('[Email] BREVO_API_KEY environment variable is required');
-}
+const { apiKey, fromEmail, fromName } = resolveBrevoClientConfig();
 
 export const brevoClient = new BrevoClient({
-  apiKey: process.env.BREVO_API_KEY!,
+  apiKey,
 });
 
-export const FROM_EMAIL = 'no-reply@tudominio.com';
-export const FROM_NAME = 'Modular Ecommerce';
+export const FROM_EMAIL = fromEmail;
+export const FROM_NAME = fromName;

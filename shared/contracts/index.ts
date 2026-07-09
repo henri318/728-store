@@ -9,5 +9,4 @@ export type {
   CreateEmailQueueInput,
   EmailQueueEntry,
   EmailQueueWorkerEntry,
-  ForgotPasswordEmailPort,
 } from './email';

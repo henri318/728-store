@@ -1,23 +1,24 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { MemoryUserRepository } from '@/tests/doubles/memory-user-repository';
-import type { ForgotPasswordEmailPort } from '@/shared/contracts/email/forgot-password-email-port';
 import { Base64ResetTokenCodec } from '@/modules/auth/infrastructure/base64-reset-token-codec';
 import { UserId } from '@/shared/kernel/domain/value-objects/user-id';
 import { Email } from '@/shared/kernel/domain/value-objects/email';
 import { RoleId } from '@/shared/kernel/domain/identifiers/role-id';
 import { PasswordHash } from '@/shared/kernel/domain/value-objects/password-hash';
+import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
+import { GlobalEvents } from '@/modules/events/domain/event-registry';
 
 /**
- * Task 2.7 — ForgotPasswordUseCase tests
+ * Task 4.1 — ForgotPasswordUseCase tests
  *
  * Spec scenarios:
- * - GIVEN registered email WHEN forgot-password submitted THEN mock EmailPort called with token; "If email exists, link sent"
+ * - GIVEN registered email WHEN forgot-password submitted THEN PASSWORD_RESET_REQUESTED is emitted
  * - GIVEN unregistered email WHEN submitted THEN same message (no enumeration)
  */
 
 describe('ForgotPasswordUseCase', () => {
   let userRepository: MemoryUserRepository;
-  let emailPort: ForgotPasswordEmailPort;
+  let outboxRepository: MemoryOutboxRepository;
   let tokenCodec: Base64ResetTokenCodec;
 
   beforeEach(async () => {
@@ -37,23 +38,20 @@ describe('ForgotPasswordUseCase', () => {
       updatedAt: new Date(),
     });
 
-    // Mock EmailPort — track calls
-    emailPort = {
-      send: vi.fn().mockResolvedValue(undefined),
-    };
+    outboxRepository = new MemoryOutboxRepository();
 
     // Use Base64ResetTokenCodec (jsdom-safe — no Web Crypto needed)
     tokenCodec = new Base64ResetTokenCodec();
   });
 
-  it('should call EmailPort.send with a token when email exists', async () => {
+  it('emits PASSWORD_RESET_REQUESTED with a reset token when email exists', async () => {
     const { ForgotPasswordUseCase } =
       await import('@/modules/users/application/use-cases/forgot-password-use-case');
 
     const useCase = new ForgotPasswordUseCase(
       userRepository,
-      emailPort,
       tokenCodec,
+      outboxRepository,
     );
 
     const result = await useCase.execute({ email: 'forgot@example.com' });
@@ -63,34 +61,37 @@ describe('ForgotPasswordUseCase', () => {
       'If the email exists, a reset link has been sent',
     );
 
-    // EmailPort.send called with the email and a non-empty token
-    expect(emailPort.send).toHaveBeenCalledTimes(1);
-    expect(emailPort.send).toHaveBeenCalledWith(
-      'forgot@example.com',
-      expect.any(String),
+    expect(outboxRepository.allEvents()).toHaveLength(1);
+    expect(outboxRepository.allEvents()[0]?.eventType).toBe(
+      GlobalEvents.PASSWORD_RESET_REQUESTED,
     );
+    expect(outboxRepository.allEvents()[0]?.payload).toMatchObject({
+      userId: 'user-fp-1',
+      email: 'forgot@example.com',
+      expiresAt: expect.any(String),
+    });
 
-    const [calledEmail, calledToken] = (
-      emailPort.send as ReturnType<typeof vi.fn>
-    ).mock.calls[0];
-    expect(calledEmail).toBe('forgot@example.com');
-    expect(calledToken).toBeTruthy();
-    expect(typeof calledToken).toBe('string');
-    expect(calledToken.length).toBeGreaterThan(10);
+    const payload = outboxRepository.allEvents()[0]?.payload as {
+      token: string;
+      email: string;
+    };
+    expect(payload.token).toBeTruthy();
+    expect(typeof payload.token).toBe('string');
+    expect(payload.token.length).toBeGreaterThan(10);
 
     // Verify the token can be decoded back
-    const decoded = tokenCodec.decode(calledToken!);
+    const decoded = tokenCodec.decode(payload.token);
     expect(decoded.email).toBe('forgot@example.com');
   });
 
-  it('should return success without calling EmailPort when email does NOT exist (anti-enumeration)', async () => {
+  it('should return success without emitting an event when email does NOT exist (anti-enumeration)', async () => {
     const { ForgotPasswordUseCase } =
       await import('@/modules/users/application/use-cases/forgot-password-use-case');
 
     const useCase = new ForgotPasswordUseCase(
       userRepository,
-      emailPort,
       tokenCodec,
+      outboxRepository,
     );
 
     const result = await useCase.execute({
@@ -103,11 +104,10 @@ describe('ForgotPasswordUseCase', () => {
       'If the email exists, a reset link has been sent',
     );
 
-    // EmailPort.send NOT called
-    expect(emailPort.send).not.toHaveBeenCalled();
+    expect(outboxRepository.allEvents()).toHaveLength(0);
   });
 
-  it('should NOT send email when user is deactivated (deletedAt)', async () => {
+  it('should NOT emit an event when user is deactivated (deletedAt)', async () => {
     const { ForgotPasswordUseCase } =
       await import('@/modules/users/application/use-cases/forgot-password-use-case');
 
@@ -122,8 +122,8 @@ describe('ForgotPasswordUseCase', () => {
 
     const useCase = new ForgotPasswordUseCase(
       userRepository,
-      emailPort,
       tokenCodec,
+      outboxRepository,
     );
 
     const result = await useCase.execute({ email: 'forgot@example.com' });
@@ -133,6 +133,6 @@ describe('ForgotPasswordUseCase', () => {
     expect(result.message).toBe(
       'If the email exists, a reset link has been sent',
     );
-    expect(emailPort.send).not.toHaveBeenCalled();
+    expect(outboxRepository.allEvents()).toHaveLength(0);
   });
 });

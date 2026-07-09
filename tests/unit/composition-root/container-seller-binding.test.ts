@@ -66,9 +66,6 @@ vi.mock('@/modules/email/infrastructure/prisma-email-queue-repository', () => ({
 vi.mock('@/modules/auth/infrastructure/prisma-user-lookup', () => ({
   PrismaUserLookup: class {},
 }));
-vi.mock('@/modules/auth/infrastructure/console-forgot-password-email', () => ({
-  ConsoleForgotPasswordEmail: class {},
-}));
 vi.mock('@/modules/auth/infrastructure/memory-used-reset-token-store', () => ({
   MemoryUsedResetTokenStore: class {},
 }));

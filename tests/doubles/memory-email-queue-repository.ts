@@ -21,6 +21,7 @@ export class MemoryEmailQueueRepository implements EmailQueueRepository {
     retryCount: number;
     maxRetries: number;
     scheduledAt: Date;
+    updatedAt: Date;
     sentAt?: Date;
     error?: string | null;
   })[] = [];
@@ -56,6 +57,7 @@ export class MemoryEmailQueueRepository implements EmailQueueRepository {
       retryCount: 0,
       maxRetries: 3,
       scheduledAt: new Date(),
+      updatedAt: new Date(),
       error: null,
     };
     this.entries.push(stored);
@@ -113,26 +115,47 @@ export class MemoryEmailQueueRepository implements EmailQueueRepository {
     let remaining = batchSize;
     for (const e of this.entries) {
       if (remaining <= 0) break;
-      if (e.status === 'PENDING' && e.scheduledAt.getTime() <= nowTime) {
-        e.status = 'PROCESSING';
-        claimed.push({
-          id: e.id,
-          to: e.to,
-          subject: e.subject,
-          htmlBody: e.htmlBody,
-          template: e.template,
-          metadata: e.metadata,
-          idempotencyKey: e.idempotencyKey,
-          createdAt: e.createdAt,
-          status: e.status,
-          retryCount: e.retryCount,
-          maxRetries: e.maxRetries,
-          scheduledAt: e.scheduledAt,
-        });
-        remaining -= 1;
-      }
+      if (e.status !== 'PENDING' || e.scheduledAt.getTime() > nowTime) continue;
+
+      e.status = 'PROCESSING';
+      e.updatedAt = now;
+      claimed.push({
+        id: e.id,
+        to: e.to,
+        subject: e.subject,
+        htmlBody: e.htmlBody,
+        template: e.template,
+        metadata: e.metadata,
+        idempotencyKey: e.idempotencyKey,
+        createdAt: e.createdAt,
+        status: e.status,
+        retryCount: e.retryCount,
+        maxRetries: e.maxRetries,
+        scheduledAt: e.scheduledAt,
+      });
+      remaining -= 1;
     }
     return claimed;
+  }
+
+  async recoverStaleProcessing(
+    now: Date,
+    staleAfterMs: number,
+  ): Promise<number> {
+    const cutoffTime = now.getTime() - staleAfterMs;
+    let released = 0;
+
+    for (const e of this.entries) {
+      if (e.status !== 'PROCESSING' || e.updatedAt.getTime() > cutoffTime)
+        continue;
+
+      e.status = 'PENDING';
+      e.error = null;
+      e.updatedAt = now;
+      released += 1;
+    }
+
+    return released;
   }
 
   async markSent(id: string, sentAt: Date): Promise<void> {
@@ -141,6 +164,7 @@ export class MemoryEmailQueueRepository implements EmailQueueRepository {
     e.status = 'SENT';
     e.sentAt = sentAt;
     e.error = null;
+    e.updatedAt = sentAt;
   }
 
   async markFailed(
@@ -153,6 +177,7 @@ export class MemoryEmailQueueRepository implements EmailQueueRepository {
     e.status = 'FAILED';
     e.error = error;
     e.retryCount = retryCount;
+    e.updatedAt = new Date();
   }
 
   async reschedule(
@@ -167,6 +192,7 @@ export class MemoryEmailQueueRepository implements EmailQueueRepository {
     e.retryCount = retryCount;
     e.scheduledAt = scheduledAt;
     e.error = error;
+    e.updatedAt = new Date();
   }
 
   /** Test helper — inspect all stored entries (with worker state). */

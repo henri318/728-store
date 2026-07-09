@@ -49,6 +49,12 @@ export interface EmailQueueRepository {
    */
   claimPending(now: Date, batchSize: number): Promise<EmailQueueWorkerEntry[]>;
 
+  /**
+   * Release PROCESSING entries that have been stuck longer than the timeout.
+   * Returns the number of rows moved back to PENDING.
+   */
+  recoverStaleProcessing(now: Date, staleAfterMs: number): Promise<number>;
+
   /** Mark a claimed entry as successfully sent. */
   markSent(id: string, sentAt: Date): Promise<void>;
 
