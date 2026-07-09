@@ -24,6 +24,33 @@ WITH legacy_translation_data AS (
     NULLIF(p."customizationConfig" ->> 'designChangeDescription', '') AS "designChangeDescription"
   FROM "Product" p
   WHERE p."customizationConfig" IS NOT NULL
+), missing_es_translations AS (
+  INSERT INTO "ProductTranslation" (
+    "productId",
+    locale,
+    name,
+    description,
+    tags,
+    sizes,
+    "designChangeDescription"
+  )
+  SELECT
+    p.id,
+    'es',
+    '',
+    NULL,
+    ARRAY[]::TEXT[],
+    ARRAY[]::TEXT[],
+    NULL
+  FROM "Product" p
+  WHERE p."customizationConfig" IS NOT NULL
+    AND NOT EXISTS (
+      SELECT 1
+      FROM "ProductTranslation" pt
+      WHERE pt."productId" = p.id
+        AND pt.locale = 'es'
+    )
+  RETURNING "productId"
 )
 UPDATE "ProductTranslation" pt
 SET

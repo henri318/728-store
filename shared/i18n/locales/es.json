@@ -258,6 +258,7 @@
     "customizationLimitedToDescription": "La personalización se limita a la descripción.",
     "productSaved": "Guardado",
     "productFormError": "No se pudo guardar el producto",
+    "productMissingTranslationNameError": "Completa el nombre traducido de {locale} antes de guardar.",
     "createProductTitle": "Crear producto",
     "editProductTitle": "Editar producto",
     "statusDraft": "Borrador",

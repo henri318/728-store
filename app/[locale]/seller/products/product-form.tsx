@@ -190,6 +190,8 @@ function buildPayload(locale: SupportedLocale, form: FormState) {
         ...form.customizationConfig,
       }
     : undefined;
+  const currentDesignChangeDescription =
+    current.designChangeDescription?.trim() ?? '';
 
   const translations = Object.values(form.translations)
     .map((translation) => {
@@ -225,7 +227,10 @@ function buildPayload(locale: SupportedLocale, form: FormState) {
     translation: {
       tags: [...current.tags],
       sizes: [...current.sizes],
-      designChangeDescription: current.designChangeDescription,
+      designChangeDescription:
+        currentDesignChangeDescription.length > 0
+          ? currentDesignChangeDescription
+          : null,
     },
     translations,
     customizationConfig,
@@ -495,7 +500,9 @@ export function ProductForm({
         activeLocale: missingTranslationLocale,
       }));
       setErrors({
-        name: `Completa el nombre de la traducción ${missingTranslationLocale.toUpperCase()} antes de guardar.`,
+        name: labels.missingTranslationNameError
+          .split('{locale}')
+          .join(missingTranslationLocale.toUpperCase()),
       });
       return;
     }
@@ -563,18 +570,6 @@ export function ProductForm({
 
       <Card padding="md">
         <div className={styles.formBody}>
-          <PriceField
-            label={labels.priceLabel}
-            value={form.price}
-            onChange={(v) => updateField('price', v)}
-            error={errors.price}
-            required
-          />
-        </div>
-
-        <hr className={styles.divider} />
-
-        <div className={styles.formBody}>
           <ProductLocaleTabs
             value={form.activeLocale}
             onChange={updateLocale}
@@ -593,6 +588,14 @@ export function ProductForm({
         <hr className={styles.divider} />
 
         <div className={styles.formBody}>
+          <PriceField
+            label={labels.priceLabel}
+            value={form.price}
+            onChange={(v) => updateField('price', v)}
+            error={errors.price}
+            required
+          />
+
           <ProductPhotoGallery
             photos={form.images}
             selectedPhotoId={form.selectedPhotoId}

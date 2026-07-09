@@ -34,6 +34,8 @@ describe('ProductForm', () => {
     save: 'Guardar producto',
     saved: 'Guardado',
     error: 'No se pudo guardar el producto',
+    missingTranslationNameError:
+      'Completa el nombre traducido de {locale} antes de guardar.',
     localeTabs: { es: 'ES', cat: 'CAT' },
     translationSection: {
       title: 'Contenido traducido',
@@ -260,6 +262,52 @@ describe('ProductForm', () => {
     });
   });
 
+  it('normalizes whitespace-only translation design change descriptions in the submitted payload', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+
+      if (url === '/api/products') {
+        return Response.json({ id: 'p-1' }, { status: 201 });
+      }
+
+      return new Response(null, { status: 200 });
+    });
+
+    render(
+      <ProductForm
+        locale="es"
+        mode="create"
+        initialValues={{
+          price: 1,
+          translations: [
+            {
+              locale: 'es',
+              name: 'Taza',
+              description: '',
+              tags: [],
+              sizes: [],
+              designChangeDescription: ' '.repeat(3),
+            },
+          ],
+          customizationConfig: ProductCustomizationConfig.default().toJson(),
+          images: [],
+        }}
+        labels={labels}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: labels.save }));
+
+    await waitFor(() => {
+      const lastCall = fetchMock.mock.calls.at(-1);
+      expect(lastCall?.[0]).toBe('/api/products');
+
+      const body = JSON.parse(String(lastCall?.[1]?.body));
+      expect(body.translation.designChangeDescription).toBeNull();
+      expect(body.translations[0].designChangeDescription).toBeNull();
+    });
+  });
+
   it('does not expose status editing in edit mode', () => {
     render(
       <ProductForm
@@ -481,7 +529,7 @@ describe('ProductForm', () => {
     );
     expect(
       screen.getByText(
-        'Completa el nombre de la traducción CAT antes de guardar.',
+        labels.missingTranslationNameError.replace('{locale}', 'CAT'),
       ),
     ).toBeInTheDocument();
   });

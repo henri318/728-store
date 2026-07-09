@@ -32,6 +32,8 @@ describe('ProductForm locale tabs', () => {
     save: 'Guardar producto',
     saved: 'Guardado',
     error: 'No se pudo guardar el producto',
+    missingTranslationNameError:
+      'Completa el nombre traducido de {locale} antes de guardar.',
     localeTabs: { es: 'ES', cat: 'CAT' },
     translationSection: {
       title: 'Contenido traducido',

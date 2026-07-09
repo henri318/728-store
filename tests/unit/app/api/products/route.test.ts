@@ -348,6 +348,48 @@ describe('GET /api/products', () => {
     expect(body.items.map((p: { id: string }) => p.id)).toEqual(['active-1']);
   });
 
+  it('audience=seller without auth is forced to public visibility', async () => {
+    const repo = new MemoryProductRepository();
+    repo.seed([
+      makeProduct('active-1', {
+        status: ProductStatus.ACTIVE,
+        translations: [
+          {
+            locale: 'es',
+            name: 'Camiseta',
+            description: 'Ropa de verano',
+            designChangeDescription: 'Solo para vendedores',
+          },
+        ],
+      }),
+      makeProduct('draft-1', {
+        status: ProductStatus.DRAFT,
+        translations: [
+          {
+            locale: 'es',
+            name: 'Borrador',
+            description: 'Solo interno',
+            designChangeDescription: 'Borrador privado',
+          },
+        ],
+      }),
+    ]);
+    mocks.getProductRepositoryMock.mockReturnValue(repo);
+    mocks.getSessionMock.mockResolvedValue(null);
+
+    const res = await GET(
+      makeGetRequest('http://localhost:3000/api/products?audience=seller'),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.items).toHaveLength(1);
+    expect(body.items[0].id).toBe('active-1');
+    expect(body.items[0].translations[0]).not.toHaveProperty(
+      'designChangeDescription',
+    );
+  });
+
   it('audience=public defaults pageSize to 10', async () => {
     const repo = new MemoryProductRepository();
     const products = Array.from({ length: 25 }, (_, i) =>
@@ -479,6 +521,7 @@ describe('GET /api/products', () => {
     const repo = new MemoryProductRepository();
     repo.seed([makeProduct('p1')]);
     mocks.getProductRepositoryMock.mockReturnValue(repo);
+    mocks.getSessionMock.mockResolvedValue({ id: 'user-1' });
 
     const res = await GET(
       makeGetRequest('http://localhost:3000/api/products?audience=seller&q=x'),

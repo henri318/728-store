@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
 
 const previewOffsetSchema = z
   .object({
@@ -59,7 +60,7 @@ export const productFormSchema = z
     translations: z.array(productTranslationInputSchema).min(1).optional(),
     customizationConfig: productCustomizationConfigSchema.optional(),
     images: z.array(productImageSchema).optional().default([]),
-    status: z.string().optional(),
+    status: z.nativeEnum(ProductStatus).optional(),
   })
   .strict();
 

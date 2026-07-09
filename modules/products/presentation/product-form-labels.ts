@@ -7,6 +7,7 @@ export interface ProductFormLabels {
   save: string;
   saved: string;
   error: string;
+  missingTranslationNameError: string;
   localeTabs: {
     es: string;
     cat: string;
@@ -78,6 +79,8 @@ export function getProductFormLabels(
     save: (mode === 'create' ? sd.createProduct : sd.editProduct) as string,
     saved: sd.productSaved as string,
     error: sd.productFormError as string,
+    missingTranslationNameError:
+      sd.productMissingTranslationNameError as string,
     localeTabs: {
       es: (sd.productLocaleTabsEsLabel ?? 'ES') as string,
       cat: (sd.productLocaleTabsCatLabel ?? 'CAT') as string,

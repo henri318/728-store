@@ -27,7 +27,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const productRepository = container.getProductRepository();
     const session = await container.getSession().getSession();
-    const audience = filter.audience ?? (session?.id ? 'seller' : 'public');
+    const audience = session?.id ? (filter.audience ?? 'seller') : 'public';
     const useCase = new ProductListQueryUseCase(
       productRepository,
       container.getOutboxRepository(),

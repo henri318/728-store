@@ -258,6 +258,7 @@
     "customizationLimitedToDescription": "La personalització es limita a la descripció.",
     "productSaved": "Desat",
     "productFormError": "No s'ha pogut desar el producte",
+    "productMissingTranslationNameError": "Completa el nom traduït de {locale} abans de guardar.",
     "createProductTitle": "Crear producte",
     "editProductTitle": "Editar producte",
     "statusDraft": "Esborrany",

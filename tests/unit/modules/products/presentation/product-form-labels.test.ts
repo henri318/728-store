@@ -13,6 +13,8 @@ const dict = {
     editProduct: 'Guardar',
     productSaved: 'Guardado',
     productFormError: 'Error',
+    productMissingTranslationNameError:
+      'Completa el nombre traducido de {locale} antes de guardar.',
     productCustomizationConfigLabel: 'Configuración',
     productCustomizationConfigHint: 'Configura el producto.',
     productCustomizationSizeOptionsLabel: 'Tallas',
@@ -90,5 +92,8 @@ describe('getProductFormLabels', () => {
       designChangeDescriptionLabel: 'Descripción del cambio',
       designChangeDescriptionPlaceholder: 'Describe el cambio',
     });
+    expect(labels.missingTranslationNameError).toBe(
+      'Completa el nombre traducido de {locale} antes de guardar.',
+    );
   });
 });
