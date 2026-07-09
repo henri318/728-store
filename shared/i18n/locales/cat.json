@@ -194,6 +194,7 @@
     "deleteAccount": "Eliminar compte",
     "closeSession": "Tancar sessió",
     "dashboard": "Panell d'administració",
+    "configuration": "Configuració",
     "designerPanel": "Panell de dissenyador",
     "myOrders": "Les meves comandes",
     "receivedOrders": "Comandes rebudes"
@@ -354,6 +355,20 @@
     "productCount": "{total} productes",
     "untranslatedProduct": "Sense traducció",
     "paginationAriaLabel": "Paginació",
+    "configuration": {
+      "title": "Configuració",
+      "description": "Gestiona les categories del catàleg.",
+      "label": "Categories",
+      "placeholder": "Escriu una categoria i prem Enter",
+      "addLabel": "Afegir",
+      "emptyLabel": "Encara no hi ha categories",
+      "delete": "Eliminar",
+      "createError": "No s'ha pogut crear la categoria",
+      "deleteError": "No s'ha pogut eliminar la categoria",
+      "validationError": "Introdueix un nom vàlid",
+      "duplicateError": "Ja existeix una categoria amb aquest nom",
+      "inUseError": "La categoria està en ús"
+    },
     "sellerDetail": {
       "editTitle": "Editar venedor",
       "nameLabel": "Nom del negoci",

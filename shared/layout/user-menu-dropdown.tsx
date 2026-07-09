@@ -67,14 +67,24 @@ export function UserMenuDropdown(_props: UserMenuDropdownProps) {
       {isOpen && (
         <div role="menu" className={styles.dropdown}>
           {_props.user?.role === 'ADMIN' && (
-            <Link
-              href={`/${locale}/admin/sellers`}
-              role="menuitem"
-              onClick={closeMenu}
-              className={styles.menuItem}
-            >
-              {dict.userMenu.dashboard}
-            </Link>
+            <>
+              <Link
+                href={`/${locale}/admin/sellers`}
+                role="menuitem"
+                onClick={closeMenu}
+                className={styles.menuItem}
+              >
+                {dict.userMenu.dashboard}
+              </Link>
+              <Link
+                href={`/${locale}/admin/configuration`}
+                role="menuitem"
+                onClick={closeMenu}
+                className={styles.menuItem}
+              >
+                {dict.userMenu.configuration}
+              </Link>
+            </>
           )}
           {_props.user?.role === 'DESIGNER' && (
             <>

@@ -194,6 +194,7 @@
     "deleteAccount": "Eliminar cuenta",
     "closeSession": "Cerrar sesión",
     "dashboard": "Panel de administración",
+    "configuration": "Configuración",
     "designerPanel": "Panel de diseñador",
     "myOrders": "Mis pedidos",
     "receivedOrders": "Pedidos recibidos"
@@ -354,6 +355,20 @@
     "productCount": "Total de productos: {total}",
     "untranslatedProduct": "Sin traducción",
     "paginationAriaLabel": "Paginación",
+    "configuration": {
+      "title": "Configuración",
+      "description": "Gestiona las categorías del catálogo.",
+      "label": "Categorías",
+      "placeholder": "Escribe una categoría y pulsa Enter",
+      "addLabel": "Añadir",
+      "emptyLabel": "Todavía no hay categorías",
+      "delete": "Eliminar",
+      "createError": "No se pudo crear la categoría",
+      "deleteError": "No se pudo eliminar la categoría",
+      "validationError": "Introduce un nombre válido",
+      "duplicateError": "Ya existe una categoría con ese nombre",
+      "inUseError": "La categoría está en uso"
+    },
     "sellerDetail": {
       "editTitle": "Editar vendedor",
       "nameLabel": "Nombre del negocio",
