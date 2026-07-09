@@ -6,14 +6,22 @@ import { type ZodError } from 'zod';
 import { Button } from '@/shared/ui/button';
 import { BackLink } from '@/shared/ui/back-link';
 import { Card } from '@/shared/ui/card';
-import { TextField } from '@/shared/ui/text-field';
 import { PriceField } from '@/shared/ui/price-field';
-import { DescriptionField } from '@/shared/ui/description-field';
 import { ProductCustomizationConfigEditor } from '@/modules/products/presentation/components/product-customization-config-editor';
+import {
+  ProductLocaleTabs,
+  type ProductLocale,
+} from '@/modules/products/presentation/components/product-locale-tabs';
+import {
+  ProductTranslationSection,
+  type ProductTranslationDraft,
+} from '@/modules/products/presentation/components/product-translation-section';
+import type { ProductFormLabels } from '@/modules/products/presentation/product-form-labels';
 import { toAbsoluteUrl } from '@/shared/presentation/lib/to-absolute-url';
 import { UploadType } from '@/modules/uploads/domain/value-objects/upload-type';
 import {
   productFormSchema,
+  type ProductTranslationInput,
   type ProductCustomizationConfigInput,
 } from '@/modules/products/presentation/schemas/product-form-schema';
 import type { ProductPhotoDraft } from './product-photo-gallery';
@@ -22,50 +30,17 @@ import styles from './product-form.module.css';
 
 type ProductFormMode = 'create' | 'edit';
 
+type SupportedLocale = ProductLocale;
+
+interface LocaleTranslationState extends ProductTranslationDraft {
+  locale: SupportedLocale;
+}
+
+type TranslationMap = Record<SupportedLocale, LocaleTranslationState>;
+
 interface CategoryOption {
   id: string;
   name: string;
-}
-
-interface ProductFormLabels {
-  title: string;
-  backToProducts: string;
-  nameLabel: string;
-  descriptionLabel: string;
-  priceLabel: string;
-  save: string;
-  saved: string;
-  error: string;
-  customization: {
-    label: string;
-    hint: string;
-    editor: {
-      sizeOptionsLabel: string;
-      sizeOptionsPlaceholder: string;
-      allowPhotoDesignLabel: string;
-      designChangeDescriptionLabel: string;
-      designChangeDescriptionPlaceholder: string;
-      categoryLabel: string;
-      categoryPlaceholder: string;
-      tagsLabel: string;
-      tagsPlaceholder: string;
-      tagsHelp: string;
-      addLabel: string;
-    };
-  };
-  gallery: {
-    title: string;
-    hint: string;
-    addPhotoLabel: string;
-    photoDisplayNameLabel: string;
-    photoDisplayNamePlaceholder: string;
-    selectForPreviewLabel: string;
-    removePhotoLabel: string;
-    uploadingLabel: string;
-    emptyState: string;
-    uploadError: string;
-    defaultPhotoName: string;
-  };
 }
 
 interface ProductFormProps {
@@ -73,9 +48,11 @@ interface ProductFormProps {
   mode: ProductFormMode;
   productId?: string;
   initialValues: {
-    name: string;
-    description: string;
     price: number;
+    name?: string;
+    description?: string;
+    translation?: ProductTranslationInput;
+    translations?: Array<LocaleTranslationState>;
     customizationConfig: ProductCustomizationConfigInput;
     images: Array<{
       url: string;
@@ -87,9 +64,9 @@ interface ProductFormProps {
 }
 
 interface FormState {
-  name: string;
-  description: string;
   price: string;
+  activeLocale: SupportedLocale;
+  translations: TranslationMap;
   customizationConfig: ProductCustomizationConfigInput;
   images: ProductPhotoDraft[];
   selectedPhotoId: string | null;
@@ -113,27 +90,149 @@ function normalizePhotoName(value: string, fallback: string) {
   return fallback;
 }
 
-function createPhotoId() {
+function normalizeLocale(value: string): SupportedLocale {
+  return value === 'cat' ? 'cat' : 'es';
+}
+
+function createTranslationDraft(
+  locale: SupportedLocale,
+): LocaleTranslationState {
+  return {
+    locale,
+    name: '',
+    description: '',
+    tags: [],
+    sizes: [],
+    designChangeDescription: null,
+  };
+}
+
+function normalizeTranslationDraft(
+  locale: SupportedLocale,
+  draft?: Partial<LocaleTranslationState>,
+): LocaleTranslationState {
+  return {
+    ...createTranslationDraft(locale),
+    ...draft,
+    locale,
+    tags: [...(draft?.tags ?? [])],
+    sizes: [...(draft?.sizes ?? [])],
+    designChangeDescription: draft?.designChangeDescription ?? null,
+  };
+}
+
+function hasInactiveTranslationContent(
+  translation: LocaleTranslationState,
+): boolean {
   return (
-    globalThis.crypto?.randomUUID?.() ??
-    `photo-${Date.now()}-${crypto.randomUUID()}`
+    translation.description.trim().length > 0 ||
+    translation.tags.length > 0 ||
+    translation.sizes.length > 0 ||
+    (translation.designChangeDescription?.trim().length ?? 0) > 0
   );
 }
 
-function buildPayload(locale: string, form: FormState) {
+function findTranslationWithMissingName(
+  form: FormState,
+): SupportedLocale | null {
+  const activeTranslation = form.translations[form.activeLocale];
+  if (activeTranslation.name.trim().length === 0) {
+    return form.activeLocale;
+  }
+
+  for (const translation of Object.values(form.translations)) {
+    if (translation.locale === form.activeLocale) continue;
+
+    if (
+      translation.name.trim().length === 0 &&
+      hasInactiveTranslationContent(translation)
+    ) {
+      return translation.locale;
+    }
+  }
+
+  return null;
+}
+
+function buildTranslationMap(
+  locale: SupportedLocale,
+  initialValues: ProductFormProps['initialValues'],
+): TranslationMap {
+  const base: TranslationMap = {
+    es: createTranslationDraft('es'),
+    cat: createTranslationDraft('cat'),
+  };
+
+  if (initialValues.translations && initialValues.translations.length > 0) {
+    for (const draft of initialValues.translations) {
+      base[draft.locale] = normalizeTranslationDraft(draft.locale, draft);
+    }
+    return base;
+  }
+
+  const active = normalizeTranslationDraft(locale, {
+    name: initialValues.name ?? '',
+    description: initialValues.description ?? '',
+    tags: initialValues.translation?.tags ?? [],
+    sizes: initialValues.translation?.sizes ?? [],
+    designChangeDescription:
+      initialValues.translation?.designChangeDescription ?? null,
+  });
+
+  base[locale] = active;
+  return base;
+}
+
+function buildPayload(locale: SupportedLocale, form: FormState) {
+  const current = form.translations[locale];
   const customizationConfig = form.customizationConfig
     ? {
         ...form.customizationConfig,
-        designChangeDescription:
-          form.customizationConfig.designChangeDescription ?? null,
       }
     : undefined;
+  const currentDesignChangeDescription =
+    current.designChangeDescription?.trim() ?? '';
+
+  const translations = Object.values(form.translations)
+    .map((translation) => {
+      const name = translation.name.trim();
+      const description = translation.description.trim();
+      const designChangeDescription =
+        translation.designChangeDescription?.trim() ?? '';
+
+      return {
+        locale: translation.locale,
+        name,
+        description: description.length > 0 ? description : undefined,
+        tags: [...translation.tags],
+        sizes: [...translation.sizes],
+        designChangeDescription:
+          designChangeDescription.length > 0 ? designChangeDescription : null,
+      };
+    })
+    .filter(
+      (translation) =>
+        translation.name.length > 0 ||
+        translation.description !== undefined ||
+        translation.tags.length > 0 ||
+        translation.sizes.length > 0 ||
+        translation.designChangeDescription !== null,
+    );
 
   const payload = {
     locale,
-    name: form.name.trim(),
-    description: form.description.trim() || undefined,
+    name: current.name.trim(),
+    description: current.description.trim() || undefined,
     price: form.price,
+    translation: {
+      tags: [...current.tags],
+      sizes: [...current.sizes],
+      designChangeDescription:
+        currentDesignChangeDescription.length > 0
+          ? currentDesignChangeDescription
+          : null,
+    },
+    translations,
     customizationConfig,
     images: form.images.map((image, index) => ({
       url: image.url,
@@ -215,6 +314,7 @@ export function ProductForm({
   categories = [],
 }: ProductFormProps) {
   const router = useRouter();
+  const initialLocale = normalizeLocale(locale);
   const [form, setForm] = useState<FormState>(() => {
     const images = initialValues.images.map((image, index) => ({
       id: createPhotoId(),
@@ -227,9 +327,9 @@ export function ProductForm({
     }));
 
     return {
-      name: initialValues.name,
-      description: initialValues.description,
       price: String(initialValues.price),
+      activeLocale: initialLocale,
+      translations: buildTranslationMap(initialLocale, initialValues),
       customizationConfig: initialValues.customizationConfig,
       images,
       selectedPhotoId: images[0]?.id ?? null,
@@ -248,10 +348,7 @@ export function ProductForm({
   );
 
   const updateField = <
-    K extends keyof Pick<
-      FormState,
-      'name' | 'description' | 'price' | 'customizationConfig'
-    >,
+    K extends keyof Pick<FormState, 'price' | 'customizationConfig'>,
   >(
     field: K,
     value: FormState[K],
@@ -261,6 +358,37 @@ export function ProductForm({
       if (!Object.hasOwn(current, field)) return current;
       const next = { ...current };
       delete next[field];
+      return next;
+    });
+  };
+
+  const updateLocale = (nextLocale: SupportedLocale) => {
+    setForm((current) => ({ ...current, activeLocale: nextLocale }));
+  };
+
+  const updateTranslation = (patch: Partial<LocaleTranslationState>) => {
+    setForm((current) => {
+      const locale = current.activeLocale;
+      const nextTranslation = normalizeTranslationDraft(locale, {
+        ...current.translations[locale],
+        ...patch,
+        locale,
+      });
+
+      return {
+        ...current,
+        translations: {
+          ...current.translations,
+          [locale]: nextTranslation,
+        },
+      };
+    });
+
+    setErrors((current) => {
+      if (!current.name && !current.description) return current;
+      const next = { ...current };
+      delete next.name;
+      delete next.description;
       return next;
     });
   };
@@ -365,7 +493,21 @@ export function ProductForm({
     setSaved(null);
     setErrors({});
 
-    const parsed = buildPayload(locale, form);
+    const missingTranslationLocale = findTranslationWithMissingName(form);
+    if (missingTranslationLocale) {
+      setForm((current) => ({
+        ...current,
+        activeLocale: missingTranslationLocale,
+      }));
+      setErrors({
+        name: labels.missingTranslationNameError
+          .split('{locale}')
+          .join(missingTranslationLocale.toUpperCase()),
+      });
+      return;
+    }
+
+    const parsed = buildPayload(form.activeLocale, form);
 
     if (!parsed.success) {
       setErrors(mapErrors(parsed.error));
@@ -428,35 +570,32 @@ export function ProductForm({
 
       <Card padding="md">
         <div className={styles.formBody}>
-          <div className={styles.fieldRow}>
-            <TextField
-              label={labels.nameLabel}
-              value={form.name}
-              onChange={(v) => updateField('name', v)}
-              error={errors.name}
-              required
-            />
+          <ProductLocaleTabs
+            value={form.activeLocale}
+            onChange={updateLocale}
+            labels={labels.localeTabs}
+          />
 
-            <PriceField
-              label={labels.priceLabel}
-              value={form.price}
-              onChange={(v) => updateField('price', v)}
-              error={errors.price}
-              required
-            />
-          </div>
-
-          <DescriptionField
-            label={labels.descriptionLabel}
-            value={form.description}
-            onChange={(v) => updateField('description', v)}
-            error={errors.description}
+          <ProductTranslationSection
+            locale={form.activeLocale}
+            value={form.translations[form.activeLocale]}
+            onChange={updateTranslation}
+            labels={labels.translationSection}
+            errors={{ name: errors.name, description: errors.description }}
           />
         </div>
 
         <hr className={styles.divider} />
 
         <div className={styles.formBody}>
+          <PriceField
+            label={labels.priceLabel}
+            value={form.price}
+            onChange={(v) => updateField('price', v)}
+            error={errors.price}
+            required
+          />
+
           <ProductPhotoGallery
             photos={form.images}
             selectedPhotoId={form.selectedPhotoId}
@@ -494,5 +633,12 @@ export function ProductForm({
         </div>
       </Card>
     </form>
+  );
+}
+
+function createPhotoId() {
+  return (
+    globalThis.crypto?.randomUUID?.() ??
+    `photo-${Date.now()}-${crypto.randomUUID()}`
   );
 }

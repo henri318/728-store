@@ -160,7 +160,7 @@ describe('GET /api/admin/sellers/[sellerId]/products', () => {
     );
   });
 
-  it('uses "Untranslated" when product has no matching translation', async () => {
+  it('falls back to an empty name when product has no matching translation', async () => {
     mocks.findPaginatedMock.mockResolvedValue({
       items: [
         {
@@ -187,6 +187,6 @@ describe('GET /api/admin/sellers/[sellerId]/products', () => {
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.items[0].name).toBe('Untranslated');
+    expect(body.items[0].name).toBe('');
   });
 });

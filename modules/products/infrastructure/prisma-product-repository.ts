@@ -109,14 +109,12 @@ export class PrismaProductRepository implements ProductRepository {
     return rows.map((r) => r.id);
   }
 
-  async findAll(locale: string): Promise<ProductEntity[]> {
+  async findAll(_locale: string): Promise<ProductEntity[]> {
     const products = await prisma.product.findMany({
       include: {
         seller: true,
         category: true,
-        translations: {
-          where: { locale },
-        },
+        translations: true,
         images: {
           orderBy: { position: 'asc' },
         },
@@ -127,15 +125,13 @@ export class PrismaProductRepository implements ProductRepository {
     return products.map((product) => toDomainProduct(product));
   }
 
-  async findById(id: string, locale: string): Promise<ProductEntity | null> {
+  async findById(id: string, _locale: string): Promise<ProductEntity | null> {
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
         seller: true,
         category: true,
-        translations: {
-          where: { locale },
-        },
+        translations: true,
         images: {
           orderBy: { position: 'asc' },
         },
@@ -150,16 +146,14 @@ export class PrismaProductRepository implements ProductRepository {
 
   async findBySellerId(
     sellerId: string,
-    locale: string,
+    _locale: string,
   ): Promise<ProductEntity[]> {
     const products = await prisma.product.findMany({
       where: { sellerId },
       include: {
         seller: true,
         category: true,
-        translations: {
-          where: { locale },
-        },
+        translations: true,
         images: {
           orderBy: { position: 'asc' },
         },
@@ -204,9 +198,7 @@ export class PrismaProductRepository implements ProductRepository {
       include: {
         seller: true,
         category: true,
-        translations: {
-          where: { locale: { in: [locale, 'es'] } },
-        },
+        translations: true,
         images: {
           orderBy: { position: 'asc' },
         },
@@ -237,6 +229,10 @@ export class PrismaProductRepository implements ProductRepository {
             locale: translation.locale,
             name: translation.name,
             description: translation.description,
+            tags: [...(translation.tags ?? [])],
+            sizes: [...(translation.sizes ?? [])],
+            designChangeDescription:
+              translation.designChangeDescription ?? null,
           })),
         },
         images: {
@@ -291,10 +287,18 @@ export class PrismaProductRepository implements ProductRepository {
             locale: translation.locale,
             name: translation.name,
             description: translation.description,
+            tags: [...(translation.tags ?? [])],
+            sizes: [...(translation.sizes ?? [])],
+            designChangeDescription:
+              translation.designChangeDescription ?? null,
           },
           update: {
             name: translation.name,
             description: translation.description,
+            tags: [...(translation.tags ?? [])],
+            sizes: [...(translation.sizes ?? [])],
+            designChangeDescription:
+              translation.designChangeDescription ?? null,
           },
         });
       }

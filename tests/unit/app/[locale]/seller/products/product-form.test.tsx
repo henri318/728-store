@@ -34,6 +34,25 @@ describe('ProductForm', () => {
     save: 'Guardar producto',
     saved: 'Guardado',
     error: 'No se pudo guardar el producto',
+    missingTranslationNameError:
+      'Completa el nombre traducido de {locale} antes de guardar.',
+    localeTabs: { es: 'ES', cat: 'CAT' },
+    translationSection: {
+      title: 'Contenido traducido',
+      hint: 'Edita cada idioma por separado.',
+      nameLabel: 'Nombre',
+      descriptionLabel: 'Descripción',
+      tagsLabel: 'Etiquetas',
+      tagsPlaceholder: 'ropa, verano',
+      tagsAddLabel: 'Añadir etiqueta',
+      tagsEmptyLabel: 'Aún no hay etiquetas',
+      sizesLabel: 'Tallas',
+      sizesPlaceholder: 'S, M, L',
+      sizesAddLabel: 'Añadir talla',
+      sizesEmptyLabel: 'Aún no hay tallas',
+      designChangeDescriptionLabel: 'Descripción del cambio',
+      designChangeDescriptionPlaceholder: 'Describe el cambio',
+    },
     customization: {
       label: 'Configuración de personalización',
       hint: 'Ajusta la vista previa y los campos de personalización.',
@@ -106,14 +125,29 @@ describe('ProductForm', () => {
         locale="es"
         mode="create"
         initialValues={{
-          name: '',
-          description: '',
           price: 1,
+          translations: [
+            {
+              locale: 'es',
+              name: '',
+              description: '',
+              tags: ['ropa', 'verano'],
+              sizes: ['S', 'M', 'L'],
+              designChangeDescription: 'Cambia el estampado frontal',
+            },
+            {
+              locale: 'cat',
+              name: '',
+              description: '',
+              tags: [],
+              sizes: [],
+              designChangeDescription: null,
+            },
+          ],
           customizationConfig: {
             mode: 'text_photo',
             previewEnabled: true,
             previewTemplateUrl: null,
-            sizeOptions: ['S', 'M', 'L'],
             textOffset: { x: 12, y: 18 },
             imageOffset: { x: 24, y: 40 },
           },
@@ -177,37 +211,100 @@ describe('ProductForm', () => {
     fireEvent.click(screen.getByRole('button', { name: labels.save }));
 
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          locale: 'es',
-          name: 'Taza personalizada',
-          description: 'Edición limitada',
-          price: 19.99,
-          customizationConfig: {
-            mode: 'text_photo',
-            previewEnabled: true,
-            previewTemplateUrl: null,
-            sizeOptions: ['S', 'M', 'L'],
-            textOffset: { x: 12, y: 18 },
-            imageOffset: { x: 24, y: 40 },
-            designChangeDescription: null,
+      const lastCall = fetchMock.mock.calls.at(-1);
+      expect(lastCall?.[0]).toBe('/api/products');
+
+      const body = JSON.parse(String(lastCall?.[1]?.body));
+      expect(body).toMatchObject({
+        locale: 'es',
+        name: 'Taza personalizada',
+        description: 'Edición limitada',
+        price: 19.99,
+        customizationConfig: {
+          mode: 'text_photo',
+          previewEnabled: true,
+          previewTemplateUrl: null,
+          textOffset: { x: 12, y: 18 },
+          imageOffset: { x: 24, y: 40 },
+        },
+        translations: [
+          {
+            locale: 'es',
+            name: 'Taza personalizada',
+            description: 'Edición limitada',
+            tags: ['ropa', 'verano'],
+            sizes: ['S', 'M', 'L'],
+            designChangeDescription: 'Cambia el estampado frontal',
           },
-          images: [
+        ],
+        images: [
+          {
+            url: 'http://localhost:8081/products/mug-red.png',
+            alt: 'Rojo cereza',
+            position: 0,
+          },
+          {
+            url: 'http://localhost:8081/products/mug-blue.png',
+            alt: 'Azul niebla',
+            position: 1,
+          },
+        ],
+      });
+      expect(body.translations).toHaveLength(1);
+      expect(body.translations[0]).toMatchObject({
+        locale: 'es',
+        name: 'Taza personalizada',
+        description: 'Edición limitada',
+        tags: ['ropa', 'verano'],
+        sizes: ['S', 'M', 'L'],
+        designChangeDescription: 'Cambia el estampado frontal',
+      });
+    });
+  });
+
+  it('normalizes whitespace-only translation design change descriptions in the submitted payload', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+
+      if (url === '/api/products') {
+        return Response.json({ id: 'p-1' }, { status: 201 });
+      }
+
+      return new Response(null, { status: 200 });
+    });
+
+    render(
+      <ProductForm
+        locale="es"
+        mode="create"
+        initialValues={{
+          price: 1,
+          translations: [
             {
-              url: 'http://localhost:8081/products/mug-red.png',
-              alt: 'Rojo cereza',
-              position: 0,
-            },
-            {
-              url: 'http://localhost:8081/products/mug-blue.png',
-              alt: 'Azul niebla',
-              position: 1,
+              locale: 'es',
+              name: 'Taza',
+              description: '',
+              tags: [],
+              sizes: [],
+              designChangeDescription: ' '.repeat(3),
             },
           ],
-        }),
-      });
+          customizationConfig: ProductCustomizationConfig.default().toJson(),
+          images: [],
+        }}
+        labels={labels}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: labels.save }));
+
+    await waitFor(() => {
+      const lastCall = fetchMock.mock.calls.at(-1);
+      expect(lastCall?.[0]).toBe('/api/products');
+
+      const body = JSON.parse(String(lastCall?.[1]?.body));
+      expect(body.translation.designChangeDescription).toBeNull();
+      expect(body.translations[0].designChangeDescription).toBeNull();
     });
   });
 
@@ -218,9 +315,17 @@ describe('ProductForm', () => {
         mode="edit"
         productId="p-1"
         initialValues={{
-          name: 'Taza',
-          description: 'Base',
           price: 19.99,
+          translations: [
+            {
+              locale: 'es',
+              name: 'Taza',
+              description: 'Base',
+              tags: [],
+              sizes: [],
+              designChangeDescription: null,
+            },
+          ],
           customizationConfig: ProductCustomizationConfig.default().toJson(),
           images: [
             {
@@ -245,14 +350,21 @@ describe('ProductForm', () => {
         locale="es"
         mode="create"
         initialValues={{
-          name: 'Taza',
-          description: 'Base',
           price: 19.99,
+          translations: [
+            {
+              locale: 'es',
+              name: 'Taza',
+              description: 'Base',
+              tags: [],
+              sizes: [],
+              designChangeDescription: null,
+            },
+          ],
           customizationConfig: {
             mode: 'text_photo',
             previewEnabled: true,
             previewTemplateUrl: null,
-            sizeOptions: ['S', 'M', 'L'],
             textOffset: { x: 12, y: 18 },
             imageOffset: { x: 24, y: 40 },
           },
@@ -273,6 +385,155 @@ describe('ProductForm', () => {
     expect(checkbox).toBeChecked();
   });
 
+  it('includes translated tags and sizes in the edit-mode PATCH payload', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+
+      if (url === '/api/products/p-1') {
+        return Response.json({ id: 'p-1' }, { status: 200 });
+      }
+
+      return new Response(null, { status: 200 });
+    });
+
+    render(
+      <ProductForm
+        locale="es"
+        mode="edit"
+        productId="p-1"
+        initialValues={{
+          price: 19.99,
+          translations: [
+            {
+              locale: 'es',
+              name: 'Taza',
+              description: 'Base',
+              tags: ['hogar'],
+              sizes: ['S'],
+              designChangeDescription: null,
+            },
+            {
+              locale: 'cat',
+              name: 'Tassa',
+              description: 'Base cat',
+              tags: ['llar'],
+              sizes: ['M'],
+              designChangeDescription: null,
+            },
+          ],
+          customizationConfig: ProductCustomizationConfig.default().toJson(),
+          images: [],
+        }}
+        labels={labels}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Etiquetas'), {
+      target: { value: 'hogar premium' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Añadir etiqueta' }));
+
+    fireEvent.change(screen.getByLabelText('Tallas'), {
+      target: { value: 'M' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Añadir talla' }));
+
+    fireEvent.click(screen.getByRole('tab', { name: 'CAT' }));
+
+    fireEvent.change(screen.getByLabelText('Etiquetas'), {
+      target: { value: 'regal' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Añadir etiqueta' }));
+
+    fireEvent.change(screen.getByLabelText('Tallas'), {
+      target: { value: 'L' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Añadir talla' }));
+
+    fireEvent.click(screen.getByRole('button', { name: labels.save }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith('/api/products/p-1', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: expect.any(String),
+      });
+    });
+
+    const body = JSON.parse(
+      String(fetchMock.mock.calls.at(-1)?.[1]?.body ?? '{}'),
+    ) as {
+      translations?: Array<{ locale: string; tags: string[]; sizes: string[] }>;
+    };
+
+    expect(body.translations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          locale: 'es',
+          tags: ['hogar', 'hogar premium'],
+          sizes: ['S', 'M'],
+        }),
+        expect.objectContaining({
+          locale: 'cat',
+          tags: ['llar', 'regal'],
+          sizes: ['M', 'L'],
+        }),
+      ]),
+    );
+  });
+
+  it('switches to the locale with missing translated name and blocks submission', async () => {
+    render(
+      <ProductForm
+        locale="es"
+        mode="create"
+        initialValues={{
+          price: 19.99,
+          translations: [
+            {
+              locale: 'es',
+              name: 'Taza',
+              description: 'Base',
+              tags: [],
+              sizes: [],
+              designChangeDescription: null,
+            },
+            {
+              locale: 'cat',
+              name: '',
+              description: '',
+              tags: ['llar'],
+              sizes: [],
+              designChangeDescription: null,
+            },
+          ],
+          customizationConfig: ProductCustomizationConfig.default().toJson(),
+          images: [],
+        }}
+        labels={labels}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: labels.save }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('tab', { name: 'CAT' })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      );
+    });
+
+    expect(fetchMock).not.toHaveBeenCalledWith(
+      '/api/products',
+      expect.anything(),
+    );
+    expect(
+      screen.getByText(
+        labels.missingTranslationNameError.replace('{locale}', 'CAT'),
+      ),
+    ).toBeInTheDocument();
+  });
+
   it('renders the category field as a select when category options are provided', () => {
     render(
       <ProductForm
@@ -283,9 +544,17 @@ describe('ProductForm', () => {
           { id: 'cat-2', name: 'Tazas' },
         ]}
         initialValues={{
-          name: 'Taza',
-          description: 'Base',
           price: 19.99,
+          translations: [
+            {
+              locale: 'es',
+              name: 'Taza',
+              description: 'Base',
+              tags: [],
+              sizes: [],
+              designChangeDescription: null,
+            },
+          ],
           customizationConfig: ProductCustomizationConfig.default().toJson(),
           images: [],
         }}
@@ -319,9 +588,17 @@ describe('ProductForm', () => {
         mode="edit"
         productId="p-1"
         initialValues={{
-          name: 'Taza',
-          description: 'Base',
           price: 19.99,
+          translations: [
+            {
+              locale: 'es',
+              name: 'Taza',
+              description: 'Base',
+              tags: [],
+              sizes: [],
+              designChangeDescription: null,
+            },
+          ],
           customizationConfig: {
             ...ProductCustomizationConfig.default().toJson(),
             designPosition: {
@@ -385,14 +662,21 @@ describe('ProductForm', () => {
         locale="es"
         mode="create"
         initialValues={{
-          name: 'Taza',
-          description: 'Base',
           price: 19.99,
+          translations: [
+            {
+              locale: 'es',
+              name: 'Taza',
+              description: 'Base',
+              tags: [],
+              sizes: [],
+              designChangeDescription: null,
+            },
+          ],
           customizationConfig: {
             mode: 'text_photo',
             previewEnabled: true,
             previewTemplateUrl: null,
-            sizeOptions: ['S', 'M', 'L'],
             textOffset: { x: 12, y: 18 },
             imageOffset: { x: 24, y: 40 },
           },

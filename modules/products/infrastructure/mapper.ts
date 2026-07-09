@@ -28,6 +28,9 @@ export interface PrismaTranslationRow {
   locale: string;
   name: string;
   description: string | null;
+  tags?: string[] | null;
+  sizes?: string[] | null;
+  designChangeDescription?: string | null;
 }
 
 export interface PrismaProductImageRow {
@@ -71,7 +74,6 @@ export interface PrismaProductCustomizationConfigJson {
   mode: 'description' | 'text' | 'photo' | 'text_photo';
   previewEnabled: boolean;
   previewTemplateUrl: string | null;
-  sizeOptions: string[] | null;
   textOffset: PrismaPreviewOffsetJson | null;
   imageOffset: PrismaPreviewOffsetJson | null;
 }
@@ -89,7 +91,6 @@ export interface PrismaProductCustomizationConfigRow {
   mode?: 'description' | 'text' | 'photo' | 'text_photo';
   previewEnabled?: boolean;
   previewTemplateUrl?: string | null;
-  sizeOptions?: string[] | null;
   textOffset?: PrismaPreviewOffsetJson | null;
   imageOffset?: PrismaPreviewOffsetJson | null;
 }
@@ -152,6 +153,9 @@ export function toDomainProduct(
       locale: t.locale,
       name: t.name,
       description: t.description,
+      tags: t.tags ?? [],
+      sizes: t.sizes ?? [],
+      designChangeDescription: t.designChangeDescription ?? null,
     })),
     images: prismaProduct.images.map((img) => toDomainProductImage(img)),
     tags: prismaProduct.tags.map((tag) => toDomainTag(tag)),

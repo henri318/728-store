@@ -27,6 +27,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const productRepository = container.getProductRepository();
     const session = await container.getSession().getSession();
+    const audience = session?.id ? (filter.audience ?? 'seller') : 'public';
     const useCase = new ProductListQueryUseCase(
       productRepository,
       container.getOutboxRepository(),
@@ -34,29 +35,25 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const result = await useCase.execute({
       ...filter,
+      audience,
       userId: session?.id ?? null,
     });
 
     const mapped = {
       ...result,
-      items: result.items.map((product) => ({
-        id: product.id,
-        basePrice: {
-          amount: product.basePrice.amount,
-          currency: product.basePrice.currency,
-          formattedPrice: product.basePrice.format(),
-        },
-        sellerId: product.sellerId,
-        sellerName: product.sellerName,
-        translations: product.translations,
-        images: product.images,
-        tags: product.tags,
-        category: product.category,
-        categoryId: product.categoryId,
-        status: product.status,
-        createdAt: product.createdAt,
-        updatedAt: product.updatedAt,
-      })),
+      items: result.items.map((product) => {
+        const serialized = serializeProduct(product, {
+          publicView: audience === 'public',
+        });
+
+        return {
+          ...serialized,
+          basePrice: {
+            ...serialized.basePrice,
+            formattedPrice: product.basePrice.format(),
+          },
+        };
+      }),
     };
 
     return NextResponse.json(mapped, { status: 200 });
@@ -99,6 +96,8 @@ export const POST = requireRole('DESIGNER')(async function POST(
       name: body.name,
       description: body.description,
       price: body.price,
+      translation: body.translation,
+      translations: body.translations,
       customizationConfig: body.customizationConfig,
       images: body.images,
     });

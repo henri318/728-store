@@ -42,28 +42,10 @@ export interface ProductCustomizationConfigJson {
   mode: CustomizationMode;
   previewEnabled: boolean;
   previewTemplateUrl: string | null;
-  sizeOptions: string[] | null;
   textOffset: PreviewOffset | null;
   imageOffset: PreviewOffset | null;
-  /**
-   * Whether the buyer can upload a custom design photo on the product page.
-   * Independent from the legacy `mode` to keep the simplified form decoupled.
-   */
   allowPhotoDesign?: boolean;
-  /**
-   * Free-form description of the design change/cambio — kept as a single
-   * text field on the seller product form.
-   */
-  designChangeDescription?: string | null;
-  /**
-   * Category id used to tag the product. Stored in the JSON column so we
-   * don't need a schema migration.
-   */
   categoryId?: string | null;
-  /**
-   * Free-form tag names. Slugs are derived on the fly.
-   */
-  tagNames?: string[] | null;
 }
 
 const customizationModeSchema = z.enum([
@@ -88,13 +70,10 @@ const productCustomizationConfigSchema = z
     mode: customizationModeSchema.optional(),
     previewEnabled: z.boolean().optional(),
     previewTemplateUrl: z.string().min(1).nullable().optional(),
-    sizeOptions: z.array(z.string().min(1)).nullable().optional(),
     textOffset: previewOffsetSchema.nullable().optional(),
     imageOffset: previewOffsetSchema.nullable().optional(),
     allowPhotoDesign: z.boolean().optional(),
-    designChangeDescription: z.string().nullable().optional(),
     categoryId: z.string().nullable().optional(),
-    tagNames: z.array(z.string().min(1)).nullable().optional(),
   })
   .strip();
 
@@ -104,13 +83,10 @@ export class ProductCustomizationConfig {
       mode: 'description',
       previewEnabled: false,
       previewTemplateUrl: null,
-      sizeOptions: null,
       textOffset: null,
       imageOffset: null,
       allowPhotoDesign: true,
-      designChangeDescription: null,
       categoryId: null,
-      tagNames: null,
     });
   }
 
@@ -125,38 +101,29 @@ export class ProductCustomizationConfig {
       mode: data.mode ?? 'description',
       previewEnabled: data.previewEnabled ?? false,
       previewTemplateUrl: data.previewTemplateUrl ?? null,
-      sizeOptions: normalizeSizeOptions(data.sizeOptions ?? null),
       textOffset: data.textOffset ?? null,
       imageOffset: data.imageOffset ?? null,
       allowPhotoDesign: data.allowPhotoDesign ?? true,
-      designChangeDescription: data.designChangeDescription ?? null,
       categoryId: data.categoryId ?? null,
-      tagNames: normalizeTagNames(data.tagNames ?? null),
     });
   }
 
   readonly mode: CustomizationMode;
   readonly previewEnabled: boolean;
   readonly previewTemplateUrl: string | null;
-  readonly sizeOptions: string[] | null;
   readonly textOffset: PreviewOffset | null;
   readonly imageOffset: PreviewOffset | null;
   readonly allowPhotoDesign: boolean;
-  readonly designChangeDescription: string | null;
   readonly categoryId: string | null;
-  readonly tagNames: string[] | null;
 
   private constructor(data: ProductCustomizationConfigJson) {
     this.mode = data.mode;
     this.previewEnabled = data.previewEnabled;
     this.previewTemplateUrl = data.previewTemplateUrl;
-    this.sizeOptions = data.sizeOptions;
     this.textOffset = data.textOffset;
     this.imageOffset = data.imageOffset;
-    this.allowPhotoDesign = data.allowPhotoDesign ?? false;
-    this.designChangeDescription = data.designChangeDescription ?? null;
+    this.allowPhotoDesign = data.allowPhotoDesign ?? true;
     this.categoryId = data.categoryId ?? null;
-    this.tagNames = data.tagNames ?? null;
   }
 
   isDefault(): boolean {
@@ -189,9 +156,7 @@ export class ProductCustomizationConfig {
   getSizeOptions(
     defaultOptions: readonly string[] = DEFAULT_PRODUCT_SIZE_OPTIONS,
   ): readonly string[] {
-    return this.sizeOptions && this.sizeOptions.length > 0
-      ? this.sizeOptions
-      : defaultOptions;
+    return defaultOptions;
   }
 
   toJson(): ProductCustomizationConfigJson {
@@ -199,37 +164,10 @@ export class ProductCustomizationConfig {
       mode: this.mode,
       previewEnabled: this.previewEnabled,
       previewTemplateUrl: this.previewTemplateUrl,
-      sizeOptions: this.sizeOptions,
       textOffset: this.textOffset,
       imageOffset: this.imageOffset,
       allowPhotoDesign: this.allowPhotoDesign,
-      designChangeDescription: this.designChangeDescription,
       categoryId: this.categoryId,
-      tagNames: this.tagNames,
     };
   }
-}
-
-function normalizeSizeOptions(value: unknown): string[] | null {
-  if (!Array.isArray(value)) {
-    return null;
-  }
-
-  const options = value
-    .map((entry) => (typeof entry === 'string' ? entry.trim() : ''))
-    .filter((entry): entry is string => entry.length > 0);
-
-  return options.length > 0 ? options : null;
-}
-
-function normalizeTagNames(value: unknown): string[] | null {
-  if (!Array.isArray(value)) {
-    return null;
-  }
-
-  const tags = value
-    .map((entry) => (typeof entry === 'string' ? entry.trim() : ''))
-    .filter((entry): entry is string => entry.length > 0);
-
-  return tags.length > 0 ? tags : null;
 }

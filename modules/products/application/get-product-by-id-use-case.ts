@@ -1,4 +1,5 @@
 import { ProductRepository } from '../domain/product-repository';
+import { resolveDisplay } from '../domain/entities/product-translation';
 
 export class GetProductByIdUseCase {
   constructor(private productRepository: ProductRepository) {}
@@ -10,15 +11,13 @@ export class GetProductByIdUseCase {
       throw new Error('Product not found');
     }
 
-    const translation = product.translations[0] || {
-      name: 'Untranslated',
-      description: '',
-    };
+    const translation = resolveDisplay(product.translations, locale);
 
     return {
       ...product,
-      displayName: translation.name,
-      displayDescription: translation.description,
+      displayTranslation: translation,
+      displayName: translation?.name ?? '',
+      displayDescription: translation?.description ?? '',
     };
   }
 }

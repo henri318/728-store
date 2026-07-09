@@ -3,7 +3,6 @@ import { PaginationDefaults } from '@/shared/kernel/domain/value-objects/paginat
 import type { CategoryEntity } from '@/modules/products/domain/entities/category';
 import {
   ProductEntity,
-  ProductTranslationEntity,
   ProductsListFilter,
   ProductRepository,
 } from '@/modules/products/domain/product-repository';
@@ -19,44 +18,35 @@ export class MemoryProductRepository implements ProductRepository {
     return this.categories.get(categoryId) ?? null;
   }
 
-  private selectTranslationsWithFallback(
-    translations: ProductTranslationEntity[],
-    locale: string,
-  ): ProductTranslationEntity[] {
-    const requested = translations.filter((t) => t.locale === locale);
-    if (requested.length > 0) return requested;
-    return translations.filter((t) => t.locale === 'es');
-  }
-
-  async findAll(locale: string): Promise<ProductEntity[]> {
+  async findAll(_locale: string): Promise<ProductEntity[]> {
     return this.products.map((p) => ({
       ...p,
       category: this.deriveCategory(p.categoryId),
-      translations: p.translations.filter((t) => t.locale === locale),
+      translations: p.translations,
     }));
   }
 
-  async findById(id: string, locale: string): Promise<ProductEntity | null> {
+  async findById(id: string, _locale: string): Promise<ProductEntity | null> {
     const product = this.products.find((p) => p.id === id);
     if (!product) return null;
 
     return {
       ...product,
       category: this.deriveCategory(product.categoryId),
-      translations: product.translations.filter((t) => t.locale === locale),
+      translations: product.translations,
     };
   }
 
   async findBySellerId(
     sellerId: string,
-    locale: string,
+    _locale: string,
   ): Promise<ProductEntity[]> {
     return this.products
       .filter((p) => p.sellerId === sellerId)
       .map((p) => ({
         ...p,
         category: this.deriveCategory(p.categoryId),
-        translations: p.translations.filter((t) => t.locale === locale),
+        translations: p.translations,
       }));
   }
 
@@ -144,7 +134,7 @@ export class MemoryProductRepository implements ProductRepository {
     const items = sorted.slice(start, start + pageSize).map((p) => ({
       ...p,
       category: this.deriveCategory(p.categoryId),
-      translations: this.selectTranslationsWithFallback(p.translations, locale),
+      translations: p.translations,
     }));
     const totalPages = Math.ceil(total / pageSize);
 

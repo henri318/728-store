@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { cleanupDb } from '@/tests/helpers/test-db';
 import { PrismaProductRepository } from '@/modules/products/infrastructure/prisma-product-repository';
 import { prisma } from '@/shared/infrastructure/prisma';
+import { resolveDisplay } from '@/modules/products/domain/entities/product-translation';
 
 /**
  * PrismaProductRepository — Integration tests against real Docker PostgreSQL.
@@ -60,12 +61,18 @@ describe('PrismaProductRepository — Integration', () => {
           locale: 'es',
           name: 'Camiseta Test',
           description: 'Una camiseta de prueba',
+          tags: ['ropa', 'algodon'],
+          sizes: ['S', 'M'],
+          designChangeDescription: 'Versión base para vendedores',
         },
         {
           productId: 'prod-int-1',
           locale: 'en',
           name: 'Test T-Shirt',
           description: 'A test t-shirt',
+          tags: ['clothing'],
+          sizes: ['M'],
+          designChangeDescription: 'Seller-only note',
         },
       ],
       skipDuplicates: true,
@@ -83,21 +90,28 @@ describe('PrismaProductRepository — Integration', () => {
 
       const product = products.find((p) => p.id === 'prod-int-1');
       expect(product).toBeDefined();
-      expect(product!.basePrice).toBeCloseTo(99.99, 2);
+      expect(product!.basePrice.amount).toBeCloseTo(99.99, 2);
       expect(product!.sellerName).toBe('Product Seller');
-      expect(product!.translations).toHaveLength(1);
-      expect(product!.translations[0].name).toBe('Camiseta Test');
-      expect(product!.translations[0].locale).toBe('es');
+      expect(product!.translations).toHaveLength(2);
+      const esTranslation = product!.translations.find(
+        (translation) => translation.locale === 'es',
+      );
+      expect(esTranslation?.name).toBe('Camiseta Test');
+      expect(esTranslation?.tags).toEqual(['ropa', 'algodon']);
+      expect(esTranslation?.sizes).toEqual(['S', 'M']);
+      expect(esTranslation?.designChangeDescription).toBe(
+        'Versión base para vendedores',
+      );
     });
 
-    it('should return empty array when no products exist', async () => {
-      // This test runs against the same DB — products exist from beforeAll
-      // So we test with a non-existent locale to verify filtering
+    it('should retain all translation rows even when a requested locale is missing', async () => {
       const products = await repo.findAll('fr');
       const ourProduct = products.find((p) => p.id === 'prod-int-1');
-      // Product exists but has no 'fr' translation — translations array should be empty
       if (ourProduct) {
-        expect(ourProduct.translations).toHaveLength(0);
+        expect(ourProduct.translations).toHaveLength(2);
+        expect(ourProduct.translations.map((t) => t.locale)).toEqual(
+          expect.arrayContaining(['es', 'en']),
+        );
       }
     });
   });
@@ -107,7 +121,7 @@ describe('PrismaProductRepository — Integration', () => {
       const product = await repo.findById('prod-int-1', 'en');
       expect(product).not.toBeNull();
       expect(product!.id).toBe('prod-int-1');
-      expect(product!.basePrice).toBeCloseTo(99.99, 2);
+      expect(product!.basePrice.amount).toBeCloseTo(99.99, 2);
       expect(product!.sellerName).toBe('Product Seller');
       expect(product!.translations[0].name).toBe('Test T-Shirt');
     });
@@ -117,10 +131,41 @@ describe('PrismaProductRepository — Integration', () => {
       expect(product).toBeNull();
     });
 
-    it('should return product with empty translations for wrong locale', async () => {
-      const product = await repo.findById('prod-int-1', 'de');
-      expect(product).not.toBeNull();
-      expect(product!.translations).toHaveLength(0);
+    it('should preserve translation rows and allow fallback resolution end-to-end', async () => {
+      await prisma.product.upsert({
+        where: { id: 'prod-int-2' },
+        create: {
+          id: 'prod-int-2',
+          basePrice: 49.99,
+          sellerId: 'seller-prod',
+        },
+        update: {},
+      });
+
+      await prisma.productTranslation.createMany({
+        data: [
+          {
+            productId: 'prod-int-2',
+            locale: 'cat',
+            name: 'Samarreta Test',
+            description: 'Una samarreta de prova',
+            tags: ['roba'],
+            sizes: ['L'],
+            designChangeDescription: null,
+          },
+        ],
+        skipDuplicates: true,
+      });
+
+      const requested = await repo.findById('prod-int-1', 'en');
+      const catProduct = await repo.findById('prod-int-2', 'es');
+      const esFallback = resolveDisplay(requested?.translations ?? [], 'fr');
+      const anyFallback = resolveDisplay(catProduct?.translations ?? [], 'es');
+
+      expect(requested).not.toBeNull();
+      expect(esFallback?.locale).toBe('es');
+      expect(anyFallback?.locale).toBe('cat');
+      expect(resolveDisplay([], 'es')).toBeNull();
     });
   });
 

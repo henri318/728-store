@@ -10,23 +10,100 @@ import {
   VALID_TRANSITIONS,
 } from '../domain/value-objects/product-status';
 import { ProductCustomizationConfig } from '../domain/value-objects/product-customization-config';
+import { hasDefaultLocaleTranslation } from '../domain/entities/product';
 import type { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
+import type { ProductTranslationDTO } from './create-product-use-case';
+
+function assertPublishable(
+  product: ProductEntity,
+  nextStatus: ProductStatus,
+): void {
+  if (
+    nextStatus === ProductStatus.ACTIVE &&
+    !hasDefaultLocaleTranslation(product)
+  ) {
+    throw new ValidationError('default locale translation required');
+  }
+}
 
 export interface UpdateProductDTO {
   productId: string;
   sellerId: string;
-  locale: string;
+  locale?: string;
   name?: string;
   description?: string;
   price?: number;
   status?: ProductStatus;
+  translation?: ProductTranslationDTO;
+  translations?: Array<
+    ProductTranslationDTO & { locale?: string; name?: string }
+  >;
   customizationConfig?: unknown;
   images?: Array<{
     url: string;
     alt: string;
   }>;
+}
+
+function buildTranslations(
+  dto: UpdateProductDTO,
+  product: ProductEntity,
+): ProductEntity['translations'] {
+  let submitted: UpdateProductDTO['translations'] = [];
+
+  if (dto.translations?.length) {
+    submitted = dto.translations;
+  } else if (dto.locale && dto.name) {
+    submitted = [
+      {
+        locale: dto.locale,
+        name: dto.name,
+        description: dto.description,
+        tags: dto.translation?.tags,
+        sizes: dto.translation?.sizes,
+        designChangeDescription: dto.translation?.designChangeDescription,
+      },
+    ];
+  }
+
+  if (submitted.length === 0) {
+    return product.translations;
+  }
+
+  const merged = new Map(
+    product.translations.map((translation) => [
+      translation.locale,
+      translation,
+    ]),
+  );
+
+  for (const translation of submitted) {
+    const locale = (translation.locale ?? dto.locale ?? '').trim();
+
+    if (!locale) {
+      throw new ValidationError('Product locale is required');
+    }
+
+    const name = (translation.name ?? dto.name ?? '').trim();
+
+    if (!name) {
+      throw new ValidationError('Product name is required');
+    }
+
+    merged.set(locale, {
+      locale,
+      name,
+      description: translation.description?.trim() || null,
+      tags: translation.tags ?? [],
+      sizes: translation.sizes ?? [],
+      designChangeDescription:
+        translation.designChangeDescription?.trim() || null,
+    });
+  }
+
+  return merged.values().toArray();
 }
 
 export class UpdateProductUseCase {
@@ -38,7 +115,7 @@ export class UpdateProductUseCase {
   async execute(dto: UpdateProductDTO): Promise<ProductEntity> {
     const product = await this.productRepository.findById(
       dto.productId,
-      dto.locale,
+      dto.locale ?? 'es',
     );
 
     if (!product || product.sellerId !== dto.sellerId) {
@@ -70,6 +147,8 @@ export class UpdateProductUseCase {
       dto.description !== undefined ||
       dto.price !== undefined ||
       dto.status !== undefined ||
+      dto.translation !== undefined ||
+      dto.translations !== undefined ||
       dto.customizationConfig !== undefined ||
       dto.images !== undefined;
 
@@ -77,23 +156,7 @@ export class UpdateProductUseCase {
       throw new ValidationError('At least one field must be provided');
     }
 
-    const currentTranslation = product.translations[0];
-    const nextTranslation = {
-      locale: dto.locale,
-      name: nextName ?? currentTranslation?.name ?? '',
-      description:
-        dto.description === undefined
-          ? (currentTranslation?.description ?? null)
-          : dto.description.trim() || null,
-    };
-
-    const translations = product.translations.some(
-      (translation) => translation.locale === dto.locale,
-    )
-      ? product.translations.map((translation) =>
-          translation.locale === dto.locale ? nextTranslation : translation,
-        )
-      : [...product.translations, nextTranslation];
+    const translations = buildTranslations(dto, product);
 
     const now = new Date();
 
@@ -119,6 +182,8 @@ export class UpdateProductUseCase {
       updatedAt: now,
       translations,
     };
+
+    assertPublishable(updated, nextStatus);
 
     const persisted = await this.productRepository.update(updated);
     if (!persisted) {

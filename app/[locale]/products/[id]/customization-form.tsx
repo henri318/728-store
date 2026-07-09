@@ -1,6 +1,5 @@
 'use client';
 
-import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
 import type { ProductCustomizationConfigJson } from '@/modules/products/domain/value-objects/product-customization-config';
 import { useCustomizationDraft } from './customization-draft-context';
 import type { ProductImageItem } from './customization-experience';
@@ -43,21 +42,22 @@ interface CustomizationFormLabels {
 
 interface CustomizationFormProps {
   customizationConfig: ProductCustomizationConfigJson;
+  sizes?: string[];
   productImages: ProductImageItem[];
   labels: CustomizationFormLabels;
   onValidate?: () => void;
 }
 
 export function CustomizationForm({
-  customizationConfig,
+  customizationConfig: _customizationConfig,
+  sizes,
   productImages,
   labels,
   onValidate,
 }: CustomizationFormProps) {
   const { draft, errors, setText, setColor, setSize, validateDraft } =
     useCustomizationDraft();
-
-  const config = ProductCustomizationConfig.fromJson(customizationConfig);
+  const sizeOptions = sizes ?? [];
 
   const textErrorId = errors.text ? 'customization-text-error' : undefined;
   const sizeErrorId =
@@ -138,7 +138,7 @@ export function CustomizationForm({
           aria-describedby={sizeErrorId}
         >
           <option value="">{labels.customizationSizePlaceholder}</option>
-          {config.getSizeOptions().map((option) => (
+          {sizeOptions.map((option) => (
             <option key={option} value={option}>
               {option}
             </option>

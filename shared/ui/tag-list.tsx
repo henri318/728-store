@@ -97,7 +97,7 @@ export function TagList({
                 type="button"
                 className={styles.removeBtn}
                 onClick={() => removeTag(i)}
-                aria-label={`${dict.common.removeFromCart ?? 'Remove'} ${tag}`}
+                aria-label={`${dict.common.remove ?? 'Remove'} ${tag}`}
               >
                 {'\u{D7}'}
               </button>

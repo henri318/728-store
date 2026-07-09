@@ -69,6 +69,11 @@ describe('UpdateProductUseCase', () => {
         textOffset: null,
         imageOffset: { x: 5, y: 8 },
       },
+      translation: {
+        tags: ['ceramica'],
+        sizes: ['M', 'L'],
+        designChangeDescription: 'Mantén el texto base',
+      },
     });
 
     const saved = await repo.findById('p-1', 'es');
@@ -79,6 +84,9 @@ describe('UpdateProductUseCase', () => {
       locale: 'es',
       name: 'Taza personalizada',
       description: 'Nueva descripción',
+      tags: ['ceramica'],
+      sizes: ['M', 'L'],
+      designChangeDescription: 'Mantén el texto base',
     });
     expect(saved?.basePrice.amount).toBe(14.5);
     expect(saved?.customizationConfig?.mode).toBe('photo');
@@ -98,6 +106,47 @@ describe('UpdateProductUseCase', () => {
         },
       },
     ]);
+  });
+
+  it('upserts all submitted locale translations in one save', async () => {
+    const repo = new MemoryProductRepository();
+    repo.seed([makeProduct()]);
+    const useCase = new UpdateProductUseCase(repo);
+
+    const result = await useCase.execute({
+      productId: 'p-1',
+      sellerId: 'seller-1',
+      price: 16.5,
+      translations: [
+        {
+          locale: 'es',
+          name: 'Taza nueva',
+          description: 'Nueva descripción',
+          tags: ['ceramica'],
+          sizes: ['M'],
+          designChangeDescription: 'Mantén el texto base',
+        },
+        {
+          locale: 'cat',
+          name: 'Tassa nova',
+          description: 'Nova descripció',
+          tags: ['ceràmica'],
+          sizes: ['L'],
+          designChangeDescription: 'Mantén el text base',
+        },
+      ],
+    });
+
+    const saved = await repo.findById('p-1', 'cat');
+
+    expect(result.basePrice.amount).toBe(16.5);
+    expect(saved?.translations).toHaveLength(2);
+    expect(saved?.translations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ locale: 'es', name: 'Taza nueva' }),
+        expect.objectContaining({ locale: 'cat', name: 'Tassa nova' }),
+      ]),
+    );
   });
 
   it('rejects missing products', async () => {
@@ -139,6 +188,33 @@ describe('UpdateProductUseCase', () => {
         productId: 'p-1',
         sellerId: 'seller-1',
         locale: 'es',
+      }),
+    ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it('rejects activating a product without an es translation', async () => {
+    const repo = new MemoryProductRepository();
+    repo.seed([
+      makeProduct({
+        status: ProductStatus.DRAFT,
+        translations: [
+          { locale: 'cat', name: 'Samarreta', description: 'Una samarreta' },
+        ],
+      }),
+    ]);
+    const useCase = new UpdateProductUseCase(repo);
+
+    await expect(
+      useCase.execute({
+        productId: 'p-1',
+        sellerId: 'seller-1',
+        locale: 'cat',
+        status: ProductStatus.ACTIVE,
+        translation: {
+          tags: [],
+          sizes: [],
+          designChangeDescription: null,
+        },
       }),
     ).rejects.toBeInstanceOf(ValidationError);
   });
