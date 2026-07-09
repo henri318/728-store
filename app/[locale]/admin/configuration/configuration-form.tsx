@@ -99,10 +99,19 @@ export function ConfigurationForm({
     }
 
     setError(null);
+    let nextCategories = [...categories];
+    let hasPersistedChanges = false;
+
+    const synchronizePartialResult = () => {
+      if (!hasPersistedChanges) {
+        return;
+      }
+
+      setCategories(nextCategories);
+      router.refresh();
+    };
 
     try {
-      let nextCategories = [...categories];
-
       for (const name of additions) {
         const response = await fetch('/api/admin/categories', {
           method: 'POST',
@@ -111,12 +120,14 @@ export function ConfigurationForm({
         });
 
         if (!response.ok) {
+          synchronizePartialResult();
           setError(statusMessage('create', response.status, dict));
           return;
         }
 
         const created = (await response.json()) as CategorySummary;
         nextCategories = sortCategories([...nextCategories, created]);
+        hasPersistedChanges = true;
       }
 
       for (const removed of removals) {
@@ -125,6 +136,7 @@ export function ConfigurationForm({
         });
 
         if (!response.ok) {
+          synchronizePartialResult();
           setError(statusMessage('delete', response.status, dict));
           return;
         }
@@ -132,11 +144,13 @@ export function ConfigurationForm({
         nextCategories = nextCategories.filter(
           (category) => category.id !== removed.id,
         );
+        hasPersistedChanges = true;
       }
 
       setCategories(nextCategories);
       router.refresh();
     } catch {
+      synchronizePartialResult();
       setError(dict.common.genericError);
     }
   };

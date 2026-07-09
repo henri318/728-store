@@ -153,6 +153,58 @@ describe('AdminConfigurationPage', () => {
     expect(await screen.findByText('Home Decor')).toBeInTheDocument();
   });
 
+  it('keeps categories created before a later creation failure', async () => {
+    const repo = {
+      findAllSorted: vi.fn(async () => []),
+    };
+    mocks.getCategoryRepositoryMock.mockReturnValue(repo);
+
+    const fetchMock = vi.fn(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const body = JSON.parse(String(init?.body ?? '{}')) as {
+          name: string;
+        };
+
+        if (
+          String(input) === '/api/admin/categories' &&
+          init?.method === 'POST' &&
+          body.name === 'Books'
+        ) {
+          return Response.json(
+            {
+              id: 'cat-books',
+              name: 'Books',
+              slug: 'books',
+              parentId: null,
+              createdAt: new Date('2026-07-09T00:10:00.000Z').toISOString(),
+            },
+            { status: 201 },
+          );
+        }
+
+        return Response.json({}, { status: 409 });
+      },
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const element = await AdminConfigurationPage({
+      params: Promise.resolve({ locale: 'es' }),
+    });
+    render(element);
+
+    fireEvent.change(screen.getByLabelText('Categorías'), {
+      target: { value: 'Books, Furniture' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Añadir' }));
+
+    expect(await screen.findByText('Books')).toBeInTheDocument();
+    expect(screen.queryByText('Furniture')).not.toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Ya existe una categoría con ese nombre',
+    );
+    expect(refreshMock).toHaveBeenCalledOnce();
+  });
+
   it('blocks in-use category deletion', async () => {
     const repo = {
       findAllSorted: vi.fn(async () => [

@@ -105,8 +105,8 @@ describe('CreateCategoryUseCase', () => {
     };
     const useCase = new CreateCategoryUseCase(repo);
 
-    await expect(useCase.execute({ name: '!!!' })).rejects.toBeInstanceOf(
-      ValidationError,
+    await expect(useCase.execute({ name: '!!!' })).rejects.toThrow(
+      'Category name must contain at least one alphanumeric character',
     );
     expect(repo.findBySlug).not.toHaveBeenCalled();
     expect(repo.save).not.toHaveBeenCalled();

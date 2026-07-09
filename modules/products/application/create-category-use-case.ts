@@ -26,7 +26,9 @@ export class CreateCategoryUseCase {
     try {
       slug = CategorySlug.create(name).value;
     } catch {
-      throw new ValidationError('Category name is required');
+      throw new ValidationError(
+        'Category name must contain at least one alphanumeric character',
+      );
     }
 
     const existing = await this.categoryRepository.findBySlug(slug);
