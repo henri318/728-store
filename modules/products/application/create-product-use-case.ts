@@ -7,11 +7,14 @@ import type {
 import { ProductPrice } from '../domain/value-objects/product-price';
 import { ProductStatus } from '../domain/value-objects/product-status';
 import { ProductCustomizationConfig } from '../domain/value-objects/product-customization-config';
-import { ProductImagePurpose } from '../domain/value-objects/product-image-purpose';
 import { hasDefaultLocaleTranslation } from '../domain/entities/product';
 import type { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
+import {
+  buildProductImages,
+  type ProductImageInput,
+} from './product-image-builder';
 
 export interface ProductTranslationDTO {
   locale?: string;
@@ -33,10 +36,7 @@ export interface CreateProductDTO {
   translation?: ProductTranslationDTO;
   translations?: ProductTranslationDTO[];
   customizationConfig?: unknown;
-  images?: Array<{
-    url: string;
-    alt: string;
-  }>;
+  images?: ProductImageInput[];
 }
 
 function buildTranslations(
@@ -114,17 +114,10 @@ export class CreateProductUseCase {
       createdAt: now,
       updatedAt: now,
       translations,
-      images: (dto.images ?? []).map((image, index) => ({
-        id: randomUUID(),
-        url: image.url,
-        alt: image.alt,
-        position: index,
-        purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
-        mimeType: 'image/jpeg',
-        posterUrl: null,
+      images: buildProductImages(dto.images ?? [], {
         productId,
         createdAt: now,
-      })),
+      }),
       tags: [],
     };
 

@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server';
 import { ProductPrice } from '@/modules/products/domain/value-objects/product-price';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
+import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
 
 // Pass-through requireRole — just calls the inner handler
 function passThroughHandler(
@@ -82,6 +83,25 @@ function makeProduct(
     translations: [{ locale: 'es', name: 'Taza', description: 'Una taza' }],
     images: [],
     tags: [],
+  };
+}
+
+function makeProductWithImage() {
+  return {
+    ...makeProduct(),
+    images: [
+      {
+        id: 'img-1',
+        url: 'https://cdn.example.com/products/taza-original.jpg',
+        alt: 'Taza original',
+        position: 0,
+        purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+        mimeType: 'image/jpeg',
+        posterUrl: null,
+        productId: 'p-1',
+        createdAt: new Date('2025-01-01T00:00:00.000Z'),
+      },
+    ],
   };
 }
 
@@ -165,5 +185,27 @@ describe('PATCH /api/products/[id]', () => {
     expect(body.status).toBe('ACTIVE');
     expect(body.translations).toHaveLength(2);
     expect(body.translations[0].name).toBe('Taza nueva');
+  });
+
+  it('preserves existing images when the PATCH payload omits images', async () => {
+    mocks.findByIdMock.mockResolvedValue(makeProductWithImage());
+    mocks.updateMock.mockResolvedValue(true);
+
+    const res = await PATCH(
+      makeRequest({
+        price: 12,
+        translations: [{ locale: 'es', name: 'Taza actualizada' }],
+      }),
+      PARAMS,
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.images).toHaveLength(1);
+    expect(body.images[0]).toMatchObject({
+      purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+      mimeType: 'image/jpeg',
+      posterUrl: null,
+    });
   });
 });

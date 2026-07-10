@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
 import { productFormSchema } from '@/modules/products/presentation/schemas/product-form-schema';
 
@@ -48,6 +49,43 @@ describe('productFormSchema', () => {
       textOffset: { x: 1, y: 2 },
       imageOffset: { x: 3, y: 4 },
     });
+  });
+
+  it('accepts image metadata needed by the product media use cases', () => {
+    const result = productFormSchema.parse({
+      price: 19.99,
+      translations: [
+        {
+          locale: 'es',
+          name: 'Taza',
+          description: 'Base',
+          tags: [],
+          sizes: [],
+          designChangeDescription: null,
+        },
+      ],
+      images: [
+        {
+          url: 'https://cdn.example.com/products/taza.mp4',
+          alt: 'Taza en video',
+          position: 0,
+          purpose: ProductImagePurpose.SHOWCASE,
+          mimeType: 'video/mp4',
+          posterUrl: 'https://cdn.example.com/products/taza-poster.jpg',
+        },
+      ],
+    });
+
+    expect(result.images).toEqual([
+      {
+        url: 'https://cdn.example.com/products/taza.mp4',
+        alt: 'Taza en video',
+        position: 0,
+        purpose: ProductImagePurpose.SHOWCASE,
+        mimeType: 'video/mp4',
+        posterUrl: 'https://cdn.example.com/products/taza-poster.jpg',
+      },
+    ]);
   });
 
   it('rejects unsupported status values', () => {

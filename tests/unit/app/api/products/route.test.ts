@@ -46,6 +46,7 @@ import { ProductPrice } from '@/modules/products/domain/value-objects/product-pr
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
+import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
 
 function makeProduct(
   id: string,
@@ -628,6 +629,94 @@ describe('POST /api/products', () => {
     expect(body.translations).toHaveLength(2);
     expect(body.translations[0].name).toBe('Taza');
     expect(body.sellerName).toBe('Test Shop');
+  });
+
+  it('forwards image metadata to the create use case', async () => {
+    const repo = new MemoryProductRepository();
+    mocks.getProductRepositoryMock.mockReturnValue(repo);
+    mocks.getOutboxRepositoryMock.mockReturnValue(new MemoryOutboxRepository());
+
+    const res = await fetchProductRoute({
+      price: 19.99,
+      translations: [
+        {
+          locale: 'es',
+          name: 'Taza',
+          description: 'Con diseño',
+          tags: [],
+          sizes: [],
+          designChangeDescription: 'Mi cambio de diseño',
+        },
+      ],
+      customizationConfig: {
+        mode: 'description',
+        previewEnabled: false,
+        previewTemplateUrl: null,
+        textOffset: null,
+        imageOffset: null,
+      },
+      translation: {
+        tags: [],
+        sizes: [],
+        designChangeDescription: 'Mi cambio de diseño',
+      },
+      images: [
+        {
+          url: 'https://cdn.example.com/products/taza.mp4',
+          alt: 'Taza en video',
+          position: 0,
+          purpose: ProductImagePurpose.SHOWCASE,
+          mimeType: 'video/mp4',
+          posterUrl: 'https://cdn.example.com/products/taza-poster.jpg',
+        },
+      ],
+    });
+
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.images).toEqual([
+      expect.objectContaining({
+        purpose: ProductImagePurpose.SHOWCASE,
+        mimeType: 'video/mp4',
+        posterUrl: 'https://cdn.example.com/products/taza-poster.jpg',
+      }),
+    ]);
+  });
+
+  it('still creates a product when images are omitted', async () => {
+    const repo = new MemoryProductRepository();
+    mocks.getProductRepositoryMock.mockReturnValue(repo);
+    mocks.getOutboxRepositoryMock.mockReturnValue(new MemoryOutboxRepository());
+
+    const res = await fetchProductRoute({
+      price: 19.99,
+      translations: [
+        {
+          locale: 'es',
+          name: 'Taza',
+          description: 'Con diseño',
+          tags: [],
+          sizes: [],
+          designChangeDescription: 'Mi cambio de diseño',
+        },
+      ],
+      customizationConfig: {
+        mode: 'description',
+        previewEnabled: false,
+        previewTemplateUrl: null,
+        textOffset: null,
+        imageOffset: null,
+      },
+      translation: {
+        tags: [],
+        sizes: [],
+        designChangeDescription: 'Mi cambio de diseño',
+      },
+    });
+
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.images).toEqual([]);
   });
 
   it('keeps designChangeDescription in translation payload only', async () => {
