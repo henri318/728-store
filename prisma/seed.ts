@@ -537,9 +537,11 @@ async function main() {
       images: {
         create: [
           {
-            url: '/img/products/customizable-hoodie.svg',
+            url: '/img/products/example.webp',
             alt: 'Mochila de Algodón Orgánico',
             position: 0,
+            purpose: 'CUSTOMIZABLE_BASE',
+            mimeType: 'image/webp',
           },
         ],
       },

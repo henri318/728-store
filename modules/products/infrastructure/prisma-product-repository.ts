@@ -5,7 +5,11 @@ import {
   ProductsListFilter,
   ProductRepository,
 } from '../domain/product-repository';
-import { toDomainProduct, toPersistenceProduct } from './mapper';
+import {
+  toDomainProduct,
+  toPersistenceNestedProductImage,
+  toPersistenceProduct,
+} from './mapper';
 import { normalizeText } from '@/shared/lib/normalize-text';
 
 export class PrismaProductRepository implements ProductRepository {
@@ -116,7 +120,7 @@ export class PrismaProductRepository implements ProductRepository {
         category: true,
         translations: true,
         images: {
-          orderBy: { position: 'asc' },
+          orderBy: [{ purpose: 'asc' }, { position: 'asc' }],
         },
         tags: true,
       },
@@ -133,7 +137,7 @@ export class PrismaProductRepository implements ProductRepository {
         category: true,
         translations: true,
         images: {
-          orderBy: { position: 'asc' },
+          orderBy: [{ purpose: 'asc' }, { position: 'asc' }],
         },
         tags: true,
       },
@@ -155,7 +159,7 @@ export class PrismaProductRepository implements ProductRepository {
         category: true,
         translations: true,
         images: {
-          orderBy: { position: 'asc' },
+          orderBy: [{ purpose: 'asc' }, { position: 'asc' }],
         },
         tags: true,
       },
@@ -200,7 +204,7 @@ export class PrismaProductRepository implements ProductRepository {
         category: true,
         translations: true,
         images: {
-          orderBy: { position: 'asc' },
+          orderBy: [{ purpose: 'asc' }, { position: 'asc' }],
         },
         tags: true,
       },
@@ -236,12 +240,9 @@ export class PrismaProductRepository implements ProductRepository {
           })),
         },
         images: {
-          create: entity.images.map((img) => ({
-            id: img.id,
-            url: img.url,
-            alt: img.alt,
-            position: img.position,
-          })),
+          create: entity.images.map((img) =>
+            toPersistenceNestedProductImage(img),
+          ),
         },
         tags: {
           connect: entity.tags.map((tag) => ({ id: tag.id })),
@@ -264,12 +265,9 @@ export class PrismaProductRepository implements ProductRepository {
           updatedAt: data.updatedAt,
           images: {
             deleteMany: {},
-            create: entity.images.map((img) => ({
-              id: img.id,
-              url: img.url,
-              alt: img.alt,
-              position: img.position,
-            })),
+            create: entity.images.map((img) =>
+              toPersistenceNestedProductImage(img),
+            ),
           },
         },
       });

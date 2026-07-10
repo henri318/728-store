@@ -2,6 +2,10 @@ export interface SeedProductImageData {
   url: string;
   alt: string;
   position: number;
+  purpose: 'COVER' | 'SHOWCASE' | 'CUSTOMIZABLE_BASE';
+  mimeType:
+    'image/jpeg' | 'image/png' | 'image/webp' | 'video/mp4' | 'video/webm';
+  posterUrl?: string | null;
 }
 
 export interface SeedProductCustomizationConfigData {
@@ -54,6 +58,11 @@ function getProductAssetUrl(path: string): string {
 
 export function buildSeedProducts(sellerId: string): SeedProductData[] {
   const mugImageUrl = getProductAssetUrl('/products/taza.png');
+  const shirtImageUrl = getProductAssetUrl('/products/azul.png');
+  const hoodieImageUrl = getProductAssetUrl(
+    '/products/paisaje-profundidad-lineas-734x489.jpg',
+  );
+  const showcaseImageUrl = getProductAssetUrl('/products/example.webp');
 
   return [
     {
@@ -64,7 +73,7 @@ export function buildSeedProducts(sellerId: string): SeedProductData[] {
       customizationConfig: {
         mode: 'text_photo',
         previewEnabled: true,
-        previewTemplateUrl: '/img/products/customizable-tshirt.svg',
+        previewTemplateUrl: shirtImageUrl,
         sizeOptions: ['S', 'M', 'L', 'XL'],
         textOffset: { x: 118, y: 186, maxWidth: 220 },
         imageOffset: { x: 96, y: 124, scale: 0.9 },
@@ -91,9 +100,11 @@ export function buildSeedProducts(sellerId: string): SeedProductData[] {
       images: {
         create: [
           {
-            url: '/img/products/customizable-tshirt.svg',
+            url: shirtImageUrl,
             alt: 'Camiseta Personalizada',
             position: 0,
+            purpose: 'CUSTOMIZABLE_BASE',
+            mimeType: 'image/png',
           },
         ],
       },
@@ -136,6 +147,16 @@ export function buildSeedProducts(sellerId: string): SeedProductData[] {
             url: mugImageUrl,
             alt: 'Taza Personalizada',
             position: 0,
+            purpose: 'COVER',
+            mimeType: 'image/png',
+          },
+          {
+            url: showcaseImageUrl,
+            alt: 'Taza Personalizada en uso',
+            position: 0,
+            purpose: 'SHOWCASE',
+            mimeType: 'image/webp',
+            posterUrl: null,
           },
         ],
       },
@@ -175,9 +196,11 @@ export function buildSeedProducts(sellerId: string): SeedProductData[] {
       images: {
         create: [
           {
-            url: '/img/products/customizable-hoodie.svg',
+            url: hoodieImageUrl,
             alt: 'Sudadera con Capucha',
             position: 0,
+            purpose: 'CUSTOMIZABLE_BASE',
+            mimeType: 'image/jpeg',
           },
         ],
       },

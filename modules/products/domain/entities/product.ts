@@ -7,6 +7,8 @@ import type { ProductPrice } from '../value-objects/product-price';
 import type { ProductCustomizationConfig } from '../value-objects/product-customization-config';
 import { resolveDisplay as resolveTranslationDisplay } from './product-translation';
 
+export { ProductImagePurpose } from '../value-objects/product-image-purpose';
+
 export interface ProductEntity {
   readonly id: string;
   readonly basePrice: ProductPrice;

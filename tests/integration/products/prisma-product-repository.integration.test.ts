@@ -1,8 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { Prisma } from '@prisma/client';
 import { cleanupDb } from '@/tests/helpers/test-db';
 import { PrismaProductRepository } from '@/modules/products/infrastructure/prisma-product-repository';
 import { prisma } from '@/shared/infrastructure/prisma';
 import { resolveDisplay } from '@/modules/products/domain/entities/product-translation';
+import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
 
 /**
  * PrismaProductRepository — Integration tests against real Docker PostgreSQL.
@@ -124,6 +126,53 @@ describe('PrismaProductRepository — Integration', () => {
       expect(product!.basePrice.amount).toBeCloseTo(99.99, 2);
       expect(product!.sellerName).toBe('Product Seller');
       expect(product!.translations[0].name).toBe('Test T-Shirt');
+    });
+
+    it('persists and loads images ordered by purpose then position', async () => {
+      const images = [
+        {
+          id: 'img-cover',
+          url: 'https://example.com/cover.jpg',
+          alt: 'Cover',
+          position: 1,
+          purpose: ProductImagePurpose.COVER,
+          mimeType: 'image/jpeg',
+          posterUrl: null,
+        },
+        {
+          id: 'img-showcase',
+          url: 'https://example.com/showcase.mp4',
+          alt: 'Showcase',
+          position: 0,
+          purpose: ProductImagePurpose.SHOWCASE,
+          mimeType: 'video/mp4',
+          posterUrl: 'https://example.com/poster.jpg',
+        },
+      ] satisfies Prisma.ProductImageCreateWithoutProductInput[];
+
+      await prisma.product.update({
+        where: { id: 'prod-int-1' },
+        data: {
+          images: {
+            create: images,
+          },
+        },
+      });
+
+      const product = await repo.findById('prod-int-1', 'es');
+
+      expect(product?.images.map((image) => image.id)).toEqual([
+        'img-cover',
+        'img-showcase',
+      ]);
+      expect(product?.images[0].purpose).toBe(ProductImagePurpose.COVER);
+      expect(product?.images[0].mimeType).toBe('image/jpeg');
+      expect(product?.images[0].posterUrl).toBeNull();
+      expect(product?.images[1].purpose).toBe(ProductImagePurpose.SHOWCASE);
+      expect(product?.images[1].mimeType).toBe('video/mp4');
+      expect(product?.images[1].posterUrl).toBe(
+        'https://example.com/poster.jpg',
+      );
     });
 
     it('should return null for non-existent ID', async () => {

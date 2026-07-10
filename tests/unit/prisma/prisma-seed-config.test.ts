@@ -32,4 +32,14 @@ describe('Prisma seed and shared adapter wiring', () => {
     expect(seed).toContain('for (const role of [');
     expect(seed).toContain('for (const [index, p] of productsData.entries())');
   });
+
+  it('gives the Mochila seed image an explicit purpose and non-SVG mime type', () => {
+    const seed = readFileSync(seedPath, 'utf8');
+
+    expect(seed).toMatch(
+      /Mochila de Algodón Orgánico[\s\S]*purpose:\s*'CUSTOMIZABLE_BASE'[\s\S]*mimeType:\s*'image\/(?:jpeg|png|webp)'/,
+    );
+    expect(seed).not.toContain('customizable-hoodie.svg');
+    expect(seed).not.toContain('image/svg+xml');
+  });
 });

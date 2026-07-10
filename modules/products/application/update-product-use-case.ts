@@ -10,6 +10,7 @@ import {
   VALID_TRANSITIONS,
 } from '../domain/value-objects/product-status';
 import { ProductCustomizationConfig } from '../domain/value-objects/product-customization-config';
+import { ProductImagePurpose } from '../domain/value-objects/product-image-purpose';
 import { hasDefaultLocaleTranslation } from '../domain/entities/product';
 import type { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
@@ -176,6 +177,9 @@ export class UpdateProductUseCase {
               url: image.url,
               alt: image.alt,
               position: index,
+              purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+              mimeType: 'image/jpeg',
+              posterUrl: null,
               productId: product.id,
               createdAt: now,
             })),

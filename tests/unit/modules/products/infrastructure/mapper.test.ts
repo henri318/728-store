@@ -4,12 +4,15 @@ import {
   toPersistenceProduct,
   toDomainProductImage,
   toPersistenceProductImage,
+  toPersistenceNestedProductImage,
+  type PrismaProductImageRow,
   toDomainTag,
   toPersistenceTag,
   toDomainCategory,
   toPersistenceCategory,
 } from '@/modules/products/infrastructure/mapper';
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
+import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
 import type { ProductEntity } from '@/modules/products/domain/entities/product';
 import type { ProductImageEntity } from '@/modules/products/domain/entities/product-image';
 import type { TagEntity } from '@/modules/products/domain/entities/tag';
@@ -55,6 +58,9 @@ function makePrismaProductRow(overrides: Record<string, unknown> = {}) {
         url: 'https://example.com/img.jpg',
         alt: 'Test',
         position: 0,
+        purpose: ProductImagePurpose.COVER,
+        mimeType: 'image/jpeg',
+        posterUrl: null,
         productId: 'product-1',
         createdAt: new Date('2025-01-01'),
       },
@@ -271,6 +277,9 @@ describe('mapper.toPersistenceProduct', () => {
           url: 'https://example.com/img.jpg',
           alt: 'Test',
           position: 0,
+          purpose: ProductImagePurpose.COVER,
+          mimeType: 'image/jpeg',
+          posterUrl: null,
           productId: 'product-1',
           createdAt: new Date('2025-01-01'),
         },
@@ -325,11 +334,14 @@ describe('mapper.toPersistenceProduct', () => {
 // ─── toDomainProductImage ───
 describe('mapper.toDomainProductImage', () => {
   it('should map a Prisma ProductImage row to a ProductImageEntity', () => {
-    const row = {
+    const row: PrismaProductImageRow = {
       id: 'img-1',
       url: 'https://example.com/img.jpg',
       alt: 'Test Image',
       position: 0,
+      purpose: ProductImagePurpose.SHOWCASE,
+      mimeType: 'video/mp4',
+      posterUrl: 'https://example.com/poster.jpg',
       productId: 'product-1',
       createdAt: new Date('2025-01-01T10:00:00Z'),
     };
@@ -340,16 +352,22 @@ describe('mapper.toDomainProductImage', () => {
     expect(result.url).toBe('https://example.com/img.jpg');
     expect(result.alt).toBe('Test Image');
     expect(result.position).toBe(0);
+    expect(result.purpose).toBe(ProductImagePurpose.SHOWCASE);
+    expect(result.mimeType).toBe('video/mp4');
+    expect(result.posterUrl).toBe('https://example.com/poster.jpg');
     expect(result.productId).toBe('product-1');
     expect(result.createdAt).toBeInstanceOf(Date);
   });
 
   it('should handle null alt text', () => {
-    const row = {
+    const row: PrismaProductImageRow = {
       id: 'img-2',
       url: 'https://example.com/img2.jpg',
       alt: null,
       position: 1,
+      purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+      mimeType: 'image/png',
+      posterUrl: null,
       productId: 'product-1',
       createdAt: new Date('2025-01-01'),
     };
@@ -360,11 +378,14 @@ describe('mapper.toDomainProductImage', () => {
   });
 
   it('round trip: toDomainProductImage should preserve all fields', () => {
-    const row = {
+    const row: PrismaProductImageRow = {
       id: 'img-rt',
       url: 'https://example.com/rt.jpg',
       alt: 'Round Trip',
       position: 2,
+      purpose: ProductImagePurpose.COVER,
+      mimeType: 'image/webp',
+      posterUrl: null,
       productId: 'product-rt',
       createdAt: new Date('2025-06-15T12:00:00Z'),
     };
@@ -379,12 +400,42 @@ describe('mapper.toDomainProductImage', () => {
     expect(domain.createdAt).toBe(row.createdAt);
   });
 
+  it('should omit productId for nested product image create input', () => {
+    const original: ProductImageEntity = {
+      id: 'img-nested',
+      url: 'https://example.com/nested.jpg',
+      alt: 'Nested',
+      position: 4,
+      purpose: ProductImagePurpose.COVER,
+      mimeType: 'image/jpeg',
+      posterUrl: null,
+      productId: 'product-nested',
+      createdAt: new Date('2025-06-15T12:00:00Z'),
+    };
+
+    const nested = toPersistenceNestedProductImage(original);
+
+    expect(nested).toMatchObject({
+      id: original.id,
+      url: original.url,
+      alt: original.alt,
+      position: original.position,
+      purpose: original.purpose,
+      mimeType: original.mimeType,
+      posterUrl: original.posterUrl,
+    });
+    expect(nested).not.toHaveProperty('productId');
+  });
+
   it('round trip: toPersistenceProductImage then toDomainProductImage should preserve all fields', () => {
     const original: ProductImageEntity = {
       id: 'img-rt2',
       url: 'https://example.com/rt2.jpg',
       alt: 'Round Trip 2',
       position: 3,
+      purpose: ProductImagePurpose.SHOWCASE,
+      mimeType: 'video/webm',
+      posterUrl: 'https://example.com/poster2.jpg',
       productId: 'product-rt2',
       createdAt: new Date('2025-06-15T12:00:00Z'),
     };
@@ -394,6 +445,9 @@ describe('mapper.toDomainProductImage', () => {
     expect(persistence.url).toBe(original.url);
     expect(persistence.alt).toBe(original.alt);
     expect(persistence.position).toBe(original.position);
+    expect(persistence.purpose).toBe(original.purpose);
+    expect(persistence.mimeType).toBe(original.mimeType);
+    expect(persistence.posterUrl).toBe(original.posterUrl);
     expect(persistence.productId).toBe(original.productId);
   });
 });
@@ -544,6 +598,9 @@ describe('mapper — product round trip', () => {
           url: 'https://example.com/rt.jpg',
           alt: 'RT',
           position: 0,
+          purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+          mimeType: 'image/png',
+          posterUrl: null,
           productId: 'product-rt',
           createdAt: new Date('2025-01-01'),
         },

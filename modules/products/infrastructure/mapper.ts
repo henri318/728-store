@@ -5,7 +5,10 @@ import type { CategoryEntity } from '../domain/entities/category';
 import { ProductPrice } from '../domain/value-objects/product-price';
 import { ProductStatus } from '../domain/value-objects/product-status';
 import { ProductCustomizationConfig } from '../domain/value-objects/product-customization-config';
+import { ProductImagePurpose } from '../domain/value-objects/product-image-purpose';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
+
+type PrismaProductImagePurpose = import('@prisma/client').ProductImagePurpose;
 
 export interface PrismaProductRow {
   id: string;
@@ -38,6 +41,9 @@ export interface PrismaProductImageRow {
   url: string;
   alt: string | null;
   position: number;
+  purpose: PrismaProductImagePurpose;
+  mimeType: string;
+  posterUrl: string | null;
   productId: string;
   createdAt: Date;
 }
@@ -101,8 +107,16 @@ export interface PrismaProductImageCreateInput {
   url: string;
   alt: string | null;
   position: number;
+  purpose: PrismaProductImagePurpose;
+  mimeType: string;
+  posterUrl: string | null;
   productId: string;
 }
+
+export type PrismaProductImageNestedCreateInput = Omit<
+  PrismaProductImageCreateInput,
+  'productId'
+>;
 
 /** Shape of a Prisma `Tag` create input. */
 export interface PrismaTagCreateInput {
@@ -201,6 +215,9 @@ export function toDomainProductImage(
     url: prismaImage.url,
     alt: prismaImage.alt,
     position: prismaImage.position,
+    purpose: prismaImage.purpose as ProductImagePurpose,
+    mimeType: prismaImage.mimeType,
+    posterUrl: prismaImage.posterUrl,
     productId: prismaImage.productId,
     createdAt: prismaImage.createdAt,
   };
@@ -244,7 +261,30 @@ export function toPersistenceProductImage(
     url: image.url,
     alt: image.alt,
     position: image.position,
+    purpose: image.purpose as PrismaProductImagePurpose,
+    mimeType: image.mimeType,
+    posterUrl: image.posterUrl,
     productId: image.productId,
+  };
+}
+
+/**
+ * Convert a domain `ProductImageEntity` to a nested Prisma create input.
+ *
+ * Nested product image creates must not include `productId`; Prisma binds the
+ * relation through the parent `Product` write.
+ */
+export function toPersistenceNestedProductImage(
+  image: ProductImageEntity,
+): PrismaProductImageNestedCreateInput {
+  return {
+    id: image.id,
+    url: image.url,
+    alt: image.alt,
+    position: image.position,
+    purpose: image.purpose as PrismaProductImagePurpose,
+    mimeType: image.mimeType,
+    posterUrl: image.posterUrl,
   };
 }
 

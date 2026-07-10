@@ -5,6 +5,7 @@ import { ProductPrice } from '@/modules/products/domain/value-objects/product-pr
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
+import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
 
 const mocks = vi.hoisted(() => {
   const txMock = {
@@ -96,6 +97,9 @@ describe('PrismaProductRepository', () => {
           url: 'http://localhost:8081/products/taza.png',
           alt: 'Azul cielo',
           position: 0,
+          purpose: ProductImagePurpose.COVER,
+          mimeType: 'image/png',
+          posterUrl: null,
           productId: 'product-1',
           createdAt: new Date('2025-01-01T00:00:00.000Z'),
         },
@@ -150,10 +154,31 @@ describe('PrismaProductRepository', () => {
               url: 'http://localhost:8081/products/taza.png',
               alt: 'Azul cielo',
               position: 0,
+              purpose: ProductImagePurpose.COVER,
+              mimeType: 'image/png',
+              posterUrl: null,
             },
           ],
         },
       }),
+    });
+  });
+
+  it('orders nested images by purpose then position', async () => {
+    mocks.prismaMock.product.findMany.mockResolvedValue([]);
+
+    await repo.findAll('es');
+
+    expect(mocks.prismaMock.product.findMany).toHaveBeenCalledWith({
+      include: {
+        seller: true,
+        category: true,
+        translations: true,
+        images: {
+          orderBy: [{ purpose: 'asc' }, { position: 'asc' }],
+        },
+        tags: true,
+      },
     });
   });
 
@@ -233,6 +258,9 @@ describe('PrismaProductRepository', () => {
           url: 'http://localhost:8081/products/old.png',
           alt: 'Old',
           position: 0,
+          purpose: ProductImagePurpose.SHOWCASE,
+          mimeType: 'image/jpeg',
+          posterUrl: null,
           productId: 'product-1',
           createdAt: new Date('2025-01-01T00:00:00.000Z'),
         },
@@ -250,6 +278,9 @@ describe('PrismaProductRepository', () => {
           url: 'http://localhost:8081/products/new.png',
           alt: 'Nuevo color',
           position: 0,
+          purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+          mimeType: 'image/webp',
+          posterUrl: 'http://localhost:8081/products/new-poster.png',
           productId: 'product-1',
           createdAt: new Date('2025-02-01T00:00:00.000Z'),
         },
@@ -267,6 +298,9 @@ describe('PrismaProductRepository', () => {
               url: 'http://localhost:8081/products/new.png',
               alt: 'Nuevo color',
               position: 0,
+              purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+              mimeType: 'image/webp',
+              posterUrl: 'http://localhost:8081/products/new-poster.png',
             },
           ],
         },
