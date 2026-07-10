@@ -179,6 +179,33 @@ describe('CreateUploadUseCase', () => {
     expect(saved!.mimeType).toBe('image/png');
   });
 
+  it('should accept MP4 and WebM MIME types', async () => {
+    const mp4Result = await useCase.execute({
+      userId: 'user-1',
+      type: UploadType.product,
+      fileName: 'clip.mp4',
+      mimeType: 'video/mp4',
+      size: 1024,
+    });
+
+    const webmResult = await useCase.execute({
+      userId: 'user-1',
+      type: UploadType.product,
+      fileName: 'clip.webm',
+      mimeType: 'video/webm',
+      size: 2048,
+    });
+
+    expect(mp4Result.storageKey).toContain('.mp4');
+    expect(webmResult.storageKey).toContain('.webm');
+    expect((await uploadRepo.findById(mp4Result.id))!.mimeType).toBe(
+      'video/mp4',
+    );
+    expect((await uploadRepo.findById(webmResult.id))!.mimeType).toBe(
+      'video/webm',
+    );
+  });
+
   it('should throw ValidationError for disallowed MIME type', async () => {
     await expect(
       useCase.execute({

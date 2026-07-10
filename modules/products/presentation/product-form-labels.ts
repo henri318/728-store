@@ -53,10 +53,35 @@ export interface ProductFormLabels {
     photoDisplayNamePlaceholder: string;
     selectForPreviewLabel: string;
     removePhotoLabel: string;
+    moveUpLabel: string;
+    moveDownLabel: string;
     uploadingLabel: string;
     emptyState: string;
     uploadError: string;
     defaultPhotoName: string;
+    buckets: {
+      cover: {
+        title: string;
+        hint: string;
+        addPhotoLabel: string;
+        emptyState: string;
+        noCoverPlaceholder: string;
+      };
+      showcase: {
+        title: string;
+        hint: string;
+        addPhotoLabel: string;
+        emptyState: string;
+        posterLabel: string;
+        posterPlaceholder: string;
+      };
+      customizableBase: {
+        title: string;
+        hint: string;
+        addPhotoLabel: string;
+        emptyState: string;
+      };
+    };
   };
 }
 
@@ -134,10 +159,39 @@ export function getProductFormLabels(
         sd.productPhotoDisplayNamePlaceholder as string,
       selectForPreviewLabel: sd.productPhotoSelectForPreview as string,
       removePhotoLabel: sd.productPhotoRemoveLabel as string,
+      moveUpLabel: sd.productPhotoMoveUpLabel as string,
+      moveDownLabel: sd.productPhotoMoveDownLabel as string,
       uploadingLabel: dict.common.customizationUploading,
       emptyState: sd.productPhotosEmptyState as string,
       uploadError: sd.productPhotosUploadError as string,
       defaultPhotoName: sd.productPhotoDefaultName as string,
+      buckets: {
+        cover: {
+          title: sd.productPhotoBucketsCoverTitle as string,
+          hint: sd.productPhotoBucketsCoverHint as string,
+          addPhotoLabel: sd.productPhotoBucketsCoverAddLabel as string,
+          emptyState: sd.productPhotoBucketsCoverEmptyState as string,
+          noCoverPlaceholder:
+            sd.productPhotoBucketsCoverNoCoverPlaceholder as string,
+        },
+        showcase: {
+          title: sd.productPhotoBucketsShowcaseTitle as string,
+          hint: sd.productPhotoBucketsShowcaseHint as string,
+          addPhotoLabel: sd.productPhotoBucketsShowcaseAddLabel as string,
+          emptyState: sd.productPhotoBucketsShowcaseEmptyState as string,
+          posterLabel: sd.productPhotoBucketsShowcasePosterLabel as string,
+          posterPlaceholder:
+            sd.productPhotoBucketsShowcasePosterPlaceholder as string,
+        },
+        customizableBase: {
+          title: sd.productPhotoBucketsCustomizableBaseTitle as string,
+          hint: sd.productPhotoBucketsCustomizableBaseHint as string,
+          addPhotoLabel:
+            sd.productPhotoBucketsCustomizableBaseAddLabel as string,
+          emptyState:
+            sd.productPhotoBucketsCustomizableBaseEmptyState as string,
+        },
+      },
     },
   };
 }

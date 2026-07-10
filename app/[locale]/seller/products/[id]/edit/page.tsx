@@ -4,6 +4,7 @@ import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { prisma } from '@/shared/infrastructure/prisma';
 import { getProductFormLabels } from '@/modules/products/presentation/product-form-labels';
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
+import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
 import type { ProductLocale } from '@/modules/products/presentation/components/product-locale-tabs';
 import { ProductForm } from '../../product-form';
 
@@ -63,12 +64,18 @@ export default async function SellerProductEditPage({
         customizationConfig: {
           ...customizationConfig,
         },
-        images: product.images.map((image, index) => ({
-          url: image.url,
-          alt:
-            image.alt ??
-            `${dict.sellerDashboard.productPhotoDefaultName} ${index + 1}`,
-        })),
+        images: {
+          cover:
+            product.images.find(
+              (image) => image.purpose === ProductImagePurpose.COVER,
+            ) ?? null,
+          showcase: product.images.filter(
+            (image) => image.purpose === ProductImagePurpose.SHOWCASE,
+          ),
+          customizableBase: product.images.filter(
+            (image) => image.purpose === ProductImagePurpose.CUSTOMIZABLE_BASE,
+          ),
+        },
       }}
       labels={getProductFormLabels(dict, 'edit')}
     />

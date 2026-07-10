@@ -1,7 +1,7 @@
 /**
  * MIME type whitelist for uploads.
  *
- * Only these image types are accepted. The validation helper
+ * Only these image and video types are accepted. The validation helper
  * normalizes to lowercase before checking.
  */
 
@@ -9,6 +9,8 @@ export const ALLOWED_MIME_TYPES = [
   'image/jpeg',
   'image/png',
   'image/webp',
+  'video/mp4',
+  'video/webm',
 ] as const;
 
 export type AllowedMimeType = (typeof ALLOWED_MIME_TYPES)[number];
@@ -22,10 +24,24 @@ export function isAllowedMimeType(mimeType: string): boolean {
 }
 
 /**
+ * Returns true when the MIME type is a video type.
+ */
+export function isVideoMimeType(mimeType: string): boolean {
+  return mimeType.toLowerCase().startsWith('video/');
+}
+
+/**
  * File extensions allowed for uploads.
  * Must correspond to the allowed MIME types above.
  */
-export const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'] as const;
+export const ALLOWED_EXTENSIONS = [
+  'jpg',
+  'jpeg',
+  'png',
+  'webp',
+  'mp4',
+  'webm',
+] as const;
 
 /**
  * Returns true if the file extension is in the allowed whitelist.

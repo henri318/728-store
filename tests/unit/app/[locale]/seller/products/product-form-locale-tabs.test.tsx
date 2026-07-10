@@ -76,10 +76,35 @@ describe('ProductForm locale tabs', () => {
       photoDisplayNamePlaceholder: 'Rojo cereza',
       selectForPreviewLabel: 'Usar en la vista previa',
       removePhotoLabel: 'Eliminar foto',
+      moveUpLabel: 'Subir',
+      moveDownLabel: 'Bajar',
       uploadingLabel: 'Subiendo imagen...',
       emptyState: 'Aún no hay fotos',
       uploadError: 'No se pudo subir la foto',
       defaultPhotoName: 'Foto',
+      buckets: {
+        cover: {
+          title: 'Portada',
+          hint: 'Imagen principal del producto.',
+          addPhotoLabel: 'Añadir portada',
+          emptyState: 'Aún no hay portada',
+          noCoverPlaceholder: 'No cover image set',
+        },
+        showcase: {
+          title: 'Escaparate',
+          hint: 'Imágenes y vídeos de apoyo.',
+          addPhotoLabel: 'Añadir al escaparate',
+          emptyState: 'Aún no hay escaparate',
+          posterLabel: 'Póster opcional',
+          posterPlaceholder: 'https://cdn.example.com/poster.jpg',
+        },
+        customizableBase: {
+          title: 'Base personalizable',
+          hint: 'Bases para personalización.',
+          addPhotoLabel: 'Añadir base',
+          emptyState: 'Aún no hay bases',
+        },
+      },
     },
   };
 

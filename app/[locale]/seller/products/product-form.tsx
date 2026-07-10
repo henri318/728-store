@@ -19,13 +19,16 @@ import {
 import type { ProductFormLabels } from '@/modules/products/presentation/product-form-labels';
 import { toAbsoluteUrl } from '@/shared/presentation/lib/to-absolute-url';
 import { UploadType } from '@/modules/uploads/domain/value-objects/upload-type';
+import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
 import {
   productFormSchema,
   type ProductTranslationInput,
   type ProductCustomizationConfigInput,
 } from '@/modules/products/presentation/schemas/product-form-schema';
-import type { ProductPhotoDraft } from './product-photo-gallery';
-import { ProductPhotoGallery } from './product-photo-gallery';
+import {
+  ProductPhotoBucketGallery,
+  type ProductPhotoDraft,
+} from './product-photo-gallery';
 import styles from './product-form.module.css';
 
 type ProductFormMode = 'create' | 'edit';
@@ -43,6 +46,23 @@ interface CategoryOption {
   name: string;
 }
 
+interface ProductFormImageSeed {
+  url: string;
+  alt: string | null;
+  purpose?: ProductImagePurpose;
+  mimeType?: string;
+  posterUrl?: string | null;
+}
+
+interface ProductFormImageBucketsSeed {
+  cover: ProductFormImageSeed | null;
+  showcase: ProductFormImageSeed[];
+  customizableBase: ProductFormImageSeed[];
+}
+
+type ProductFormImageSeeds =
+  Array<ProductFormImageSeed> | ProductFormImageBucketsSeed;
+
 interface ProductFormProps {
   locale: string;
   mode: ProductFormMode;
@@ -54,13 +74,16 @@ interface ProductFormProps {
     translation?: ProductTranslationInput;
     translations?: Array<LocaleTranslationState>;
     customizationConfig: ProductCustomizationConfigInput;
-    images: Array<{
-      url: string;
-      alt: string | null;
-    }>;
+    images: ProductFormImageSeeds;
   };
   labels: ProductFormLabels;
   categories?: CategoryOption[];
+}
+
+interface ProductPhotoBucketsState {
+  cover: ProductPhotoDraft | null;
+  showcase: ProductPhotoDraft[];
+  customizableBase: ProductPhotoDraft[];
 }
 
 interface FormState {
@@ -68,7 +91,7 @@ interface FormState {
   activeLocale: SupportedLocale;
   translations: TranslationMap;
   customizationConfig: ProductCustomizationConfigInput;
-  images: ProductPhotoDraft[];
+  images: ProductPhotoBucketsState;
   selectedPhotoId: string | null;
 }
 
@@ -76,6 +99,7 @@ interface FormErrors {
   name?: string;
   description?: string;
   price?: string;
+  images?: string;
   customizationConfig?: string;
 }
 
@@ -88,6 +112,188 @@ function normalizePhotoName(value: string, fallback: string) {
   if (trimmed.length > 0) return trimmed;
 
   return fallback;
+}
+
+type ProductPhotoBucket = keyof ProductPhotoBucketsState;
+
+interface ProductPhotoSeedEntry {
+  seed: ProductFormImageSeed;
+  bucket: ProductPhotoBucket;
+}
+
+function bucketForPurpose(
+  purpose: ProductFormImageSeed['purpose'],
+): ProductPhotoBucket {
+  if (purpose === ProductImagePurpose.COVER) return 'cover';
+  if (purpose === ProductImagePurpose.CUSTOMIZABLE_BASE) {
+    return 'customizableBase';
+  }
+
+  return 'showcase';
+}
+
+function purposeForBucket(bucket: ProductPhotoBucket): ProductImagePurpose {
+  if (bucket === 'cover') return ProductImagePurpose.COVER;
+  if (bucket === 'customizableBase') {
+    return ProductImagePurpose.CUSTOMIZABLE_BASE;
+  }
+
+  return ProductImagePurpose.SHOWCASE;
+}
+
+function getBucketIndex(
+  bucket: ProductPhotoBucket,
+  indexes: { cover: number; showcase: number; customizableBase: number },
+): number {
+  if (bucket === 'cover') return indexes.cover;
+  if (bucket === 'customizableBase') return indexes.customizableBase;
+
+  return indexes.showcase;
+}
+
+function collectInitialImageSeedEntries(
+  images: ProductFormImageSeeds,
+): ProductPhotoSeedEntry[] {
+  if (Array.isArray(images)) {
+    return images.map((seed) => ({
+      seed,
+      bucket: bucketForPurpose(seed.purpose),
+    }));
+  }
+
+  return [
+    ...(images.cover ? [{ seed: images.cover, bucket: 'cover' as const }] : []),
+    ...images.showcase.map((seed) => ({ seed, bucket: 'showcase' as const })),
+    ...images.customizableBase.map((seed) => ({
+      seed,
+      bucket: 'customizableBase' as const,
+    })),
+  ];
+}
+
+function populateInitialImageBuckets(
+  labels: ProductFormLabels,
+  buckets: ProductPhotoBucketsState,
+  seedEntries: ProductPhotoSeedEntry[],
+) {
+  const indexes = { cover: 0, showcase: 0, customizableBase: 0 };
+
+  for (const entry of seedEntries) {
+    const bucketIndex = getBucketIndex(entry.bucket, indexes);
+    const draft = createPhotoDraft(
+      entry.seed,
+      buildDefaultPhotoName(labels, bucketIndex),
+      purposeForBucket(entry.bucket),
+    );
+
+    if (entry.bucket === 'cover') {
+      buckets.cover = draft;
+      indexes.cover += 1;
+      continue;
+    }
+
+    if (entry.bucket === 'customizableBase') {
+      buckets.customizableBase.push(draft);
+      indexes.customizableBase += 1;
+      continue;
+    }
+
+    buckets.showcase.push(draft);
+    indexes.showcase += 1;
+  }
+}
+
+function createPhotoDraft(
+  seed: ProductFormImageSeed,
+  fallbackName: string,
+  purpose: ProductImagePurpose,
+): ProductPhotoDraft {
+  return {
+    id: createPhotoId(),
+    url: seed.url,
+    alt: normalizePhotoName(seed.alt ?? '', fallbackName),
+    size: null,
+    purpose: seed.purpose ?? purpose,
+    mimeType: seed.mimeType ?? 'image/jpeg',
+    posterUrl: seed.posterUrl ?? null,
+  };
+}
+
+function createEmptyBuckets(): ProductPhotoBucketsState {
+  return {
+    cover: null,
+    showcase: [],
+    customizableBase: [],
+  };
+}
+
+function normalizeInitialImages(
+  labels: ProductFormLabels,
+  images: ProductFormImageSeeds,
+): ProductPhotoBucketsState {
+  const buckets = createEmptyBuckets();
+
+  populateInitialImageBuckets(
+    labels,
+    buckets,
+    collectInitialImageSeedEntries(images),
+  );
+
+  return buckets;
+}
+
+function moveItem<T extends { id: string }>(
+  items: T[],
+  itemId: string,
+  direction: -1 | 1,
+) {
+  const currentIndex = items.findIndex((item) => item.id === itemId);
+  const nextIndex = currentIndex + direction;
+
+  if (currentIndex === -1 || nextIndex < 0 || nextIndex >= items.length) {
+    return items;
+  }
+
+  const next = [...items];
+  const [item] = next.splice(currentIndex, 1);
+  next.splice(nextIndex, 0, item);
+  return next;
+}
+
+function updateBucketPhoto(
+  state: ProductPhotoBucketsState,
+  bucket: keyof ProductPhotoBucketsState,
+  photoId: string,
+  patch: Partial<ProductPhotoDraft>,
+): ProductPhotoBucketsState {
+  if (bucket === 'cover') {
+    if (!state.cover || state.cover.id !== photoId) return state;
+
+    return { ...state, cover: { ...state.cover, ...patch } };
+  }
+
+  return {
+    ...state,
+    [bucket]: state[bucket].map((photo) =>
+      photo.id === photoId ? { ...photo, ...patch } : photo,
+    ),
+  };
+}
+
+function removeBucketPhoto(
+  state: ProductPhotoBucketsState,
+  bucket: keyof ProductPhotoBucketsState,
+  photoId: string,
+): ProductPhotoBucketsState {
+  if (bucket === 'cover') {
+    if (!state.cover || state.cover.id !== photoId) return state;
+    return { ...state, cover: null };
+  }
+
+  return {
+    ...state,
+    [bucket]: state[bucket].filter((photo) => photo.id !== photoId),
+  };
 }
 
 function normalizeLocale(value: string): SupportedLocale {
@@ -219,6 +425,32 @@ function buildPayload(locale: SupportedLocale, form: FormState) {
         translation.designChangeDescription !== null,
     );
 
+  const images = [
+    ...(form.images.cover
+      ? [
+          {
+            ...form.images.cover,
+            position: 0,
+          },
+        ]
+      : []),
+    ...form.images.showcase.map((image, index) => ({
+      ...image,
+      position: index,
+    })),
+    ...form.images.customizableBase.map((image, index) => ({
+      ...image,
+      position: index,
+    })),
+  ].map((image) => ({
+    url: image.url,
+    alt: image.alt.trim(),
+    position: image.position,
+    purpose: image.purpose,
+    mimeType: image.mimeType,
+    posterUrl: image.posterUrl,
+  }));
+
   const payload = {
     locale,
     name: current.name.trim(),
@@ -234,11 +466,7 @@ function buildPayload(locale: SupportedLocale, form: FormState) {
     },
     translations,
     customizationConfig,
-    images: form.images.map((image, index) => ({
-      url: image.url,
-      alt: image.alt.trim(),
-      position: index,
-    })),
+    images,
   };
 
   const result = productFormSchema.safeParse(payload);
@@ -253,7 +481,11 @@ function buildPayload(locale: SupportedLocale, form: FormState) {
   return { success: true as const, payload: result.data };
 }
 
-async function uploadPhoto(file: File, defaultName: string) {
+async function uploadPhoto(
+  file: File,
+  defaultName: string,
+  purpose: ProductImagePurpose,
+) {
   const response = await fetch('/api/uploads/presigned-url', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -301,7 +533,9 @@ async function uploadPhoto(file: File, defaultName: string) {
       defaultName,
     ),
     size: file.size,
-    previewSelected: false,
+    purpose,
+    mimeType: file.type,
+    posterUrl: null,
   } satisfies ProductPhotoDraft;
 }
 
@@ -316,15 +550,7 @@ export function ProductForm({
   const router = useRouter();
   const initialLocale = normalizeLocale(locale);
   const [form, setForm] = useState<FormState>(() => {
-    const images = initialValues.images.map((image, index) => ({
-      id: createPhotoId(),
-      url: image.url,
-      alt: normalizePhotoName(
-        image.alt ?? '',
-        buildDefaultPhotoName(labels, index),
-      ),
-      previewSelected: index === 0,
-    }));
+    const images = normalizeInitialImages(labels, initialValues.images);
 
     return {
       price: String(initialValues.price),
@@ -332,7 +558,11 @@ export function ProductForm({
       translations: buildTranslationMap(initialLocale, initialValues),
       customizationConfig: initialValues.customizationConfig,
       images,
-      selectedPhotoId: images[0]?.id ?? null,
+      selectedPhotoId:
+        images.cover?.id ??
+        images.showcase[0]?.id ??
+        images.customizableBase[0]?.id ??
+        null,
     };
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -341,6 +571,7 @@ export function ProductForm({
   const [saved, setSaved] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
+  const photoLabels = labels.gallery;
 
   const endpoint = useMemo(
     () => (mode === 'create' ? '/api/products' : `/api/products/${productId}`),
@@ -393,21 +624,29 @@ export function ProductForm({
     });
   };
 
-  const updatePhoto = (photoId: string, patch: Partial<ProductPhotoDraft>) => {
+  const updatePhoto = (
+    bucket: keyof ProductPhotoBucketsState,
+    photoId: string,
+    patch: Partial<ProductPhotoDraft>,
+  ) => {
     setForm((current) => ({
       ...current,
-      images: current.images.map((photo) =>
-        photo.id === photoId ? { ...photo, ...patch } : photo,
-      ),
+      images: updateBucketPhoto(current.images, bucket, photoId, patch),
     }));
   };
 
-  const removePhoto = (photoId: string) => {
+  const removePhoto = (
+    bucket: keyof ProductPhotoBucketsState,
+    photoId: string,
+  ) => {
     setForm((current) => {
-      const nextImages = current.images.filter((photo) => photo.id !== photoId);
+      const nextImages = removeBucketPhoto(current.images, bucket, photoId);
       const nextSelected =
         current.selectedPhotoId === photoId
-          ? (nextImages[0]?.id ?? null)
+          ? (nextImages.cover?.id ??
+            nextImages.showcase[0]?.id ??
+            nextImages.customizableBase[0]?.id ??
+            null)
           : current.selectedPhotoId;
 
       return {
@@ -419,50 +658,66 @@ export function ProductForm({
   };
 
   const selectPhoto = (photoId: string) => {
+    setForm((current) => ({ ...current, selectedPhotoId: photoId }));
+  };
+
+  const movePhoto = (
+    bucket: keyof ProductPhotoBucketsState,
+    photoId: string,
+    direction: -1 | 1,
+  ) => {
+    if (bucket === 'cover') return;
+
     setForm((current) => ({
       ...current,
-      selectedPhotoId: photoId,
-      images: current.images.map((photo) => ({
-        ...photo,
-        previewSelected: photo.id === photoId,
-      })),
+      images: {
+        ...current.images,
+        [bucket]: moveItem(current.images[bucket], photoId, direction),
+      },
     }));
   };
 
-  const handleUpload = async (files: File[]) => {
+  const handleUpload = async (
+    bucket: keyof ProductPhotoBucketsState,
+    files: File[],
+  ) => {
     if (files.length === 0) return;
 
     setUploading(true);
     setPhotoError(null);
 
     try {
+      const purpose = purposeForBucket(bucket);
+      const existingCount = bucket === 'cover' ? 0 : form.images[bucket].length;
       const uploads = await Promise.all(
         files.map((file, index) =>
           uploadPhoto(
             file,
-            buildDefaultPhotoName(labels, form.images.length + index),
+            buildDefaultPhotoName(labels, existingCount + index),
+            purpose,
           ),
         ),
       );
 
       setForm((current) => {
-        const nextImages = [...current.images, ...uploads].map(
-          (photo, index) => ({
-            ...photo,
-            previewSelected:
-              current.selectedPhotoId === photo.id ||
-              (!current.selectedPhotoId && index === 0),
-          }),
-        );
+        const nextImages =
+          bucket === 'cover'
+            ? {
+                ...current.images,
+                cover: uploads[0] ?? current.images.cover,
+              }
+            : {
+                ...current.images,
+                [bucket]: [...current.images[bucket], ...uploads],
+              };
 
         return {
           ...current,
           images: nextImages,
           selectedPhotoId:
-            current.selectedPhotoId ??
-            uploads[0]?.id ??
-            current.images[0]?.id ??
-            null,
+            bucket === 'cover'
+              ? (uploads[0]?.id ?? current.selectedPhotoId ?? null)
+              : (current.selectedPhotoId ?? uploads[0]?.id ?? null),
         };
       });
     } catch (error) {
@@ -596,17 +851,88 @@ export function ProductForm({
             required
           />
 
-          <ProductPhotoGallery
-            photos={form.images}
-            selectedPhotoId={form.selectedPhotoId}
-            labels={labels.gallery}
-            onFilesSelected={handleUpload}
-            onPhotoLabelChange={(photoId, alt) => updatePhoto(photoId, { alt })}
-            onSelectPhoto={selectPhoto}
-            onRemovePhoto={removePhoto}
-            uploading={uploading}
-            error={photoError}
-          />
+          {errors.images ? (
+            <p className={styles.alert} role="alert">
+              {errors.images}
+            </p>
+          ) : null}
+
+          {photoError ? (
+            <p className={styles.error} role="alert">
+              {photoError}
+            </p>
+          ) : null}
+
+          <div className={styles.galleryStack}>
+            <ProductPhotoBucketGallery
+              mode="single"
+              labels={photoLabels.buckets.cover}
+              commonLabels={photoLabels}
+              photos={form.images.cover ? [form.images.cover] : []}
+              selectedPhotoId={form.selectedPhotoId}
+              accept="image/png,image/jpeg,image/webp"
+              onFilesSelected={(files) => handleUpload('cover', files)}
+              onPhotoLabelChange={(photoId, alt) =>
+                updatePhoto('cover', photoId, { alt })
+              }
+              onSelectPhoto={selectPhoto}
+              onRemovePhoto={(photoId) => removePhoto('cover', photoId)}
+              uploading={uploading}
+              error={null}
+            />
+
+            <ProductPhotoBucketGallery
+              mode="multiple"
+              labels={photoLabels.buckets.showcase}
+              commonLabels={photoLabels}
+              photos={form.images.showcase}
+              selectedPhotoId={form.selectedPhotoId}
+              accept="image/png,image/jpeg,image/webp,video/mp4,video/webm"
+              onFilesSelected={(files) => handleUpload('showcase', files)}
+              onPhotoLabelChange={(photoId, alt) =>
+                updatePhoto('showcase', photoId, { alt })
+              }
+              onSelectPhoto={selectPhoto}
+              onRemovePhoto={(photoId) => removePhoto('showcase', photoId)}
+              onMovePhotoUp={(photoId) => movePhoto('showcase', photoId, -1)}
+              onMovePhotoDown={(photoId) => movePhoto('showcase', photoId, 1)}
+              onPosterUrlChange={(photoId, posterUrl) =>
+                updatePhoto('showcase', photoId, {
+                  posterUrl:
+                    posterUrl.trim().length > 0 ? posterUrl.trim() : null,
+                })
+              }
+              uploading={uploading}
+              error={null}
+            />
+
+            <ProductPhotoBucketGallery
+              mode="multiple"
+              labels={photoLabels.buckets.customizableBase}
+              commonLabels={photoLabels}
+              photos={form.images.customizableBase}
+              selectedPhotoId={form.selectedPhotoId}
+              accept="image/png,image/jpeg,image/webp"
+              onFilesSelected={(files) =>
+                handleUpload('customizableBase', files)
+              }
+              onPhotoLabelChange={(photoId, alt) =>
+                updatePhoto('customizableBase', photoId, { alt })
+              }
+              onSelectPhoto={selectPhoto}
+              onRemovePhoto={(photoId) =>
+                removePhoto('customizableBase', photoId)
+              }
+              onMovePhotoUp={(photoId) =>
+                movePhoto('customizableBase', photoId, -1)
+              }
+              onMovePhotoDown={(photoId) =>
+                movePhoto('customizableBase', photoId, 1)
+              }
+              uploading={uploading}
+              error={null}
+            />
+          </div>
         </div>
 
         <hr className={styles.divider} />

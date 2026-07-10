@@ -42,7 +42,11 @@ export default async function SellerProductCreatePage({
           },
         ],
         customizationConfig: ProductCustomizationConfig.default().toJson(),
-        images: [],
+        images: {
+          cover: null,
+          showcase: [],
+          customizableBase: [],
+        },
       }}
       labels={getProductFormLabels(dict, 'create')}
     />

@@ -2,6 +2,8 @@
 
 import Image from 'next/image';
 import { FileUploadDropzone } from '@/shared/ui/file-upload-dropzone';
+import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
+import { isVideoMimeType } from '@/modules/uploads/domain/value-objects/mime-type';
 import styles from './product-form.module.css';
 
 export interface ProductPhotoDraft {
@@ -9,63 +11,93 @@ export interface ProductPhotoDraft {
   url: string;
   alt: string;
   size?: number | null;
-  previewSelected: boolean;
+  purpose: ProductImagePurpose;
+  mimeType: string;
+  posterUrl: string | null;
 }
 
-interface ProductPhotoGalleryLabels {
+interface ProductPhotoBucketGalleryLabels {
   title: string;
   hint: string;
   addPhotoLabel: string;
+  emptyState: string;
+  noCoverPlaceholder?: string;
+  posterLabel?: string;
+  posterPlaceholder?: string;
+}
+
+interface ProductPhotoCommonLabels {
   photoDisplayNameLabel: string;
   photoDisplayNamePlaceholder: string;
   selectForPreviewLabel: string;
   removePhotoLabel: string;
+  moveUpLabel: string;
+  moveDownLabel: string;
   uploadingLabel: string;
-  emptyState: string;
   uploadError: string;
   defaultPhotoName: string;
 }
 
-interface ProductPhotoGalleryProps {
+function getSingleEmptyLabel(labels: ProductPhotoBucketGalleryLabels) {
+  return labels.noCoverPlaceholder ?? labels.emptyState;
+}
+
+interface ProductPhotoBucketGalleryProps {
+  mode: 'single' | 'multiple';
+  labels: ProductPhotoBucketGalleryLabels;
+  commonLabels: ProductPhotoCommonLabels;
   photos: ProductPhotoDraft[];
   selectedPhotoId: string | null;
-  labels: ProductPhotoGalleryLabels;
+  accept: string;
   onFilesSelected: (files: File[]) => Promise<void>;
   onPhotoLabelChange: (photoId: string, alt: string) => void;
   onSelectPhoto: (photoId: string) => void;
   onRemovePhoto: (photoId: string) => void;
+  onMovePhotoUp?: (photoId: string) => void;
+  onMovePhotoDown?: (photoId: string) => void;
+  onPosterUrlChange?: (photoId: string, posterUrl: string) => void;
   uploading: boolean;
   error: string | null;
 }
 
-export function ProductPhotoGallery({
+export function ProductPhotoBucketGallery({
+  mode,
+  labels,
+  commonLabels,
   photos,
   selectedPhotoId,
-  labels,
+  accept,
   onFilesSelected,
   onPhotoLabelChange,
   onSelectPhoto,
   onRemovePhoto,
+  onMovePhotoUp,
+  onMovePhotoDown,
+  onPosterUrlChange,
   uploading,
   error,
-}: ProductPhotoGalleryProps) {
+}: ProductPhotoBucketGalleryProps) {
+  const emptyLabel =
+    mode === 'single' ? getSingleEmptyLabel(labels) : labels.emptyState;
+
   return (
-    <div className={styles.gallery}>
+    <section className={styles.bucket} aria-label={labels.title}>
       <FileUploadDropzone
         title={labels.title}
         helpText={labels.hint}
         buttonLabel={labels.addPhotoLabel}
-        removeLabel={labels.removePhotoLabel}
+        removeLabel={commonLabels.removePhotoLabel}
         items={photos.map((photo) => ({
           id: photo.id,
           name: photo.alt,
           size: photo.size ?? null,
         }))}
-        multiple
-        accept="image/png,image/jpeg"
-        variant="full"
+        multiple={mode === 'multiple'}
+        accept={accept}
+        variant="compact"
         busy={uploading}
-        busyLabel={labels.uploadingLabel}
+        busyLabel={commonLabels.uploadingLabel}
+        emptyLabel={emptyLabel}
         selectedItemId={selectedPhotoId}
         onFilesSelected={onFilesSelected}
         onRemoveItem={onRemovePhoto}
@@ -73,12 +105,11 @@ export function ProductPhotoGallery({
 
       {error ? <p className={styles.error}>{error}</p> : null}
 
-      {photos.length === 0 ? (
-        <p className={styles.emptyState}>{labels.emptyState}</p>
-      ) : (
+      {photos.length === 0 ? null : (
         <ul className={styles.galleryGrid}>
           {photos.map((photo, index) => {
             const isSelected = selectedPhotoId === photo.id;
+            const video = isVideoMimeType(photo.mimeType);
 
             return (
               <li
@@ -91,26 +122,37 @@ export function ProductPhotoGallery({
                   onClick={() => onSelectPhoto(photo.id)}
                 >
                   <span className={styles.photoIndex}>{index + 1}</span>
-                  {labels.selectForPreviewLabel}
+                  {commonLabels.selectForPreviewLabel}
                 </button>
 
                 <div className={styles.photoFrame}>
-                  <Image
-                    src={photo.url}
-                    alt={photo.alt}
-                    width={320}
-                    height={240}
-                    unoptimized
-                    className={styles.photoImage}
-                  />
+                  {video ? (
+                    <video
+                      controls
+                      preload="metadata"
+                      poster={photo.posterUrl ?? undefined}
+                      className={styles.photoImage}
+                    >
+                      <source src={photo.url} type={photo.mimeType} />
+                    </video>
+                  ) : (
+                    <Image
+                      src={photo.url}
+                      alt={photo.alt}
+                      width={320}
+                      height={240}
+                      unoptimized
+                      className={styles.photoImage}
+                    />
+                  )}
                 </div>
 
                 <label className={styles.field}>
-                  <span>{labels.photoDisplayNameLabel}</span>
+                  <span>{commonLabels.photoDisplayNameLabel}</span>
                   <input
                     className={styles.input}
                     value={photo.alt}
-                    placeholder={labels.photoDisplayNamePlaceholder}
+                    placeholder={commonLabels.photoDisplayNamePlaceholder}
                     required
                     onChange={(event) =>
                       onPhotoLabelChange(photo.id, event.target.value)
@@ -118,20 +160,54 @@ export function ProductPhotoGallery({
                   />
                 </label>
 
+                {video && onPosterUrlChange && labels.posterLabel ? (
+                  <label className={styles.field}>
+                    <span>{labels.posterLabel}</span>
+                    <input
+                      className={styles.input}
+                      value={photo.posterUrl ?? ''}
+                      placeholder={labels.posterPlaceholder}
+                      onChange={(event) =>
+                        onPosterUrlChange(photo.id, event.target.value)
+                      }
+                    />
+                  </label>
+                ) : null}
+
                 <div className={styles.photoActions}>
                   <button
                     type="button"
                     className={styles.ghostButton}
                     onClick={() => onSelectPhoto(photo.id)}
                   >
-                    {labels.selectForPreviewLabel}
+                    {commonLabels.selectForPreviewLabel}
                   </button>
+
+                  {mode === 'multiple' && onMovePhotoUp && onMovePhotoDown ? (
+                    <>
+                      <button
+                        type="button"
+                        className={styles.ghostButton}
+                        onClick={() => onMovePhotoUp(photo.id)}
+                      >
+                        {commonLabels.moveUpLabel}
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.ghostButton}
+                        onClick={() => onMovePhotoDown(photo.id)}
+                      >
+                        {commonLabels.moveDownLabel}
+                      </button>
+                    </>
+                  ) : null}
+
                   <button
                     type="button"
                     className={styles.ghostButtonDanger}
                     onClick={() => onRemovePhoto(photo.id)}
                   >
-                    {labels.removePhotoLabel}
+                    {commonLabels.removePhotoLabel}
                   </button>
                 </div>
               </li>
@@ -139,6 +215,6 @@ export function ProductPhotoGallery({
           })}
         </ul>
       )}
-    </div>
+    </section>
   );
 }
