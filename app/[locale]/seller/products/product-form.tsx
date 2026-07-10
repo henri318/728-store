@@ -863,7 +863,7 @@ export function ProductForm({
             </p>
           ) : null}
 
-          <div className={styles.galleryStack}>
+          <div className={styles['gallery-stack']}>
             <ProductPhotoBucketGallery
               mode="single"
               labels={photoLabels.buckets.cover}
