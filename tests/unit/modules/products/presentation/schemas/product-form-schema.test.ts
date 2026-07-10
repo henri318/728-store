@@ -88,6 +88,118 @@ describe('productFormSchema', () => {
     ]);
   });
 
+  it('rejects unsupported MIME-purpose combinations and multiple cover images', () => {
+    expect(
+      productFormSchema.safeParse({
+        price: 19.99,
+        translations: [
+          {
+            locale: 'es',
+            name: 'Taza',
+            description: 'Base',
+            tags: [],
+            sizes: [],
+            designChangeDescription: null,
+          },
+        ],
+        images: [
+          {
+            url: 'https://cdn.example.com/products/taza.svg',
+            alt: 'SVG no permitido',
+            position: 0,
+            purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+            mimeType: 'image/svg+xml',
+          },
+        ],
+      }).success,
+    ).toBe(false);
+
+    expect(
+      productFormSchema.safeParse({
+        price: 19.99,
+        translations: [
+          {
+            locale: 'es',
+            name: 'Taza',
+            description: 'Base',
+            tags: [],
+            sizes: [],
+            designChangeDescription: null,
+          },
+        ],
+        images: [
+          {
+            url: 'https://cdn.example.com/products/taza.mp4',
+            alt: 'Video cover',
+            position: 0,
+            purpose: ProductImagePurpose.COVER,
+            mimeType: 'video/mp4',
+          },
+        ],
+      }).success,
+    ).toBe(false);
+
+    expect(
+      productFormSchema.safeParse({
+        price: 19.99,
+        translations: [
+          {
+            locale: 'es',
+            name: 'Taza',
+            description: 'Base',
+            tags: [],
+            sizes: [],
+            designChangeDescription: null,
+          },
+        ],
+        images: [
+          {
+            url: 'https://cdn.example.com/products/taza.png',
+            alt: 'Primer cover',
+            position: 0,
+            purpose: ProductImagePurpose.COVER,
+            mimeType: 'image/png',
+          },
+          {
+            url: 'https://cdn.example.com/products/taza-2.png',
+            alt: 'Segundo cover',
+            position: 1,
+            purpose: ProductImagePurpose.COVER,
+            mimeType: 'image/png',
+          },
+        ],
+      }).success,
+    ).toBe(false);
+  });
+
+  it('accepts showcase videos', () => {
+    const result = productFormSchema.safeParse({
+      price: 19.99,
+      translations: [
+        {
+          locale: 'es',
+          name: 'Taza',
+          description: 'Base',
+          tags: [],
+          sizes: [],
+          designChangeDescription: null,
+        },
+      ],
+      images: [
+        {
+          url: 'https://cdn.example.com/products/taza.mp4',
+          alt: 'Taza en video',
+          position: 0,
+          purpose: ProductImagePurpose.SHOWCASE,
+          mimeType: 'video/mp4',
+          posterUrl: 'https://cdn.example.com/products/taza-poster.jpg',
+        },
+      ],
+    });
+
+    expect(result.success).toBe(true);
+  });
+
   it('rejects unsupported status values', () => {
     const result = productFormSchema.safeParse({
       price: 19.99,

@@ -9,12 +9,18 @@ describe('i18n getDictionary', () => {
     const dict = await getDictionary('es');
     expect(dict.common.home).toBe('Inicio');
     expect(dict.common.products).toBe('Nuestros Productos');
+    expect(
+      dict.sellerDashboard.productPhotoBucketsCoverNoCoverPlaceholder,
+    ).toBe('Sin imagen de portada');
   });
 
   it('should load the Catalan dictionary', async () => {
     const dict = await getDictionary('cat');
     expect(dict.common.home).toBe('Inici');
     expect(dict.common.products).toBe('Els Nostres Productes');
+    expect(
+      dict.sellerDashboard.productPhotoBucketsCoverNoCoverPlaceholder,
+    ).toBe('Sense imatge de portada');
   });
 
   it('should fallback to Spanish for an unknown locale', async () => {

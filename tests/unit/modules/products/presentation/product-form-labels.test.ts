@@ -36,9 +36,26 @@ const dict = {
     productPhotoDisplayNamePlaceholder: 'Foto 1',
     productPhotoSelectForPreview: 'Vista previa',
     productPhotoRemoveLabel: 'Eliminar foto',
+    productPhotoMoveUpLabel: 'Subir',
+    productPhotoMoveDownLabel: 'Bajar',
     productPhotosEmptyState: 'Sin fotos',
     productPhotosUploadError: 'Error al subir',
     productPhotoDefaultName: 'Foto',
+    productPhotoBucketsCoverTitle: 'Portada',
+    productPhotoBucketsCoverHint: 'Imagen principal.',
+    productPhotoBucketsCoverAddLabel: 'Añadir portada',
+    productPhotoBucketsCoverEmptyState: 'Sin portada',
+    productPhotoBucketsCoverNoCoverPlaceholder: 'No cover image set',
+    productPhotoBucketsShowcaseTitle: 'Escaparate',
+    productPhotoBucketsShowcaseHint: 'Imágenes y vídeos de apoyo.',
+    productPhotoBucketsShowcaseAddLabel: 'Añadir escaparate',
+    productPhotoBucketsShowcaseEmptyState: 'Sin escaparate',
+    productPhotoBucketsShowcasePosterLabel: 'Póster opcional',
+    productPhotoBucketsShowcasePosterPlaceholder: 'https://...',
+    productPhotoBucketsCustomizableBaseTitle: 'Base personalizable',
+    productPhotoBucketsCustomizableBaseHint: 'Bases para personalización.',
+    productPhotoBucketsCustomizableBaseAddLabel: 'Añadir base',
+    productPhotoBucketsCustomizableBaseEmptyState: 'Sin bases',
     productPreviewTitle: 'Vista previa',
     productPreviewHint: 'Mockup.',
     productPreviewSelectedLabel: 'Seleccionada',
@@ -95,5 +112,12 @@ describe('getProductFormLabels', () => {
     expect(labels.missingTranslationNameError).toBe(
       'Completa el nombre traducido de {locale} antes de guardar.',
     );
+    expect(labels.gallery.buckets.cover).toEqual({
+      title: 'Portada',
+      hint: 'Imagen principal.',
+      addPhotoLabel: 'Añadir portada',
+      emptyState: 'Sin portada',
+      noCoverPlaceholder: 'No cover image set',
+    });
   });
 });

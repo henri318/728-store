@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ImgHTMLAttributes } from 'react';
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
+import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
 import { ProductForm } from '@/app/[locale]/seller/products/product-form';
 
 const fetchMock = vi.fn();
@@ -78,10 +79,35 @@ describe('ProductForm', () => {
       photoDisplayNamePlaceholder: 'Rojo cereza',
       selectForPreviewLabel: 'Usar en la vista previa',
       removePhotoLabel: 'Eliminar foto',
+      moveUpLabel: 'Subir',
+      moveDownLabel: 'Bajar',
       uploadingLabel: 'Subiendo imagen...',
       emptyState: 'Aún no hay fotos',
       uploadError: 'No se pudo subir la foto',
       defaultPhotoName: 'Foto',
+      buckets: {
+        cover: {
+          title: 'Portada',
+          hint: 'Imagen principal del producto.',
+          addPhotoLabel: 'Añadir portada',
+          emptyState: 'Aún no hay portada',
+          noCoverPlaceholder: 'No cover image set',
+        },
+        showcase: {
+          title: 'Escaparate',
+          hint: 'Imágenes y vídeos de apoyo.',
+          addPhotoLabel: 'Añadir al escaparate',
+          emptyState: 'Aún no hay escaparate',
+          posterLabel: 'Póster opcional',
+          posterPlaceholder: 'https://cdn.example.com/poster.jpg',
+        },
+        customizableBase: {
+          title: 'Base personalizable',
+          hint: 'Bases para personalización.',
+          addPhotoLabel: 'Añadir base',
+          emptyState: 'Aún no hay bases',
+        },
+      },
     },
   };
 
@@ -159,8 +185,16 @@ describe('ProductForm', () => {
 
     expect(screen.getAllByText(labels.title)).toHaveLength(1);
     expect(screen.getByLabelText(labels.nameLabel)).toBeTruthy();
-    expect(screen.getByText(labels.gallery.title)).toBeTruthy();
-    expect(screen.getByLabelText(labels.gallery.addPhotoLabel)).toBeTruthy();
+    expect(screen.getByText(labels.gallery.buckets.cover.title)).toBeTruthy();
+    expect(
+      screen.getByText(labels.gallery.buckets.showcase.title),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(labels.gallery.buckets.customizableBase.title),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(labels.gallery.buckets.cover.noCoverPlaceholder),
+    ).toBeTruthy();
     expect(screen.queryByLabelText('Estado')).toBeNull();
 
     fireEvent.change(screen.getByLabelText(labels.nameLabel), {
@@ -173,7 +207,9 @@ describe('ProductForm', () => {
       target: { value: '19.99' },
     });
 
-    const fileInput = screen.getByLabelText(labels.gallery.addPhotoLabel);
+    const fileInput = screen.getByLabelText(
+      labels.gallery.buckets.showcase.addPhotoLabel,
+    );
     const firstFile = new File(['red'], 'mug-red.png', { type: 'image/png' });
     const secondFile = new File(['blue'], 'mug-blue.png', {
       type: 'image/png',
@@ -242,11 +278,17 @@ describe('ProductForm', () => {
             url: 'http://localhost:8081/products/mug-red.png',
             alt: 'Rojo cereza',
             position: 0,
+            purpose: ProductImagePurpose.SHOWCASE,
+            mimeType: 'image/png',
+            posterUrl: null,
           },
           {
             url: 'http://localhost:8081/products/mug-blue.png',
             alt: 'Azul niebla',
             position: 1,
+            purpose: ProductImagePurpose.SHOWCASE,
+            mimeType: 'image/png',
+            posterUrl: null,
           },
         ],
       });
@@ -686,7 +728,9 @@ describe('ProductForm', () => {
       />,
     );
 
-    const fileInput = screen.getByLabelText(labels.gallery.addPhotoLabel);
+    const fileInput = screen.getByLabelText(
+      labels.gallery.buckets.showcase.addPhotoLabel,
+    );
     const file = new File(['photo'], 'mug-blue.png', { type: 'image/png' });
 
     fireEvent.change(fileInput, { target: { files: [file] } });
