@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, type Prisma } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import bcrypt from 'bcrypt';
 import { existsSync } from 'node:fs';
@@ -542,7 +542,7 @@ async function main() {
             position: 0,
             purpose: 'CUSTOMIZABLE_BASE',
             mimeType: 'image/webp',
-          },
+          } satisfies Prisma.ProductImageUncheckedCreateWithoutProductInput,
         ],
       },
     },

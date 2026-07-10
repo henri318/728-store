@@ -396,6 +396,9 @@ describe('mapper.toDomainProductImage', () => {
     expect(domain.url).toBe(row.url);
     expect(domain.alt).toBe(row.alt);
     expect(domain.position).toBe(row.position);
+    expect(domain.purpose).toBe(row.purpose);
+    expect(domain.mimeType).toBe(row.mimeType);
+    expect(domain.posterUrl).toBe(row.posterUrl);
     expect(domain.productId).toBe(row.productId);
     expect(domain.createdAt).toBe(row.createdAt);
   });

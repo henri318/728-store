@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -41,5 +42,18 @@ describe('Prisma seed and shared adapter wiring', () => {
     );
     expect(seed).not.toContain('customizable-hoodie.svg');
     expect(seed).not.toContain('image/svg+xml');
+  });
+
+  it('keeps the Mochila seed image compatible with Prisma nested create typing', () => {
+    const mochilaImage = {
+      url: '/img/products/example.webp',
+      alt: 'Mochila de Algodón Orgánico',
+      position: 0,
+      purpose: 'CUSTOMIZABLE_BASE',
+      mimeType: 'image/webp',
+    } satisfies Prisma.ProductImageUncheckedCreateWithoutProductInput;
+
+    expect(mochilaImage.purpose).toBe('CUSTOMIZABLE_BASE');
+    expect(mochilaImage.mimeType).toBe('image/webp');
   });
 });
