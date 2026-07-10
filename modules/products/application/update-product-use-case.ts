@@ -1,5 +1,4 @@
 import { NotFoundError, ValidationError } from '@/shared/kernel/app-error';
-import { randomUUID } from 'node:crypto';
 import type {
   ProductEntity,
   ProductRepository,
@@ -15,6 +14,10 @@ import type { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import type { ProductTranslationDTO } from './create-product-use-case';
+import {
+  buildProductImages,
+  type ProductImageInput,
+} from './product-image-builder';
 
 function assertPublishable(
   product: ProductEntity,
@@ -41,10 +44,7 @@ export interface UpdateProductDTO {
     ProductTranslationDTO & { locale?: string; name?: string }
   >;
   customizationConfig?: unknown;
-  images?: Array<{
-    url: string;
-    alt: string;
-  }>;
+  images?: ProductImageInput[];
 }
 
 function buildTranslations(
@@ -171,14 +171,11 @@ export class UpdateProductUseCase {
       images:
         dto.images === undefined
           ? product.images
-          : dto.images.map((image, index) => ({
-              id: randomUUID(),
-              url: image.url,
-              alt: image.alt,
-              position: index,
+          : buildProductImages(dto.images, {
               productId: product.id,
               createdAt: now,
-            })),
+              existingImages: product.images,
+            }),
       updatedAt: now,
       translations,
     };

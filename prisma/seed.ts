@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, type Prisma } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import bcrypt from 'bcrypt';
 import { existsSync } from 'node:fs';
@@ -537,10 +537,12 @@ async function main() {
       images: {
         create: [
           {
-            url: '/img/products/customizable-hoodie.svg',
+            url: '/img/products/example.webp',
             alt: 'Mochila de Algodón Orgánico',
             position: 0,
-          },
+            purpose: 'CUSTOMIZABLE_BASE',
+            mimeType: 'image/webp',
+          } satisfies Prisma.ProductImageUncheckedCreateWithoutProductInput,
         ],
       },
     },

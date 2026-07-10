@@ -1,5 +1,9 @@
 import { z } from 'zod';
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
+import {
+  ALLOWED_MIME_BY_PURPOSE,
+  ProductImagePurpose,
+} from '@/modules/products/domain/value-objects/product-image-purpose';
 
 const previewOffsetSchema = z
   .object({
@@ -47,8 +51,26 @@ export const productImageSchema = z
     url: z.string().trim().min(1),
     alt: z.string().trim().min(1),
     position: z.number().int().nonnegative(),
+    purpose: z.nativeEnum(ProductImagePurpose).optional(),
+    mimeType: z.string().trim().min(1).optional(),
+    posterUrl: z.string().trim().url().nullable().optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((image, ctx) => {
+    if (
+      image.purpose !== undefined &&
+      image.mimeType !== undefined &&
+      !ALLOWED_MIME_BY_PURPOSE[image.purpose].includes(
+        image.mimeType.toLowerCase(),
+      )
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['mimeType'],
+        message: `MIME type ${image.mimeType} not allowed for purpose ${image.purpose}`,
+      });
+    }
+  });
 
 export const productFormSchema = z
   .object({
@@ -59,7 +81,7 @@ export const productFormSchema = z
     translation: productTranslationSchema.optional(),
     translations: z.array(productTranslationInputSchema).min(1).optional(),
     customizationConfig: productCustomizationConfigSchema.optional(),
-    images: z.array(productImageSchema).optional().default([]),
+    images: z.array(productImageSchema).optional(),
     status: z.nativeEnum(ProductStatus).optional(),
   })
   .strict();

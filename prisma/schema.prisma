@@ -241,11 +241,20 @@ model ProductImage {
   url       String
   alt       String?
   position  Int
+  purpose   ProductImagePurpose @default(CUSTOMIZABLE_BASE)
+  mimeType  String              @default("image/jpeg")
+  posterUrl String?
   productId String
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 
-  @@index([productId, position])
+  @@index([productId, purpose, position])
+}
+
+enum ProductImagePurpose {
+  COVER
+  SHOWCASE
+  CUSTOMIZABLE_BASE
 }
 
 enum UploadType {

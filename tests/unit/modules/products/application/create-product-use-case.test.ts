@@ -4,6 +4,7 @@ import { CreateProductUseCase } from '@/modules/products/application/create-prod
 import { ProductPrice } from '@/modules/products/domain/value-objects/product-price';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
+import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
 import { ValidationError } from '@/shared/kernel/app-error';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
@@ -22,6 +23,21 @@ describe('CreateProductUseCase', () => {
     const repo = new MemoryProductRepository();
     const outbox = new MemoryOutboxRepository();
     const useCase = new CreateProductUseCase(repo, outbox);
+    const images = [
+      {
+        url: 'http://localhost:8081/products/camiseta-roja.png',
+        alt: 'Rojo cereza',
+        purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+        mimeType: 'image/png',
+        posterUrl: null,
+      },
+    ] satisfies Array<{
+      url: string;
+      alt: string;
+      purpose: ProductImagePurpose;
+      mimeType: string;
+      posterUrl: null;
+    }>;
 
     const result = await useCase.execute({
       sellerId: 'seller-1',
@@ -30,12 +46,7 @@ describe('CreateProductUseCase', () => {
       name: 'Camiseta personalizada',
       description: 'Camiseta para diseñar',
       price: 19.99,
-      images: [
-        {
-          url: 'http://localhost:8081/products/camiseta-roja.png',
-          alt: 'Rojo cereza',
-        },
-      ],
+      images,
       customizationConfig: {
         mode: 'text_photo',
         previewEnabled: true,
@@ -69,6 +80,9 @@ describe('CreateProductUseCase', () => {
       url: 'http://localhost:8081/products/camiseta-roja.png',
       alt: 'Rojo cereza',
       position: 0,
+      purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+      mimeType: 'image/png',
+      posterUrl: null,
     });
     expect(outbox.events).toEqual([
       {
@@ -179,5 +193,71 @@ describe('CreateProductUseCase', () => {
         },
       }),
     ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it('rejects more than one COVER image', async () => {
+    const repo = new MemoryProductRepository();
+    const useCase = new CreateProductUseCase(repo);
+    const images = [
+      {
+        url: 'http://localhost:8081/products/cover-1.png',
+        alt: 'Cover 1',
+        purpose: ProductImagePurpose.COVER,
+        mimeType: 'image/jpeg',
+      },
+      {
+        url: 'http://localhost:8081/products/cover-2.png',
+        alt: 'Cover 2',
+        purpose: ProductImagePurpose.COVER,
+        mimeType: 'image/png',
+      },
+    ] satisfies Array<{
+      url: string;
+      alt: string;
+      purpose: ProductImagePurpose;
+      mimeType: string;
+    }>;
+
+    await expect(
+      useCase.execute({
+        sellerId: 'seller-1',
+        sellerName: 'Test Shop',
+        locale: 'es',
+        name: 'Producto',
+        description: 'Desc',
+        price: 19.99,
+        images,
+      }),
+    ).rejects.toThrow(/only one cover/i);
+  });
+
+  it('rejects invalid purpose and MIME pairs', async () => {
+    const repo = new MemoryProductRepository();
+    const useCase = new CreateProductUseCase(repo);
+    const images = [
+      {
+        url: 'http://localhost:8081/products/base.webm',
+        alt: 'Base video',
+        purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+        mimeType: 'video/webm',
+      },
+    ] satisfies Array<{
+      url: string;
+      alt: string;
+      purpose: ProductImagePurpose;
+      mimeType: string;
+    }>;
+
+    await expect(
+      useCase.execute({
+        sellerId: 'seller-1',
+        sellerName: 'Test Shop',
+        locale: 'es',
+        name: 'Producto',
+        description: 'Desc',
+        price: 19.99,
+        images,
+      }),
+    ).rejects.toThrow(/CUSTOMIZABLE_BASE/);
   });
 });
