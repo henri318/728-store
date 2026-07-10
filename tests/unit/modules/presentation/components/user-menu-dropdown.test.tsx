@@ -110,6 +110,23 @@ describe('UserMenuDropdown component', () => {
     expect(dashboardLink).toHaveAttribute('href', '/es/admin/sellers');
   });
 
+  it('shows Configuration menu item for ADMIN role', () => {
+    const adminUser = { ...mockUser, role: 'ADMIN' };
+    render(<UserMenuDropdown user={adminUser} />);
+
+    const trigger = screen.getByRole('button', { name: /menu/i });
+    fireEvent.click(trigger);
+
+    const configurationLink = screen.getByRole('menuitem', {
+      name: /configuración/i,
+    });
+    expect(configurationLink).toBeInTheDocument();
+    expect(configurationLink).toHaveAttribute(
+      'href',
+      '/es/admin/configuration',
+    );
+  });
+
   it('shows Designer Panel menu item for DESIGNER role', () => {
     const designerUser = { ...mockUser, role: 'DESIGNER' };
     render(<UserMenuDropdown user={designerUser} />);
@@ -137,6 +154,9 @@ describe('UserMenuDropdown component', () => {
     expect(
       screen.queryByRole('menuitem', { name: /panel de diseñador/i }),
     ).toBeNull();
+    expect(
+      screen.queryByRole('menuitem', { name: /configuración/i }),
+    ).toBeNull();
   });
 
   it('does not show role-specific items when role is undefined', () => {
@@ -150,6 +170,9 @@ describe('UserMenuDropdown component', () => {
     ).toBeNull();
     expect(
       screen.queryByRole('menuitem', { name: /panel de diseñador/i }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole('menuitem', { name: /configuración/i }),
     ).toBeNull();
   });
 });

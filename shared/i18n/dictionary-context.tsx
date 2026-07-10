@@ -64,6 +64,20 @@ export interface AdminDictionary {
   activateProduct: string;
   eliminateProduct: string;
   eliminateProductConfirm: string;
+  configuration: {
+    title: string;
+    description: string;
+    label: string;
+    placeholder: string;
+    addLabel: string;
+    emptyLabel: string;
+    delete: string;
+    createError: string;
+    deleteError: string;
+    validationError: string;
+    duplicateError: string;
+    inUseError: string;
+  };
   sellerDetail: SellerDetailDictionary;
 }
 

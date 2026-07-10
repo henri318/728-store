@@ -57,6 +57,7 @@ import type { CustomizationRepository } from '@/modules/customizations/domain/cu
 import type { SearchHistoryRepository } from '@/modules/search-history/domain/search-history-repository';
 import type { EmailUserLookupPort } from '@/modules/email/domain/ports/email-user-lookup-port';
 import type { EmailOrderLookupPort } from '@/modules/email/domain/ports/email-order-lookup-port';
+import type { CategoryRepository } from '@/modules/products/domain/category-repository';
 
 import { BrevoEmailSender } from '@/shared/kernel/brevo-email-sender';
 import { ConsoleEmailSender } from '@/modules/email/infrastructure/console-email-sender';
@@ -101,6 +102,7 @@ import { PrismaEmailUserLookup } from '@/modules/email/infrastructure/prisma-ema
 import { PrismaEmailOrderLookup } from '@/modules/email/infrastructure/prisma-email-order-lookup';
 import { EmailEventSubscribers } from '@/modules/email/application/email-event-subscribers';
 import { EmailQueueDrainService } from '@/modules/email/application/email-queue-drain-service';
+import { PrismaCategoryRepository } from '@/modules/products/infrastructure/prisma-category-repository';
 
 // ---------------------------------------------------------------------------
 // State
@@ -163,6 +165,7 @@ export function initContainer(): void {
   getCustomizationRepository();
   getCustomizationLookup();
   getSearchHistoryRepository();
+  getCategoryRepository();
   getResetTokenCodec();
 
   // --- Cart event subscriptions (idempotent for HMR) ---
@@ -426,6 +429,11 @@ export function getSearchHistoryRepository(): SearchHistoryRepository {
   return state.searchHistoryRepository as SearchHistoryRepository;
 }
 
+export function getCategoryRepository(): CategoryRepository {
+  state.categoryRepository ??= new PrismaCategoryRepository();
+  return state.categoryRepository as CategoryRepository;
+}
+
 // ---------------------------------------------------------------------------
 // Testing helpers
 // ---------------------------------------------------------------------------
@@ -471,6 +479,7 @@ export const container = {
   getCustomizationLookup,
   getCustomizationRepository,
   getSearchHistoryRepository,
+  getCategoryRepository,
   setEmailSender(sender: EmailSender): void {
     state.emailSender = sender;
   },
@@ -563,6 +572,9 @@ export const container = {
   },
   setSearchHistoryRepository(repo: SearchHistoryRepository): void {
     state.searchHistoryRepository = repo;
+  },
+  setCategoryRepository(repo: CategoryRepository): void {
+    state.categoryRepository = repo;
   },
   resetSearchHistoryEventSubscriptions(): void {
     state.isSearchHistoryEventsSubscribed = false;
