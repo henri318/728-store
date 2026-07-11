@@ -204,7 +204,7 @@ describe('Orders Module - Integration Tests', () => {
         orderIds.map((id) =>
           markAsPaidUseCase.execute({
             orderId: id,
-            paymentId: `pay-${id}`,
+            paymentId: `payment-${id}`,
             amount: 50,
           }),
         ),

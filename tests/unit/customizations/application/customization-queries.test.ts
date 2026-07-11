@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { GetCustomizationById } from '../get-customization-by-id';
-import { GetCustomizationByIds } from '../get-customization-by-ids';
-import type { CustomizationRepository } from '../../domain/customization-repository';
-import type { CustomizationEntity } from '../../domain/entities/customization';
+import { GetCustomizationById } from '@/modules/customizations/application/get-customization-by-id';
+import { GetCustomizationByIds } from '@/modules/customizations/application/get-customization-by-ids';
+import type { CustomizationRepository } from '@/modules/customizations/domain/customization-repository';
+import type { CustomizationEntity } from '@/modules/customizations/domain/entities/customization';
 
 /**
  * T09-T10 RED — Use case tests for GetById and GetByIds.

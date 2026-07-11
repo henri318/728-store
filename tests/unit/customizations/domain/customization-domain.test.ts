@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import type { CustomizationEntity } from '../entities/customization';
-import { CustomizationOptions } from '../value-objects/customization-options';
+import type { CustomizationEntity } from '@/modules/customizations/domain/entities/customization';
+import { CustomizationOptions } from '@/modules/customizations/domain/value-objects/customization-options';
 
 /**
  * T04 RED — Domain layer tests for CustomizationEntity + CustomizationOptions VO.

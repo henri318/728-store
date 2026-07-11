@@ -19,16 +19,7 @@ import type { TagEntity } from '@/modules/products/domain/entities/tag';
 import type { CategoryEntity } from '@/modules/products/domain/entities/category';
 import { ProductPrice } from '@/modules/products/domain/value-objects/product-price';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
-
-/**
- * PR3-02 — Product mapper pure functions.
- *
- * `toDomain*` converts Prisma rows into domain entities.
- * `toPersistence*` converts domain entities into Prisma create inputs.
- *
- * All functions are PURE — no I/O, no Prisma client dependency.
- * Round-trip tested: toPersistence(toDomain(row)) === row
- */
+import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
 
 // ─── Helper: create a mock Prisma product row ───
 function makePrismaProductRow(overrides: Record<string, unknown> = {}) {
@@ -635,8 +626,6 @@ describe('mapper — product round trip', () => {
     };
 
     const persistence = toPersistenceProduct(original);
-    // Note: round-trip for full product requires a Prisma row shape with nested relations
-    // We test the structural mapping of scalar fields
     expect(persistence.id).toBe(original.id);
     expect(persistence.basePrice).toBe(original.basePrice.amount);
     expect(persistence.sellerId).toBe(original.sellerId);
@@ -667,5 +656,68 @@ describe('mapper — product round trip', () => {
     const row = makePrismaProductRow({ categoryId: null });
     const domain = toDomainProduct(row);
     expect(domain.categoryId).toBeNull();
+  });
+});
+
+// ─── CustomizationConfig mapping ───
+describe('CustomizationConfig mapping', () => {
+  it('maps null config to the domain default', () => {
+    const product = toDomainProduct({
+      id: 'p-1',
+      basePrice: 19.99,
+      sellerId: 's-1',
+      seller: { name: 'Shop' },
+      status: 'ACTIVE',
+      categoryId: null,
+      category: null,
+      customizationConfig: null,
+      createdAt: new Date('2025-01-01T00:00:00Z'),
+      updatedAt: new Date('2025-01-02T00:00:00Z'),
+      translations: [],
+      images: [],
+      tags: [],
+    });
+
+    expect(product.customizationConfig?.mode).toBe('description');
+    expect(product.customizationConfig?.previewEnabled).toBe(false);
+  });
+
+  it('round-trips a custom config through persistence mapping', () => {
+    const config = ProductCustomizationConfig.fromJson({
+      mode: 'photo',
+      previewEnabled: true,
+      previewTemplateUrl: 'https://cdn.example.com/base.png',
+      textOffset: null,
+      imageOffset: { x: 1, y: 2 },
+    });
+
+    const persistence = toPersistenceProduct({
+      id: 'p-1',
+      basePrice: {
+        amount: 19.99,
+        currency: 'EUR',
+      } as never,
+      sellerId: 's-1',
+      sellerName: 'Shop',
+      status: 'ACTIVE' as never,
+      categoryId: null,
+      category: null,
+      customizationConfig: config,
+      createdAt: new Date('2025-01-01T00:00:00Z'),
+      updatedAt: new Date('2025-01-02T00:00:00Z'),
+      translations: [],
+      images: [],
+      tags: [],
+    });
+
+    expect(persistence.customizationConfig).toEqual(
+      expect.objectContaining({
+        mode: 'photo',
+        previewEnabled: true,
+        previewTemplateUrl: 'https://cdn.example.com/base.png',
+        textOffset: null,
+        imageOffset: { x: 1, y: 2 },
+      }),
+    );
   });
 });

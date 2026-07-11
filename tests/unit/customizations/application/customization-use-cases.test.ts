@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { CreateCustomization } from '../create-customization';
-import type { ProductExistsPort } from '../create-customization';
-import { UpdateCustomization } from '../update-customization';
-import type { ProductOwnershipPort } from '../update-customization';
-import { DeleteCustomization } from '../delete-customization';
-import type { ProductOwnershipPort as DeleteOwnershipPort } from '../delete-customization';
-import type { CustomizationRepository } from '../../domain/customization-repository';
-import type { CustomizationEntity } from '../../domain/entities/customization';
-import { CustomizationForbiddenError } from '../../domain/errors';
-import { CustomizationInUseError } from '../../domain/errors';
+import { CreateCustomization } from '@/modules/customizations/application/create-customization';
+import type { ProductExistsPort } from '@/modules/customizations/application/create-customization';
+import { UpdateCustomization } from '@/modules/customizations/application/update-customization';
+import type { ProductOwnershipPort } from '@/modules/customizations/application/update-customization';
+import { DeleteCustomization } from '@/modules/customizations/application/delete-customization';
+import type { ProductOwnershipPort as DeleteOwnershipPort } from '@/modules/customizations/application/delete-customization';
+import type { CustomizationRepository } from '@/modules/customizations/domain/customization-repository';
+import type { CustomizationEntity } from '@/modules/customizations/domain/entities/customization';
+import { CustomizationForbiddenError } from '@/modules/customizations/domain/errors';
+import { CustomizationInUseError } from '@/modules/customizations/domain/errors';
 
 /**
  * T08 RED — Use case tests for Create/Update/Delete Customization.
