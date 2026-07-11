@@ -23,4 +23,13 @@ describe('resolveCategoryDisplay', () => {
     ).toBe('Electrònica');
     expect(resolveCategoryDisplay([], 'es')).toBeNull();
   });
+
+  it('ignores rows with unsupported locales during lookup and fallback', () => {
+    const invalid = { locale: 'en', name: 'Electronics' };
+
+    expect(resolveCategoryDisplay([invalid, translations[0]], 'en')).toEqual(
+      translations[0],
+    );
+    expect(resolveCategoryDisplay([invalid], 'cat')).toBeNull();
+  });
 });

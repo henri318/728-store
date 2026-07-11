@@ -146,6 +146,7 @@ export function ConfigurationForm({
 
       setCategories(nextCategories);
       router.refresh();
+      setNamesByLocale({ es: '', cat: '' });
     } catch {
       synchronizePartialResult();
       setError(dict.common.genericError);

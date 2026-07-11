@@ -17,7 +17,6 @@ async function main() {
 
   // 1. Clear existing data
   await prisma.productTranslation.deleteMany();
-  await prisma.categoryTranslation.deleteMany();
   await prisma.customization.deleteMany();
   await prisma.signupAttempt.deleteMany();
   await prisma.loginAttempt.deleteMany();
@@ -26,6 +25,7 @@ async function main() {
   await prisma.outboxEvent.deleteMany();
   await prisma.emailQueue.deleteMany();
   await prisma.product.deleteMany();
+  await prisma.category.deleteMany();
   await prisma.seller.deleteMany();
   await prisma.user.deleteMany();
   await prisma.role.deleteMany();

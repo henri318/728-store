@@ -5,16 +5,25 @@ export interface CategoryTranslationEntity {
   readonly name: string;
 }
 
+function isCategoryLocale(locale: string): locale is CategoryLocale {
+  return locale === 'es' || locale === 'cat';
+}
+
 export function resolveCategoryDisplay(
   translations: readonly { locale: string; name: string }[],
   locale: string,
 ): CategoryTranslationEntity | null {
+  const validTranslations = translations.filter(
+    (translation): translation is CategoryTranslationEntity =>
+      isCategoryLocale(translation.locale),
+  );
+
   return (
-    (translations.find((translation) => translation.locale === locale) as
-      CategoryTranslationEntity | undefined) ??
-    (translations.find((translation) => translation.locale === 'es') as
-      CategoryTranslationEntity | undefined) ??
-    (translations[0] as CategoryTranslationEntity | undefined) ??
+    (isCategoryLocale(locale)
+      ? validTranslations.find((translation) => translation.locale === locale)
+      : undefined) ??
+    validTranslations.find((translation) => translation.locale === 'es') ??
+    validTranslations[0] ??
     null
   );
 }

@@ -9,7 +9,9 @@ const store = vi.hoisted(() => {
       findUnique: vi.fn(
         async ({ where }: { where: { id?: string; slug?: string } }) =>
           categories.find(
-            (category) => category.id === (where.id ?? where.slug),
+            (category) =>
+              (where.id !== undefined && category.id === where.id) ||
+              (where.slug !== undefined && category.slug === where.slug),
           ) ?? null,
       ),
       create: vi.fn(async ({ data }: { data: Record<string, unknown> }) => {
@@ -64,6 +66,29 @@ describe('PrismaCategoryRepository', () => {
       );
     },
   );
+
+  it('selects findUnique rows by id or slug and returns null when unmatched', async () => {
+    const repo = new PrismaCategoryRepository();
+    await repo.save({
+      id: 'cat-1',
+      slug: 'clothing',
+      parentId: null,
+      createdAt: new Date(),
+      translations: [
+        { locale: 'es', name: 'Ropa' },
+        { locale: 'cat', name: 'Roba' },
+      ],
+    });
+
+    await expect(repo.findById('cat-1')).resolves.toMatchObject({
+      id: 'cat-1',
+    });
+    await expect(repo.findBySlug('clothing')).resolves.toMatchObject({
+      slug: 'clothing',
+    });
+    await expect(repo.findById('missing')).resolves.toBeNull();
+    await expect(repo.findBySlug('missing')).resolves.toBeNull();
+  });
 
   it('creates only translation-backed rows and maps both labels', async () => {
     const repo = new PrismaCategoryRepository();

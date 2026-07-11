@@ -115,6 +115,9 @@ describe('AdminConfigurationPage', () => {
         expect.objectContaining({ body: expect.stringContaining('nameEs') }),
       ),
     );
+    expect(screen.getByRole('textbox')).toHaveValue('');
+    fireEvent.click(screen.getByRole('tab', { name: 'Spanish' }));
+    expect(screen.getByRole('textbox')).toHaveValue('');
   });
 
   it('rejects a submission when only one locale is filled', async () => {
