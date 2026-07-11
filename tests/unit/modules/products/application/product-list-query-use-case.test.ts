@@ -173,17 +173,23 @@ describe('ProductListQueryUseCase', () => {
     repo.seedCategories([
       {
         id: 'cat-1',
-        name: 'Ropa',
         slug: 'clothing',
         parentId: null,
         createdAt: new Date(),
+        translations: [
+          { locale: 'es', name: 'Ropa' },
+          { locale: 'cat', name: 'Roba' },
+        ],
       },
       {
         id: 'cat-2',
-        name: 'Zapatos',
         slug: 'shoes',
         parentId: null,
         createdAt: new Date(),
+        translations: [
+          { locale: 'es', name: 'Zapatos' },
+          { locale: 'cat', name: 'Sabates' },
+        ],
       },
     ]);
     repo.seed([
@@ -278,10 +284,13 @@ describe('ProductListQueryUseCase', () => {
     repo.seedCategories([
       {
         id: 'cat-1',
-        name: 'Ropa',
         slug: 'clothing',
         parentId: null,
         createdAt: new Date(),
+        translations: [
+          { locale: 'es', name: 'Ropa' },
+          { locale: 'cat', name: 'Roba' },
+        ],
       },
     ]);
     repo.seed([

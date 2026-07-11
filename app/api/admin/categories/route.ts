@@ -6,12 +6,14 @@ import { createCategorySchema } from '@/modules/products/presentation/schemas/ca
 import { ListCategoriesUseCase } from '@/modules/products/application/list-categories-use-case';
 import { CreateCategoryUseCase } from '@/modules/products/application/create-category-use-case';
 
-export const GET = requireRole('ADMIN')(async function GET() {
+export const GET = requireRole('ADMIN')(async function GET(req: NextRequest) {
   try {
     const useCase = new ListCategoriesUseCase(
       container.getCategoryRepository(),
     );
-    const items = await useCase.execute();
+    const locale =
+      req.nextUrl.searchParams.get('locale') === 'cat' ? 'cat' : 'es';
+    const items = await useCase.execute(locale);
 
     return NextResponse.json({ items }, { status: 200 });
   } catch (error: unknown) {
@@ -21,11 +23,12 @@ export const GET = requireRole('ADMIN')(async function GET() {
 
 export const POST = requireRole('ADMIN')(async function POST(req: NextRequest) {
   try {
-    const body = createCategorySchema.parse(await req.json());
+    const rawBody = await req.json();
+    const body = createCategorySchema.parse(rawBody);
     const useCase = new CreateCategoryUseCase(
       container.getCategoryRepository(),
     );
-    const category = await useCase.execute({ name: body.name });
+    const category = await useCase.execute(body);
 
     return NextResponse.json(category, { status: 201 });
   } catch (error: unknown) {

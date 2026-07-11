@@ -57,10 +57,15 @@ export interface PrismaTagRow {
 
 export interface PrismaCategoryRow {
   id: string;
-  name: string;
   slug: string;
   parentId: string | null;
   createdAt: Date;
+  translations?: PrismaCategoryTranslationRow[];
+}
+
+export interface PrismaCategoryTranslationRow {
+  locale: string;
+  name: string;
 }
 
 /** Shape of a Prisma `Product` create input. */
@@ -128,9 +133,10 @@ export interface PrismaTagCreateInput {
 /** Shape of a Prisma `Category` create input. */
 export interface PrismaCategoryCreateInput {
   id: string;
-  name: string;
   slug: string;
   parentId: string | null;
+  createdAt: Date;
+  translations: { create: Array<{ locale: string; name: string }> };
 }
 
 /**
@@ -243,10 +249,13 @@ export function toDomainCategory(
 ): CategoryEntity {
   return {
     id: prismaCategory.id,
-    name: prismaCategory.name,
     slug: prismaCategory.slug,
     parentId: prismaCategory.parentId,
     createdAt: prismaCategory.createdAt,
+    translations: (prismaCategory.translations ?? []).map((translation) => ({
+      locale: translation.locale as 'es' | 'cat',
+      name: translation.name,
+    })),
   };
 }
 
@@ -305,10 +314,16 @@ export function toPersistenceTag(tag: TagEntity): PrismaTagCreateInput {
 export function toPersistenceCategory(
   category: CategoryEntity,
 ): PrismaCategoryCreateInput {
-  return {
+  const persistence: PrismaCategoryCreateInput = {
     id: category.id,
-    name: category.name,
     slug: category.slug,
     parentId: category.parentId,
+    createdAt: category.createdAt,
+    translations: {
+      create: (category.translations ?? []).map((translation) => ({
+        ...translation,
+      })),
+    },
   };
+  return persistence;
 }

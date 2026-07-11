@@ -42,10 +42,13 @@ function makePrismaProductRow(overrides: Record<string, unknown> = {}) {
     categoryId: 'cat-1',
     category: {
       id: 'cat-1',
-      name: 'Clothing',
       slug: 'clothing',
       parentId: null,
       createdAt: new Date('2025-01-01T10:00:00Z'),
+      translations: [
+        { locale: 'es', name: 'Ropa' },
+        { locale: 'cat', name: 'Roba' },
+      ],
     },
     createdAt: new Date('2025-01-01T10:00:00Z'),
     updatedAt: new Date('2025-01-02T10:00:00Z'),
@@ -93,7 +96,10 @@ describe('mapper.toDomainProduct', () => {
     expect(result.category).not.toBeNull();
     expect(result.category?.id).toBe('cat-1');
     expect(result.category?.slug).toBe('clothing');
-    expect(result.category?.name).toBe('Clothing');
+    expect(result.category?.translations).toEqual([
+      { locale: 'es', name: 'Ropa' },
+      { locale: 'cat', name: 'Roba' },
+    ]);
     expect(result.updatedAt).toEqual(new Date('2025-01-02T10:00:00Z'));
     expect(result.translations).toHaveLength(1);
     expect(result.translations[0].locale).toBe('es');
@@ -261,10 +267,13 @@ describe('mapper.toPersistenceProduct', () => {
       categoryId: 'cat-1',
       category: {
         id: 'cat-1',
-        name: 'Clothing',
         slug: 'clothing',
         parentId: null,
         createdAt: new Date('2025-01-01T10:00:00Z'),
+        translations: [
+          { locale: 'es', name: 'Ropa' },
+          { locale: 'cat', name: 'Roba' },
+        ],
       },
       createdAt: new Date('2025-01-01T10:00:00Z'),
       updatedAt: new Date('2025-01-02T10:00:00Z'),
@@ -509,16 +518,22 @@ describe('mapper.toDomainCategory', () => {
   it('should map a Prisma Category row to a CategoryEntity', () => {
     const row = {
       id: 'cat-1',
-      name: 'Clothing',
       slug: 'clothing',
       parentId: null,
       createdAt: new Date('2025-01-01T10:00:00Z'),
+      translations: [
+        { locale: 'es', name: 'Ropa' },
+        { locale: 'cat', name: 'Roba' },
+      ],
     };
 
     const result = toDomainCategory(row);
 
     expect(result.id).toBe('cat-1');
-    expect(result.name).toBe('Clothing');
+    expect(result.translations).toEqual([
+      { locale: 'es', name: 'Ropa' },
+      { locale: 'cat', name: 'Roba' },
+    ]);
     expect(result.slug).toBe('clothing');
     expect(result.parentId).toBeNull();
     expect(result.createdAt).toBeInstanceOf(Date);
@@ -527,7 +542,6 @@ describe('mapper.toDomainCategory', () => {
   it('should handle parentId when present', () => {
     const row = {
       id: 'cat-2',
-      name: 'T-Shirts',
       slug: 't-shirts',
       parentId: 'cat-1',
       createdAt: new Date('2025-01-01'),
@@ -541,7 +555,6 @@ describe('mapper.toDomainCategory', () => {
   it('round trip: toDomainCategory should preserve all fields', () => {
     const row = {
       id: 'cat-rt',
-      name: 'Shoes',
       slug: 'shoes',
       parentId: 'cat-parent',
       createdAt: new Date('2025-06-15T12:00:00Z'),
@@ -550,7 +563,7 @@ describe('mapper.toDomainCategory', () => {
     const domain = toDomainCategory(row);
 
     expect(domain.id).toBe(row.id);
-    expect(domain.name).toBe(row.name);
+    expect(domain.translations).toEqual([]);
     expect(domain.slug).toBe(row.slug);
     expect(domain.parentId).toBe(row.parentId);
     expect(domain.createdAt).toBe(row.createdAt);
@@ -559,15 +572,18 @@ describe('mapper.toDomainCategory', () => {
   it('round trip: toPersistenceCategory then toDomainCategory should preserve all fields', () => {
     const original: CategoryEntity = {
       id: 'cat-rt2',
-      name: 'Accessories',
       slug: 'accessories',
       parentId: 'cat-parent2',
       createdAt: new Date('2025-06-15T12:00:00Z'),
+      translations: [
+        { locale: 'es', name: 'Accesorios' },
+        { locale: 'cat', name: 'Accessoris' },
+      ],
     };
 
     const persistence = toPersistenceCategory(original);
     expect(persistence.id).toBe(original.id);
-    expect(persistence.name).toBe(original.name);
+    expect(persistence.translations).toEqual({ create: original.translations });
     expect(persistence.slug).toBe(original.slug);
     expect(persistence.parentId).toBe(original.parentId);
   });
@@ -585,10 +601,10 @@ describe('mapper — product round trip', () => {
       categoryId: 'cat-rt',
       category: {
         id: 'cat-rt',
-        name: 'RT Category',
         slug: 'rt-category',
         parentId: null,
         createdAt: new Date('2025-01-01T10:00:00Z'),
+        translations: [{ locale: 'es', name: 'Categoría RT' }],
       },
       createdAt: new Date('2025-01-01T10:00:00Z'),
       updatedAt: new Date('2025-01-02T10:00:00Z'),

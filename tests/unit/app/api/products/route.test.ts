@@ -149,10 +149,13 @@ describe('GET /api/products', () => {
     repo.seedCategories([
       {
         id: 'cat-1',
-        name: 'Ropa',
         slug: 'clothing',
         parentId: null,
         createdAt: new Date(),
+        translations: [
+          { locale: 'es', name: 'Ropa' },
+          { locale: 'cat', name: 'Roba' },
+        ],
       },
     ]);
     repo.seed([
@@ -300,10 +303,13 @@ describe('GET /api/products', () => {
     repo.seedCategories([
       {
         id: 'cat-1',
-        name: 'Ropa',
         slug: 'clothing',
         parentId: null,
         createdAt: new Date(),
+        translations: [
+          { locale: 'es', name: 'Ropa' },
+          { locale: 'cat', name: 'Roba' },
+        ],
       },
     ]);
     repo.seed([

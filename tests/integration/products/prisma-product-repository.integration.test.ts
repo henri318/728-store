@@ -245,24 +245,42 @@ describe('PrismaProductRepository — Integration', () => {
         update: {},
       });
 
+      await prisma.categoryTranslation.deleteMany({
+        where: {
+          categoryId: { in: ['cat-pag-clothing', 'cat-pag-shoes'] },
+        },
+      });
+
       await prisma.category.upsert({
         where: { id: 'cat-pag-clothing' },
         create: {
           id: 'cat-pag-clothing',
-          name: 'Clothing',
           slug: 'clothing',
+          translations: {
+            create: [{ locale: 'es', name: 'Ropa' }],
+          },
         },
-        update: {},
+        update: {
+          translations: {
+            create: [{ locale: 'es', name: 'Ropa' }],
+          },
+        },
       });
 
       await prisma.category.upsert({
         where: { id: 'cat-pag-shoes' },
         create: {
           id: 'cat-pag-shoes',
-          name: 'Shoes',
           slug: 'shoes',
+          translations: {
+            create: [{ locale: 'es', name: 'Zapatos' }],
+          },
         },
-        update: {},
+        update: {
+          translations: {
+            create: [{ locale: 'es', name: 'Zapatos' }],
+          },
+        },
       });
 
       await prisma.tag.upsert({
@@ -464,6 +482,9 @@ describe('PrismaProductRepository — Integration', () => {
       expect(result.items[0].category).not.toBeNull();
       expect(result.items[0].category?.id).toBe('cat-pag-clothing');
       expect(result.items[0].category?.slug).toBe('clothing');
+      expect(result.items[0].category?.translations).toEqual([
+        { locale: 'es', name: 'Ropa' },
+      ]);
       expect(result.items[0].tags.length).toBeGreaterThan(0);
       expect(result.items[0].translations.length).toBeGreaterThan(0);
     });

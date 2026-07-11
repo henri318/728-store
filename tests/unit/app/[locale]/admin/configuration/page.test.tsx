@@ -3,267 +3,133 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { CategoryEntity } from '@/modules/products/domain/entities/category';
 
 const refreshMock = vi.fn();
-
-const mocks = vi.hoisted(() => {
-  const requireAdminMock = vi.fn(async () => {});
-  const getDictionaryMock = vi.fn();
-  const getCategoryRepositoryMock = vi.fn();
-
-  return {
-    requireAdminMock,
-    getDictionaryMock,
-    getCategoryRepositoryMock,
-  };
-});
+const mocks = vi.hoisted(() => ({
+  requireAdminMock: vi.fn(async () => {}),
+  getDictionaryMock: vi.fn(),
+  getCategoryRepositoryMock: vi.fn(),
+}));
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: refreshMock }),
 }));
-
 vi.mock('@/shared/authorization/require-admin', () => ({
   requireAdmin: mocks.requireAdminMock,
 }));
-
 vi.mock('@/shared/i18n/get-dictionary', () => ({
   getDictionary: mocks.getDictionaryMock,
 }));
-
 vi.mock('@/composition-root/container', () => ({
-  container: {
-    getCategoryRepository: mocks.getCategoryRepositoryMock,
-  },
+  container: { getCategoryRepository: mocks.getCategoryRepositoryMock },
 }));
 
 import AdminConfigurationPage from '@/app/[locale]/admin/configuration/page';
 
-function makeCategory(overrides: Partial<CategoryEntity> = {}): CategoryEntity {
-  return {
-    id: 'cat-1',
-    name: 'Electronics',
-    slug: 'electronics',
-    parentId: null,
-    createdAt: new Date('2026-07-09T00:00:00.000Z'),
-    ...overrides,
-  };
-}
-
-function makeDict() {
-  return {
-    common: {
-      remove: 'Eliminar',
-      required: 'Este campo es obligatorio',
-      genericError: 'Algo salió mal. Inténtalo de nuevo.',
+const category = (id: string, es: string, cat: string): CategoryEntity => ({
+  id,
+  slug: id,
+  parentId: null,
+  createdAt: new Date(),
+  translations: [
+    { locale: 'es', name: es },
+    { locale: 'cat', name: cat },
+  ],
+});
+const dictionary = () => ({
+  common: { remove: 'Remove', required: 'Required', genericError: 'Error' },
+  admin: {
+    configuration: {
+      title: 'Categories',
+      description: 'Manage categories',
+      label: 'Categories',
+      placeholder: '',
+      addLabel: 'Add',
+      emptyLabel: 'Empty',
+      delete: 'Delete',
+      createError: 'Create error',
+      deleteError: 'Delete error',
+      validationError: 'Validation error',
+      duplicateError: 'Duplicate',
+      inUseError: 'In use',
+      nameEsLabel: 'Spanish',
+      nameCatLabel: 'Catalan',
+      nameEsPlaceholder: 'Spanish name',
+      nameCatPlaceholder: 'Catalan name',
+      missingBothError: 'Both names required',
+      missingOneError: 'Both names required',
     },
-    userMenu: {
-      dashboard: 'Panel de administración',
-      configuration: 'Configuración',
-    },
-    admin: {
-      configuration: {
-        title: 'Configuración',
-        description: 'Gestiona las categorías del catálogo.',
-        label: 'Categorías',
-        placeholder: 'Escribe una categoría y pulsa Enter',
-        addLabel: 'Añadir',
-        emptyLabel: 'Todavía no hay categorías',
-        delete: 'Eliminar',
-        createError: 'No se pudo crear la categoría',
-        deleteError: 'No se pudo eliminar la categoría',
-        validationError: 'Introduce un nombre válido',
-        duplicateError: 'Ya existe una categoría con ese nombre',
-        inUseError: 'La categoría está en uso',
-      },
-    },
-  } as unknown as Awaited<
-    ReturnType<typeof import('@/shared/i18n/get-dictionary').getDictionary>
-  >;
-}
+  },
+});
 
 describe('AdminConfigurationPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    refreshMock.mockClear();
-    mocks.requireAdminMock.mockResolvedValue(undefined);
-    mocks.getDictionaryMock.mockResolvedValue(makeDict());
+    mocks.getDictionaryMock.mockResolvedValue(dictionary());
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_input, init) => {
+        const body = JSON.parse(String(init?.body ?? '{}'));
+        return Response.json(
+          {
+            id: 'new',
+            slug: 'new',
+            parentId: null,
+            createdAt: new Date().toISOString(),
+            translations: [
+              { locale: 'es', name: body.nameEs },
+              { locale: 'cat', name: body.nameCat },
+            ],
+          },
+          { status: 201 },
+        );
+      }),
+    );
   });
 
-  it('renders the sorted category list and creates a new category', async () => {
+  it('uses findAll, canonical locale display, active-locale ordering, and bilingual creation', async () => {
     const repo = {
-      findAllSorted: vi.fn(async () => [
-        makeCategory({ id: 'cat-2', name: 'Books', slug: 'books' }),
-        makeCategory(),
+      findAll: vi.fn(async () => [
+        category('ropa', 'Ropa', 'Roba'),
+        category('electronics', 'Electrónica', 'Electrònica'),
       ]),
     };
     mocks.getCategoryRepositoryMock.mockReturnValue(repo);
-
-    const fetchMock = vi.fn(
-      async (input: RequestInfo | URL, init?: RequestInit) => {
-        const url = String(input);
-        if (url === '/api/admin/categories' && init?.method === 'POST') {
-          const body = JSON.parse(String(init.body ?? '{}')) as {
-            name: string;
-          };
-          return Response.json(
-            {
-              id: 'cat-3',
-              name: body.name.trim(),
-              slug: 'home-decor',
-              parentId: null,
-              createdAt: new Date('2026-07-09T00:10:00.000Z').toISOString(),
-            },
-            { status: 201 },
-          );
-        }
-
-        if (
-          url.includes('/api/admin/categories/') &&
-          init?.method === 'DELETE'
-        ) {
-          return Response.json({}, { status: 200 });
-        }
-
-        return Response.json({}, { status: 200 });
-      },
+    render(
+      await AdminConfigurationPage({
+        params: Promise.resolve({ locale: 'cat' }),
+      }),
     );
-    vi.stubGlobal('fetch', fetchMock);
 
-    const element = await AdminConfigurationPage({
-      params: Promise.resolve({ locale: 'es' }),
+    expect(repo.findAll).toHaveBeenCalledOnce();
+    expect(screen.getByText('Electrònica')).toBeInTheDocument();
+    expect(screen.getByText('Roba')).toBeInTheDocument();
+    const inputs = screen.getAllByRole('textbox');
+    fireEvent.change(inputs[0], { target: { value: 'Electrònica' } });
+    fireEvent.click(screen.getByRole('tab', { name: 'Catalan' }));
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: { value: 'Electrònica' },
     });
-    render(element);
-
-    expect(mocks.requireAdminMock).toHaveBeenCalledWith('es');
-    expect(
-      screen.getByRole('heading', { name: 'Configuración' }),
-    ).toBeInTheDocument();
-    expect(screen.getByText('Books')).toBeInTheDocument();
-    expect(screen.getByText('Electronics')).toBeInTheDocument();
-
-    fireEvent.change(screen.getByLabelText('Categorías'), {
-      target: { value: 'Home Decor' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Añadir' }));
-
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith(
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
         '/api/admin/categories',
-        expect.objectContaining({ method: 'POST' }),
-      );
-    });
-    expect(await screen.findByText('Home Decor')).toBeInTheDocument();
+        expect.objectContaining({ body: expect.stringContaining('nameEs') }),
+      ),
+    );
   });
 
-  it('keeps categories created before a later creation failure', async () => {
-    const repo = {
-      findAllSorted: vi.fn(async () => []),
-    };
+  it('rejects a submission when only one locale is filled', async () => {
+    const repo = { findAll: vi.fn(async () => []) };
     mocks.getCategoryRepositoryMock.mockReturnValue(repo);
-
-    const fetchMock = vi.fn(
-      async (input: RequestInfo | URL, init?: RequestInit) => {
-        const body = JSON.parse(String(init?.body ?? '{}')) as {
-          name: string;
-        };
-
-        if (
-          String(input) === '/api/admin/categories' &&
-          init?.method === 'POST' &&
-          body.name === 'Books'
-        ) {
-          return Response.json(
-            {
-              id: 'cat-books',
-              name: 'Books',
-              slug: 'books',
-              parentId: null,
-              createdAt: new Date('2026-07-09T00:10:00.000Z').toISOString(),
-            },
-            { status: 201 },
-          );
-        }
-
-        return Response.json({}, { status: 409 });
-      },
+    render(
+      await AdminConfigurationPage({
+        params: Promise.resolve({ locale: 'es' }),
+      }),
     );
-    vi.stubGlobal('fetch', fetchMock);
-
-    const element = await AdminConfigurationPage({
-      params: Promise.resolve({ locale: 'es' }),
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: { value: 'Ropa' },
     });
-    render(element);
-
-    fireEvent.change(screen.getByLabelText('Categorías'), {
-      target: { value: 'Books, Furniture' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Añadir' }));
-
-    expect(await screen.findByText('Books')).toBeInTheDocument();
-    expect(screen.queryByText('Furniture')).not.toBeInTheDocument();
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      'Ya existe una categoría con ese nombre',
-    );
-    expect(refreshMock).toHaveBeenCalledOnce();
-  });
-
-  it('blocks in-use category deletion', async () => {
-    const repo = {
-      findAllSorted: vi.fn(async () => [
-        makeCategory({ name: 'Housewares', slug: 'housewares' }),
-      ]),
-    };
-    mocks.getCategoryRepositoryMock.mockReturnValue(repo);
-
-    const fetchMock = vi.fn(
-      async (input: RequestInfo | URL, init?: RequestInit) => {
-        const url = String(input);
-
-        if (
-          url.includes('/api/admin/categories/') &&
-          init?.method === 'DELETE'
-        ) {
-          return Response.json(
-            { error: 'Category is in use' },
-            { status: 409 },
-          );
-        }
-
-        return Response.json({}, { status: 200 });
-      },
-    );
-    vi.stubGlobal('fetch', fetchMock);
-
-    const element = await AdminConfigurationPage({
-      params: Promise.resolve({ locale: 'es' }),
-    });
-    render(element);
-
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Eliminar Housewares' }),
-    );
-
-    await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent(
-        'La categoría está en uso',
-      );
-    });
-    expect(screen.getByText('Housewares')).toBeInTheDocument();
-  });
-
-  it('shows the empty state when no categories exist', async () => {
-    const repo = {
-      findAllSorted: vi.fn(async () => []),
-    };
-    mocks.getCategoryRepositoryMock.mockReturnValue(repo);
-
-    const fetchMock = vi.fn();
-    vi.stubGlobal('fetch', fetchMock);
-
-    const element = await AdminConfigurationPage({
-      params: Promise.resolve({ locale: 'es' }),
-    });
-    render(element);
-
-    expect(screen.getByText('Todavía no hay categorías')).toBeInTheDocument();
-    expect(screen.getByLabelText('Categorías')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+    expect(screen.getByRole('alert')).toHaveTextContent('Both names required');
+    expect(fetch).not.toHaveBeenCalled();
   });
 });

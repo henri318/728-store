@@ -385,7 +385,13 @@
       "deleteError": "No s'ha pogut eliminar la categoria",
       "validationError": "Introdueix un nom vàlid",
       "duplicateError": "Ja existeix una categoria amb aquest nom",
-      "inUseError": "La categoria està en ús"
+      "inUseError": "La categoria està en ús",
+      "nameEsLabel": "Nom en espanyol",
+      "nameCatLabel": "Nom en català",
+      "nameEsPlaceholder": "Ex. Electrónica",
+      "nameCatPlaceholder": "Ex. Electrònica",
+      "missingBothError": "Completa els noms en espanyol i català",
+      "missingOneError": "Completa els dos noms abans de crear la categoria"
     },
     "sellerDetail": {
       "editTitle": "Editar venedor",

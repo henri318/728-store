@@ -172,7 +172,7 @@ describe('PrismaProductRepository', () => {
     expect(mocks.prismaMock.product.findMany).toHaveBeenCalledWith({
       include: {
         seller: true,
-        category: true,
+        category: { include: { translations: true } },
         translations: true,
         images: {
           orderBy: [{ purpose: 'asc' }, { position: 'asc' }],
