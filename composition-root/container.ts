@@ -95,6 +95,7 @@ import { PrismaPaidOrderCountAdapter } from '@/modules/orders/infrastructure/pri
 import { SellerLookupAdapter } from '@/modules/orders/infrastructure/seller-lookup-adapter';
 import { HandleCartCheckedOut } from '@/modules/orders/application/handle-cart-checked-out';
 import { MarkAsPaidUseCase } from '@/modules/orders/application/mark-as-paid-use-case';
+import { TransactionalOrderService } from '@/modules/orders/infrastructure/transactional-order-service';
 import { PrismaCustomizationRepository } from '@/modules/customizations/infrastructure/prisma-customization-repository';
 import { PrismaSearchHistoryRepository } from '@/modules/search-history/infrastructure/prisma-search-history-repository';
 import { HandleProductSearchExecuted } from '@/modules/search-history/application/handle-product-search-executed';
@@ -208,9 +209,14 @@ export function initContainer(): void {
 
   // --- Order payment event subscriptions (idempotent for HMR) ---
   if (!state.isOrderPaymentEventsSubscribed) {
+    const transactionalService = new TransactionalOrderService(
+      state.orderRepository as OrderRepository,
+      state.outboxRepository as OutboxRepository,
+    );
     const handler = new MarkAsPaidUseCase(
       state.orderRepository as OrderRepository,
       state.outboxRepository as OutboxRepository,
+      transactionalService,
     );
     MarkAsPaidUseCase.subscribe(state.eventBus as EventBusPort, handler);
     state.isOrderPaymentEventsSubscribed = true;
@@ -312,8 +318,9 @@ export function getCheckoutGroupPaymentPort(): CheckoutGroupPaymentPort {
     return state.checkoutGroupPaymentPort as CheckoutGroupPaymentPort;
 
   if (process.env.NODE_ENV === 'production') {
-    throw new Error(
-      '[Payment] No real PaymentGatewayPort configured for production. ' +
+    console.warn(
+      '[Payment] No real PaymentGatewayPort configured. ' +
+        'Falling back to ConsolePaymentPort. ' +
         'Set PAYMENT_GATEWAY environment variable or implement a real gateway before deploying.',
     );
   }

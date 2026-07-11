@@ -467,8 +467,14 @@ describe('GET /api/products', () => {
   it('audience=seller (authenticated default) keeps pageSize at 20 and shows all statuses', async () => {
     const repo = new MemoryProductRepository();
     repo.seed([
-      makeProduct('active-1', { status: ProductStatus.ACTIVE }),
-      makeProduct('draft-1', { status: ProductStatus.DRAFT }),
+      makeProduct('active-1', {
+        status: ProductStatus.ACTIVE,
+        sellerId: 'seller-1',
+      }),
+      makeProduct('draft-1', {
+        status: ProductStatus.DRAFT,
+        sellerId: 'seller-1',
+      }),
     ]);
     mocks.getProductRepositoryMock.mockReturnValue(repo);
     mocks.getSessionMock.mockResolvedValue({ id: 'user-1' });
@@ -477,7 +483,10 @@ describe('GET /api/products', () => {
       role: 'DESIGNER',
     });
     mocks.getSellerRepositoryMock.mockReturnValue({
-      findByUserId: vi.fn().mockResolvedValue(null),
+      findByUserId: vi.fn().mockResolvedValue({
+        sellerId: { value: 'seller-1' },
+        name: 'Test Shop',
+      }),
     });
 
     const res = await GET(makeGetRequest('http://localhost:3000/api/products'));
@@ -586,7 +595,7 @@ describe('GET /api/products', () => {
 
   it('audience=seller + non-empty q does NOT emit', async () => {
     const repo = new MemoryProductRepository();
-    repo.seed([makeProduct('p1')]);
+    repo.seed([makeProduct('p1', { sellerId: 'seller-1' })]);
     mocks.getProductRepositoryMock.mockReturnValue(repo);
     mocks.getSessionMock.mockResolvedValue({ id: 'user-1' });
     mocks.getUserLookupMock.mockResolvedValue({
@@ -594,7 +603,10 @@ describe('GET /api/products', () => {
       role: 'DESIGNER',
     });
     mocks.getSellerRepositoryMock.mockReturnValue({
-      findByUserId: vi.fn().mockResolvedValue(null),
+      findByUserId: vi.fn().mockResolvedValue({
+        sellerId: { value: 'seller-1' },
+        name: 'Test Shop',
+      }),
     });
 
     const res = await GET(
@@ -803,7 +815,7 @@ describe('GET /api/products', () => {
     expect(body.pageSize).toBe(10);
   });
 
-  it('DESIGNER without linked seller gets seller audience with no sellerId filter', async () => {
+  it('DESIGNER without linked seller gets 403', async () => {
     const repo = new MemoryProductRepository();
     repo.seed([
       makeProduct('p1', { status: ProductStatus.ACTIVE }),
@@ -821,10 +833,9 @@ describe('GET /api/products', () => {
 
     const res = await GET(makeGetRequest('http://localhost:3000/api/products'));
 
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(403);
     const body = await res.json();
-    // DESIGNER with no seller → seller audience, no sellerId → all products
-    expect(body.items).toHaveLength(2);
+    expect(body.error).toBe('No seller account found for this user');
   });
 });
 

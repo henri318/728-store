@@ -205,8 +205,15 @@ export class PrismaOrderRepository implements OrderRepository {
     };
   }
 
-  async updateStatus(orderId: string, status: OrderStatus): Promise<void> {
-    const order = await prisma.order.findUnique({
+  async updateStatus(
+    orderId: string,
+    status: OrderStatus,
+    tx?: unknown,
+  ): Promise<void> {
+    const client = tx as PrismaTx | undefined;
+    const db = client ?? prisma;
+
+    const order = await db.order.findUnique({
       where: { id: orderId },
     });
 
@@ -214,7 +221,7 @@ export class PrismaOrderRepository implements OrderRepository {
       throw new Error('Order not found');
     }
 
-    await prisma.order.update({
+    await db.order.update({
       where: { id: orderId },
       data: { status },
     });

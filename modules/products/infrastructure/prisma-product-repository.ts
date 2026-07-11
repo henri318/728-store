@@ -1,4 +1,5 @@
 import { prisma } from '@/shared/infrastructure/prisma';
+import type { PrismaClient } from '@prisma/client';
 import type { PaginatedResult } from '@/shared/kernel/domain/value-objects/pagination';
 import {
   ProductEntity,
@@ -11,6 +12,11 @@ import {
   toPersistenceProduct,
 } from './mapper';
 import { normalizeText } from '@/shared/lib/normalize-text';
+
+type PrismaTx = Omit<
+  PrismaClient,
+  '$extends' | '$transaction' | '$connect' | '$disconnect' | '$use'
+>;
 
 export class PrismaProductRepository implements ProductRepository {
   /**
@@ -233,9 +239,11 @@ export class PrismaProductRepository implements ProductRepository {
     };
   }
 
-  async save(entity: ProductEntity): Promise<void> {
+  async save(entity: ProductEntity, tx?: unknown): Promise<void> {
     const data = toPersistenceProduct(entity);
-    await prisma.product.create({
+    const client = tx as typeof prisma | undefined;
+    const db = client ?? prisma;
+    await db.product.create({
       data: {
         ...data,
         translations: {
@@ -261,10 +269,11 @@ export class PrismaProductRepository implements ProductRepository {
     });
   }
 
-  async update(entity: ProductEntity): Promise<boolean> {
+  async update(entity: ProductEntity, tx?: unknown): Promise<boolean> {
     const data = toPersistenceProduct(entity);
-    await prisma.$transaction(async (tx) => {
-      await tx.product.update({
+
+    async function doUpdate(client: PrismaTx) {
+      await client.product.update({
         where: { id: entity.id },
         data: {
           basePrice: data.basePrice,
@@ -283,7 +292,7 @@ export class PrismaProductRepository implements ProductRepository {
       });
 
       for (const translation of entity.translations) {
-        await tx.productTranslation.upsert({
+        await client.productTranslation.upsert({
           where: {
             productId_locale: {
               productId: entity.id,
@@ -310,7 +319,15 @@ export class PrismaProductRepository implements ProductRepository {
           },
         });
       }
-    });
+    }
+
+    if (tx) {
+      await doUpdate(tx as PrismaTx);
+    } else {
+      await prisma.$transaction(async (client: PrismaTx) => {
+        await doUpdate(client);
+      });
+    }
 
     return true;
   }

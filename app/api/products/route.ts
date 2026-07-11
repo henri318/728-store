@@ -42,7 +42,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         const seller = await container
           .getSellerRepository()
           .findByUserId(session.id);
-        effectiveSellerId = seller?.sellerId.value;
+        if (!seller) {
+          return NextResponse.json(
+            { error: 'No seller account found for this user' },
+            { status: 403 },
+          );
+        }
+        effectiveSellerId = seller.sellerId.value;
       } else if (user?.role === 'ADMIN') {
         audience = filter.audience ?? 'admin';
       } else {

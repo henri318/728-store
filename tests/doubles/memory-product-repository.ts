@@ -156,7 +156,7 @@ export class MemoryProductRepository implements ProductRepository {
     };
   }
 
-  async save(entity: ProductEntity): Promise<void> {
+  async save(entity: ProductEntity, _tx?: unknown): Promise<void> {
     const index = this.products.findIndex((p) => p.id === entity.id);
     if (index === -1) {
       this.products.push(entity);
@@ -165,7 +165,7 @@ export class MemoryProductRepository implements ProductRepository {
     }
   }
 
-  async update(entity: ProductEntity): Promise<boolean> {
+  async update(entity: ProductEntity, _tx?: unknown): Promise<boolean> {
     const index = this.products.findIndex((p) => p.id === entity.id);
     if (index === -1) return false;
     this.products[index] = entity;

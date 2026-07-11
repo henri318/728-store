@@ -188,7 +188,7 @@ export class UpdateProductUseCase {
 
       assertPublishable(updated, nextStatus);
 
-      const persisted = await this.productRepository.update(updated);
+      const persisted = await this.productRepository.update(updated, tx);
       if (!persisted) {
         throw new NotFoundError('Product not found');
       }

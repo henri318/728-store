@@ -44,6 +44,6 @@ export interface ProductRepository {
   findPaginated(
     filter: ProductsListFilter,
   ): Promise<PaginatedResult<ProductEntity>>;
-  save(entity: ProductEntity): Promise<void>;
-  update(entity: ProductEntity): Promise<boolean>;
+  save(entity: ProductEntity, tx?: unknown): Promise<void>;
+  update(entity: ProductEntity, tx?: unknown): Promise<boolean>;
 }

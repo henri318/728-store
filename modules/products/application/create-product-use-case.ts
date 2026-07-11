@@ -134,7 +134,7 @@ export class CreateProductUseCase {
         throw new ValidationError('default locale translation required');
       }
 
-      await this.productRepository.save(product);
+      await this.productRepository.save(product, tx);
       await this.outboxRepository?.saveEvent(
         GlobalEvents.PRODUCT_CREATED,
         {
