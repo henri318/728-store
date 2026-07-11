@@ -327,6 +327,51 @@ describe('GET /api/products', () => {
     expect(withoutCategory.category).toBeNull();
   });
 
+  it('returns cover-only listing cards without video metadata', async () => {
+    const repo = new MemoryProductRepository();
+    repo.seed([
+      makeProduct('p1', {
+        images: [
+          {
+            id: 'cover-1',
+            url: 'https://cdn.example.com/products/taza-cover.jpg',
+            alt: 'Taza cover',
+            position: 0,
+            purpose: ProductImagePurpose.COVER,
+            mimeType: 'image/jpeg',
+            posterUrl: null,
+            productId: 'p1',
+            createdAt: new Date('2025-01-01T00:00:00.000Z'),
+          },
+          {
+            id: 'showcase-1',
+            url: 'https://cdn.example.com/products/taza-demo.mp4',
+            alt: 'Taza demo',
+            position: 0,
+            purpose: ProductImagePurpose.SHOWCASE,
+            mimeType: 'video/mp4',
+            posterUrl: 'https://cdn.example.com/products/taza-poster.jpg',
+            productId: 'p1',
+            createdAt: new Date('2025-01-01T00:00:00.000Z'),
+          },
+        ],
+      }),
+    ]);
+    mocks.getProductRepositoryMock.mockReturnValue(repo);
+
+    const res = await GET(makeGetRequest('http://localhost:3000/api/products'));
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.items[0].cover).toMatchObject({
+      url: 'https://cdn.example.com/products/taza-cover.jpg',
+      alt: 'Taza cover',
+    });
+    expect(body.items[0]).not.toHaveProperty('images');
+    expect(body.items[0]).not.toHaveProperty('hasVideoShowcase');
+    expect(body.items[0]).not.toHaveProperty('showcase');
+  });
+
   // ---------------------------------------------------------------------------
   // Audience-aware behavior
   // ---------------------------------------------------------------------------

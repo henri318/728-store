@@ -11,6 +11,7 @@ import {
 } from '@/components/products/search-input-with-suggestions';
 import { GetRecentSearchesUseCase } from '@/modules/search-history/application/get-recent-searches-use-case';
 import { ProductListQueryUseCase } from '@/modules/products/application/product-list-query-use-case';
+import { serializeProduct } from '@/modules/products/presentation/product-response';
 
 const PUBLIC_PAGE_SIZE = 10;
 
@@ -62,17 +63,15 @@ export default async function HomePage({
   // the price string on the server so the client never receives
   // a function reference (React cannot serialize functions).
   const initialItems = initial.items.map((product) => ({
-    id: product.id,
+    ...serializeProduct(product, {
+      publicView: true,
+      listingView: true,
+    }),
     basePrice: {
       amount: product.basePrice.amount,
       currency: product.basePrice.currency,
       formattedPrice: product.basePrice.format(),
     },
-    sellerId: product.sellerId,
-    sellerName: product.sellerName,
-    translations: product.translations,
-    images: product.images,
-    tags: product.tags,
   }));
 
   return (
@@ -110,6 +109,7 @@ export default async function HomePage({
             loadingMore: dict.common.loadingMore,
             noSearchResults: dict.common.noSearchResults,
             noProducts: dict.common.noProducts,
+            noImageAvailable: dict.common.noImageAvailable,
             itemsLoadedOne: dict.common.itemsLoadedOne,
             itemsLoadedMany: dict.common.itemsLoadedMany,
           }}

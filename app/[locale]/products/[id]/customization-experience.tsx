@@ -3,65 +3,30 @@
 import { AddToCartButton } from '@/modules/cart/presentation/components/add-to-cart-button';
 import type { ProductCustomizationConfigJson } from '@/modules/products/domain/value-objects/product-customization-config';
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
+import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
+import { Card } from '@/shared/ui/card';
 import {
+  CustomizationDraftProvider,
   useCustomizationDraft,
   type CustomizationDraft,
 } from './customization-draft-context';
 import { CustomizationForm } from './customization-form';
 import { MockupCanvasControl } from './mockup-canvas-control';
 import { toAbsoluteUrl } from '@/shared/presentation/lib/to-absolute-url';
+import {
+  ProductShowcaseGallery,
+  type ProductShowcaseMedia,
+} from './product-showcase-gallery';
 import styles from './customization-experience.module.css';
 import pageStyles from './page.module.css';
 
 export interface ProductImageItem {
   url: string;
   alt: string;
+  purpose: ProductImagePurpose;
 }
 
-interface CustomizationExperienceLabels {
-  addToCart: string;
-  removeFromCart: string;
-  adding: string;
-  added: string;
-  error: string;
-  customizationDesign: string;
-  customizationPhrase: string;
-  customizationColor: string;
-  customizationSize: string;
-  customizationSizePlaceholder: string;
-  customizationUpload: string;
-  customizationReplaceImage: string;
-  customizationRemoveImage: string;
-  customizationUploading: string;
-  customizationInvalidImage: string;
-  customizationImageTooLarge: string;
-  customizationPreview: string;
-  customizationPreviewDisclaimer: string;
-  customizationPreviewUnavailable: string;
-  customizationLimitedToDescription: string;
-  customizationTextTooLong: string;
-  customizationColorTooLong: string;
-  customizationSizeTooLong: string;
-  customizationInvalidImageUrl: string;
-  customizationCanvasLabel: string;
-  customizationCanvasHelp: string;
-  customizationProductImageAlt: string;
-  customizationDesignImageAlt: string;
-  customizationUploadDesign: string;
-  customizationReplaceDesign: string;
-  customizationRemoveDesign: string;
-  customizationDesignUploading: string;
-  customizationDesignInvalid: string;
-  customizationDesignTooLarge: string;
-  customizationScaleLabel: string;
-  customizationRotationLabel: string;
-  customizationOpacityLabel: string;
-  customizationPositionReadoutLabel: string;
-  customizationPositionXLabel: string;
-  customizationPositionYLabel: string;
-  customizationCanvasReset: string;
-  saveDesign: string;
-}
+export type CustomizationExperienceLabels = Record<string, string>;
 
 interface CustomizationExperienceProps {
   productId: string;
@@ -72,9 +37,10 @@ interface CustomizationExperienceProps {
   price: number;
   formattedPrice: string;
   previewBaseImageUrl: string;
-  customizationConfig: ProductCustomizationConfigJson;
+  customizationConfig: ProductCustomizationConfigJson | null;
   sizes?: string[];
   productImages: ProductImageItem[];
+  publicMedia: ProductShowcaseMedia[];
   labels: CustomizationExperienceLabels;
   initialDraft?: Partial<Omit<CustomizationDraft, 'error'>>;
 }
@@ -91,15 +57,88 @@ function CustomizationExperienceInner({
   customizationConfig,
   sizes,
   productImages,
+  publicMedia,
   labels,
 }: CustomizationExperienceProps) {
   const { draft, setImage, setDesignPosition } = useCustomizationDraft();
   const customizationModel =
     ProductCustomizationConfig.fromJson(customizationConfig);
+  const resolvedCustomizationConfig =
+    customizationConfig ?? ProductCustomizationConfig.default().toJson();
   const isAllowsPhoto = customizationModel.allowPhotoDesign !== false;
+  const customizableBaseImages = productImages.filter(
+    (image) => image.purpose === ProductImagePurpose.CUSTOMIZABLE_BASE,
+  );
   const activeProductImageUrl =
-    productImages.find((img) => img.alt === draft.color)?.url ??
+    customizableBaseImages.find((img) => img.alt === draft.color)?.url ??
     previewBaseImageUrl;
+  const formLabels = {
+    customizationDesign: labels.customizationDesign,
+    customizationPhrase: labels.customizationPhrase,
+    customizationColor: labels.customizationColor,
+    customizationSize: labels.customizationSize,
+    customizationSizePlaceholder: labels.customizationSizePlaceholder,
+    customizationUpload: labels.customizationUpload,
+    customizationReplaceImage: labels.customizationReplaceImage,
+    customizationRemoveImage: labels.customizationRemoveImage,
+    customizationUploading: labels.customizationUploading,
+    customizationInvalidImage: labels.customizationInvalidImage,
+    customizationImageTooLarge: labels.customizationImageTooLarge,
+    customizationPreview: labels.customizationPreview,
+    customizationPreviewUnavailable: labels.customizationPreviewUnavailable,
+    customizationLimitedToDescription: labels.customizationLimitedToDescription,
+    customizationPreviewDisclaimer: labels.customizationPreviewDisclaimer,
+    customizationCanvasLabel: labels.customizationCanvasLabel,
+    customizationCanvasHelp: labels.customizationCanvasHelp,
+    customizationProductImageAlt: labels.customizationProductImageAlt,
+    customizationDesignImageAlt: labels.customizationDesignImageAlt,
+    customizationUploadDesign: labels.customizationUploadDesign,
+    customizationReplaceDesign: labels.customizationReplaceDesign,
+    customizationRemoveDesign: labels.customizationRemoveDesign,
+    customizationDesignUploading: labels.customizationDesignUploading,
+    customizationDesignInvalid: labels.customizationDesignInvalid,
+    customizationDesignTooLarge: labels.customizationDesignTooLarge,
+    customizationScaleLabel: labels.customizationScaleLabel,
+    customizationRotationLabel: labels.customizationRotationLabel,
+    customizationOpacityLabel: labels.customizationOpacityLabel,
+    customizationPositionReadoutLabel: labels.customizationPositionReadoutLabel,
+    customizationPositionXLabel: labels.customizationPositionXLabel,
+    customizationPositionYLabel: labels.customizationPositionYLabel,
+    customizationCanvasReset: labels.customizationCanvasReset,
+  };
+  const mockupLabels = {
+    canvasLabel: labels.customizationCanvasLabel,
+    canvasHelp: labels.customizationCanvasHelp,
+    productImageAlt: labels.customizationProductImageAlt,
+    designImageAlt: labels.customizationDesignImageAlt,
+    uploadDesign: labels.customizationUploadDesign,
+    replaceDesign: labels.customizationReplaceDesign,
+    removeDesign: labels.customizationRemoveDesign,
+    uploading: labels.customizationDesignUploading,
+    invalidImage: labels.customizationDesignInvalid,
+    imageTooLarge: labels.customizationDesignTooLarge,
+    scaleLabel: labels.customizationScaleLabel,
+    rotationLabel: labels.customizationRotationLabel,
+    opacityLabel: labels.customizationOpacityLabel,
+    positionXLabel: labels.customizationPositionXLabel,
+    positionYLabel: labels.customizationPositionYLabel,
+    positionReadoutLabel: labels.customizationPositionReadoutLabel,
+    resetLabel: labels.customizationCanvasReset,
+    uploadingLabel: labels.customizationDesignUploading,
+  };
+  const cartLabels = {
+    addToCart: labels.addToCart,
+    removeFromCart: labels.removeFromCart,
+    adding: labels.adding,
+    added: labels.added,
+    error: labels.error,
+    increaseQuantity: labels.increaseQuantity,
+    decreaseQuantity: labels.decreaseQuantity,
+    saveDesign: labels.saveDesign,
+    customizeProduct: labels.customizeProduct,
+    addWithoutCustomization: labels.addWithoutCustomization,
+    alreadyInCartDifferent: labels.alreadyInCartDifferent,
+  };
 
   const uploadDesign = async (file: File) => {
     const response = await fetch('/api/uploads/guest/presigned-url', {
@@ -139,83 +178,96 @@ function CustomizationExperienceInner({
   };
 
   return (
-    <div className={styles.root}>
-      <header className={styles.header}>
-        <span className={pageStyles.seller}>{sellerName}</span>
-        <h1 className={pageStyles.title}>{productName}</h1>
-        <p className={pageStyles.description}>{productDescription}</p>
-      </header>
+    <Card as="section" padding="lg" className={styles.card}>
+      <div className={styles.layout} data-testid="purchase-layout">
+        <section
+          className={styles.purchaseColumn}
+          data-testid="purchase-layout-left"
+        >
+          <div className={styles.canvasCol}>
+            {isAllowsPhoto && previewBaseImageUrl && (
+              <MockupCanvasControl
+                productImageUrl={activeProductImageUrl}
+                initialDesignUrl={draft.imageUrl}
+                initialPosition={draft.designPosition}
+                labels={mockupLabels}
+                onUpload={uploadDesign}
+                onPositionChange={setDesignPosition}
+              />
+            )}
+          </div>
 
-      <div className={styles.columns}>
-        <div className={styles.canvasCol}>
-          {isAllowsPhoto && previewBaseImageUrl && (
-            <MockupCanvasControl
-              productImageUrl={activeProductImageUrl}
-              initialDesignUrl={draft.imageUrl}
-              initialPosition={draft.designPosition}
-              labels={{
-                canvasLabel: labels.customizationCanvasLabel,
-                canvasHelp: labels.customizationCanvasHelp,
-                productImageAlt: labels.customizationProductImageAlt,
-                designImageAlt: labels.customizationDesignImageAlt,
-                uploadDesign: labels.customizationUploadDesign,
-                replaceDesign: labels.customizationReplaceDesign,
-                removeDesign: labels.customizationRemoveDesign,
-                uploading: labels.customizationDesignUploading,
-                invalidImage: labels.customizationDesignInvalid,
-                imageTooLarge: labels.customizationDesignTooLarge,
-                scaleLabel: labels.customizationScaleLabel,
-                rotationLabel: labels.customizationRotationLabel,
-                opacityLabel: labels.customizationOpacityLabel,
-                positionXLabel: labels.customizationPositionXLabel,
-                positionYLabel: labels.customizationPositionYLabel,
-                positionReadoutLabel: labels.customizationPositionReadoutLabel,
-                resetLabel: labels.customizationCanvasReset,
-                uploadingLabel: labels.customizationDesignUploading,
-              }}
-              onUpload={uploadDesign}
-              onPositionChange={setDesignPosition}
+          <div className={styles.formCol}>
+            <CustomizationForm
+              customizationConfig={resolvedCustomizationConfig}
+              sizes={sizes}
+              productImages={customizableBaseImages}
+              labels={formLabels}
             />
-          )}
-        </div>
+          </div>
 
-        <div className={styles.formCol}>
-          <CustomizationForm
-            customizationConfig={customizationConfig}
-            sizes={sizes}
-            productImages={productImages}
-            labels={labels}
+          <footer className={styles.footer}>
+            <p className={styles.price}>{formattedPrice}</p>
+            <AddToCartButton
+              productId={productId}
+              productName={productName}
+              sellerId={sellerId}
+              sellerName={sellerName}
+              price={price}
+              imageUrl={activeProductImageUrl}
+              customizationAvailable={!customizationModel.isDefault()}
+              customizeHref="#customization-form"
+              labels={cartLabels}
+              customization={{
+                text: draft.text,
+                color: draft.color,
+                size: draft.size,
+                imageUploadId: draft.imageUploadId,
+                imageUrl: draft.imageUrl,
+                designPosition: draft.designPosition,
+              }}
+            />
+          </footer>
+        </section>
+
+        <aside
+          className={styles.presentationColumn}
+          data-testid="purchase-layout-right"
+        >
+          <header className={styles.header}>
+            <span className={pageStyles.seller}>{sellerName}</span>
+            <h1 className={pageStyles.title}>{productName}</h1>
+            <p className={pageStyles.description}>{productDescription}</p>
+          </header>
+
+          <ProductShowcaseGallery
+            items={publicMedia}
+            labels={{
+              previous: labels.mediaPrevious,
+              next: labels.mediaNext,
+            }}
           />
-        </div>
+        </aside>
       </div>
-
-      <footer className={styles.footer}>
-        <p className={styles.price}>{formattedPrice}</p>
-        <AddToCartButton
-          productId={productId}
-          productName={productName}
-          sellerId={sellerId}
-          sellerName={sellerName}
-          price={price}
-          imageUrl={activeProductImageUrl}
-          customizationAvailable={!customizationModel.isDefault()}
-          customizeHref="#customization-form"
-          labels={labels}
-          customization={{
-            text: draft.text,
-            color: draft.color,
-            size: draft.size,
-            imageUploadId: draft.imageUploadId,
-            imageUrl: draft.imageUrl,
-            designPosition: draft.designPosition,
-          }}
-        />
-      </footer>
-    </div>
+    </Card>
   );
 }
 
 export function CustomizationExperience(props: CustomizationExperienceProps) {
+  const cartLabels = {
+    addToCart: props.labels.addToCart,
+    removeFromCart: props.labels.removeFromCart,
+    adding: props.labels.adding,
+    added: props.labels.added,
+    error: props.labels.error,
+    increaseQuantity: props.labels.increaseQuantity,
+    decreaseQuantity: props.labels.decreaseQuantity,
+    saveDesign: props.labels.saveDesign,
+    customizeProduct: props.labels.customizeProduct,
+    addWithoutCustomization: props.labels.addWithoutCustomization,
+    alreadyInCartDifferent: props.labels.alreadyInCartDifferent,
+  };
+
   if (process.env.NEXT_PUBLIC_CUSTOMIZATION_FRONTEND_ENABLED === 'false') {
     return (
       <AddToCartButton
@@ -226,10 +278,24 @@ export function CustomizationExperience(props: CustomizationExperienceProps) {
         price={props.price}
         imageUrl={props.previewBaseImageUrl}
         customizationAvailable={false}
-        labels={props.labels}
+        labels={cartLabels}
       />
     );
   }
 
-  return <CustomizationExperienceInner {...props} />;
+  const validationLabels = {
+    textTooLong: props.labels.customizationTextTooLong,
+    colorTooLong: props.labels.customizationColorTooLong,
+    sizeTooLong: props.labels.customizationSizeTooLong,
+    invalidImageUrl: props.labels.customizationInvalidImageUrl,
+  };
+
+  return (
+    <CustomizationDraftProvider
+      initialDraft={props.initialDraft}
+      validationLabels={validationLabels}
+    >
+      <CustomizationExperienceInner {...props} />
+    </CustomizationDraftProvider>
+  );
 }

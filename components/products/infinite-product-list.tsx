@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { AddToCartButton } from '@/modules/cart/presentation/components/add-to-cart-button';
 import styles from '@/app/[locale]/page.module.css';
 
@@ -21,12 +22,7 @@ export interface ClientProductCard {
     name: string;
     description: string | null;
   }>;
-  images: Array<{
-    id: string;
-    url: string;
-    alt: string | null;
-    position: number;
-  }>;
+  cover: { url: string; alt: string | null } | null;
   tags: Array<{ id: string; name: string; slug: string }>;
 }
 
@@ -39,6 +35,7 @@ export interface InfiniteProductListLabels {
   loadingMore: string;
   noSearchResults: string;
   noProducts: string;
+  noImageAvailable: string;
   itemsLoadedOne: string;
   itemsLoadedMany: string;
 }
@@ -177,6 +174,22 @@ export function InfiniteProductList({
               className={styles.productCard}
               data-product-id={product.id}
             >
+              <div className={styles.productCoverFrame}>
+                {product.cover ? (
+                  <Image
+                    src={product.cover.url}
+                    alt={product.cover.alt ?? translation.name}
+                    width={640}
+                    height={640}
+                    unoptimized
+                    className={styles.productCoverImage}
+                  />
+                ) : (
+                  <div className={styles.productCoverPlaceholder}>
+                    <span>{labels.noImageAvailable}</span>
+                  </div>
+                )}
+              </div>
               <h3 className={styles.productName}>{translation.name}</h3>
               <p className={styles.productDescription}>
                 {translation.description}

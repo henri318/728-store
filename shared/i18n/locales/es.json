@@ -11,6 +11,7 @@
     "products": "Nuestros Productos",
     "viewDetails": "Ver Detalles",
     "productDetailsError": "No se han podido cargar los detalles del producto. Revisa los logs del servidor.",
+    "noImageAvailable": "Imagen no disponible",
     "customizable": "Personalizable",
     "customizeProduct": "Personaliza",
     "addWithoutCustomization": "Añadir sin personalizar",
