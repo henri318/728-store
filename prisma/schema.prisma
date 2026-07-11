@@ -313,15 +313,26 @@ model Tag {
 
 model Category {
   id        String     @id @default(cuid())
-  name      String
   slug      String     @unique
   parentId  String?
   parent    Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
   children  Category[] @relation("CategoryHierarchy")
   products  Product[]
+  translations CategoryTranslation[]
   createdAt DateTime   @default(now())
 
   @@index([parentId])
+}
+
+model CategoryTranslation {
+  id         String   @id @default(cuid())
+  locale     String
+  name       String
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, locale])
+  @@index([name])
 }
 
 model Upload {

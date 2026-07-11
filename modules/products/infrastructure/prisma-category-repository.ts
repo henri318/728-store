@@ -3,67 +3,44 @@ import { prisma } from '@/shared/infrastructure/prisma';
 import { ConflictError, NotFoundError } from '@/shared/kernel/app-error';
 import type { CategoryRepository } from '../domain/category-repository';
 import type { CategoryEntity } from '../domain/entities/category';
+import { toDomainCategory, toPersistenceCategory } from './mapper';
 
 export class PrismaCategoryRepository implements CategoryRepository {
-  async findAllSorted(): Promise<CategoryEntity[]> {
+  async findAll(): Promise<CategoryEntity[]> {
     const rows = await prisma.category.findMany({
-      orderBy: { name: 'asc' },
+      include: { translations: true },
     });
-
-    return rows.map((row) => ({
-      id: row.id,
-      name: row.name,
-      slug: row.slug,
-      parentId: row.parentId,
-      createdAt: row.createdAt,
-    }));
+    return rows.map((row) => toDomainCategory(row));
   }
 
   async findById(id: string): Promise<CategoryEntity | null> {
-    const row = await prisma.category.findUnique({ where: { id } });
+    const row = await prisma.category.findUnique({
+      where: { id },
+      include: { translations: true },
+    });
     if (!row) return null;
 
-    return {
-      id: row.id,
-      name: row.name,
-      slug: row.slug,
-      parentId: row.parentId,
-      createdAt: row.createdAt,
-    };
+    return toDomainCategory(row);
   }
 
   async findBySlug(slug: string): Promise<CategoryEntity | null> {
-    const row = await prisma.category.findUnique({ where: { slug } });
+    const row = await prisma.category.findUnique({
+      where: { slug },
+      include: { translations: true },
+    });
     if (!row) return null;
 
-    return {
-      id: row.id,
-      name: row.name,
-      slug: row.slug,
-      parentId: row.parentId,
-      createdAt: row.createdAt,
-    };
+    return toDomainCategory(row);
   }
 
   async save(category: CategoryEntity): Promise<CategoryEntity> {
     try {
+      const data = toPersistenceCategory(category);
       const row = await prisma.category.create({
-        data: {
-          id: category.id,
-          name: category.name,
-          slug: category.slug,
-          parentId: category.parentId,
-          createdAt: category.createdAt,
-        },
+        data,
+        include: { translations: true },
       });
-
-      return {
-        id: row.id,
-        name: row.name,
-        slug: row.slug,
-        parentId: row.parentId,
-        createdAt: row.createdAt,
-      };
+      return toDomainCategory(row);
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&

@@ -25,6 +25,7 @@ async function main() {
   await prisma.outboxEvent.deleteMany();
   await prisma.emailQueue.deleteMany();
   await prisma.product.deleteMany();
+  await prisma.category.deleteMany();
   await prisma.seller.deleteMany();
   await prisma.user.deleteMany();
   await prisma.role.deleteMany();
@@ -130,23 +131,31 @@ async function main() {
 
   // 6. Seed Categories
   const categoryData = [
-    { name: 'Ropa', slug: 'ropa' },
-    { name: 'Tazas', slug: 'tazas' },
-    { name: 'Hogar', slug: 'hogar' },
-    { name: 'Oficina', slug: 'oficina' },
+    { es: 'Ropa', cat: 'Roba', slug: 'ropa' },
+    { es: 'Tazas', cat: 'Tasses', slug: 'tazas' },
+    { es: 'Hogar', cat: 'Llar', slug: 'hogar' },
+    { es: 'Oficina', cat: 'Oficina', slug: 'oficina' },
   ];
-  const categories: Array<{ id: string; name: string; slug: string }> = [];
+  const categories: Array<{ id: string; slug: string }> = [];
   for (const category of categoryData) {
     categories.push(
       await prisma.category.upsert({
         where: { slug: category.slug },
         update: {},
-        create: { name: category.name, slug: category.slug },
+        create: {
+          slug: category.slug,
+          translations: {
+            create: [
+              { locale: 'es', name: category.es },
+              { locale: 'cat', name: category.cat },
+            ],
+          },
+        },
       }),
     );
   }
   console.log(
-    `  ✓ Categories seeded: ${categories.map((category) => category.name).join(', ')}`,
+    `  ✓ Categories seeded: ${categoryData.map((category) => category.es).join(', ')}`,
   );
 
   // 7. Create 25 Products with i18n translations

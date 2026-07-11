@@ -117,7 +117,7 @@ export class PrismaProductRepository implements ProductRepository {
     const products = await prisma.product.findMany({
       include: {
         seller: true,
-        category: true,
+        category: { include: { translations: true } },
         translations: true,
         images: {
           orderBy: [{ purpose: 'asc' }, { position: 'asc' }],
@@ -134,7 +134,7 @@ export class PrismaProductRepository implements ProductRepository {
       where: { id },
       include: {
         seller: true,
-        category: true,
+        category: { include: { translations: true } },
         translations: true,
         images: {
           orderBy: [{ purpose: 'asc' }, { position: 'asc' }],
@@ -156,7 +156,7 @@ export class PrismaProductRepository implements ProductRepository {
       where: { sellerId },
       include: {
         seller: true,
-        category: true,
+        category: { include: { translations: true } },
         translations: true,
         images: {
           orderBy: [{ purpose: 'asc' }, { position: 'asc' }],
@@ -201,7 +201,7 @@ export class PrismaProductRepository implements ProductRepository {
       where,
       include: {
         seller: true,
-        category: true,
+        category: { include: { translations: true } },
         translations: true,
         images: {
           orderBy: [{ purpose: 'asc' }, { position: 'asc' }],

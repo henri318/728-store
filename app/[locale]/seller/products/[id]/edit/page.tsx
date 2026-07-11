@@ -7,6 +7,7 @@ import { ProductCustomizationConfig } from '@/modules/products/domain/value-obje
 import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
 import type { ProductLocale } from '@/modules/products/presentation/components/product-locale-tabs';
 import { ProductForm } from '../../product-form';
+import { resolveCategoryDisplay } from '@/modules/products/domain/entities/category-translation';
 
 export default async function SellerProductEditPage({
   params,
@@ -16,9 +17,14 @@ export default async function SellerProductEditPage({
   const { locale, id } = await params;
   const dict = await getDictionary(locale as 'es' | 'cat');
   const categories = await prisma.category.findMany({
-    select: { id: true, name: true },
-    orderBy: { name: 'asc' },
+    include: { translations: true },
   });
+  const categoryOptions = categories
+    .map((category) => ({
+      id: category.id,
+      name: resolveCategoryDisplay(category.translations, locale)?.name ?? '',
+    }))
+    .toSorted((a, b) => a.name.localeCompare(b.name, locale));
   const session = await container.getSession().getSession();
   const seller = session?.id
     ? await container.getSellerRepository().findByUserId(session.id)
@@ -42,7 +48,7 @@ export default async function SellerProductEditPage({
       locale={locale}
       mode="edit"
       productId={id}
-      categories={categories}
+      categories={categoryOptions}
       initialValues={{
         price: product.basePrice.amount,
         translations: [

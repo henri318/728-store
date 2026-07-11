@@ -385,7 +385,13 @@
       "deleteError": "No se pudo eliminar la categoría",
       "validationError": "Introduce un nombre válido",
       "duplicateError": "Ya existe una categoría con ese nombre",
-      "inUseError": "La categoría está en uso"
+      "inUseError": "La categoría está en uso",
+      "nameEsLabel": "Nombre en español",
+      "nameCatLabel": "Nombre en catalán",
+      "nameEsPlaceholder": "Ej. Electrónica",
+      "nameCatPlaceholder": "Ej. Electrònica",
+      "missingBothError": "Completa los nombres en español y catalán",
+      "missingOneError": "Completa ambos nombres antes de crear la categoría"
     },
     "sellerDetail": {
       "editTitle": "Editar vendedor",

@@ -7,10 +7,13 @@ import { DeleteCategoryUseCase } from '@/modules/products/application/delete-cat
 function makeCategory(overrides: Partial<CategoryEntity> = {}): CategoryEntity {
   return {
     id: 'cat-1',
-    name: 'Electronics',
     slug: 'electronics',
     parentId: null,
     createdAt: new Date('2026-07-09T00:00:00.000Z'),
+    translations: [
+      { locale: 'es', name: 'Electronics' },
+      { locale: 'cat', name: 'Electrònica' },
+    ],
     ...overrides,
   };
 }
@@ -18,7 +21,7 @@ function makeCategory(overrides: Partial<CategoryEntity> = {}): CategoryEntity {
 describe('DeleteCategoryUseCase', () => {
   it('deletes unused categories', async () => {
     const repo: CategoryRepository = {
-      findAllSorted: vi.fn(async () => []),
+      findAll: vi.fn(async () => []),
       findById: vi.fn(async () => makeCategory()),
       countProducts: vi.fn(async () => 0),
       delete: vi.fn(async () => {}),
@@ -35,7 +38,7 @@ describe('DeleteCategoryUseCase', () => {
 
   it('blocks deletion when the category is in use', async () => {
     const repo: CategoryRepository = {
-      findAllSorted: vi.fn(async () => []),
+      findAll: vi.fn(async () => []),
       findById: vi.fn(async () => makeCategory()),
       countProducts: vi.fn(async () => 2),
       delete: vi.fn(async () => {}),
@@ -52,7 +55,7 @@ describe('DeleteCategoryUseCase', () => {
 
   it('throws NotFoundError when the category does not exist', async () => {
     const repo: CategoryRepository = {
-      findAllSorted: vi.fn(async () => []),
+      findAll: vi.fn(async () => []),
       findById: vi.fn(async () => null),
       countProducts: vi.fn(async () => 0),
       delete: vi.fn(async () => {}),

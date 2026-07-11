@@ -5,7 +5,8 @@ import type { CategoryEntity } from '../domain/entities/category';
 import { CategorySlug } from '../domain/value-objects/category-slug';
 
 export interface CreateCategoryDTO {
-  name: string;
+  nameEs: string;
+  nameCat: string;
 }
 
 function normalizeCategoryName(name: string): string {
@@ -16,15 +17,18 @@ export class CreateCategoryUseCase {
   constructor(private readonly categoryRepository: CategoryRepository) {}
 
   async execute(dto: CreateCategoryDTO): Promise<CategoryEntity> {
-    const name = normalizeCategoryName(dto.name);
+    const nameEs = normalizeCategoryName(dto.nameEs);
+    const nameCat = normalizeCategoryName(dto.nameCat);
 
-    if (!name) {
-      throw new ValidationError('Category name is required');
+    if (!nameEs || !nameCat) {
+      throw new ValidationError(
+        'Both Spanish and Catalan category names are required',
+      );
     }
 
     let slug: string;
     try {
-      slug = CategorySlug.create(name).value;
+      slug = CategorySlug.create(nameEs).value;
     } catch {
       throw new ValidationError(
         'Category name must contain at least one alphanumeric character',
@@ -41,10 +45,13 @@ export class CreateCategoryUseCase {
 
     const category: CategoryEntity = {
       id: randomUUID(),
-      name,
       slug,
       parentId: null,
       createdAt: new Date(),
+      translations: [
+        { locale: 'es', name: nameEs },
+        { locale: 'cat', name: nameCat },
+      ],
     };
 
     return this.categoryRepository.save(category);

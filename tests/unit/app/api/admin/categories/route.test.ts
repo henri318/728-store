@@ -31,10 +31,13 @@ import { GET, POST } from '@/app/api/admin/categories/route';
 function makeCategory(overrides: Partial<CategoryEntity> = {}): CategoryEntity {
   return {
     id: 'cat-1',
-    name: 'Electronics',
     slug: 'electronics',
     parentId: null,
     createdAt: new Date('2026-07-09T00:00:00.000Z'),
+    translations: [
+      { locale: 'es', name: 'Electronics' },
+      { locale: 'cat', name: 'Electrònica' },
+    ],
     ...overrides,
   };
 }
@@ -66,8 +69,15 @@ describe('GET /api/admin/categories', () => {
 
   it('returns categories sorted by display name', async () => {
     const repo = {
-      findAllSorted: vi.fn(async () => [
-        makeCategory({ id: 'cat-2', name: 'Books', slug: 'books' }),
+      findAll: vi.fn(async () => [
+        makeCategory({
+          id: 'cat-2',
+          translations: [
+            { locale: 'es', name: 'Books' },
+            { locale: 'cat', name: 'Llibres' },
+          ],
+          slug: 'books',
+        }),
         makeCategory(),
       ]),
     };
@@ -80,9 +90,9 @@ describe('GET /api/admin/categories', () => {
     expect(response.status).toBe(200);
     const body = (await response.json()) as { items: CategoryEntity[] };
     expect(body.items).toHaveLength(2);
-    expect(body.items[0].name).toBe('Books');
-    expect(body.items[1].name).toBe('Electronics');
-    expect(repo.findAllSorted).toHaveBeenCalledTimes(1);
+    expect(body.items[0].translations[0].name).toBe('Books');
+    expect(body.items[1].translations[0].name).toBe('Electronics');
+    expect(repo.findAll).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -93,7 +103,7 @@ describe('POST /api/admin/categories', () => {
 
   it('creates a category with a normalized slug', async () => {
     const repo = {
-      findAllSorted: vi.fn(),
+      findAll: vi.fn(),
       findById: vi.fn(),
       findBySlug: vi.fn(async () => null),
       save: vi.fn(async (category: CategoryEntity) => category),
@@ -102,18 +112,26 @@ describe('POST /api/admin/categories', () => {
     };
     mocks.getCategoryRepositoryMock.mockReturnValue(repo);
 
-    const response = await POST(makeRequest({ name: '  Café con leche  ' }));
+    const response = await POST(
+      makeRequest({
+        nameEs: '  Café con leche  ',
+        nameCat: '  Cafè amb llet  ',
+      }),
+    );
 
     expect(response.status).toBe(201);
     const body = (await response.json()) as CategoryEntity;
-    expect(body.name).toBe('Café con leche');
+    expect(body.translations).toEqual([
+      { locale: 'es', name: 'Café con leche' },
+      { locale: 'cat', name: 'Cafè amb llet' },
+    ]);
     expect(body.slug).toBe('cafe-con-leche');
     expect(repo.findBySlug).toHaveBeenCalledWith('cafe-con-leche');
   });
 
   it('rejects duplicate categories with 409', async () => {
     const repo = {
-      findAllSorted: vi.fn(),
+      findAll: vi.fn(),
       findById: vi.fn(),
       findBySlug: vi.fn(async () => makeCategory()),
       save: vi.fn(),
@@ -122,7 +140,9 @@ describe('POST /api/admin/categories', () => {
     };
     mocks.getCategoryRepositoryMock.mockReturnValue(repo);
 
-    const response = await POST(makeRequest({ name: 'electronics' }));
+    const response = await POST(
+      makeRequest({ nameEs: 'electronics', nameCat: 'electrònica' }),
+    );
 
     expect(response.status).toBe(409);
     const body = (await response.json()) as { error: string };
@@ -132,7 +152,7 @@ describe('POST /api/admin/categories', () => {
 
   it('rejects empty names with 400', async () => {
     const repo = {
-      findAllSorted: vi.fn(),
+      findAll: vi.fn(),
       findById: vi.fn(),
       findBySlug: vi.fn(),
       save: vi.fn(),
@@ -141,7 +161,9 @@ describe('POST /api/admin/categories', () => {
     };
     mocks.getCategoryRepositoryMock.mockReturnValue(repo);
 
-    const response = await POST(makeRequest({ name: ' '.repeat(3) }));
+    const response = await POST(
+      makeRequest({ nameEs: ' '.repeat(3), nameCat: 'Roba' }),
+    );
 
     expect(response.status).toBe(400);
     expect(repo.findBySlug).not.toHaveBeenCalled();
