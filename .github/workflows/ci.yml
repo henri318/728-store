@@ -92,7 +92,7 @@ jobs:
         run: npm ci
 
       - name: Setup database
-        run: npx prisma db push
+        run: npx prisma migrate deploy
 
       - name: Integration tests
         run: npm run test:integration
