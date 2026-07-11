@@ -1,6 +1,7 @@
 .container {
-  max-width: 800px;
+  max-width: 1120px;
   margin: 0 auto;
+  padding-bottom: 3rem;
 }
 
 .backLink {
@@ -17,17 +18,65 @@
   margin-top: 1rem;
 }
 
+.detailLayout {
+  display: grid;
+  gap: 2rem;
+}
+
+.showcaseSection {
+  display: grid;
+  /* Keep 1rem for the current viewport/controls/dots vertical rhythm. */
+  gap: 1rem;
+  width: min(100%, 34rem);
+  justify-self: center;
+}
+
+.showcaseViewport {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #081412;
+  touch-action: pan-y;
+  outline: none;
+}
+
+.showcaseViewport:focus-visible {
+  box-shadow: 0 0 0 3px rgba(213, 92, 92, 0.28);
+}
+
+.showcaseStatus {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1;
+  border-radius: 999px;
+  padding: 0.35rem 0.6rem;
+  background: rgba(8, 20, 18, 0.7);
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 0.8rem;
+}
+
 .imagePlaceholder {
-  background: #f9f9f9;
-  height: 400px;
+  background:
+    radial-gradient(
+      circle at top,
+      rgba(255, 255, 255, 0.85),
+      rgba(247, 241, 232, 0.95)
+    ),
+    linear-gradient(135deg, rgba(11, 93, 94, 0.08), rgba(213, 92, 92, 0.08));
+  min-height: 24rem;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
+  padding: 2rem;
 }
 
 .imagePlaceholderText {
-  color: #ccc;
+  color: rgba(0, 0, 0, 0.55);
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-medium);
 }
 
 .imagePreview {
@@ -39,6 +88,39 @@
   height: auto;
   border-radius: var(--radius-md);
   display: block;
+}
+
+.productCoverFrame {
+  background:
+    radial-gradient(
+      circle at top,
+      rgba(255, 255, 255, 0.85),
+      rgba(247, 241, 232, 0.95)
+    ),
+    linear-gradient(135deg, rgba(11, 93, 94, 0.08), rgba(213, 92, 92, 0.08));
+  border-radius: 16px;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+}
+
+.productCoverImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.productCoverPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.52);
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-medium);
 }
 
 .previewCaption {
@@ -65,6 +147,107 @@
 
 .addToCart {
   margin-top: 1.5rem;
+}
+
+.metaStack {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.showcaseGallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.showcaseItem {
+  overflow: hidden;
+  min-height: 14rem;
+  aspect-ratio: 4 / 3;
+}
+
+.showcaseVideo,
+.showcaseImage {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.showcaseVideo {
+  background: #081412;
+}
+
+.showcasePlaceholder {
+  min-height: 14rem;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.92);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.12), transparent 55%),
+    linear-gradient(135deg, rgba(14, 32, 28, 0.96), rgba(9, 55, 49, 0.92));
+}
+
+.showcasePlaceholderText {
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.showcaseControls {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.showcaseButton {
+  border: 1px solid rgba(13, 92, 70, 0.14);
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  background: var(--color-white);
+  color: var(--color-black);
+  font: inherit;
+  cursor: pointer;
+}
+
+.showcaseButton:hover {
+  border-color: rgba(213, 92, 92, 0.35);
+}
+
+.showcaseDots {
+  display: flex;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.showcaseDot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: rgba(13, 92, 70, 0.22);
+}
+
+.showcaseDotActive {
+  background: var(--color-coral);
+}
+
+.showcaseHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.customizationSection {
+  display: grid;
+  gap: 1rem;
 }
 
 .form {

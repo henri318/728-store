@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { render, screen, waitFor, act } from '@testing-library/react';
+import type { ImgHTMLAttributes } from 'react';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: vi.fn(), refresh: vi.fn() }),
@@ -10,6 +11,13 @@ vi.mock('next/navigation', () => ({
 vi.mock('next-auth/react', () => ({
   useSession: () => ({ status: 'unauthenticated', data: null }),
   SessionProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+vi.mock('next/image', () => ({
+  default: (props: ImgHTMLAttributes<HTMLImageElement>) => {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img {...props} />;
+  },
 }));
 
 vi.mock('@/modules/cart/presentation/guest-cart-context', () => ({
@@ -69,7 +77,7 @@ function makeProduct(id: string, name: string): ClientProductCard {
     sellerId: 'seller-1',
     sellerName: 'Test Shop',
     translations: [{ locale: 'es', name, description: 'desc' }],
-    images: [],
+    cover: null,
     tags: [],
   };
 }
@@ -83,6 +91,7 @@ const baseLabels = {
   loadingMore: 'Cargando...',
   noSearchResults: 'Sin resultados para {term}',
   noProducts: 'Sin productos',
+  noImageAvailable: 'Imagen no disponible',
   itemsLoadedOne: '{count} producto cargado',
   itemsLoadedMany: '{count} productos cargados',
 };
@@ -110,6 +119,39 @@ describe('InfiniteProductList', () => {
 
     expect(screen.getByText('Mug')).toBeInTheDocument();
     expect(screen.getByText('Lamp')).toBeInTheDocument();
+  });
+
+  it('renders the cover image when present', () => {
+    render(
+      <InfiniteProductList
+        initialItems={[
+          {
+            ...makeProduct('p1', 'Mug'),
+            cover: { url: '/cover.jpg', alt: 'Mug cover' },
+          },
+        ]}
+        pageSize={10}
+        q=""
+        locale="es"
+        labels={baseLabels}
+      />,
+    );
+
+    expect(screen.getByAltText('Mug cover')).toBeInTheDocument();
+  });
+
+  it('shows a placeholder when a cover is missing', () => {
+    render(
+      <InfiniteProductList
+        initialItems={[makeProduct('p1', 'Mug')]}
+        pageSize={10}
+        q=""
+        locale="es"
+        labels={baseLabels}
+      />,
+    );
+
+    expect(screen.getByText('Imagen no disponible')).toBeInTheDocument();
   });
 
   it('renders the no-search-results message when q is set but initialItems is empty', () => {

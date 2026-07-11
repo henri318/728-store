@@ -238,12 +238,6 @@ describe('ProductForm', () => {
       },
     );
 
-    fireEvent.click(
-      screen.getAllByRole('button', {
-        name: labels.gallery.selectForPreviewLabel,
-      })[1],
-    );
-
     fireEvent.click(screen.getByRole('button', { name: labels.save }));
 
     await waitFor(() => {

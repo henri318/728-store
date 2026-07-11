@@ -11,6 +11,7 @@
     "products": "Els Nostres Productes",
     "viewDetails": "Veure Detalls",
     "productDetailsError": "No s'han pogut carregar els detalls del producte. Revisa els logs del servidor.",
+    "noImageAvailable": "Imatge no disponible",
     "customizable": "Personalitzable",
     "customizeProduct": "Personalitza",
     "addWithoutCustomization": "Afegir sense personalitzar",

@@ -1,6 +1,18 @@
+.card {
+  display: grid;
+  gap: 1.5rem;
+}
+
 .root {
   display: grid;
   gap: 1.5rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 1.5rem;
+  align-items: start;
 }
 
 .header {
@@ -8,11 +20,19 @@
   gap: 0.35rem;
 }
 
-.columns {
+.purchaseColumn {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
-  align-items: start;
+}
+
+.presentationColumn {
+  display: grid;
+  gap: 1rem;
+}
+
+.mediaSection {
+  display: grid;
+  gap: 0.75rem;
 }
 
 .canvasCol {
@@ -46,7 +66,7 @@
 }
 
 @media (max-width: 768px) {
-  .columns {
+  .layout {
     grid-template-columns: 1fr;
   }
 

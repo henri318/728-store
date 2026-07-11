@@ -19,20 +19,21 @@ test.describe('Products', () => {
     await page.goto('/es');
 
     const detailsHref = await page
-      .locator('a[href*="/products/"]')
+      .getByRole('link', { name: 'Ver Detalles' })
       .first()
       .getAttribute('href');
     expect(detailsHref).toBeTruthy();
 
     await page.goto(detailsHref!);
 
-    const productTitle = await page.locator('h1').first().textContent();
+    const productTitle = await page
+      .getByRole('heading', { level: 1 })
+      .textContent();
     expect(productTitle).toBeTruthy();
-    await expect(page.locator('h1').first()).toBeVisible();
-    await expect(page.getByRole('img', { name: productTitle! })).toBeVisible();
     await expect(
-      page.getByText('Vista previa de personalización'),
+      page.getByRole('heading', { level: 1, name: productTitle! }),
     ).toBeVisible();
+    await expect(page.getByLabel('Lienzo de personalización')).toBeVisible();
   });
 
   test('navigates between locales', async ({ page }) => {

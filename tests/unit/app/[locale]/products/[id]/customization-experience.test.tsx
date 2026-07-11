@@ -1,9 +1,12 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import type { ImgHTMLAttributes } from 'react';
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
-import { CustomizationDraftProvider } from '@/app/[locale]/products/[id]/customization-draft-context';
-import { CustomizationExperience } from '@/app/[locale]/products/[id]/customization-experience';
+import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
+import {
+  CustomizationExperience,
+  type CustomizationExperienceLabels,
+} from '@/app/[locale]/products/[id]/customization-experience';
 
 const addToCartButtonMock = vi.fn((props: Record<string, unknown>) => (
   <button type="button" data-testid="mock-add-to-cart">
@@ -35,6 +38,12 @@ describe('CustomizationExperience', () => {
     adding: 'Adding...',
     added: 'Added',
     error: 'Error',
+    increaseQuantity: 'Increase quantity',
+    decreaseQuantity: 'Decrease quantity',
+    saveDesign: 'Save design',
+    customizeProduct: 'Customize',
+    addWithoutCustomization: 'Add without customization',
+    alreadyInCartDifferent: 'Already in cart',
     customizationDesign: 'Design description',
     customizationPhrase: 'Phrase',
     customizationColor: 'Color',
@@ -55,6 +64,8 @@ describe('CustomizationExperience', () => {
     customizationColorTooLong: 'Customization color is too long.',
     customizationSizeTooLong: 'Customization size is too long.',
     customizationInvalidImageUrl: 'Customization image must be a valid URL.',
+    mediaPrevious: 'Previous',
+    mediaNext: 'Next',
     customizationCanvasLabel: 'Canvas',
     customizationCanvasHelp: 'Position the design',
     customizationProductImageAlt: 'Product image',
@@ -72,16 +83,7 @@ describe('CustomizationExperience', () => {
     customizationPositionXLabel: 'X',
     customizationPositionYLabel: 'Y',
     customizationCanvasReset: 'Reset',
-    saveDesign: 'Save design',
-    alreadyInCartDifferent: 'Already in cart',
-  };
-
-  const validationLabels = {
-    textTooLong: 'Customization text is too long.',
-    colorTooLong: 'Customization color is too long.',
-    sizeTooLong: 'Customization size is too long.',
-    invalidImageUrl: 'Customization image must be a valid URL.',
-  };
+  } satisfies CustomizationExperienceLabels;
 
   const commonProps = {
     productId: 'prod-1',
@@ -92,7 +94,20 @@ describe('CustomizationExperience', () => {
     price: 12.5,
     formattedPrice: '$12.50',
     previewBaseImageUrl: '/mug.png',
-    productImages: [] as { url: string; alt: string }[],
+    publicMedia: [
+      {
+        id: 'cover-1',
+        url: '/cover.png',
+        alt: 'Cover',
+        mimeType: 'image/png',
+        posterUrl: null,
+      },
+    ],
+    productImages: [] as {
+      url: string;
+      alt: string;
+      purpose: ProductImagePurpose;
+    }[],
   };
 
   beforeEach(() => {
@@ -108,16 +123,12 @@ describe('CustomizationExperience', () => {
     });
 
     render(
-      <CustomizationDraftProvider
-        validationLabels={validationLabels}
+      <CustomizationExperience
+        {...commonProps}
+        customizationConfig={config.toJson()}
+        labels={labels}
         initialDraft={{ text: 'Hello', imageUrl: '/upload.png' }}
-      >
-        <CustomizationExperience
-          {...commonProps}
-          customizationConfig={config.toJson()}
-          labels={labels}
-        />
-      </CustomizationDraftProvider>,
+      />,
     );
 
     expect(screen.getByLabelText(labels.customizationDesign)).toBeTruthy();
@@ -126,6 +137,37 @@ describe('CustomizationExperience', () => {
     };
     expect(props.customization.text).toBe('Hello');
     expect(props.customization.imageUrl).toBe('/upload.png');
+  });
+
+  it('keeps the product presentation in the right column and the form in the left column', () => {
+    const config = ProductCustomizationConfig.default();
+
+    render(
+      <CustomizationExperience
+        {...commonProps}
+        customizationConfig={config.toJson()}
+        labels={labels}
+      />,
+    );
+
+    const layout = screen.getByTestId('purchase-layout');
+    const leftColumn = within(layout).getByTestId('purchase-layout-left');
+    const rightColumn = within(layout).getByTestId('purchase-layout-right');
+
+    expect(
+      within(rightColumn).getByRole('heading', { name: 'Mug' }),
+    ).toBeInTheDocument();
+    expect(within(rightColumn).getByText('A nice mug')).toBeInTheDocument();
+    expect(
+      within(rightColumn).getByTestId('showcase-gallery'),
+    ).toBeInTheDocument();
+
+    expect(
+      within(leftColumn).getByLabelText(labels.customizationDesign),
+    ).toBeInTheDocument();
+    expect(
+      within(leftColumn).getByTestId('mock-add-to-cart'),
+    ).toBeInTheDocument();
   });
 
   it('falls back to the legacy add-to-cart button when the feature flag is disabled', () => {
@@ -150,15 +192,25 @@ describe('CustomizationExperience', () => {
     delete process.env.NEXT_PUBLIC_CUSTOMIZATION_FRONTEND_ENABLED;
 
     render(
-      <CustomizationDraftProvider validationLabels={validationLabels}>
-        <CustomizationExperience
-          {...commonProps}
-          customizationConfig={ProductCustomizationConfig.default().toJson()}
-          labels={labels}
-        />
-      </CustomizationDraftProvider>,
+      <CustomizationExperience
+        {...commonProps}
+        customizationConfig={ProductCustomizationConfig.default().toJson()}
+        labels={labels}
+      />,
     );
 
     expect(screen.getByLabelText(labels.customizationDesign)).toBeTruthy();
+  });
+
+  it('keeps the customizer entry point when no customizable bases exist', () => {
+    render(
+      <CustomizationExperience
+        {...commonProps}
+        customizationConfig={ProductCustomizationConfig.default().toJson()}
+        labels={labels}
+      />,
+    );
+
+    expect(screen.getByTestId('mock-add-to-cart')).toBeTruthy();
   });
 });

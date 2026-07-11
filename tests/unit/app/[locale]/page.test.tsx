@@ -4,11 +4,39 @@ import type { ImgHTMLAttributes } from 'react';
 import { ProductPrice } from '@/modules/products/domain/value-objects/product-price';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
+import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
 
 const mocks = vi.hoisted(() => {
   const getDictionaryMock = vi.fn();
   const getProductRepositoryMock = vi.fn();
-  return { getDictionaryMock, getProductRepositoryMock };
+  const infiniteProductListMock = vi.fn(
+    ({
+      initialItems,
+    }: {
+      initialItems: Array<{
+        id: string;
+        cover?: { url: string; alt: string | null };
+        images?: unknown;
+      }>;
+    }) => (
+      <div data-testid="infinite-list">
+        {initialItems.map((item) => (
+          <div key={item.id}>
+            <span>{item.cover?.alt ?? 'No cover'}</span>
+            {item.cover?.url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img alt={item.cover.alt ?? ''} src={item.cover.url} />
+            ) : null}
+          </div>
+        ))}
+      </div>
+    ),
+  );
+  return {
+    getDictionaryMock,
+    getProductRepositoryMock,
+    infiniteProductListMock,
+  };
 });
 
 vi.mock('next/image', () => ({
@@ -41,39 +69,20 @@ vi.mock('@/components/products/search-input-with-suggestions', () => ({
 }));
 
 vi.mock('@/components/products/infinite-product-list', () => ({
-  InfiniteProductList: ({
-    initialItems,
-  }: {
-    initialItems: Array<{
-      id?: string;
-      translations?: Array<{ name?: string }>;
-      images?: Array<{ url?: string; alt?: string }>;
-    }>;
-  }) => (
-    <div>
-      {initialItems.map((item) => (
-        <div key={item.id ?? item.translations?.[0]?.name ?? ''}>
-          <span>{item.translations?.[0]?.name ?? 'Unknown'}</span>
-          {item.images?.[0]?.url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img alt={item.images[0]?.alt ?? ''} src={item.images[0].url} />
-          ) : null}
-        </div>
-      ))}
-    </div>
-  ),
+  InfiniteProductList: mocks.infiniteProductListMock,
 }));
 
 import HomePage from '@/app/[locale]/page';
 
 describe('HomePage', () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
     mocks.getDictionaryMock.mockResolvedValue({
       common: {
         heroImageAlt: 'Hero',
         products: 'Products',
         noProducts: 'No products',
+        noImageAvailable: 'Image not available',
         viewDetails: 'View details',
         addToCart: 'Add to cart',
         removeFromCart: 'Remove from cart',
@@ -106,6 +115,9 @@ describe('HomePage', () => {
                 url: 'https://assets.example.test/products/taza.png',
                 alt: 'Taza personalizada',
                 position: 0,
+                purpose: ProductImagePurpose.COVER,
+                mimeType: 'image/jpeg',
+                posterUrl: null,
                 productId: 'active-1',
                 createdAt: new Date('2025-01-01T00:00:00.000Z'),
               },
@@ -132,6 +144,18 @@ describe('HomePage', () => {
       'src',
       'https://assets.example.test/products/taza.png',
     );
-    expect(screen.queryByText('Borrador')).toBeNull();
+
+    const infiniteListProps = mocks.infiniteProductListMock.mock
+      .calls[0][0] as {
+      initialItems: Array<{
+        cover?: { url: string; alt: string | null };
+        images?: unknown;
+      }>;
+    };
+    expect(infiniteListProps.initialItems[0].cover).toEqual({
+      url: 'https://assets.example.test/products/taza.png',
+      alt: 'Taza personalizada',
+    });
+    expect(infiniteListProps.initialItems[0]).not.toHaveProperty('images');
   });
 });

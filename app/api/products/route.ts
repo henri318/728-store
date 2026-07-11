@@ -44,6 +44,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       items: result.items.map((product) => {
         const serialized = serializeProduct(product, {
           publicView: audience === 'public',
+          listingView: true,
         });
 
         return {

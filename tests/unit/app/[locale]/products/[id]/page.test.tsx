@@ -1,14 +1,62 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import type { ImgHTMLAttributes, ReactNode } from 'react';
 import { ProductPrice } from '@/modules/products/domain/value-objects/product-price';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
+import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
 
 const mocks = vi.hoisted(() => {
   const getDictionaryMock = vi.fn();
   const getProductRepositoryMock = vi.fn();
-  return { getDictionaryMock, getProductRepositoryMock };
+  const productShowcaseGalleryMock = vi.fn(
+    ({ items }: { items: Array<{ id: string }> }) => (
+      <div data-testid="showcase-gallery">{items.length}</div>
+    ),
+  );
+  const customizationExperienceMock = vi.fn(
+    ({
+      labels,
+    }: {
+      labels: { adding: string; added: string; error: string };
+    }) => (
+      <div data-testid="customization-experience">
+        <span>{labels.adding}</span>
+        <span>{labels.added}</span>
+        <span>{labels.error}</span>
+      </div>
+    ),
+  );
+  return {
+    getDictionaryMock,
+    getProductRepositoryMock,
+    productShowcaseGalleryMock,
+    customizationExperienceMock,
+  };
 });
+
+vi.mock('next/image', () => ({
+  default: (props: ImgHTMLAttributes<HTMLImageElement>) => {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img {...props} />;
+  },
+}));
+
+vi.mock('next/link', () => ({
+  default: ({
+    children,
+    href,
+    className,
+  }: {
+    children: ReactNode;
+    href: string;
+    className?: string;
+  }) => (
+    <a href={href} className={className}>
+      {children}
+    </a>
+  ),
+}));
 
 vi.mock('@/shared/i18n/get-dictionary', () => ({
   getDictionary: mocks.getDictionaryMock,
@@ -17,39 +65,49 @@ vi.mock('@/shared/i18n/get-dictionary', () => ({
 vi.mock('@/composition-root/container', () => ({
   container: {
     getProductRepository: mocks.getProductRepositoryMock,
+    getSession: () => ({
+      getSession: vi.fn().mockResolvedValue(null),
+    }),
   },
 }));
 
-vi.mock('@/modules/cart/presentation/components/add-to-cart-button', () => ({
-  AddToCartButton: () => <div data-testid="add-to-cart-button" />,
+vi.mock('@/app/[locale]/products/[id]/customization-experience', () => ({
+  CustomizationExperience: mocks.customizationExperienceMock,
 }));
 
-vi.mock('@/app/[locale]/products/[id]/customization-experience', () => ({
-  CustomizationExperience: () => <div data-testid="customization-experience" />,
+vi.mock('@/app/[locale]/products/[id]/product-showcase-gallery', () => ({
+  ProductShowcaseGallery: (props: { items: Array<{ id: string }> }) =>
+    mocks.productShowcaseGalleryMock(props),
 }));
 
 import ProductDetailPage from '@/app/[locale]/products/[id]/page';
 
 describe('ProductDetailPage', () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
     mocks.getDictionaryMock.mockResolvedValue({
       common: {
         home: 'Home',
+        customizationPreview: 'Preview',
+        soldBy: 'Sold by',
+        productDetailsError: 'Error',
+        noImageAvailable: 'Image not available',
         addToCart: 'Add to cart',
         removeFromCart: 'Remove from cart',
-        slogan: 'Siete 28',
+        addingToCart: 'Adding...',
+        addedToCart: 'Added',
+        cartError: 'Cart error',
       },
     });
   });
 
-  it('renders the product image from the catalog asset and the customization experience', async () => {
+  it('passes only public media into the purchase card and keeps product meta out of the page shell', async () => {
     mocks.getProductRepositoryMock.mockReturnValue({
       findById: vi.fn().mockResolvedValue({
-        id: 'p-1',
-        basePrice: ProductPrice.create(15, Currency.EUR),
+        id: 'prod-1',
+        basePrice: ProductPrice.create(25, Currency.EUR),
         sellerId: 'seller-1',
-        sellerName: '728 Store',
+        sellerName: 'Test Shop',
         status: ProductStatus.ACTIVE,
         categoryId: null,
         category: null,
@@ -57,15 +115,45 @@ describe('ProductDetailPage', () => {
         createdAt: new Date('2025-01-01T00:00:00.000Z'),
         updatedAt: new Date('2025-01-02T00:00:00.000Z'),
         translations: [
-          { locale: 'es', name: 'Taza personalizada', description: 'Taza' },
+          {
+            locale: 'es',
+            name: 'Mug',
+            description: 'Nice mug',
+            sizes: ['S', 'M'],
+          },
         ],
         images: [
           {
-            id: 'img-1',
-            url: 'https://assets.example.test/products/taza.png',
-            alt: 'Taza personalizada',
+            id: 'cover-1',
+            url: 'https://assets.example.test/cover.jpg',
+            alt: 'Mug cover',
             position: 0,
-            productId: 'p-1',
+            purpose: ProductImagePurpose.COVER,
+            mimeType: 'image/jpeg',
+            posterUrl: null,
+            productId: 'prod-1',
+            createdAt: new Date('2025-01-01T00:00:00.000Z'),
+          },
+          {
+            id: 'showcase-1',
+            url: 'https://assets.example.test/showcase.mp4',
+            alt: 'Mug showcase',
+            position: 1,
+            purpose: ProductImagePurpose.SHOWCASE,
+            mimeType: 'video/mp4',
+            posterUrl: 'https://assets.example.test/poster.jpg',
+            productId: 'prod-1',
+            createdAt: new Date('2025-01-01T00:00:00.000Z'),
+          },
+          {
+            id: 'base-1',
+            url: 'https://assets.example.test/base.jpg',
+            alt: 'Base layer',
+            position: 2,
+            purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+            mimeType: 'image/jpeg',
+            posterUrl: null,
+            productId: 'prod-1',
             createdAt: new Date('2025-01-01T00:00:00.000Z'),
           },
         ],
@@ -74,11 +162,63 @@ describe('ProductDetailPage', () => {
     });
 
     const element = await ProductDetailPage({
-      params: Promise.resolve({ locale: 'es', id: 'p-1' }),
+      params: Promise.resolve({ locale: 'es', id: 'prod-1' }),
     });
 
     render(element);
 
-    expect(screen.getByTestId('add-to-cart-button')).toBeInTheDocument();
+    expect(screen.getByTestId('customization-experience')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Mug' })).toBeNull();
+    expect(screen.queryByText('Nice mug')).toBeNull();
+    expect(screen.queryByText('Test Shop')).toBeNull();
+    expect(screen.getByText('Adding...')).toBeInTheDocument();
+    expect(screen.getByText('Added')).toBeInTheDocument();
+    expect(screen.getByText('Cart error')).toBeInTheDocument();
+
+    const props = mocks.customizationExperienceMock.mock.calls[0][0] as {
+      labels: { adding: string; added: string; error: string };
+      sizes: string[];
+      publicMedia: Array<{ id: string }>;
+    };
+    expect(props.labels.adding).toBe('Adding...');
+    expect(props.labels.added).toBe('Added');
+    expect(props.labels.error).toBe('Cart error');
+    expect(props.sizes).toEqual(['S', 'M']);
+    expect(props.publicMedia).toHaveLength(2);
+    expect(props.publicMedia[0].id).toBe('cover-1');
+    expect(props.publicMedia[1].id).toBe('showcase-1');
+  });
+
+  it('passes an empty public-media list when the product has no cover or showcase media', async () => {
+    mocks.getProductRepositoryMock.mockReturnValue({
+      findById: vi.fn().mockResolvedValue({
+        id: 'prod-1',
+        basePrice: ProductPrice.create(25, Currency.EUR),
+        sellerId: 'seller-1',
+        sellerName: 'Test Shop',
+        status: ProductStatus.ACTIVE,
+        categoryId: null,
+        category: null,
+        customizationConfig: null,
+        createdAt: new Date('2025-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2025-01-02T00:00:00.000Z'),
+        translations: [{ locale: 'es', name: 'Mug', description: 'Nice mug' }],
+        images: [],
+        tags: [],
+      }),
+    });
+
+    const element = await ProductDetailPage({
+      params: Promise.resolve({ locale: 'es', id: 'prod-1' }),
+    });
+
+    render(element);
+
+    const props = mocks.customizationExperienceMock.mock
+      .calls[0][0] as unknown as {
+      publicMedia: Array<{ id: string }>;
+    };
+
+    expect(props.publicMedia).toEqual([]);
   });
 });

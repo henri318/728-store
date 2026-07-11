@@ -1,8 +1,10 @@
 'use client';
 
 import type { ProductCustomizationConfigJson } from '@/modules/products/domain/value-objects/product-customization-config';
+import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
 import { useCustomizationDraft } from './customization-draft-context';
 import type { ProductImageItem } from './customization-experience';
+import { SelectField } from '@/shared/ui/select-field';
 import formStyles from './customization-form.module.css';
 
 interface CustomizationFormLabels {
@@ -58,10 +60,11 @@ export function CustomizationForm({
   const { draft, errors, setText, setColor, setSize, validateDraft } =
     useCustomizationDraft();
   const sizeOptions = sizes ?? [];
+  const customizableBaseImages = productImages.filter(
+    (image) => image.purpose === ProductImagePurpose.CUSTOMIZABLE_BASE,
+  );
 
   const textErrorId = errors.text ? 'customization-text-error' : undefined;
-  const sizeErrorId =
-    errors.size == null ? undefined : 'customization-size-error';
 
   return (
     <form
@@ -77,6 +80,7 @@ export function CustomizationForm({
       <label className={formStyles.fieldLabel}>
         <span>{labels.customizationDesign}</span>
         <textarea
+          rows={2}
           maxLength={500}
           aria-invalid={errors.text ? 'true' : undefined}
           aria-describedby={textErrorId}
@@ -90,13 +94,13 @@ export function CustomizationForm({
         )}
       </label>
 
-      {productImages.length > 0 && (
+      {customizableBaseImages.length > 0 && (
         <div className={formStyles.colorSection}>
           <span className={formStyles.colorLabel}>
             {labels.customizationColor}
           </span>
           <div className={formStyles.colorCarousel}>
-            {productImages.map((img) => {
+            {customizableBaseImages.map((img) => {
               const isSelected = draft.color === img.alt;
               return (
                 <div
@@ -129,27 +133,19 @@ export function CustomizationForm({
         </div>
       )}
 
-      <label className={formStyles.fieldLabel}>
-        <span>{labels.customizationSize}</span>
-        <select
+      {sizeOptions.length > 0 && (
+        <SelectField
+          label={labels.customizationSize}
           value={draft.size ?? ''}
-          onChange={(event) => setSize(event.target.value || null)}
-          aria-invalid={errors.size == null ? undefined : 'true'}
-          aria-describedby={sizeErrorId}
-        >
-          <option value="">{labels.customizationSizePlaceholder}</option>
-          {sizeOptions.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-        {errors.size != null && (
-          <p id={sizeErrorId} role="alert">
-            {errors.size}
-          </p>
-        )}
-      </label>
+          onChange={(value) => setSize(value || null)}
+          options={sizeOptions.map((option) => ({
+            value: option,
+            label: option,
+          }))}
+          placeholder={labels.customizationSizePlaceholder}
+          error={errors.size}
+        />
+      )}
     </form>
   );
 }

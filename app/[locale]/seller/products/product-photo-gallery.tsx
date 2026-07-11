@@ -110,22 +110,28 @@ export function ProductPhotoBucketGallery({
           {photos.map((photo, index) => {
             const isSelected = selectedPhotoId === photo.id;
             const video = isVideoMimeType(photo.mimeType);
+            const selectPhoto = () => onSelectPhoto(photo.id);
 
             return (
               <li
                 key={photo.id}
                 className={`${styles.photoCard} ${isSelected ? styles.photoCardSelected : ''}`}
               >
-                <button
-                  type="button"
-                  className={styles.photoSelect}
-                  onClick={() => onSelectPhoto(photo.id)}
-                >
-                  <span className={styles.photoIndex}>{index + 1}</span>
-                  {commonLabels.selectForPreviewLabel}
-                </button>
+                <span className={styles.photoIndex}>{index + 1}</span>
 
-                <div className={styles.photoFrame}>
+                <div
+                  className={styles.photoFrame}
+                  role="button"
+                  aria-label={commonLabels.selectForPreviewLabel}
+                  tabIndex={0}
+                  onClick={selectPhoto}
+                  onKeyDown={(event) => {
+                    if (event.key !== 'Enter' && event.key !== ' ') return;
+
+                    event.preventDefault();
+                    selectPhoto();
+                  }}
+                >
                   {video ? (
                     <video
                       controls
@@ -175,14 +181,6 @@ export function ProductPhotoBucketGallery({
                 ) : null}
 
                 <div className={styles.photoActions}>
-                  <button
-                    type="button"
-                    className={styles.ghostButton}
-                    onClick={() => onSelectPhoto(photo.id)}
-                  >
-                    {commonLabels.selectForPreviewLabel}
-                  </button>
-
                   {mode === 'multiple' && onMovePhotoUp && onMovePhotoDown ? (
                     <>
                       <button

@@ -2,6 +2,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import type { ImgHTMLAttributes } from 'react';
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
+import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
 import { CustomizationDraftProvider } from '@/app/[locale]/products/[id]/customization-draft-context';
 import { CustomizationForm } from '@/app/[locale]/products/[id]/customization-form';
 
@@ -62,24 +63,48 @@ describe('CustomizationForm', () => {
 
   it('renders the design textarea, color carousel (with images), and size select', () => {
     const productImages = [
-      { url: '/red.png', alt: 'Red' },
-      { url: '/blue.png', alt: 'Blue' },
+      {
+        url: '/cover.png',
+        alt: 'Cover',
+        purpose: ProductImagePurpose.COVER,
+      },
+      {
+        url: '/red.png',
+        alt: 'Red',
+        purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+      },
+      {
+        url: '/blue.png',
+        alt: 'Blue',
+        purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+      },
+      {
+        url: '/demo.mp4',
+        alt: 'Demo',
+        purpose: ProductImagePurpose.SHOWCASE,
+      },
     ];
 
     render(
       <CustomizationDraftProvider validationLabels={validationLabels}>
         <CustomizationForm
           customizationConfig={ProductCustomizationConfig.default().toJson()}
+          sizes={['S', 'M']}
           productImages={productImages}
           labels={labels}
         />
       </CustomizationDraftProvider>,
     );
 
-    expect(screen.getByLabelText(labels.customizationDesign)).toBeTruthy();
+    expect(screen.getByLabelText(labels.customizationDesign)).toHaveAttribute(
+      'rows',
+      '2',
+    );
     expect(screen.getByText(labels.customizationColor)).toBeTruthy();
     expect(screen.getByText('Red')).toBeTruthy();
     expect(screen.getByText('Blue')).toBeTruthy();
+    expect(screen.queryByText('Cover')).toBeNull();
+    expect(screen.queryByText('Demo')).toBeNull();
     expect(
       screen.getByRole('combobox', { name: labels.customizationSize }),
     ).toBeTruthy();
@@ -110,7 +135,7 @@ describe('CustomizationForm', () => {
     expect(screen.getByRole('option', { name: 'L' })).toBeTruthy();
   });
 
-  it('renders no translated size options when none are provided', () => {
+  it('hides the size selector when no sizes are available', () => {
     const config = ProductCustomizationConfig.fromJson({
       mode: 'text',
       previewEnabled: true,
@@ -127,11 +152,11 @@ describe('CustomizationForm', () => {
       </CustomizationDraftProvider>,
     );
 
-    const sizeSelect = screen.getByRole('combobox', {
-      name: labels.customizationSize,
-    });
-
-    expect(sizeSelect).toBeTruthy();
+    expect(
+      screen.queryByRole('combobox', {
+        name: labels.customizationSize,
+      }),
+    ).toBeNull();
     expect(screen.queryByRole('option', { name: 'S' })).toBeNull();
     expect(screen.queryByRole('option', { name: 'M' })).toBeNull();
     expect(screen.queryByRole('option', { name: 'L' })).toBeNull();
