@@ -11,6 +11,7 @@ import {
   InvalidCustomizationError,
 } from '../domain/errors';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
+import type { TransactionRunner } from '@/shared/kernel/transaction-runner';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 
 // --- Data Transfer Objects ---
@@ -52,6 +53,7 @@ export class AddItemToCart {
     private productRepository: ProductRepository,
     private outboxRepository: OutboxRepository,
     private customizationLookup: CustomizationLookupPort,
+    private txRunner?: TransactionRunner,
   ) {}
 
   /**
@@ -93,112 +95,128 @@ export class AddItemToCart {
   }
 
   async execute(dto: AddItemToCartDTO): Promise<CartItemEntity> {
-    // 1. Validate quantity (throws InvalidQuantityError on out-of-range)
-    const quantity = Quantity.create(dto.quantity);
+    const run = <T>(fn: (tx: unknown) => Promise<T>) =>
+      this.txRunner ? this.txRunner.run(fn) : fn(undefined);
 
-    // 2. Load product snapshot (throws ProductNotFoundError if missing)
-    const productId = ProductId.create(dto.productId);
-    const product = await this.productRepository.findById(productId);
-    if (!product) {
-      throw new ProductNotFoundError(
-        `Product ${dto.productId} not found`,
-        `Product not found`,
+    return run(async (tx) => {
+      // 1. Validate quantity (throws InvalidQuantityError on out-of-range)
+      const quantity = Quantity.create(dto.quantity);
+
+      // 2. Load product snapshot (throws ProductNotFoundError if missing)
+      const productId = ProductId.create(dto.productId);
+      const product = await this.productRepository.findById(productId);
+      if (!product) {
+        throw new ProductNotFoundError(
+          `Product ${dto.productId} not found`,
+          `Product not found`,
+        );
+      }
+
+      // 3. Validate customizations (if any). Deduplicate first — duplicate
+      //    IDs would cause the length check in validateCustomizations to
+      //    falsely reject a valid list.
+      const customizationIdList = [...new Set(dto.customizationIdList)];
+      if (customizationIdList.length > 0) {
+        await this.validateCustomizations(
+          customizationIdList,
+          dto.productId,
+          product.sellerId.value,
+        );
+      }
+
+      // 4. Find or create the ACTIVE cart for the user. Spec REQ-CART-001
+      //    states a user has at most one ACTIVE cart. A user with only a
+      //    CHECKED_OUT cart (history) still gets a fresh ACTIVE cart.
+      let cart = await this.cartRepository.findActiveByUserId(dto.userId);
+      const isNewCart = cart === null;
+      if (isNewCart) {
+        const now = new Date();
+        cart = {
+          id: crypto.randomUUID(),
+          userId: dto.userId,
+          status: CartStatus.Active,
+          items: [],
+          createdAt: now,
+          updatedAt: now,
+        };
+      }
+
+      // 5. Find an existing item with the same product + customization
+      const existing = cart!.items.find((item) =>
+        isSameVariant(item, productId, customizationIdList),
       );
-    }
 
-    // 3. Validate customizations (if any). Deduplicate first — duplicate
-    //    IDs would cause the length check in validateCustomizations to
-    //    falsely reject a valid list.
-    const customizationIdList = [...new Set(dto.customizationIdList)];
-    if (customizationIdList.length > 0) {
-      await this.validateCustomizations(
-        customizationIdList,
-        dto.productId,
-        product.sellerId.value,
+      let updatedItem: CartItemEntity;
+      let updatedItems: CartItemEntity[];
+
+      if (existing) {
+        // Merge: increment quantity. Quantity.create enforces the 99 ceiling.
+        const newQuantity = Quantity.create(existing.quantity + dto.quantity);
+        updatedItem = {
+          ...existing,
+          quantity: newQuantity.value,
+          // Re-validate the snapshot in case the product's price changed
+          // while the item was in the cart. The checkout path will detect
+          // mismatches and ask the user to confirm; here we keep the
+          // original snapshot per spec (snapshot is captured at add time).
+        };
+        updatedItems = cart!.items.map((i) =>
+          i.id === existing.id ? updatedItem : i,
+        );
+      } else {
+        // Create a new item with a fresh snapshot.
+        updatedItem = {
+          id: crypto.randomUUID(),
+          cartId: cart!.id,
+          productId,
+          sellerId: product.sellerId,
+          quantity: quantity.value,
+          unitPriceSnapshot: Money.create(product.basePrice, product.currency),
+          customizationIdList: [...customizationIdList].toSorted((a, b) =>
+            a.localeCompare(b),
+          ),
+        };
+        updatedItems = [...cart!.items, updatedItem];
+      }
+
+      // 6. Persist the cart with the updated items + bumped updatedAt
+      const savedCart = await this.cartRepository.save(
+        {
+          ...cart!,
+          items: updatedItems,
+          updatedAt: new Date(),
+        },
+        tx,
       );
-    }
 
-    // 4. Find or create the ACTIVE cart for the user. Spec REQ-CART-001
-    //    states a user has at most one ACTIVE cart. A user with only a
-    //    CHECKED_OUT cart (history) still gets a fresh ACTIVE cart.
-    let cart = await this.cartRepository.findActiveByUserId(dto.userId);
-    const isNewCart = cart === null;
-    if (isNewCart) {
-      const now = new Date();
-      cart = {
-        id: crypto.randomUUID(),
-        userId: dto.userId,
-        status: CartStatus.Active,
-        items: [],
-        createdAt: now,
-        updatedAt: now,
-      };
-    }
-
-    // 5. Find an existing item with the same product + customization
-    const existing = cart!.items.find((item) =>
-      isSameVariant(item, productId, customizationIdList),
-    );
-
-    let updatedItem: CartItemEntity;
-    let updatedItems: CartItemEntity[];
-
-    if (existing) {
-      // Merge: increment quantity. Quantity.create enforces the 99 ceiling.
-      const newQuantity = Quantity.create(existing.quantity + dto.quantity);
-      updatedItem = {
-        ...existing,
-        quantity: newQuantity.value,
-        // Re-validate the snapshot in case the product's price changed
-        // while the item was in the cart. The checkout path will detect
-        // mismatches and ask the user to confirm; here we keep the
-        // original snapshot per spec (snapshot is captured at add time).
-      };
-      updatedItems = cart!.items.map((i) =>
-        i.id === existing.id ? updatedItem : i,
+      // 7. Emit events
+      if (isNewCart) {
+        await this.outboxRepository.saveEvent(
+          GlobalEvents.CART_CREATED,
+          {
+            cartId: savedCart.id,
+            userId: savedCart.userId,
+            occurredAt: new Date().toISOString(),
+          },
+          tx,
+        );
+      }
+      await this.outboxRepository.saveEvent(
+        GlobalEvents.CART_ITEM_ADDED,
+        {
+          cartId: savedCart.id,
+          itemId: updatedItem.id,
+          productId: updatedItem.productId.value,
+          sellerId: updatedItem.sellerId.value,
+          quantity: updatedItem.quantity,
+          customizationIdList: updatedItem.customizationIdList,
+          occurredAt: new Date().toISOString(),
+        },
+        tx,
       );
-    } else {
-      // Create a new item with a fresh snapshot.
-      updatedItem = {
-        id: crypto.randomUUID(),
-        cartId: cart!.id,
-        productId,
-        sellerId: product.sellerId,
-        quantity: quantity.value,
-        unitPriceSnapshot: Money.create(product.basePrice, product.currency),
-        customizationIdList: [...customizationIdList].toSorted((a, b) =>
-          a.localeCompare(b),
-        ),
-      };
-      updatedItems = [...cart!.items, updatedItem];
-    }
 
-    // 6. Persist the cart with the updated items + bumped updatedAt
-    const savedCart = await this.cartRepository.save({
-      ...cart!,
-      items: updatedItems,
-      updatedAt: new Date(),
+      return updatedItem;
     });
-
-    // 7. Emit events
-    if (isNewCart) {
-      await this.outboxRepository.saveEvent(GlobalEvents.CART_CREATED, {
-        cartId: savedCart.id,
-        userId: savedCart.userId,
-        occurredAt: new Date().toISOString(),
-      });
-    }
-    await this.outboxRepository.saveEvent(GlobalEvents.CART_ITEM_ADDED, {
-      cartId: savedCart.id,
-      itemId: updatedItem.id,
-      productId: updatedItem.productId.value,
-      sellerId: updatedItem.sellerId.value,
-      quantity: updatedItem.quantity,
-      customizationIdList: updatedItem.customizationIdList,
-      occurredAt: new Date().toISOString(),
-    });
-
-    return updatedItem;
   }
 }
 

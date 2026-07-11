@@ -21,11 +21,13 @@ export async function GET(
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const userId = session.userId;
+    const isAdmin = session.role === 'ADMIN';
 
     // Execute use case
     const uploadRepo = container.getUploadRepository();
     const getUpload = new GetUploadUseCase(uploadRepo);
-    const upload = await getUpload.execute(id);
+    const upload = await getUpload.execute(id, userId, isAdmin);
 
     return NextResponse.json(
       {

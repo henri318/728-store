@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { prisma } from '@/shared/infrastructure/prisma';
 import type { CartRepository } from '../domain/cart-repository';
 import type { CartEntity } from '../domain/entities/cart';
@@ -11,6 +11,11 @@ import { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
 import { Money } from '@/shared/kernel/domain/value-objects/money';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import { CartAlreadyActiveError } from '../domain/errors';
+
+type PrismaTx = Omit<
+  PrismaClient,
+  '$extends' | '$transaction' | '$connect' | '$disconnect' | '$use'
+>;
 
 /**
  * PrismaCartRepository — the production adapter for CartRepository.
@@ -41,15 +46,16 @@ export class PrismaCartRepository implements CartRepository {
     return row ? toDomain(row) : null;
   }
 
-  async save(cart: CartEntity): Promise<CartEntity> {
+  async save(cart: CartEntity, tx?: unknown): Promise<CartEntity> {
     // Enforce spec REQ-CART-001: at most one ACTIVE cart per user.
     // The database partial unique index `Cart_userId_active_unique` is
     // the source of truth — the adapter translates Prisma's P2002 error
     // into CartAlreadyActiveError so the application layer can speak
     // domain types.
+    const client = (tx ?? prisma) as PrismaTx;
     try {
       // Upsert the cart row.
-      await prisma.cart.upsert({
+      await client.cart.upsert({
         where: { id: cart.id },
         update: {
           userId: cart.userId,
@@ -68,9 +74,9 @@ export class PrismaCartRepository implements CartRepository {
       // Replace items wholesale: delete then re-insert. This is the
       // simplest correct semantics for a "save the whole cart" port and
       // matches how the in-memory double works.
-      await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
+      await client.cartItem.deleteMany({ where: { cartId: cart.id } });
       if (cart.items.length > 0) {
-        await prisma.cartItem.createMany({
+        await client.cartItem.createMany({
           data: cart.items.map((item) => ({
             id: item.id,
             cartId: cart.id,
@@ -87,7 +93,7 @@ export class PrismaCartRepository implements CartRepository {
         });
       }
 
-      const saved = await prisma.cart.findUnique({
+      const saved = await client.cart.findUnique({
         where: { id: cart.id },
         include: { items: true },
       });

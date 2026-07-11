@@ -28,7 +28,7 @@ export interface CartRepository {
    * Persists a cart and its items. When a cart with the same id already
    * exists it is replaced. Returns the stored entity.
    */
-  save(cart: CartEntity): Promise<CartEntity>;
+  save(cart: CartEntity, tx?: unknown): Promise<CartEntity>;
 
   /**
    * Transitions the cart to CHECKED_OUT. No-op if the cart does not exist.

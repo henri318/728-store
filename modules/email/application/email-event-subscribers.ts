@@ -40,26 +40,19 @@ function subscribe<T>(
   drain?: Pick<EmailQueueDrainService, 'drain'>,
 ): void {
   eventBus.on(eventName, async (data: unknown) => {
+    await handler(data as T);
+
+    if (!drain) {
+      return;
+    }
+
     try {
-      await handler(data as T);
-
-      if (!drain) {
-        return;
-      }
-
-      try {
-        await drain.drain({ source: 'inline' });
-      } catch {
-        console.warn(
-          '[EmailEventSubscribers] Inline email queue drain failed',
-          {
-            event: label,
-            source: 'inline',
-          },
-        );
-      }
-    } catch (error) {
-      console.error(`Error processing ${label} event:`, error);
+      await drain.drain({ source: 'inline' });
+    } catch {
+      console.warn('[EmailEventSubscribers] Inline email queue drain failed', {
+        event: label,
+        source: 'inline',
+      });
     }
   });
 }

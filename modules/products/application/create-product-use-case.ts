@@ -10,6 +10,7 @@ import { ProductCustomizationConfig } from '../domain/value-objects/product-cust
 import { hasDefaultLocaleTranslation } from '../domain/entities/product';
 import type { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
+import type { TransactionRunner } from '@/shared/kernel/transaction-runner';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import {
   buildProductImages,
@@ -88,52 +89,62 @@ export class CreateProductUseCase {
   constructor(
     private readonly productRepository: ProductRepository,
     private readonly outboxRepository?: OutboxRepository,
+    private readonly txRunner?: TransactionRunner,
   ) {}
 
   async execute(dto: CreateProductDTO): Promise<ProductEntity> {
-    const translations = buildTranslations(dto);
+    const run = <T>(fn: (tx: unknown) => Promise<T>) =>
+      this.txRunner ? this.txRunner.run(fn) : fn(undefined);
 
-    if (translations.length === 0) {
-      throw new ValidationError('Product name is required');
-    }
+    return run(async (tx) => {
+      const translations = buildTranslations(dto);
 
-    const price = ProductPrice.create(dto.price, 'EUR' as Currency);
-    const now = new Date();
-    const productId = randomUUID();
-    const product: ProductEntity = {
-      id: productId,
-      basePrice: price,
-      sellerId: dto.sellerId,
-      sellerName: dto.sellerName,
-      status: dto.status ?? ProductStatus.DRAFT,
-      categoryId: null,
-      category: null,
-      customizationConfig: ProductCustomizationConfig.fromJson(
-        dto.customizationConfig ?? null,
-      ),
-      createdAt: now,
-      updatedAt: now,
-      translations,
-      images: buildProductImages(dto.images ?? [], {
-        productId,
+      if (translations.length === 0) {
+        throw new ValidationError('Product name is required');
+      }
+
+      const price = ProductPrice.create(dto.price, 'EUR' as Currency);
+      const now = new Date();
+      const productId = randomUUID();
+      const product: ProductEntity = {
+        id: productId,
+        basePrice: price,
+        sellerId: dto.sellerId,
+        sellerName: dto.sellerName,
+        status: dto.status ?? ProductStatus.DRAFT,
+        categoryId: null,
+        category: null,
+        customizationConfig: ProductCustomizationConfig.fromJson(
+          dto.customizationConfig ?? null,
+        ),
         createdAt: now,
-      }),
-      tags: [],
-    };
+        updatedAt: now,
+        translations,
+        images: buildProductImages(dto.images ?? [], {
+          productId,
+          createdAt: now,
+        }),
+        tags: [],
+      };
 
-    if (
-      product.status === ProductStatus.ACTIVE &&
-      !hasDefaultLocaleTranslation(product)
-    ) {
-      throw new ValidationError('default locale translation required');
-    }
+      if (
+        product.status === ProductStatus.ACTIVE &&
+        !hasDefaultLocaleTranslation(product)
+      ) {
+        throw new ValidationError('default locale translation required');
+      }
 
-    await this.productRepository.save(product);
-    await this.outboxRepository?.saveEvent(GlobalEvents.PRODUCT_CREATED, {
-      productId: product.id,
-      sellerId: product.sellerId,
-      status: product.status,
+      await this.productRepository.save(product);
+      await this.outboxRepository?.saveEvent(
+        GlobalEvents.PRODUCT_CREATED,
+        {
+          productId: product.id,
+          sellerId: product.sellerId,
+          status: product.status,
+        },
+        tx,
+      );
+      return product;
     });
-    return product;
   }
 }

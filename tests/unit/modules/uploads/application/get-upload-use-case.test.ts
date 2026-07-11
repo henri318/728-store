@@ -56,6 +56,40 @@ describe('GetUploadUseCase', () => {
     expect(result.status).toBe(UploadStatus.PENDING);
   });
 
+  // ── Ownership ───────────────────────────────────────────────
+
+  it('should allow the owner to view their upload', async () => {
+    await uploadRepo.save(makeUpload({ uploadedBy: 'user-1' }));
+
+    const result = await useCase.execute('upload-1', 'user-1', false);
+
+    expect(result.id).toBe('upload-1');
+  });
+
+  it('should allow admin to view any upload', async () => {
+    await uploadRepo.save(makeUpload({ uploadedBy: 'user-1' }));
+
+    const result = await useCase.execute('upload-1', 'admin-user', true);
+
+    expect(result.id).toBe('upload-1');
+  });
+
+  it('should throw Forbidden when non-owner non-admin tries to view', async () => {
+    await uploadRepo.save(makeUpload({ uploadedBy: 'user-1' }));
+
+    await expect(useCase.execute('upload-1', 'user-2', false)).rejects.toThrow(
+      'Forbidden',
+    );
+  });
+
+  it('should allow viewing without auth (backwards compatible)', async () => {
+    await uploadRepo.save(makeUpload());
+
+    const result = await useCase.execute('upload-1');
+
+    expect(result.id).toBe('upload-1');
+  });
+
   // ── Error Cases ─────────────────────────────────────────────
 
   it('should throw NotFoundError when upload does not exist', async () => {

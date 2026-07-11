@@ -7,6 +7,7 @@ import { CreateProductUseCase } from '@/modules/products/application/create-prod
 import { productListQuerySchema } from '@/modules/products/presentation/schemas/product-list-query-schema';
 import { productFormSchema } from '@/modules/products/presentation/schemas/product-form-schema';
 import { serializeProduct } from '@/modules/products/presentation/product-response';
+import type { ProductAudience } from '@/modules/products/domain/product-repository';
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
@@ -27,7 +28,32 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const productRepository = container.getProductRepository();
     const session = await container.getSession().getSession();
-    const audience = session?.id ? (filter.audience ?? 'seller') : 'public';
+
+    // Derive audience from the authenticated user's role (SEC-01).
+    // Role is verified from the database — never trust the JWT.
+    let audience: ProductAudience;
+    let effectiveSellerId = filter.sellerId;
+
+    if (session?.id) {
+      const user = await container.getUserLookup().findById(session.id);
+
+      if (user?.role === 'DESIGNER') {
+        audience = 'seller';
+        const seller = await container
+          .getSellerRepository()
+          .findByUserId(session.id);
+        effectiveSellerId = seller?.sellerId.value;
+      } else if (user?.role === 'ADMIN') {
+        audience = filter.audience ?? 'admin';
+      } else {
+        // CUSTOMER, unknown role, or user not found — public access.
+        audience = 'public';
+        effectiveSellerId = undefined;
+      }
+    } else {
+      audience = 'public';
+    }
+
     const useCase = new ProductListQueryUseCase(
       productRepository,
       container.getOutboxRepository(),
@@ -35,6 +61,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const result = await useCase.execute({
       ...filter,
+      sellerId: effectiveSellerId,
       audience,
       userId: session?.id ?? null,
     });

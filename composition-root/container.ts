@@ -77,7 +77,7 @@ import { PrismaEmailQueueRepository } from '@/modules/email/infrastructure/prism
 import { PrismaUserLookup } from '@/modules/auth/infrastructure/prisma-user-lookup';
 import { MemoryUsedResetTokenStore } from '@/modules/auth/infrastructure/memory-used-reset-token-store';
 import { PrismaCheckoutGroupLookup } from '@/modules/payments/infrastructure/prisma-checkout-group-lookup';
-import { PrismaCheckoutGroupPaymentPort } from '@/modules/payments/infrastructure/prisma-checkout-group-payment-port';
+import { ConsolePaymentPort } from '@/modules/payments/infrastructure/console-payment-port';
 import { SeedRolesUseCase } from '@/modules/roles/application/use-cases/seed-roles-use-case';
 import {
   hashPassword,
@@ -94,6 +94,7 @@ import { CustomizationLookupAdapter } from '@/modules/cart/infrastructure/custom
 import { PrismaPaidOrderCountAdapter } from '@/modules/orders/infrastructure/prisma-paid-order-count-adapter';
 import { SellerLookupAdapter } from '@/modules/orders/infrastructure/seller-lookup-adapter';
 import { HandleCartCheckedOut } from '@/modules/orders/application/handle-cart-checked-out';
+import { MarkAsPaidUseCase } from '@/modules/orders/application/mark-as-paid-use-case';
 import { PrismaCustomizationRepository } from '@/modules/customizations/infrastructure/prisma-customization-repository';
 import { PrismaSearchHistoryRepository } from '@/modules/search-history/infrastructure/prisma-search-history-repository';
 import { HandleProductSearchExecuted } from '@/modules/search-history/application/handle-product-search-executed';
@@ -204,6 +205,16 @@ export function initContainer(): void {
     });
     state.isEmailEventsSubscribed = true;
   }
+
+  // --- Order payment event subscriptions (idempotent for HMR) ---
+  if (!state.isOrderPaymentEventsSubscribed) {
+    const handler = new MarkAsPaidUseCase(
+      state.orderRepository as OrderRepository,
+      state.outboxRepository as OutboxRepository,
+    );
+    MarkAsPaidUseCase.subscribe(state.eventBus as EventBusPort, handler);
+    state.isOrderPaymentEventsSubscribed = true;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -297,7 +308,17 @@ export function getCheckoutGroupLookup(): CheckoutGroupLookupPort {
 }
 
 export function getCheckoutGroupPaymentPort(): CheckoutGroupPaymentPort {
-  state.checkoutGroupPaymentPort ??= new PrismaCheckoutGroupPaymentPort();
+  if (state.checkoutGroupPaymentPort)
+    return state.checkoutGroupPaymentPort as CheckoutGroupPaymentPort;
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      '[Payment] No real PaymentGatewayPort configured for production. ' +
+        'Set PAYMENT_GATEWAY environment variable or implement a real gateway before deploying.',
+    );
+  }
+
+  state.checkoutGroupPaymentPort = new ConsolePaymentPort();
   return state.checkoutGroupPaymentPort as CheckoutGroupPaymentPort;
 }
 
@@ -584,5 +605,8 @@ export const container = {
   },
   resetEmailEventSubscriptions(): void {
     state.isEmailEventsSubscribed = false;
+  },
+  resetOrderPaymentEventSubscriptions(): void {
+    state.isOrderPaymentEventsSubscribed = false;
   },
 };

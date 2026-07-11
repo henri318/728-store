@@ -85,6 +85,56 @@ describe('GenerateReadUrlUseCase', () => {
     expect(storage.readUrls.has('product/user-1/clsxyz123.webp')).toBe(true);
   });
 
+  // ── Ownership ───────────────────────────────────────────────
+
+  it('should allow the owner to generate a read URL', async () => {
+    await uploadRepo.save(makeUpload({ uploadedBy: 'user-1' }));
+
+    const result = await useCase.execute(
+      'upload-1',
+      undefined,
+      'user-1',
+      false,
+    );
+
+    expect(result.url).toBe(
+      'https://mock-r2.read/product/user-1/clsxyz123.webp',
+    );
+  });
+
+  it('should allow admin to generate a read URL for any upload', async () => {
+    await uploadRepo.save(makeUpload({ uploadedBy: 'user-1' }));
+
+    const result = await useCase.execute(
+      'upload-1',
+      undefined,
+      'admin-user',
+      true,
+    );
+
+    expect(result.url).toBe(
+      'https://mock-r2.read/product/user-1/clsxyz123.webp',
+    );
+  });
+
+  it('should throw Forbidden when non-owner non-admin tries to generate URL', async () => {
+    await uploadRepo.save(makeUpload({ uploadedBy: 'user-1' }));
+
+    await expect(
+      useCase.execute('upload-1', undefined, 'user-2', false),
+    ).rejects.toThrow('Forbidden');
+  });
+
+  it('should allow generating URL without auth (backwards compatible)', async () => {
+    await uploadRepo.save(makeUpload());
+
+    const result = await useCase.execute('upload-1');
+
+    expect(result.url).toBe(
+      'https://mock-r2.read/product/user-1/clsxyz123.webp',
+    );
+  });
+
   // ── Error Cases ─────────────────────────────────────────────
 
   it('should throw NotFoundError when upload does not exist', async () => {

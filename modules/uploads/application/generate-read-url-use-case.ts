@@ -1,6 +1,6 @@
 import type { UploadRepository } from '@/modules/uploads/domain/upload-repository';
 import type { StoragePort } from '@/modules/uploads/domain/storage-port';
-import { NotFoundError } from '@/shared/kernel/app-error';
+import { NotFoundError, AppError } from '@/shared/kernel/app-error';
 
 const DEFAULT_EXPIRES = 3600; // 1 hour
 
@@ -15,14 +15,24 @@ export class GenerateReadUrlUseCase {
     private readonly storage: StoragePort,
   ) {}
 
-  async execute(id: string, expires?: number): Promise<GenerateReadUrlResult> {
+  async execute(
+    id: string,
+    expires?: number,
+    userId?: string,
+    isAdmin?: boolean,
+  ): Promise<GenerateReadUrlResult> {
     // 1. Find upload
     const upload = await this.uploadRepo.findById(id);
     if (!upload) {
       throw new NotFoundError('Upload not found');
     }
 
-    // 2. Generate presigned read URL
+    // 2. Ownership check
+    if (userId && upload.uploadedBy !== userId && !isAdmin) {
+      throw new AppError('Forbidden', 403, 'Forbidden');
+    }
+
+    // 3. Generate presigned read URL
     const ttl = expires ?? DEFAULT_EXPIRES;
     const url = await this.storage.generateReadUrl(upload.storageKey, ttl);
 

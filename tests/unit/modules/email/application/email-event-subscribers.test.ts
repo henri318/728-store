@@ -46,4 +46,46 @@ describe('EmailEventSubscribers', () => {
       GlobalEvents.ORDER_READY_FOR_PRODUCTION,
     ]);
   });
+
+  it('subscribe propagates handler errors (does not swallow)', async () => {
+    const handlers: Record<string, (p: unknown) => Promise<void>> = {};
+    const fakeBus = {
+      on: (event: string, h: (p: unknown) => Promise<void>) => {
+        handlers[event] = h;
+      },
+      emit: vi.fn(),
+    };
+
+    // Make create throw to trigger handler error
+    const failingQueueRepo = {
+      create: vi.fn().mockRejectedValue(new Error('create boom')),
+      findRecentByRecipient: vi.fn(),
+      claimPending: vi.fn(),
+      recoverStaleProcessing: vi.fn(),
+      markSent: vi.fn(),
+      markFailed: vi.fn(),
+      reschedule: vi.fn(),
+    };
+
+    vi.mocked(deps.emailUserLookup.findById).mockResolvedValue({
+      email: 'user@test.com',
+      firstName: 'Test',
+      locale: 'es',
+    });
+
+    EmailEventSubscribers.subscribeAll(fakeBus as unknown as EventBusPort, {
+      ...deps,
+      emailQueueRepository: failingQueueRepo,
+    });
+
+    // Provide complete payload so handler doesn't return early
+    await expect(
+      handlers[GlobalEvents.PASSWORD_RESET_REQUESTED]({
+        userId: 'u1',
+        email: 'user@test.com',
+        token: 'tok',
+        expiresAt: '2099-01-01',
+      }),
+    ).rejects.toThrow('create boom');
+  });
 });

@@ -129,7 +129,11 @@ export class PrismaProductRepository implements ProductRepository {
     return products.map((product) => toDomainProduct(product));
   }
 
-  async findById(id: string, _locale: string): Promise<ProductEntity | null> {
+  async findById(
+    id: string,
+    _locale: string,
+    audience?: import('../domain/product-repository').ProductAudience,
+  ): Promise<ProductEntity | null> {
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
@@ -144,6 +148,12 @@ export class PrismaProductRepository implements ProductRepository {
     });
 
     if (!product) return null;
+
+    // Public audience: only ACTIVE products are visible. DRAFT and
+    // ARCHIVED products return null (not-found) for public visitors.
+    if (audience === 'public' && product.status !== 'ACTIVE') {
+      return null;
+    }
 
     return toDomainProduct(product);
   }

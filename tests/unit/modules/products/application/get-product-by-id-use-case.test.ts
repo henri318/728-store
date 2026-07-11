@@ -77,4 +77,178 @@ describe('GetProductByIdUseCase', () => {
     expect(result.displayDescription).toBe('');
     expect(result.displayTranslation).toBeNull();
   });
+
+  describe('audience filter (SEC-04)', () => {
+    it('returns ACTIVE product when audience is public', async () => {
+      const repository = new MemoryProductRepository();
+      repository.seed([
+        {
+          id: 'p-active',
+          basePrice: ProductPrice.create(20, Currency.EUR),
+          sellerId: 'seller-1',
+          sellerName: 'Shop',
+          status: ProductStatus.ACTIVE,
+          categoryId: null,
+          category: null,
+          createdAt: new Date('2025-01-01T00:00:00Z'),
+          updatedAt: new Date('2025-01-01T00:00:00Z'),
+          translations: [
+            {
+              locale: 'es',
+              name: 'Camiseta',
+              description: 'Una camiseta',
+              tags: [],
+              sizes: [],
+              designChangeDescription: null,
+            },
+          ],
+          images: [],
+          tags: [],
+        },
+      ]);
+
+      const useCase = new GetProductByIdUseCase(repository);
+      const result = await useCase.execute('p-active', 'es', 'public');
+
+      expect(result.displayName).toBe('Camiseta');
+    });
+
+    it('throws when audience is public and product is DRAFT', async () => {
+      const repository = new MemoryProductRepository();
+      repository.seed([
+        {
+          id: 'p-draft',
+          basePrice: ProductPrice.create(20, Currency.EUR),
+          sellerId: 'seller-1',
+          sellerName: 'Shop',
+          status: ProductStatus.DRAFT,
+          categoryId: null,
+          category: null,
+          createdAt: new Date('2025-01-01T00:00:00Z'),
+          updatedAt: new Date('2025-01-01T00:00:00Z'),
+          translations: [
+            {
+              locale: 'es',
+              name: 'Borrador',
+              description: 'No visible',
+              tags: [],
+              sizes: [],
+              designChangeDescription: null,
+            },
+          ],
+          images: [],
+          tags: [],
+        },
+      ]);
+
+      const useCase = new GetProductByIdUseCase(repository);
+
+      await expect(useCase.execute('p-draft', 'es', 'public')).rejects.toThrow(
+        'Product not found',
+      );
+    });
+
+    it('throws when audience is public and product is ARCHIVED', async () => {
+      const repository = new MemoryProductRepository();
+      repository.seed([
+        {
+          id: 'p-archived',
+          basePrice: ProductPrice.create(20, Currency.EUR),
+          sellerId: 'seller-1',
+          sellerName: 'Shop',
+          status: ProductStatus.ARCHIVED,
+          categoryId: null,
+          category: null,
+          createdAt: new Date('2025-01-01T00:00:00Z'),
+          updatedAt: new Date('2025-01-01T00:00:00Z'),
+          translations: [
+            {
+              locale: 'es',
+              name: 'Archivo',
+              description: 'Archivado',
+              tags: [],
+              sizes: [],
+              designChangeDescription: null,
+            },
+          ],
+          images: [],
+          tags: [],
+        },
+      ]);
+
+      const useCase = new GetProductByIdUseCase(repository);
+
+      await expect(
+        useCase.execute('p-archived', 'es', 'public'),
+      ).rejects.toThrow('Product not found');
+    });
+
+    it('returns DRAFT product when audience is not public (seller/admin)', async () => {
+      const repository = new MemoryProductRepository();
+      repository.seed([
+        {
+          id: 'p-draft-2',
+          basePrice: ProductPrice.create(20, Currency.EUR),
+          sellerId: 'seller-1',
+          sellerName: 'Shop',
+          status: ProductStatus.DRAFT,
+          categoryId: null,
+          category: null,
+          createdAt: new Date('2025-01-01T00:00:00Z'),
+          updatedAt: new Date('2025-01-01T00:00:00Z'),
+          translations: [
+            {
+              locale: 'es',
+              name: 'Interno',
+              description: 'Vista interna',
+              tags: [],
+              sizes: [],
+              designChangeDescription: null,
+            },
+          ],
+          images: [],
+          tags: [],
+        },
+      ]);
+
+      const useCase = new GetProductByIdUseCase(repository);
+      const result = await useCase.execute('p-draft-2', 'es', 'seller');
+
+      expect(result.displayName).toBe('Interno');
+    });
+
+    it('returns DRAFT product when no audience is passed (backward compat)', async () => {
+      const repository = new MemoryProductRepository();
+      repository.seed([
+        {
+          id: 'p-draft-3',
+          basePrice: ProductPrice.create(20, Currency.EUR),
+          sellerId: 'seller-1',
+          sellerName: 'Shop',
+          status: ProductStatus.DRAFT,
+          categoryId: null,
+          category: null,
+          createdAt: new Date('2025-01-01T00:00:00Z'),
+          updatedAt: new Date('2025-01-01T00:00:00Z'),
+          translations: [
+            {
+              locale: 'es',
+              name: 'Sin audiencia',
+              description: 'Sin filtro',
+              tags: [],
+              sizes: [],
+              designChangeDescription: null,
+            },
+          ],
+          images: [],
+          tags: [],
+        },
+      ]);
+
+      const useCase = new GetProductByIdUseCase(repository);
+      const result = await useCase.execute('p-draft-3', 'es');
+
+      expect(result.displayName).toBe('Sin audiencia');
+    });
+  });
 });
