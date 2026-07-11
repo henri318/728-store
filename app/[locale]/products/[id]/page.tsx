@@ -25,7 +25,7 @@ export default async function ProductDetailPage({
   let isError = false;
 
   try {
-    product = await useCase.execute(id, locale);
+    product = await useCase.execute(id, locale, 'public');
   } catch {
     isError = true;
   }

@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/shared/infrastructure/auth-options';
 import { container } from '@/composition-root/container';
 import { handleApiError } from '@/shared/presentation/error-handler';
 import { GenerateReadUrlUseCase } from '@/modules/uploads/application/generate-read-url-use-case';
 import { readUrlSchema } from '@/modules/uploads/presentation/schemas/upload-schemas';
+import { getSessionUserContext } from '@/shared/authorization/session-user-context';
 
 /**
  * GET /api/uploads/[id]/url
@@ -18,10 +17,12 @@ export async function GET(
     const { id } = await context.params;
 
     // Auth check
-    const session = await getServerSession(authOptions);
+    const session = await getSessionUserContext();
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const userId = session.userId;
+    const isAdmin = session.role === 'ADMIN';
 
     // Parse query parameters
     const { searchParams } = new URL(req.url);
@@ -33,7 +34,12 @@ export async function GET(
     const storage = container.getStoragePort();
     const generateReadUrl = new GenerateReadUrlUseCase(uploadRepo, storage);
 
-    const result = await generateReadUrl.execute(id, parsed.expires);
+    const result = await generateReadUrl.execute(
+      id,
+      parsed.expires,
+      userId,
+      isAdmin,
+    );
 
     return NextResponse.json(result, { status: 200 });
   } catch (error: unknown) {

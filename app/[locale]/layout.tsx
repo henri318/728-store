@@ -15,6 +15,7 @@ import { CartPopupProvider } from '@/modules/cart/presentation/components/cart-p
 import { CartPopup } from '@/modules/cart/presentation/components/cart-popup';
 import { CartMergeDetector } from '@/modules/cart/presentation/components/cart-merge-detector';
 import { outboxWorker } from '@/workers/outbox-worker';
+import { initContainer } from '@/composition-root/container';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { DictionaryProvider } from '@/shared/i18n/dictionary-context';
 import { APP_BASE_URL } from '@/shared/kernel/config';
@@ -28,6 +29,7 @@ if (
   process.env.NODE_ENV !== 'production' ||
   process.env.ENABLE_OUTBOX_WORKER === 'true'
 ) {
+  initContainer();
   outboxWorker.start();
 }
 

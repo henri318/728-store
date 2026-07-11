@@ -55,11 +55,7 @@ export class MarkAsPaidUseCase {
    */
   static subscribe(eventBus: EventBusPort, useCase: MarkAsPaidUseCase): void {
     eventBus.on(GlobalEvents.PAYMENT_COMPLETED, async (data: unknown) => {
-      try {
-        await useCase.execute(data as MarkAsPaidDTO);
-      } catch (error) {
-        console.error('Error processing PaymentCompleted event:', error);
-      }
+      await useCase.execute(data as MarkAsPaidDTO);
     });
   }
 

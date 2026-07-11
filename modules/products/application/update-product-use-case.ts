@@ -12,6 +12,7 @@ import { ProductCustomizationConfig } from '../domain/value-objects/product-cust
 import { hasDefaultLocaleTranslation } from '../domain/entities/product';
 import type { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
+import type { TransactionRunner } from '@/shared/kernel/transaction-runner';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import type { ProductTranslationDTO } from './create-product-use-case';
 import {
@@ -110,89 +111,99 @@ export class UpdateProductUseCase {
   constructor(
     private readonly productRepository: ProductRepository,
     private readonly outboxRepository?: OutboxRepository,
+    private readonly txRunner?: TransactionRunner,
   ) {}
 
   async execute(dto: UpdateProductDTO): Promise<ProductEntity> {
-    const product = await this.productRepository.findById(
-      dto.productId,
-      dto.locale ?? 'es',
-    );
+    const run = <T>(fn: (tx: unknown) => Promise<T>) =>
+      this.txRunner ? this.txRunner.run(fn) : fn(undefined);
 
-    if (!product || product.sellerId !== dto.sellerId) {
-      throw new NotFoundError('Product not found');
-    }
+    return run(async (tx) => {
+      const product = await this.productRepository.findById(
+        dto.productId,
+        dto.locale ?? 'es',
+      );
 
-    const nextName = dto.name?.trim();
-    if (nextName !== undefined && !nextName) {
-      throw new ValidationError('Product name is required');
-    }
-
-    const nextPrice =
-      dto.price === undefined
-        ? product.basePrice
-        : ProductPrice.create(dto.price, 'EUR' as Currency);
-
-    const nextStatus = dto.status ?? product.status;
-    if (dto.status && dto.status !== product.status) {
-      const allowed = VALID_TRANSITIONS[product.status];
-      if (!allowed || !allowed.includes(dto.status)) {
-        throw new ValidationError(
-          `Cannot transition from ${product.status} to ${dto.status}`,
-        );
+      if (!product || product.sellerId !== dto.sellerId) {
+        throw new NotFoundError('Product not found');
       }
-    }
 
-    const hasUpdates =
-      dto.name !== undefined ||
-      dto.description !== undefined ||
-      dto.price !== undefined ||
-      dto.status !== undefined ||
-      dto.translation !== undefined ||
-      dto.translations !== undefined ||
-      dto.customizationConfig !== undefined ||
-      dto.images !== undefined;
+      const nextName = dto.name?.trim();
+      if (nextName !== undefined && !nextName) {
+        throw new ValidationError('Product name is required');
+      }
 
-    if (!hasUpdates) {
-      throw new ValidationError('At least one field must be provided');
-    }
+      const nextPrice =
+        dto.price === undefined
+          ? product.basePrice
+          : ProductPrice.create(dto.price, 'EUR' as Currency);
 
-    const translations = buildTranslations(dto, product);
+      const nextStatus = dto.status ?? product.status;
+      if (dto.status && dto.status !== product.status) {
+        const allowed = VALID_TRANSITIONS[product.status];
+        if (!allowed || !allowed.includes(dto.status)) {
+          throw new ValidationError(
+            `Cannot transition from ${product.status} to ${dto.status}`,
+          );
+        }
+      }
 
-    const now = new Date();
+      const hasUpdates =
+        dto.name !== undefined ||
+        dto.description !== undefined ||
+        dto.price !== undefined ||
+        dto.status !== undefined ||
+        dto.translation !== undefined ||
+        dto.translations !== undefined ||
+        dto.customizationConfig !== undefined ||
+        dto.images !== undefined;
 
-    const updated: ProductEntity = {
-      ...product,
-      basePrice: nextPrice,
-      status: nextStatus,
-      customizationConfig:
-        dto.customizationConfig === undefined
-          ? product.customizationConfig
-          : ProductCustomizationConfig.fromJson(dto.customizationConfig),
-      images:
-        dto.images === undefined
-          ? product.images
-          : buildProductImages(dto.images, {
-              productId: product.id,
-              createdAt: now,
-              existingImages: product.images,
-            }),
-      updatedAt: now,
-      translations,
-    };
+      if (!hasUpdates) {
+        throw new ValidationError('At least one field must be provided');
+      }
 
-    assertPublishable(updated, nextStatus);
+      const translations = buildTranslations(dto, product);
 
-    const persisted = await this.productRepository.update(updated);
-    if (!persisted) {
-      throw new NotFoundError('Product not found');
-    }
+      const now = new Date();
 
-    await this.outboxRepository?.saveEvent(GlobalEvents.PRODUCT_UPDATED, {
-      productId: updated.id,
-      sellerId: updated.sellerId,
-      status: updated.status,
+      const updated: ProductEntity = {
+        ...product,
+        basePrice: nextPrice,
+        status: nextStatus,
+        customizationConfig:
+          dto.customizationConfig === undefined
+            ? product.customizationConfig
+            : ProductCustomizationConfig.fromJson(dto.customizationConfig),
+        images:
+          dto.images === undefined
+            ? product.images
+            : buildProductImages(dto.images, {
+                productId: product.id,
+                createdAt: now,
+                existingImages: product.images,
+              }),
+        updatedAt: now,
+        translations,
+      };
+
+      assertPublishable(updated, nextStatus);
+
+      const persisted = await this.productRepository.update(updated, tx);
+      if (!persisted) {
+        throw new NotFoundError('Product not found');
+      }
+
+      await this.outboxRepository?.saveEvent(
+        GlobalEvents.PRODUCT_UPDATED,
+        {
+          productId: updated.id,
+          sellerId: updated.sellerId,
+          status: updated.status,
+        },
+        tx,
+      );
+
+      return updated;
     });
-
-    return updated;
   }
 }

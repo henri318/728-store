@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => {
     getOutboxRepositoryMock: vi.fn(),
     getSessionMock: vi.fn(),
     getSellerRepositoryMock: vi.fn(),
+    getUserLookupMock: vi.fn(),
     requireRoleMock: vi.fn(passThroughRequireRole),
   };
 });
@@ -33,6 +34,9 @@ vi.mock('@/composition-root/container', () => ({
       getSession: mocks.getSessionMock,
     }),
     getSellerRepository: mocks.getSellerRepositoryMock,
+    getUserLookup: () => ({
+      findById: mocks.getUserLookupMock,
+    }),
   },
 }));
 
@@ -463,11 +467,27 @@ describe('GET /api/products', () => {
   it('audience=seller (authenticated default) keeps pageSize at 20 and shows all statuses', async () => {
     const repo = new MemoryProductRepository();
     repo.seed([
-      makeProduct('active-1', { status: ProductStatus.ACTIVE }),
-      makeProduct('draft-1', { status: ProductStatus.DRAFT }),
+      makeProduct('active-1', {
+        status: ProductStatus.ACTIVE,
+        sellerId: 'seller-1',
+      }),
+      makeProduct('draft-1', {
+        status: ProductStatus.DRAFT,
+        sellerId: 'seller-1',
+      }),
     ]);
     mocks.getProductRepositoryMock.mockReturnValue(repo);
     mocks.getSessionMock.mockResolvedValue({ id: 'user-1' });
+    mocks.getUserLookupMock.mockResolvedValue({
+      id: 'user-1',
+      role: 'DESIGNER',
+    });
+    mocks.getSellerRepositoryMock.mockReturnValue({
+      findByUserId: vi.fn().mockResolvedValue({
+        sellerId: { value: 'seller-1' },
+        name: 'Test Shop',
+      }),
+    });
 
     const res = await GET(makeGetRequest('http://localhost:3000/api/products'));
 
@@ -542,6 +562,10 @@ describe('GET /api/products', () => {
     repo.seed([makeProduct('p1')]);
     mocks.getProductRepositoryMock.mockReturnValue(repo);
     mocks.getSessionMock.mockResolvedValue({ id: 'user-7' });
+    mocks.getUserLookupMock.mockResolvedValue({
+      id: 'user-7',
+      role: 'CUSTOMER',
+    });
 
     const res = await GET(
       makeGetRequest(
@@ -571,9 +595,19 @@ describe('GET /api/products', () => {
 
   it('audience=seller + non-empty q does NOT emit', async () => {
     const repo = new MemoryProductRepository();
-    repo.seed([makeProduct('p1')]);
+    repo.seed([makeProduct('p1', { sellerId: 'seller-1' })]);
     mocks.getProductRepositoryMock.mockReturnValue(repo);
     mocks.getSessionMock.mockResolvedValue({ id: 'user-1' });
+    mocks.getUserLookupMock.mockResolvedValue({
+      id: 'user-1',
+      role: 'DESIGNER',
+    });
+    mocks.getSellerRepositoryMock.mockReturnValue({
+      findByUserId: vi.fn().mockResolvedValue({
+        sellerId: { value: 'seller-1' },
+        name: 'Test Shop',
+      }),
+    });
 
     const res = await GET(
       makeGetRequest('http://localhost:3000/api/products?audience=seller&q=x'),
@@ -620,6 +654,188 @@ describe('GET /api/products', () => {
     );
 
     expect(res.status).toBe(400);
+  });
+
+  // ---------------------------------------------------------------------------
+  // SEC-01: Role-based audience derivation
+  // ---------------------------------------------------------------------------
+
+  it('CUSTOMER role forces audience=public regardless of query param', async () => {
+    const repo = new MemoryProductRepository();
+    repo.seed([
+      makeProduct('active-1', { status: ProductStatus.ACTIVE }),
+      makeProduct('draft-1', { status: ProductStatus.DRAFT }),
+    ]);
+    mocks.getProductRepositoryMock.mockReturnValue(repo);
+    mocks.getSessionMock.mockResolvedValue({ id: 'user-c1' });
+    mocks.getUserLookupMock.mockResolvedValue({
+      id: 'user-c1',
+      role: 'CUSTOMER',
+    });
+
+    const res = await GET(
+      makeGetRequest('http://localhost:3000/api/products?audience=seller'),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    // CUSTOMER → forced to public → only ACTIVE products, pageSize 10
+    expect(body.items).toHaveLength(1);
+    expect(body.items[0].id).toBe('active-1');
+    expect(body.pageSize).toBe(10);
+  });
+
+  it('DESIGNER role forces audience=seller and derives sellerId', async () => {
+    const repo = new MemoryProductRepository();
+    repo.seed([
+      makeProduct('p1', { sellerId: 'seller-abc' }),
+      makeProduct('p2', { sellerId: 'seller-xyz' }),
+    ]);
+    mocks.getProductRepositoryMock.mockReturnValue(repo);
+    mocks.getSessionMock.mockResolvedValue({ id: 'user-d1' });
+    mocks.getUserLookupMock.mockResolvedValue({
+      id: 'user-d1',
+      role: 'DESIGNER',
+    });
+    mocks.getSellerRepositoryMock.mockReturnValue({
+      findByUserId: vi.fn().mockResolvedValue({
+        sellerId: { value: 'seller-abc' },
+        name: 'My Shop',
+      }),
+    });
+
+    const res = await GET(makeGetRequest('http://localhost:3000/api/products'));
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    // DESIGNER → seller audience, sellerId derived from seller repo
+    expect(body.items).toHaveLength(1);
+    expect(body.items[0].id).toBe('p1');
+    expect(body.items[0].sellerId).toBe('seller-abc');
+  });
+
+  it('DESIGNER role overrides any sellerId from query params', async () => {
+    const repo = new MemoryProductRepository();
+    repo.seed([
+      makeProduct('p1', { sellerId: 'seller-abc' }),
+      makeProduct('p2', { sellerId: 'seller-xyz' }),
+    ]);
+    mocks.getProductRepositoryMock.mockReturnValue(repo);
+    mocks.getSessionMock.mockResolvedValue({ id: 'user-d1' });
+    mocks.getUserLookupMock.mockResolvedValue({
+      id: 'user-d1',
+      role: 'DESIGNER',
+    });
+    mocks.getSellerRepositoryMock.mockReturnValue({
+      findByUserId: vi.fn().mockResolvedValue({
+        sellerId: { value: 'seller-abc' },
+        name: 'My Shop',
+      }),
+    });
+
+    // Pass sellerId=seller-xyz — should be overridden by derived sellerId
+    const res = await GET(
+      makeGetRequest('http://localhost:3000/api/products?sellerId=seller-xyz'),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.items).toHaveLength(1);
+    expect(body.items[0].id).toBe('p1');
+  });
+
+  it('ADMIN role respects filter.audience and filter.sellerId as-is', async () => {
+    const repo = new MemoryProductRepository();
+    repo.seed([
+      makeProduct('p1', {
+        sellerId: 'seller-abc',
+        status: ProductStatus.ACTIVE,
+      }),
+      makeProduct('p2', {
+        sellerId: 'seller-xyz',
+        status: ProductStatus.DRAFT,
+      }),
+    ]);
+    mocks.getProductRepositoryMock.mockReturnValue(repo);
+    mocks.getSessionMock.mockResolvedValue({ id: 'user-a1' });
+    mocks.getUserLookupMock.mockResolvedValue({
+      id: 'user-a1',
+      role: 'ADMIN',
+    });
+
+    // ADMIN with no params → defaults to admin audience, sees everything
+    const res = await GET(makeGetRequest('http://localhost:3000/api/products'));
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    // admin audience → all statuses, no sellerId filter
+    expect(body.items).toHaveLength(2);
+  });
+
+  it('ADMIN role can use audience=public to see only ACTIVE', async () => {
+    const repo = new MemoryProductRepository();
+    repo.seed([
+      makeProduct('active-1', { status: ProductStatus.ACTIVE }),
+      makeProduct('draft-1', { status: ProductStatus.DRAFT }),
+    ]);
+    mocks.getProductRepositoryMock.mockReturnValue(repo);
+    mocks.getSessionMock.mockResolvedValue({ id: 'user-a1' });
+    mocks.getUserLookupMock.mockResolvedValue({
+      id: 'user-a1',
+      role: 'ADMIN',
+    });
+
+    const res = await GET(
+      makeGetRequest('http://localhost:3000/api/products?audience=public'),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.items).toHaveLength(1);
+    expect(body.items[0].id).toBe('active-1');
+  });
+
+  it('unknown role (user not found in DB) is treated as public', async () => {
+    const repo = new MemoryProductRepository();
+    repo.seed([
+      makeProduct('active-1', { status: ProductStatus.ACTIVE }),
+      makeProduct('draft-1', { status: ProductStatus.DRAFT }),
+    ]);
+    mocks.getProductRepositoryMock.mockReturnValue(repo);
+    mocks.getSessionMock.mockResolvedValue({ id: 'user-ghost' });
+    mocks.getUserLookupMock.mockResolvedValue(null);
+
+    const res = await GET(makeGetRequest('http://localhost:3000/api/products'));
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    // Unknown user → public → only ACTIVE, pageSize 10
+    expect(body.items).toHaveLength(1);
+    expect(body.items[0].id).toBe('active-1');
+    expect(body.pageSize).toBe(10);
+  });
+
+  it('DESIGNER without linked seller gets 403', async () => {
+    const repo = new MemoryProductRepository();
+    repo.seed([
+      makeProduct('p1', { status: ProductStatus.ACTIVE }),
+      makeProduct('p2', { status: ProductStatus.DRAFT }),
+    ]);
+    mocks.getProductRepositoryMock.mockReturnValue(repo);
+    mocks.getSessionMock.mockResolvedValue({ id: 'user-d2' });
+    mocks.getUserLookupMock.mockResolvedValue({
+      id: 'user-d2',
+      role: 'DESIGNER',
+    });
+    mocks.getSellerRepositoryMock.mockReturnValue({
+      findByUserId: vi.fn().mockResolvedValue(null),
+    });
+
+    const res = await GET(makeGetRequest('http://localhost:3000/api/products'));
+
+    expect(res.status).toBe(403);
+    const body = await res.json();
+    expect(body.error).toBe('No seller account found for this user');
   });
 });
 

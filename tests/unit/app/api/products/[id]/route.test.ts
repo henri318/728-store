@@ -180,6 +180,7 @@ describe('PATCH /api/products/[id]', () => {
     expect(mocks.saveEventMock).toHaveBeenCalledWith(
       'product.updated',
       expect.objectContaining({ productId: 'p-1', sellerId: 'seller-1' }),
+      undefined,
     );
     const body = await res.json();
     expect(body.status).toBe('ACTIVE');

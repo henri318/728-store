@@ -46,7 +46,11 @@ export interface OrderRepository {
    * @param status - The new status value
    * @throws Error if order not found
    */
-  updateStatus(orderId: string, status: OrderStatus): Promise<void>;
+  updateStatus(
+    orderId: string,
+    status: OrderStatus,
+    tx?: unknown,
+  ): Promise<void>;
 
   /**
    * Returns the ids of every order that was created from the given

@@ -85,7 +85,11 @@ export class MemoryOrderRepository implements OrderRepository {
     return { ...order, lineItems };
   }
 
-  async updateStatus(orderId: string, status: OrderStatus): Promise<void> {
+  async updateStatus(
+    orderId: string,
+    status: OrderStatus,
+    _tx?: unknown,
+  ): Promise<void> {
     const orderIndex = this.orders.findIndex((o) => o.id === orderId);
     if (orderIndex === -1) {
       throw new Error('Order not found');

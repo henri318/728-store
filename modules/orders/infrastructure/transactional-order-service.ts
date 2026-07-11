@@ -1,4 +1,5 @@
 import type { OrderRepository } from '../domain/order-repository';
+import type { OrderStatus } from '../domain/value-objects/order-status-type';
 import type { TransactionalOrderPort } from '../domain/transactional-order-port';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import { prisma } from '@/shared/infrastructure/prisma';
@@ -50,11 +51,12 @@ export class TransactionalOrderService implements TransactionalOrderPort {
     }
 
     await prisma.$transaction(async (tx) => {
-      // Update via Prisma (tx-scoped) so it joins the same transaction.
-      await tx.order.update({
-        where: { id: orderId },
-        data: { status: newStatus },
-      });
+      // Update via the repository port (tx-scoped) so it joins the same transaction.
+      await this.orderRepository.updateStatus(
+        orderId,
+        newStatus as OrderStatus,
+        tx,
+      );
 
       // Save event to outbox within the same transaction.
       // Pass the tx client so the Prisma adapter writes through it.

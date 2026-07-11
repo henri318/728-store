@@ -59,11 +59,7 @@ export class HandleCartCheckedOut {
     useCase: HandleCartCheckedOut,
   ): void {
     eventBus.on(GlobalEvents.CART_CHECKED_OUT, async (data: unknown) => {
-      try {
-        await useCase.execute(data as CartCheckedOutPayload);
-      } catch (error) {
-        console.error('Error processing CartCheckedOut event:', error);
-      }
+      await useCase.execute(data as CartCheckedOutPayload);
     });
   }
 

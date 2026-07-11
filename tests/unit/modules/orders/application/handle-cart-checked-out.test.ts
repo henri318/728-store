@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { HandleCartCheckedOut } from '@/modules/orders/application/handle-cart-checked-out';
 import { MemoryOrderRepository } from '@/tests/doubles/memory-order-repository';
 import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
@@ -550,5 +550,33 @@ describe('HandleCartCheckedOut', () => {
       (e) => e.eventType === GlobalEvents.ORDER_CREATED,
     );
     expect(created).toHaveLength(1);
+  });
+
+  it('subscribe propagates errors from the handler (does not swallow)', async () => {
+    const handlers: Record<string, ((p: unknown) => Promise<void>)[]> = {};
+    const fakeBus = {
+      on: (event: string, h: (p: unknown) => Promise<void>) => {
+        handlers[event] ??= [];
+        handlers[event].push(h);
+      },
+      emit: async () => {},
+    };
+
+    const failingUseCase = {
+      execute: vi.fn().mockRejectedValue(new Error('boom')),
+    } as unknown as HandleCartCheckedOut;
+
+    HandleCartCheckedOut.subscribe(
+      fakeBus as unknown as import('@/modules/events/domain/event-bus-port').EventBusPort,
+      failingUseCase,
+    );
+
+    const payload = buildPayload({
+      items: [{ productId: 'p-A', sellerId: 's1', quantity: 1, unitPrice: 10 }],
+    });
+
+    await expect(
+      handlers[GlobalEvents.CART_CHECKED_OUT][0](payload),
+    ).rejects.toThrow('boom');
   });
 });

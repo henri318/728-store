@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MarkAsPaidUseCase } from '@/modules/orders/application/mark-as-paid-use-case';
 import { MemoryOrderRepository } from '@/tests/doubles/memory-order-repository';
 import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
@@ -424,5 +424,37 @@ describe('MarkAsPaidUseCase', () => {
     expect(event.userId).toBe('u-unique');
     expect(event.paymentId).toBe('pay-1');
     expect(event.totalAmount).toBeCloseTo(999.99);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Subscribe error propagation
+  // ---------------------------------------------------------------------------
+
+  it('subscribe propagates errors from the handler (does not swallow)', async () => {
+    const handlers: Record<string, ((p: unknown) => Promise<void>)[]> = {};
+    const fakeBus = {
+      on: (event: string, h: (p: unknown) => Promise<void>) => {
+        handlers[event] ??= [];
+        handlers[event].push(h);
+      },
+      emit: async () => {},
+    };
+
+    const failingUseCase = {
+      execute: vi.fn().mockRejectedValue(new Error('payment fail')),
+    } as unknown as MarkAsPaidUseCase;
+
+    MarkAsPaidUseCase.subscribe(
+      fakeBus as unknown as import('@/modules/events/domain/event-bus-port').EventBusPort,
+      failingUseCase,
+    );
+
+    await expect(
+      handlers[GlobalEvents.PAYMENT_COMPLETED][0]({
+        orderId: 'o1',
+        paymentId: 'p1',
+        amount: 100,
+      }),
+    ).rejects.toThrow('payment fail');
   });
 });

@@ -35,11 +35,15 @@ export interface ProductsListFilter {
 
 export interface ProductRepository {
   findAll(locale: string): Promise<ProductEntity[]>;
-  findById(id: string, locale: string): Promise<ProductEntity | null>;
+  findById(
+    id: string,
+    locale: string,
+    audience?: ProductAudience,
+  ): Promise<ProductEntity | null>;
   findBySellerId(sellerId: string, locale: string): Promise<ProductEntity[]>;
   findPaginated(
     filter: ProductsListFilter,
   ): Promise<PaginatedResult<ProductEntity>>;
-  save(entity: ProductEntity): Promise<void>;
-  update(entity: ProductEntity): Promise<boolean>;
+  save(entity: ProductEntity, tx?: unknown): Promise<void>;
+  update(entity: ProductEntity, tx?: unknown): Promise<boolean>;
 }

@@ -29,11 +29,12 @@ import { OrderEntity } from '@/modules/orders/domain/order-repository';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 
 /**
- * Tests for the refactored TransactionalOrderService.
+ * Tests for TransactionalOrderService.
  *
  * The service:
- *  - Receives an OutboxRepository via constructor
- *  - Uses prisma.$transaction for atomicity (mocked here)
+ *  - Pre-flight check via OrderRepository.findById (port)
+ *  - Opens prisma.$transaction
+ *  - Calls orderRepository.updateStatus(orderId, status, tx) — goes through the port
  *  - Calls outboxRepository.saveEvent with the tx client
  *  - Throws on missing order (checked via the OrderRepository port)
  */
@@ -41,6 +42,7 @@ describe('TransactionalOrderService', () => {
   let outboxRepo: MemoryOutboxRepository;
   let orderRepo: MemoryOrderRepository;
   let saveEventSpy: ReturnType<typeof vi.spyOn>;
+  let updateStatusSpy: ReturnType<typeof vi.spyOn>;
   let service: TransactionalOrderService;
 
   beforeEach(() => {
@@ -49,9 +51,7 @@ describe('TransactionalOrderService', () => {
     outboxRepo = new MemoryOutboxRepository();
     orderRepo = new MemoryOrderRepository();
     saveEventSpy = vi.spyOn(outboxRepo, 'saveEvent');
-
-    // Default: txMock resolves successfully
-    txMock.order.update.mockResolvedValue({ id: 'o1' });
+    updateStatusSpy = vi.spyOn(orderRepo, 'updateStatus');
 
     service = new TransactionalOrderService(orderRepo, outboxRepo);
   });
@@ -80,11 +80,14 @@ describe('TransactionalOrderService', () => {
         },
       );
 
-      // Both operations were called inside the transaction
-      expect(txMock.order.update).toHaveBeenCalledWith({
-        where: { id: 'o1' },
-        data: { status: 'in_progress' },
-      });
+      // updateStatus was called through the repository port with tx
+      expect(updateStatusSpy).toHaveBeenCalledWith(
+        'o1',
+        'in_progress',
+        expect.anything(), // tx is passed as 3rd arg
+      );
+
+      // saveEvent was called with the tx client
       expect(saveEventSpy).toHaveBeenCalledWith(
         GlobalEvents.ORDER_PAID,
         {
@@ -94,6 +97,10 @@ describe('TransactionalOrderService', () => {
         },
         expect.anything(), // tx is passed as 3rd arg
       );
+
+      // The order status was actually updated in the repository
+      const updated = await orderRepo.findById('o1');
+      expect(updated?.status).toBe('in_progress');
     });
   });
 
@@ -111,7 +118,7 @@ describe('TransactionalOrderService', () => {
       ).rejects.toThrow('Order not found');
 
       // No side effects
-      expect(txMock.order.update).not.toHaveBeenCalled();
+      expect(updateStatusSpy).not.toHaveBeenCalled();
       expect(saveEventSpy).not.toHaveBeenCalled();
     });
   });
@@ -128,7 +135,8 @@ describe('TransactionalOrderService', () => {
         lineItems: [],
       });
 
-      txMock.order.update.mockRejectedValue(new Error('DB write failed'));
+      // Make updateStatus throw to simulate a DB failure
+      updateStatusSpy.mockRejectedValue(new Error('DB write failed'));
 
       await expect(
         service.updateStatusAndEmit(

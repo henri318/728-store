@@ -78,6 +78,43 @@ describe('ConfirmUploadUseCase', () => {
     expect(payload.type).toBe(UploadType.product);
   });
 
+  // ── Ownership ───────────────────────────────────────────────
+
+  it('should allow the owner to confirm their upload', async () => {
+    await uploadRepo.save(makePendingUpload({ uploadedBy: 'user-1' }));
+
+    await useCase.execute('upload-1', 'user-1', false);
+
+    const saved = await uploadRepo.findById('upload-1');
+    expect(saved!.status).toBe(UploadStatus.CONFIRMED);
+  });
+
+  it('should allow admin to confirm any upload', async () => {
+    await uploadRepo.save(makePendingUpload({ uploadedBy: 'user-1' }));
+
+    await useCase.execute('upload-1', 'admin-user', true);
+
+    const saved = await uploadRepo.findById('upload-1');
+    expect(saved!.status).toBe(UploadStatus.CONFIRMED);
+  });
+
+  it('should throw Forbidden when non-owner non-admin tries to confirm', async () => {
+    await uploadRepo.save(makePendingUpload({ uploadedBy: 'user-1' }));
+
+    await expect(useCase.execute('upload-1', 'user-2', false)).rejects.toThrow(
+      'Forbidden',
+    );
+  });
+
+  it('should allow confirming without auth (backwards compatible)', async () => {
+    await uploadRepo.save(makePendingUpload());
+
+    await useCase.execute('upload-1');
+
+    const saved = await uploadRepo.findById('upload-1');
+    expect(saved!.status).toBe(UploadStatus.CONFIRMED);
+  });
+
   // ── Error Cases ─────────────────────────────────────────────
 
   it('should throw NotFoundError when upload does not exist', async () => {

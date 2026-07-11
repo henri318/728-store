@@ -3,7 +3,11 @@ import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
 import type { TransactionRunner } from '@/shared/kernel/transaction-runner';
 import { UploadStatus } from '@/modules/uploads/domain/value-objects/upload-status';
 import { FILE_UPLOADED } from '@/modules/uploads/domain/upload-events';
-import { NotFoundError, ConflictError } from '@/shared/kernel/app-error';
+import {
+  NotFoundError,
+  ConflictError,
+  AppError,
+} from '@/shared/kernel/app-error';
 import type { ConfirmUploadResult } from './confirm-upload-result';
 
 export class ConfirmUploadUseCase {
@@ -13,7 +17,11 @@ export class ConfirmUploadUseCase {
     private readonly txRunner: TransactionRunner,
   ) {}
 
-  async execute(id: string): Promise<ConfirmUploadResult> {
+  async execute(
+    id: string,
+    userId?: string,
+    isAdmin?: boolean,
+  ): Promise<ConfirmUploadResult> {
     return this.txRunner.run(async () => {
       // 1. Find upload
       const upload = await this.uploadRepo.findById(id);
@@ -21,7 +29,12 @@ export class ConfirmUploadUseCase {
         throw new NotFoundError('Upload not found');
       }
 
-      // 2. Check if already confirmed
+      // 2. Ownership check
+      if (userId && upload.uploadedBy !== userId && !isAdmin) {
+        throw new AppError('Forbidden', 403, 'Forbidden');
+      }
+
+      // 3. Check if already confirmed
       if (upload.status === UploadStatus.CONFIRMED) {
         throw new ConflictError('Upload already confirmed');
       }

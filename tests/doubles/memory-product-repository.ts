@@ -26,9 +26,18 @@ export class MemoryProductRepository implements ProductRepository {
     }));
   }
 
-  async findById(id: string, _locale: string): Promise<ProductEntity | null> {
+  async findById(
+    id: string,
+    _locale: string,
+    audience?: import('@/modules/products/domain/product-repository').ProductAudience,
+  ): Promise<ProductEntity | null> {
     const product = this.products.find((p) => p.id === id);
     if (!product) return null;
+
+    // Public audience: only ACTIVE products are visible.
+    if (audience === 'public' && product.status !== ProductStatus.ACTIVE) {
+      return null;
+    }
 
     return {
       ...product,
@@ -147,7 +156,7 @@ export class MemoryProductRepository implements ProductRepository {
     };
   }
 
-  async save(entity: ProductEntity): Promise<void> {
+  async save(entity: ProductEntity, _tx?: unknown): Promise<void> {
     const index = this.products.findIndex((p) => p.id === entity.id);
     if (index === -1) {
       this.products.push(entity);
@@ -156,7 +165,7 @@ export class MemoryProductRepository implements ProductRepository {
     }
   }
 
-  async update(entity: ProductEntity): Promise<boolean> {
+  async update(entity: ProductEntity, _tx?: unknown): Promise<boolean> {
     const index = this.products.findIndex((p) => p.id === entity.id);
     if (index === -1) return false;
     this.products[index] = entity;
