@@ -15,7 +15,7 @@ import { normalizeText } from '@/shared/lib/normalize-text';
 
 type PrismaTx = Omit<
   PrismaClient,
-  '$extends' | '$transaction' | '$connect' | '$disconnect' | '$use'
+  '$extends' | '$transaction' | '$connect' | '$disconnect' | '$use' | '$on'
 >;
 
 export class PrismaProductRepository implements ProductRepository {
