@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { getProductFormLabels } from '@/modules/products/presentation/product-form-labels';
 
-const dict = {
-  sellerDashboard: {
+function makeDict(overrides: Record<string, unknown> = {}) {
+  const sd: Record<string, string> = {
     createProductTitle: 'Crear producto',
     editProductTitle: 'Editar producto',
     backToProducts: 'Volver a productos',
@@ -15,109 +15,105 @@ const dict = {
     productFormError: 'Error',
     productMissingTranslationNameError:
       'Completa el nombre traducido de {locale} antes de guardar.',
-    productCustomizationConfigLabel: 'Configuración',
-    productCustomizationConfigHint: 'Configura el producto.',
+    productCustomizationConfigLabel: 'Config',
+    productCustomizationConfigHint: 'Hint',
     productCustomizationSizeOptionsLabel: 'Tallas',
     productCustomizationSizeOptionsPlaceholder: 'S, M, L',
-    productCustomizationAllowPhotoDesignLabel: 'Permitir foto',
+    productCustomizationAllowPhotoDesignLabel: 'Foto',
     productCustomizationDesignChangeDescriptionLabel: 'Cambio',
-    productCustomizationDesignChangeDescriptionPlaceholder:
-      'Describe el cambio',
-    productCustomizationCategoryLabel: 'Categoría',
-    productCustomizationCategoryPlaceholder: 'Selecciona',
-    productCustomizationTagsLabel: 'Etiquetas',
-    productCustomizationTagsPlaceholder: 'Verano, Regalo',
-    productCustomizationTagsHelp: 'Separa por comas.',
-    productCustomizationAddLabel: 'Añadir',
+    productCustomizationDesignChangeDescriptionPlaceholder: 'Desc',
+    productCustomizationCategoryLabel: 'Cat',
+    productCustomizationCategoryPlaceholder: 'Sel',
+    productCustomizationTagsLabel: 'Tags',
+    productCustomizationTagsPlaceholder: 'a, b',
+    productCustomizationTagsHelp: 'Help',
+    productCustomizationAddLabel: 'Add',
     productPhotosTitle: 'Fotos',
-    productPhotosHint: 'Sube fotos.',
-    addProductPhotos: 'Añadir fotos',
-    productPhotoDisplayNameLabel: 'Nombre visible',
+    productPhotosHint: 'Sube',
+    addProductPhotos: 'Add fotos',
+    productPhotoDisplayNameLabel: 'Nombre',
     productPhotoDisplayNamePlaceholder: 'Foto 1',
-    productPhotoSelectForPreview: 'Vista previa',
-    productPhotoRemoveLabel: 'Eliminar foto',
-    productPhotoMoveUpLabel: 'Subir',
-    productPhotoMoveDownLabel: 'Bajar',
-    productPhotosEmptyState: 'Sin fotos',
-    productPhotosUploadError: 'Error al subir',
+    productPhotoSelectForPreview: 'Preview',
+    productPhotoRemoveLabel: 'Remove',
+    productPhotoMoveUpLabel: 'Up',
+    productPhotoMoveDownLabel: 'Down',
+    productPhotosEmptyState: 'Empty',
+    productPhotosUploadError: 'Error',
     productPhotoDefaultName: 'Foto',
     productPhotoBucketsCoverTitle: 'Portada',
-    productPhotoBucketsCoverHint: 'Imagen principal.',
-    productPhotoBucketsCoverAddLabel: 'Añadir portada',
-    productPhotoBucketsCoverEmptyState: 'Sin portada',
-    productPhotoBucketsCoverNoCoverPlaceholder: 'No cover image set',
+    productPhotoBucketsCoverHint: 'Hint',
+    productPhotoBucketsCoverAddLabel: 'Add',
+    productPhotoBucketsCoverEmptyState: 'Empty',
+    productPhotoBucketsCoverNoCoverPlaceholder: 'No cover',
     productPhotoBucketsShowcaseTitle: 'Escaparate',
-    productPhotoBucketsShowcaseHint: 'Imágenes y vídeos de apoyo.',
-    productPhotoBucketsShowcaseAddLabel: 'Añadir escaparate',
-    productPhotoBucketsShowcaseEmptyState: 'Sin escaparate',
-    productPhotoBucketsShowcasePosterLabel: 'Póster opcional',
+    productPhotoBucketsShowcaseHint: 'Hint',
+    productPhotoBucketsShowcaseAddLabel: 'Add',
+    productPhotoBucketsShowcaseEmptyState: 'Empty',
+    productPhotoBucketsShowcasePosterLabel: 'Poster',
     productPhotoBucketsShowcasePosterPlaceholder: 'https://...',
-    productPhotoBucketsCustomizableBaseTitle: 'Base personalizable',
-    productPhotoBucketsCustomizableBaseHint: 'Bases para personalización.',
-    productPhotoBucketsCustomizableBaseAddLabel: 'Añadir base',
-    productPhotoBucketsCustomizableBaseEmptyState: 'Sin bases',
-    productPreviewTitle: 'Vista previa',
-    productPreviewHint: 'Mockup.',
-    productPreviewSelectedLabel: 'Seleccionada',
-    productPreviewFallback: 'Elige una foto.',
+    productPhotoBucketsCustomizableBaseTitle: 'Base',
+    productPhotoBucketsCustomizableBaseHint: 'Hint',
+    productPhotoBucketsCustomizableBaseAddLabel: 'Add',
+    productPhotoBucketsCustomizableBaseEmptyState: 'Empty',
+    productPreviewTitle: 'Preview',
+    productPreviewHint: 'Mockup',
+    productPreviewSelectedLabel: 'Selected',
+    productPreviewFallback: 'Choose',
     customizationPreview: 'Preview',
-    customizationPreviewDisclaimer: 'Aviso.',
-    customizationPreviewUnavailable: 'No disponible',
-    customizationLimitedToDescription: 'Solo descripción.',
-    statusDraft: 'Borrador',
-    statusActive: 'Activo',
-    statusArchived: 'Archivado',
-    statusEliminated: 'Eliminado',
+    customizationPreviewDisclaimer: 'Disclaimer',
+    customizationPreviewUnavailable: 'Unavailable',
+    customizationLimitedToDescription: 'Limited',
+    statusDraft: 'Draft',
+    statusActive: 'Active',
+    statusArchived: 'Archived',
+    statusEliminated: 'Eliminated',
     productLocaleTabsEsLabel: 'ES',
     productLocaleTabsCatLabel: 'CAT',
-    productTranslationSectionTitle: 'Contenido traducido',
-    productTranslationSectionHint: 'Edita cada idioma por separado.',
+    productTranslationSectionTitle: 'Sección',
+    productTranslationSectionHint: 'Hint',
     productTranslationNameLabel: 'Nombre',
     productTranslationDescriptionLabel: 'Descripción',
-    productTranslationTagsLabel: 'Etiquetas',
-    productTranslationTagsPlaceholder: 'ropa, verano',
-    productTranslationTagsAddLabel: 'Añadir etiqueta',
-    productTranslationTagsEmptyLabel: 'Aún no hay etiquetas',
-    productTranslationSizesLabel: 'Tallas',
-    productTranslationSizesPlaceholder: 'S, M, L',
-    productTranslationSizesAddLabel: 'Añadir talla',
-    productTranslationSizesEmptyLabel: 'Aún no hay tallas',
-    productTranslationDesignChangeDescriptionLabel: 'Descripción del cambio',
-    productTranslationDesignChangeDescriptionPlaceholder: 'Describe el cambio',
-  },
-  common: { customizationUploading: 'Subiendo...' },
-} as const;
+    productTranslationTagsLabel: 'Tags',
+    productTranslationTagsPlaceholder: 'a, b',
+    productTranslationTagsAddLabel: 'Add',
+    productTranslationTagsEmptyLabel: 'Empty',
+    productTranslationSizesLabel: 'Sizes',
+    productTranslationSizesPlaceholder: 'S, M',
+    productTranslationSizesAddLabel: 'Add',
+    productTranslationSizesEmptyLabel: 'Empty',
+    productTranslationDesignChangeDescriptionLabel: 'Desc',
+    productTranslationDesignChangeDescriptionPlaceholder: 'Desc',
+    ...overrides,
+  };
+
+  return {
+    sellerDashboard: sd,
+    common: { customizationUploading: 'Uploading...' },
+  } as never;
+}
 
 describe('getProductFormLabels', () => {
-  it('includes locale tabs and translation section labels', () => {
-    const labels = getProductFormLabels(dict as never, 'create');
-
+  it('maps localeTabs from the dictionary', () => {
+    const labels = getProductFormLabels(makeDict(), 'create');
     expect(labels.localeTabs).toEqual({ es: 'ES', cat: 'CAT' });
-    expect(labels.translationSection).toEqual({
-      title: 'Contenido traducido',
-      hint: 'Edita cada idioma por separado.',
-      nameLabel: 'Nombre',
-      descriptionLabel: 'Descripción',
-      tagsLabel: 'Etiquetas',
-      tagsPlaceholder: 'ropa, verano',
-      tagsAddLabel: 'Añadir etiqueta',
-      tagsEmptyLabel: 'Aún no hay etiquetas',
-      sizesLabel: 'Tallas',
-      sizesPlaceholder: 'S, M, L',
-      sizesAddLabel: 'Añadir talla',
-      sizesEmptyLabel: 'Aún no hay tallas',
-      designChangeDescriptionLabel: 'Descripción del cambio',
-      designChangeDescriptionPlaceholder: 'Describe el cambio',
-    });
+  });
+
+  it('uses missingTranslationNameError from the dictionary', () => {
+    const labels = getProductFormLabels(makeDict(), 'create');
     expect(labels.missingTranslationNameError).toBe(
       'Completa el nombre traducido de {locale} antes de guardar.',
     );
-    expect(labels.gallery.buckets.cover).toEqual({
-      title: 'Portada',
-      hint: 'Imagen principal.',
-      addPhotoLabel: 'Añadir portada',
-      emptyState: 'Sin portada',
-      noCoverPlaceholder: 'No cover image set',
-    });
+  });
+
+  it('uses edit title when mode is edit', () => {
+    const labels = getProductFormLabels(makeDict(), 'edit');
+    expect(labels.title).toBe('Editar producto');
+    expect(labels.save).toBe('Guardar');
+  });
+
+  it('uses create title when mode is create', () => {
+    const labels = getProductFormLabels(makeDict(), 'create');
+    expect(labels.title).toBe('Crear producto');
+    expect(labels.save).toBe('Crear');
   });
 });

@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client';
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildSeedProducts } from '../../../prisma/seed-data';
 import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
@@ -91,5 +92,20 @@ describe('buildSeedProducts', () => {
         expect(image.mimeType).not.toBe('image/svg+xml');
       }
     }
+  });
+});
+
+describe('Prisma seed type compatibility', () => {
+  it('keeps the Mochila seed image compatible with Prisma nested create typing', () => {
+    const mochilaImage = {
+      url: '/img/products/example.webp',
+      alt: 'Mochila de Algodón Orgánico',
+      position: 0,
+      purpose: 'CUSTOMIZABLE_BASE',
+      mimeType: 'image/webp',
+    } satisfies Prisma.ProductImageUncheckedCreateWithoutProductInput;
+
+    expect(mochilaImage.purpose).toBe('CUSTOMIZABLE_BASE');
+    expect(mochilaImage.mimeType).toBe('image/webp');
   });
 });

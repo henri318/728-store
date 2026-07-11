@@ -1,20 +1,36 @@
-import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
+import { defineConfig } from 'vitest/config';
 
 const IS_CI = !!process.env.CI;
 
 export default defineConfig({
   plugins: [react()],
   test: {
-    environment: 'jsdom',
     globals: true,
     allowOnly: !IS_CI,
-    pool: 'threads',
-    fileParallelism: false,
-    setupFiles: ['./tests/setup.ts'],
-    include: ['**/*.test.{ts,tsx}', 'tests/**/*.test.{ts,tsx}'],
-    exclude: ['tests/integration/**/*.test.ts', 'node_modules/**'],
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'unit',
+          environment: 'node',
+          setupFiles: ['./tests/setup-node.ts'],
+          include: ['tests/unit/**/*.test.ts'],
+          exclude: ['node_modules/**'],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'unit-react',
+          environment: 'jsdom',
+          setupFiles: ['./tests/setup.ts'],
+          include: ['tests/unit/**/*.test.tsx'],
+          exclude: ['node_modules/**'],
+        },
+      },
+    ],
   },
   resolve: {
     alias: {

@@ -3,49 +3,28 @@ import { render, screen } from '@testing-library/react';
 import { SocialFooter } from '@/shared/ui/social-footer';
 
 describe('SocialFooter', () => {
-  it('renders 5 social links', () => {
+  it('renders all social links with correct attributes', () => {
     render(<SocialFooter />);
     const links = screen.getAllByRole('link');
+
     expect(links.length).toBe(5);
-  });
 
-  it('renders the expected social link labels', () => {
-    render(<SocialFooter />);
+    const expected = [
+      { label: 'Facebook', href: 'https://www.facebook.com/728merch' },
+      { label: 'Instagram', href: 'https://www.instagram.com/728_studio' },
+      {
+        label: 'TikTok',
+        href: 'https://www.tiktok.com/@studio.728?_r=1&_t=ZN-97e3Ez9CP0Y',
+      },
+      { label: 'WhatsApp', href: 'https://wa.me/34635274152' },
+      { label: 'Email', href: 'mailto:informes.728@gmail.com' },
+    ];
 
-    for (const label of [
-      'Facebook',
-      'Instagram',
-      'TikTok',
-      'WhatsApp',
-      'Email',
-    ]) {
-      expect(screen.getByRole('link', { name: label })).toBeInTheDocument();
-    }
-  });
-
-  it('opens links in a new tab', () => {
-    render(<SocialFooter />);
-
-    for (const link of screen.getAllByRole('link')) {
+    for (const { label, href } of expected) {
+      const link = screen.getByRole('link', { name: label });
+      expect(link).toHaveAttribute('href', href);
       expect(link).toHaveAttribute('target', '_blank');
       expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'));
     }
-  });
-
-  it('uses the expected external destinations for major links', () => {
-    render(<SocialFooter />);
-
-    expect(screen.getByRole('link', { name: 'Facebook' })).toHaveAttribute(
-      'href',
-      'https://www.facebook.com/728merch',
-    );
-    expect(screen.getByRole('link', { name: 'Instagram' })).toHaveAttribute(
-      'href',
-      'https://www.instagram.com/728_studio',
-    );
-    expect(screen.getByRole('link', { name: 'Email' })).toHaveAttribute(
-      'href',
-      'mailto:informes.728@gmail.com',
-    );
   });
 });
