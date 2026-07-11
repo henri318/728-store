@@ -26,7 +26,57 @@ export interface ProductImageItem {
   purpose: ProductImagePurpose;
 }
 
-export type CustomizationExperienceLabels = Record<string, string>;
+export interface CustomizationExperienceLabels {
+  addToCart: string;
+  removeFromCart: string;
+  adding: string;
+  added: string;
+  error: string;
+  increaseQuantity: string;
+  decreaseQuantity: string;
+  saveDesign: string;
+  customizeProduct: string;
+  addWithoutCustomization: string;
+  alreadyInCartDifferent: string;
+  customizationDesign: string;
+  customizationPhrase: string;
+  customizationColor: string;
+  customizationSize: string;
+  customizationSizePlaceholder: string;
+  customizationUpload: string;
+  customizationReplaceImage: string;
+  customizationRemoveImage: string;
+  customizationUploading: string;
+  customizationInvalidImage: string;
+  customizationImageTooLarge: string;
+  customizationPreview: string;
+  customizationPreviewUnavailable: string;
+  customizationLimitedToDescription: string;
+  customizationPreviewDisclaimer: string;
+  customizationCanvasLabel: string;
+  customizationCanvasHelp: string;
+  customizationProductImageAlt: string;
+  customizationDesignImageAlt: string;
+  customizationUploadDesign: string;
+  customizationReplaceDesign: string;
+  customizationRemoveDesign: string;
+  customizationDesignUploading: string;
+  customizationDesignInvalid: string;
+  customizationDesignTooLarge: string;
+  customizationScaleLabel: string;
+  customizationRotationLabel: string;
+  customizationOpacityLabel: string;
+  customizationPositionReadoutLabel: string;
+  customizationPositionXLabel: string;
+  customizationPositionYLabel: string;
+  customizationCanvasReset: string;
+  customizationTextTooLong: string;
+  customizationColorTooLong: string;
+  customizationSizeTooLong: string;
+  customizationInvalidImageUrl: string;
+  mediaPrevious: string;
+  mediaNext: string;
+}
 
 interface CustomizationExperienceProps {
   productId: string;

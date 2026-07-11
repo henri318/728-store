@@ -3,7 +3,10 @@ import { render, screen, within } from '@testing-library/react';
 import type { ImgHTMLAttributes } from 'react';
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
 import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
-import { CustomizationExperience } from '@/app/[locale]/products/[id]/customization-experience';
+import {
+  CustomizationExperience,
+  type CustomizationExperienceLabels,
+} from '@/app/[locale]/products/[id]/customization-experience';
 
 const addToCartButtonMock = vi.fn((props: Record<string, unknown>) => (
   <button type="button" data-testid="mock-add-to-cart">
@@ -35,6 +38,12 @@ describe('CustomizationExperience', () => {
     adding: 'Adding...',
     added: 'Added',
     error: 'Error',
+    increaseQuantity: 'Increase quantity',
+    decreaseQuantity: 'Decrease quantity',
+    saveDesign: 'Save design',
+    customizeProduct: 'Customize',
+    addWithoutCustomization: 'Add without customization',
+    alreadyInCartDifferent: 'Already in cart',
     customizationDesign: 'Design description',
     customizationPhrase: 'Phrase',
     customizationColor: 'Color',
@@ -74,9 +83,7 @@ describe('CustomizationExperience', () => {
     customizationPositionXLabel: 'X',
     customizationPositionYLabel: 'Y',
     customizationCanvasReset: 'Reset',
-    saveDesign: 'Save design',
-    alreadyInCartDifferent: 'Already in cart',
-  };
+  } satisfies CustomizationExperienceLabels;
 
   const commonProps = {
     productId: 'prod-1',

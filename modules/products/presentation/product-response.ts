@@ -21,6 +21,8 @@ export interface SerializedProductDetail extends Omit<
   showcase: ProductEntity['images'];
   customizableBase: ProductEntity['images'];
   customizationConfig: ProductCustomizationConfigJson | null;
+  createdAt: string;
+  updatedAt: string;
   basePrice: {
     amount: number;
     currency: string;

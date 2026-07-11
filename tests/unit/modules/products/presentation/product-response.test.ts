@@ -73,6 +73,8 @@ describe('serializeProduct', () => {
       id: 'cover-1',
       purpose: ProductImagePurpose.COVER,
     });
+    expect(serialized.createdAt).toBe('2025-01-01T00:00:00.000Z');
+    expect(serialized.updatedAt).toBe('2025-01-02T00:00:00.000Z');
     expect(serialized.showcase).toHaveLength(1);
     expect(serialized.customizableBase).toHaveLength(1);
     expect(serialized.images).toHaveLength(3);

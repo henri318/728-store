@@ -65,7 +65,7 @@ describe('ProductPhotoBucketGallery', () => {
       ] as ProductPhotoDraft[],
     ],
   ] as const)(
-    'does not render the preview-selection button in %s mode',
+    'renders the preview-selection button role in %s mode',
     (mode, photos) => {
       render(
         <ProductPhotoBucketGallery
@@ -88,10 +88,10 @@ describe('ProductPhotoBucketGallery', () => {
       );
 
       expect(
-        screen.queryByRole('button', {
+        screen.getAllByRole('button', {
           name: commonLabels.selectForPreviewLabel,
         }),
-      ).toBeNull();
+      ).toHaveLength(photos.length);
     },
   );
 
@@ -115,8 +115,17 @@ describe('ProductPhotoBucketGallery', () => {
       />,
     );
 
-    fireEvent.click(screen.getByLabelText(commonLabels.selectForPreviewLabel));
+    fireEvent.click(
+      screen.getAllByRole('button', {
+        name: commonLabels.selectForPreviewLabel,
+      })[0],
+    );
 
+    expect(
+      screen.getByRole('button', {
+        name: commonLabels.selectForPreviewLabel,
+      }),
+    ).toBeTruthy();
     expect(onSelectPhoto).toHaveBeenCalledWith(photo.id);
   });
 });

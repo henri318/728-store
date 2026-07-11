@@ -25,7 +25,10 @@
 
 .showcaseSection {
   display: grid;
-  gap: 0.75rem;
+  /* Keep 1rem for the current viewport/controls/dots vertical rhythm. */
+  gap: 1rem;
+  width: min(100%, 34rem);
+  justify-self: center;
 }
 
 .showcaseViewport {
@@ -151,13 +154,6 @@
   gap: 1.25rem;
 }
 
-.showcaseSection {
-  display: grid;
-  gap: 1rem;
-  width: min(100%, 34rem);
-  justify-self: center;
-}
-
 .showcaseGallery {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -244,7 +240,7 @@
   padding: 0;
   margin: -1px;
   overflow: hidden;
-  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
 }

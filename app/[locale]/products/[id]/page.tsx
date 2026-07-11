@@ -35,14 +35,60 @@ export default async function ProductDetailPage({
   }
 
   const view = serializeProduct(product);
-  const customizationLabels: CustomizationExperienceLabels = {
-    ...dict.common,
+  const customizationLabels = {
+    addToCart: dict.common.addToCart,
+    removeFromCart: dict.common.removeFromCart,
     adding: dict.common.addingToCart,
     added: dict.common.addedToCart,
     error: dict.common.cartError,
+    increaseQuantity: dict.common.increaseQuantity,
+    decreaseQuantity: dict.common.decreaseQuantity,
+    saveDesign: dict.common.saveDesign,
+    customizeProduct: dict.common.customizeProduct,
+    addWithoutCustomization: dict.common.addWithoutCustomization,
+    alreadyInCartDifferent: dict.common.alreadyInCartDifferent,
+    customizationDesign: dict.common.customizationDesign,
+    customizationPhrase: dict.common.customizationPhrase,
+    customizationColor: dict.common.customizationColor,
+    customizationSize: dict.common.customizationSize,
+    customizationSizePlaceholder: dict.common.customizationSizePlaceholder,
+    customizationUpload: dict.common.customizationUpload,
+    customizationReplaceImage: dict.common.customizationReplaceImage,
+    customizationRemoveImage: dict.common.customizationRemoveImage,
+    customizationUploading: dict.common.customizationUploading,
+    customizationInvalidImage: dict.common.customizationInvalidImage,
+    customizationImageTooLarge: dict.common.customizationImageTooLarge,
+    customizationPreview: dict.common.customizationPreview,
+    customizationPreviewUnavailable:
+      dict.common.customizationPreviewUnavailable,
+    customizationLimitedToDescription:
+      dict.common.customizationLimitedToDescription,
+    customizationPreviewDisclaimer: dict.common.customizationPreviewDisclaimer,
+    customizationCanvasLabel: dict.common.customizationCanvasLabel,
+    customizationCanvasHelp: dict.common.customizationCanvasHelp,
+    customizationProductImageAlt: dict.common.customizationProductImageAlt,
+    customizationDesignImageAlt: dict.common.customizationDesignImageAlt,
+    customizationUploadDesign: dict.common.customizationUploadDesign,
+    customizationReplaceDesign: dict.common.customizationReplaceDesign,
+    customizationRemoveDesign: dict.common.customizationRemoveDesign,
+    customizationDesignUploading: dict.common.customizationDesignUploading,
+    customizationDesignInvalid: dict.common.customizationDesignInvalid,
+    customizationDesignTooLarge: dict.common.customizationDesignTooLarge,
+    customizationScaleLabel: dict.common.customizationScaleLabel,
+    customizationRotationLabel: dict.common.customizationRotationLabel,
+    customizationOpacityLabel: dict.common.customizationOpacityLabel,
+    customizationPositionReadoutLabel:
+      dict.common.customizationPositionReadoutLabel,
+    customizationPositionXLabel: dict.common.customizationPositionXLabel,
+    customizationPositionYLabel: dict.common.customizationPositionYLabel,
+    customizationCanvasReset: dict.common.customizationCanvasReset,
+    customizationTextTooLong: dict.common.customizationTextTooLong,
+    customizationColorTooLong: dict.common.customizationColorTooLong,
+    customizationSizeTooLong: dict.common.customizationSizeTooLong,
+    customizationInvalidImageUrl: dict.common.customizationInvalidImageUrl,
     mediaPrevious: dict.orders?.previous ?? 'Previous',
     mediaNext: dict.orders?.next ?? 'Next',
-  };
+  } satisfies CustomizationExperienceLabels;
   const publicMedia: ProductShowcaseMedia[] = [
     ...(view.cover
       ? [

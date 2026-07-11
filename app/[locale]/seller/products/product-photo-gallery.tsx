@@ -121,6 +121,7 @@ export function ProductPhotoBucketGallery({
 
                 <div
                   className={styles.photoFrame}
+                  role="button"
                   aria-label={commonLabels.selectForPreviewLabel}
                   tabIndex={0}
                   onClick={selectPhoto}
