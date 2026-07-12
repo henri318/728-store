@@ -6,6 +6,8 @@ import {
   isAllowedMimeType,
   isAllowedExtension,
 } from '@/modules/uploads/domain/value-objects/mime-type';
+
+export { ALLOWED_MIME_TYPES } from '@/modules/uploads/domain/value-objects/mime-type';
 import { ValidationError } from '@/shared/kernel/app-error';
 import { randomUUID } from 'node:crypto';
 
@@ -16,7 +18,7 @@ export class InvalidUploadError extends Error {
   }
 }
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const PRIVATE_READ_TTL = 7 * 24 * 3600; // 7 days — presigned URL for private buckets
 
 /** Upload types whose assets are publicly accessible with a permanent URL. */
