@@ -7,18 +7,14 @@ import {
 } from '@/modules/products/presentation/schemas/product-form-schema';
 
 describe('productFormSchema', () => {
-  it('accepts persisted customization instructions separately from change description', () => {
+  it('accepts translated input with design change description', () => {
     const result = productTranslationInputSchema.safeParse({
       locale: 'es',
       name: 'Taza',
       designChangeDescription: 'Descripción interna',
-      customizationInstructions: 'Configura el texto en la parte frontal',
     });
 
     expect(result.success).toBe(true);
-    expect(result.success && result.data.customizationInstructions).toBe(
-      'Configura el texto en la parte frontal',
-    );
   });
 
   it('strips translated fields from customizationConfig while keeping them in translations', () => {

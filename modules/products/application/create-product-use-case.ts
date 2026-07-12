@@ -24,7 +24,6 @@ export interface ProductTranslationDTO {
   tags?: string[] | null;
   sizes?: string[] | null;
   designChangeDescription?: string | null;
-  customizationInstructions?: string | null;
 }
 
 export interface CreateProductDTO {
@@ -57,7 +56,6 @@ function buildTranslations(
         tags: dto.translation?.tags,
         sizes: dto.translation?.sizes,
         designChangeDescription: dto.translation?.designChangeDescription,
-        customizationInstructions: dto.translation?.customizationInstructions,
       },
     ];
   }
@@ -83,8 +81,6 @@ function buildTranslations(
       sizes: translation.sizes ?? [],
       designChangeDescription:
         translation.designChangeDescription?.trim() || null,
-      customizationInstructions:
-        translation.customizationInstructions?.trim() || null,
     };
   });
 }

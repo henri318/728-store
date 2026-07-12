@@ -270,8 +270,6 @@ export class PrismaProductRepository implements ProductRepository {
             sizes: [...(translation.sizes ?? [])],
             designChangeDescription:
               translation.designChangeDescription ?? null,
-            customizationInstructions:
-              translation.customizationInstructions ?? null,
           })),
         },
         images: {
@@ -325,8 +323,6 @@ export class PrismaProductRepository implements ProductRepository {
             sizes: [...(translation.sizes ?? [])],
             designChangeDescription:
               translation.designChangeDescription ?? null,
-            customizationInstructions:
-              translation.customizationInstructions ?? null,
           },
           update: {
             name: translation.name,
@@ -335,8 +331,6 @@ export class PrismaProductRepository implements ProductRepository {
             sizes: [...(translation.sizes ?? [])],
             designChangeDescription:
               translation.designChangeDescription ?? null,
-            customizationInstructions:
-              translation.customizationInstructions ?? null,
           },
         });
       }

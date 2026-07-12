@@ -5,7 +5,6 @@ export interface ProductTranslationEntity {
   tags?: readonly string[];
   sizes?: readonly string[];
   designChangeDescription?: string | null;
-  customizationInstructions?: string | null;
 }
 
 export function resolveDisplay(
@@ -45,6 +44,5 @@ function normalizeTranslation(
     tags: translation.tags ?? [],
     sizes: translation.sizes ?? [],
     designChangeDescription: translation.designChangeDescription ?? null,
-    customizationInstructions: translation.customizationInstructions ?? null,
   };
 }
