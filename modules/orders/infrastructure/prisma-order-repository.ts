@@ -12,6 +12,7 @@ import {
 } from '../domain/order-repository';
 import { ORDER_PAID_PURCHASE_STATUSES } from '../domain/value-objects/order-lifecycle';
 import { prisma } from '@/shared/infrastructure/prisma';
+import { resolveDisplay } from '@/modules/products/domain/entities/product-translation';
 
 type PrismaTx = Omit<
   PrismaClient,
@@ -21,7 +22,7 @@ type PrismaTx = Omit<
 export class PrismaOrderRepository implements OrderRepository {
   async findPaginated(
     filter: OrderListFilter,
-    locale: string = 'es',
+    _locale: string = 'es',
   ): Promise<PaginatedResult<OrderEntity>> {
     const page = filter.page ?? 1;
     const pageSize = filter.pageSize ?? 20;
@@ -53,7 +54,7 @@ export class PrismaOrderRepository implements OrderRepository {
             include: {
               product: {
                 include: {
-                  translations: { where: { locale } },
+                  translations: true,
                   images: { take: 1, orderBy: { position: 'asc' } },
                 },
               },
@@ -307,7 +308,11 @@ function mapOrderLineItem(item: {
   productName?: string | null;
   productImageUrl?: string | null;
   product?: {
-    translations?: Array<{ name?: string | null }>;
+    translations?: Array<{
+      locale: string;
+      name?: string | null;
+      description?: string | null;
+    }>;
     images?: Array<{ url: string }>;
   } | null;
   unitPrice: unknown;
@@ -320,7 +325,16 @@ function mapOrderLineItem(item: {
     orderId: item.orderId,
     productId: item.productId,
     productName:
-      item.product?.translations?.[0]?.name ?? item.productName ?? undefined,
+      resolveDisplay(
+        (item.product?.translations ?? []).map((translation) => ({
+          locale: translation.locale,
+          name: translation.name ?? '',
+          description: translation.description ?? null,
+        })),
+        'es',
+      )?.name ??
+      item.productName ??
+      undefined,
     productImageUrl: item.product?.images?.[0]?.url ?? item.productImageUrl,
     unitPrice: Number(item.unitPrice),
     quantity: item.quantity,

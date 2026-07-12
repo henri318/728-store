@@ -68,7 +68,12 @@ export const PATCH = requireRole('CUSTOMER')(async function PATCH(
       .map((id) => customizationMap.get(id))
       .filter((c): c is NonNullable<typeof c> => c != null);
 
-    const enriched = enrichCartItem(item, product ?? undefined, customizations);
+    const enriched = enrichCartItem(
+      item,
+      product ?? undefined,
+      customizations,
+      'es',
+    );
 
     return NextResponse.json(enriched, { status: 200 });
   } catch (error: unknown) {
