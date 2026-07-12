@@ -58,6 +58,7 @@ function buildCustomizationHref(
   locale: string,
   productId: string,
   customization: CartItemDTO['customization'],
+  cartItemId?: string,
 ): string | null {
   const hasCustomization =
     customization.text ||
@@ -86,6 +87,7 @@ function buildCustomizationHref(
       'customizationDesignPosition',
       JSON.stringify(customization.designPosition),
     );
+  if (cartItemId) params.set('customizationCartItemId', cartItemId);
 
   const query = params.toString();
   return query
@@ -305,6 +307,7 @@ export function CartView({
                     locale,
                     item.productId,
                     item.customization,
+                    item.id,
                   ) && (
                     <a
                       href={
@@ -312,6 +315,7 @@ export function CartView({
                           locale,
                           item.productId,
                           item.customization,
+                          item.id,
                         ) ?? '#'
                       }
                       className={styles.editLink}
