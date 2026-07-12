@@ -13,10 +13,14 @@ test.describe('Personalization flow', () => {
     expect(detailsHref).toBeTruthy();
 
     await customerPage.goto(detailsHref!);
+    await customerPage.waitForLoadState('networkidle');
     const designField = customerPage.getByLabel(
       'Cuéntanos cómo quieres personalizarlo',
     );
     await designField.fill('First design');
+    await customerPage
+      .getByRole('button', { name: 'Añadir al carrito' })
+      .waitFor({ state: 'visible' });
     await customerPage
       .getByRole('button', { name: 'Añadir al carrito' })
       .click();
