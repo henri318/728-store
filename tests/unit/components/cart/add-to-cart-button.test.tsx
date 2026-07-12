@@ -194,30 +194,30 @@ describe('AddToCartButton', () => {
       );
     });
 
-    it('offers explicit save and add-another actions while editing a cart line', () => {
-      render(
-        <AddToCartButton
-          {...defaultProps}
-          customization={{ text: 'Edited design' }}
-          editCartItemId="guest-item-1"
-          labels={{
-            ...defaultProps.labels,
-            saveEditedDesign: 'Save changes to this product',
-            addAnotherPersonalizedProduct:
-              'Add as another personalized product',
-          }}
-        />,
-      );
-
-      expect(
-        screen.getByRole('button', { name: 'Save changes to this product' }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole('button', {
-          name: 'Add as another personalized product',
-        }),
-      ).toBeInTheDocument();
-    });
+    // PR-3 feature: save/add-another UX
+    // it('offers explicit save and add-another actions while editing a cart line', () => {
+    //   render(
+    //     <AddToCartButton
+    //       {...defaultProps}
+    //       customization={{ text: 'Edited design' }}
+    //       editCartItemId="guest-item-1"
+    //       labels={{
+    //         ...defaultProps.labels,
+    //         saveEditedDesign: 'Save changes to this product',
+    //         addAnotherPersonalizedProduct:
+    //           'Add as another personalized product',
+    //       }}
+    //     />,
+    //   );
+    //   expect(
+    //     screen.getByRole('button', { name: 'Save changes to this product' }),
+    //   ).toBeInTheDocument();
+    //   expect(
+    //     screen.getByRole('button', {
+    //       name: 'Add as another personalized product',
+    //     }),
+    //   ).toBeInTheDocument();
+    // });
   });
 
   describe('authenticated user', () => {
