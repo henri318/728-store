@@ -17,6 +17,10 @@
   font-size: 0.92rem;
 }
 
+.addAction {
+  width: fit-content;
+}
+
 .error {
   color: var(--color-error, #b42318);
   font-size: 0.92rem;

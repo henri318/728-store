@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TextField } from '@/shared/ui/text-field';
-import {
-  CategoryLocaleTabs,
-  type CategoryLocale,
-} from '@/modules/products/presentation/components/category-locale-tabs';
+import { Button } from '@/shared/ui/button';
+import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
+import { type CategoryLocale } from '@/modules/products/presentation/components/category-locale-tabs';
+import { resolveCategoryDisplay } from '@/modules/products/domain/entities/category-translation';
 import { DictionaryProvider } from '@/shared/i18n/dictionary-context';
 import styles from './configuration-form.module.css';
+import { CategoryListItem } from './category-list-item';
 
 export interface CategorySummary {
   id: string;
@@ -28,7 +29,6 @@ interface ConfigurationDict {
   admin: {
     configuration: {
       title: string;
-      description: string;
       label: string;
       placeholder: string;
       addLabel: string;
@@ -45,6 +45,11 @@ interface ConfigurationDict {
       nameCatPlaceholder: string;
       missingBothError: string;
       missingOneError: string;
+      updateError: string;
+      submitSave: string;
+      edit: string;
+      cancel: string;
+      confirmDelete: string;
     };
   };
 }
@@ -65,7 +70,7 @@ function sortCategories(
 }
 
 function statusMessage(
-  operation: 'create' | 'delete',
+  operation: 'create' | 'update' | 'delete',
   status: number,
   dict: ConfigurationDict,
 ): string {
@@ -81,6 +86,7 @@ function statusMessage(
     return dict.admin.configuration.inUseError;
   }
 
+  if (operation === 'update') return dict.admin.configuration.updateError;
   return operation === 'create'
     ? dict.admin.configuration.createError
     : dict.admin.configuration.deleteError;
@@ -96,7 +102,6 @@ export function ConfigurationForm({
     sortCategories(initialCategories, locale),
   );
   const [error, setError] = useState<string | null>(null);
-  const [activeLocale, setActiveLocale] = useState<CategoryLocale>('es');
   const [namesByLocale, setNamesByLocale] = useState<
     Record<CategoryLocale, string>
   >({ es: '', cat: '' });
@@ -139,7 +144,15 @@ export function ConfigurationForm({
 
       const created = (await response.json()) as CategorySummary;
       nextCategories = sortCategories(
-        [...categories, { ...created, displayName: nameEs }],
+        [
+          ...categories,
+          {
+            ...created,
+            displayName:
+              resolveCategoryDisplay(created.translations ?? [], locale)
+                ?.name ?? '',
+          },
+        ],
         locale,
       );
       hasPersistedChanges = true;
@@ -153,6 +166,61 @@ export function ConfigurationForm({
     }
   };
 
+  const updateCategory = async (
+    category: CategorySummary,
+    names: Record<CategoryLocale, string>,
+  ) => {
+    try {
+      const response = await fetch(`/api/admin/categories/${category.id}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ nameEs: names.es, nameCat: names.cat }),
+      });
+      if (!response.ok) {
+        setError(statusMessage('update', response.status, dict));
+        return;
+      }
+      const updated = (await response.json()) as CategorySummary;
+      setCategories((current) =>
+        sortCategories(
+          current.map((item) =>
+            item.id === category.id
+              ? {
+                  ...updated,
+                  id: category.id,
+                  displayName:
+                    resolveCategoryDisplay(updated.translations ?? [], locale)
+                      ?.name ?? '',
+                }
+              : item,
+          ),
+          locale,
+        ),
+      );
+      router.refresh();
+    } catch {
+      setError(dict.common.genericError);
+    }
+  };
+
+  const deleteCategory = async (category: CategorySummary) => {
+    try {
+      const response = await fetch(`/api/admin/categories/${category.id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        setError(statusMessage('delete', response.status, dict));
+        return;
+      }
+      setCategories((current) =>
+        current.filter((item) => item.id !== category.id),
+      );
+      router.refresh();
+    } catch {
+      setError(dict.common.genericError);
+    }
+  };
+
   return (
     <DictionaryProvider dict={dict as never}>
       <section
@@ -161,44 +229,49 @@ export function ConfigurationForm({
       >
         <div className={styles.content}>
           <>
-            <div className={styles.formHeader}>
-              <CategoryLocaleTabs
-                value={activeLocale}
-                onChange={setActiveLocale}
-                labels={{
-                  es: dict.admin.configuration.nameEsLabel,
-                  cat: dict.admin.configuration.nameCatLabel,
-                }}
-              />
-            </div>
             <TextField
-              label={
-                activeLocale === 'es'
-                  ? dict.admin.configuration.nameEsLabel
-                  : dict.admin.configuration.nameCatLabel
-              }
-              placeholder={
-                activeLocale === 'es'
-                  ? dict.admin.configuration.nameEsPlaceholder
-                  : dict.admin.configuration.nameCatPlaceholder
-              }
-              value={namesByLocale[activeLocale]}
+              label={dict.admin.configuration.nameEsLabel}
+              placeholder={dict.admin.configuration.nameEsPlaceholder}
+              value={namesByLocale.es}
               onChange={(value) =>
-                setNamesByLocale((current) => ({
-                  ...current,
-                  [activeLocale]: value,
-                }))
+                setNamesByLocale((current) => ({ ...current, es: value }))
               }
               required
             />
-            <button type="button" onClick={() => void createCategory()}>
-              {dict.admin.configuration.addLabel}
-            </button>
-            <ul aria-label={dict.admin.configuration.label}>
-              {categories.map((category) => (
-                <li key={category.id}>{category.displayName}</li>
-              ))}
-            </ul>
+            <TextField
+              label={dict.admin.configuration.nameCatLabel}
+              placeholder={dict.admin.configuration.nameCatPlaceholder}
+              value={namesByLocale.cat}
+              onChange={(value) =>
+                setNamesByLocale((current) => ({ ...current, cat: value }))
+              }
+              required
+            />
+            <div className={styles.addAction}>
+              <Button type="button" onClick={() => void createCategory()}>
+                {dict.admin.configuration.addLabel}
+              </Button>
+            </div>
+            <DataTable<CategorySummary>
+              columns={
+                [
+                  {
+                    key: 'category',
+                    header: dict.admin.configuration.label,
+                    render: (category) => (
+                      <CategoryListItem
+                        category={category}
+                        dict={dict.admin.configuration}
+                        onSave={updateCategory}
+                        onDelete={deleteCategory}
+                      />
+                    ),
+                  },
+                ] satisfies DataTableColumn<CategorySummary>[]
+              }
+              rows={categories}
+              rowKey={(category) => category.id}
+            />
           </>
 
           {error ? (
@@ -206,10 +279,6 @@ export function ConfigurationForm({
               {error}
             </p>
           ) : null}
-
-          <p className={styles.helper}>
-            {dict.admin.configuration.description}
-          </p>
 
           <input type="hidden" value={locale} aria-hidden="true" readOnly />
         </div>

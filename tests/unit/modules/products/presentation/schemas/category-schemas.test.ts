@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { createCategorySchema } from '@/modules/products/presentation/schemas/category-schemas';
+import {
+  createCategorySchema,
+  updateCategorySchema,
+} from '@/modules/products/presentation/schemas/category-schemas';
 
 describe('createCategorySchema', () => {
   it('accepts both trimmed bilingual labels', () => {
@@ -20,6 +23,27 @@ describe('createCategorySchema', () => {
         nameEs: 'Ropa',
         nameCat: 'Roba',
         name: 'legacy',
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe('updateCategorySchema', () => {
+  it('accepts trimmed bilingual labels', () => {
+    expect(
+      updateCategorySchema.parse({ nameEs: ' Ropa ', nameCat: ' Roba ' }),
+    ).toEqual({ nameEs: 'Ropa', nameCat: 'Roba' });
+  });
+
+  it('rejects incomplete names and unknown fields', () => {
+    expect(updateCategorySchema.safeParse({ nameEs: 'Ropa' }).success).toBe(
+      false,
+    );
+    expect(
+      updateCategorySchema.safeParse({
+        nameEs: 'Ropa',
+        nameCat: 'Roba',
+        slug: 'legacy',
       }).success,
     ).toBe(false);
   });

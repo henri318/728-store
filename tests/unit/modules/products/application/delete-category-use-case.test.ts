@@ -27,6 +27,7 @@ describe('DeleteCategoryUseCase', () => {
       delete: vi.fn(async () => {}),
       findBySlug: vi.fn(async () => null),
       save: vi.fn(async (category: CategoryEntity) => category),
+      update: vi.fn(async (category: CategoryEntity) => category),
     };
     const useCase = new DeleteCategoryUseCase(repo);
 
@@ -44,6 +45,7 @@ describe('DeleteCategoryUseCase', () => {
       delete: vi.fn(async () => {}),
       findBySlug: vi.fn(async () => null),
       save: vi.fn(async (category: CategoryEntity) => category),
+      update: vi.fn(async (category: CategoryEntity) => category),
     };
     const useCase = new DeleteCategoryUseCase(repo);
 
@@ -61,6 +63,7 @@ describe('DeleteCategoryUseCase', () => {
       delete: vi.fn(async () => {}),
       findBySlug: vi.fn(async () => null),
       save: vi.fn(async (category: CategoryEntity) => category),
+      update: vi.fn(async (category: CategoryEntity) => category),
     };
     const useCase = new DeleteCategoryUseCase(repo);
 

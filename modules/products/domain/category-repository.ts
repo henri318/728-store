@@ -7,6 +7,7 @@ export interface CategoryRepository {
   findById(id: string): Promise<CategoryEntity | null>;
   findBySlug(slug: string): Promise<CategoryEntity | null>;
   save(category: CategoryEntity): Promise<CategoryEntity>;
+  update(category: CategoryEntity): Promise<CategoryEntity>;
   delete(id: string): Promise<void>;
   countProducts(id: string): Promise<number>;
 }

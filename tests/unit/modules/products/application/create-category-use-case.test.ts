@@ -38,6 +38,7 @@ describe('CreateCategoryUseCase', () => {
       save: vi.fn(async (category: CategoryEntity) => category),
       delete: vi.fn(async () => {}),
       countProducts: vi.fn(async () => 0),
+      update: vi.fn(async (category: CategoryEntity) => category),
     };
     const useCase = new CreateCategoryUseCase(repo);
 
@@ -75,6 +76,7 @@ describe('CreateCategoryUseCase', () => {
       save: vi.fn(async (category: CategoryEntity) => category),
       delete: vi.fn(async () => {}),
       countProducts: vi.fn(async () => 0),
+      update: vi.fn(async (category: CategoryEntity) => category),
     };
     const useCase = new CreateCategoryUseCase(repo);
 
@@ -92,6 +94,7 @@ describe('CreateCategoryUseCase', () => {
       save: vi.fn(async (category: CategoryEntity) => category),
       delete: vi.fn(async () => {}),
       countProducts: vi.fn(async () => 0),
+      update: vi.fn(async (category: CategoryEntity) => category),
     };
     const useCase = new CreateCategoryUseCase(repo);
 
@@ -110,6 +113,7 @@ describe('CreateCategoryUseCase', () => {
       save: vi.fn(async (category: CategoryEntity) => category),
       delete: vi.fn(async () => {}),
       countProducts: vi.fn(async () => 0),
+      update: vi.fn(async (category: CategoryEntity) => category),
     };
     const useCase = new CreateCategoryUseCase(repo);
 

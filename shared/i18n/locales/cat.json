@@ -390,7 +390,6 @@
     "paginationAriaLabel": "Paginació",
     "configuration": {
       "title": "Configuració",
-      "description": "Gestiona les categories del catàleg.",
       "label": "Categories",
       "placeholder": "Escriu una categoria i prem Enter",
       "addLabel": "Afegir",
@@ -398,6 +397,7 @@
       "delete": "Eliminar",
       "createError": "No s'ha pogut crear la categoria",
       "deleteError": "No s'ha pogut eliminar la categoria",
+      "updateError": "No s'ha pogut actualitzar la categoria",
       "validationError": "Introdueix un nom vàlid",
       "duplicateError": "Ja existeix una categoria amb aquest nom",
       "inUseError": "La categoria està en ús",
@@ -406,7 +406,11 @@
       "nameEsPlaceholder": "Ex. Electrónica",
       "nameCatPlaceholder": "Ex. Electrònica",
       "missingBothError": "Completa els noms en espanyol i català",
-      "missingOneError": "Completa els dos noms abans de crear la categoria"
+      "missingOneError": "Completa els dos noms abans de crear la categoria",
+      "submitSave": "Desar",
+      "edit": "Editar",
+      "cancel": "Cancel·lar",
+      "confirmDelete": "Eliminar aquesta categoria?"
     },
     "sellerDetail": {
       "editTitle": "Editar venedor",
