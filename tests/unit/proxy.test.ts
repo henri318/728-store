@@ -10,7 +10,7 @@ vi.mock('next-auth/jwt', () => ({
   getToken: mocks.getTokenMock,
 }));
 
-import { proxy } from '@/proxy';
+import { config, proxy } from '@/proxy';
 
 describe('proxy', () => {
   beforeEach(() => {
@@ -59,5 +59,9 @@ describe('proxy', () => {
       'http://localhost:3000/es/seller_admin',
     );
     expect(mocks.getTokenMock).not.toHaveBeenCalled();
+  });
+
+  it('excludes metadata routes from locale redirects', () => {
+    expect(config.matcher[0]).toContain('robots[.]txt|sitemap[.]xml');
   });
 });
