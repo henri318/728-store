@@ -18,6 +18,7 @@ import { outboxWorker } from '@/workers/outbox-worker';
 import { initContainer } from '@/composition-root/container';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { DictionaryProvider } from '@/shared/i18n/dictionary-context';
+import { normalizeLocale } from '@/shared/i18n/normalize-locale';
 import { APP_BASE_URL } from '@/shared/kernel/config';
 import '../globals.css';
 import styles from './layout.module.css';
@@ -105,7 +106,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang={locale}>
+    <html lang={normalizeLocale(locale)}>
       <body className={styles.body}>
         <SessionProviderWrapper session={session}>
           <GuestCartProvider>
@@ -139,6 +140,7 @@ export default async function RootLayout({
                     loginLabel={dict.common.login}
                     profileAlt={dict.common.profileIcon}
                     cartAlt={dict.common.cartIcon}
+                    aboutLabel={dict.common.aboutNavLabel}
                   />
                   <LanguageSelector currentLocale={locale} />
                 </div>

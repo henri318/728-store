@@ -13,20 +13,27 @@ interface HeaderNavProps {
   loginLabel: string;
   profileAlt: string;
   cartAlt: string;
+  aboutLabel: string;
 }
 
-export function HeaderNav({ loginLabel, cartAlt }: HeaderNavProps) {
+export function HeaderNav({ loginLabel, cartAlt, aboutLabel }: HeaderNavProps) {
   const pathname = usePathname();
   const { data: session, status } = useSession();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const isAuthPage = pathname.includes('/auth/');
   const locale = pathname.split('/', 2)[1] ?? 'es';
+  const aboutLink = (
+    <a href={`/${locale}/quienes-somos`} className={styles.aboutLink}>
+      {aboutLabel}
+    </a>
+  );
 
   if (status === 'authenticated' && session?.user) {
     const isInternal =
       session.user.role === 'ADMIN' || session.user.role === 'DESIGNER';
     return (
       <>
+        {aboutLink}
         <UserMenuDropdown user={session.user}>
           <svg className={styles.userIcon} aria-hidden="true">
             <use href="/img/icons/sprites.svg#icon-profile" />
@@ -44,6 +51,7 @@ export function HeaderNav({ loginLabel, cartAlt }: HeaderNavProps) {
 
   return (
     <>
+      {aboutLink}
       <button
         type="button"
         onClick={() => setIsLoginOpen(true)}

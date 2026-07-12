@@ -1,0 +1,102 @@
+.page {
+  min-height: max(60vh, 38rem);
+  display: grid;
+  place-items: center;
+  padding: clamp(2rem, 5vw, 5rem);
+  background-color: #f0eedc;
+  background-image: url('/img/decorations/Al-Taller.svg');
+  background-position: center;
+  background-size: cover;
+}
+
+.content {
+  width: min(100%, 75rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(16rem, 0.7fr);
+  align-items: center;
+  gap: clamp(2rem, 5vw, 4rem);
+}
+
+.copy {
+  color: #055c5d;
+}
+
+.title {
+  margin: 0 0 1.5625rem;
+  color: #e95442;
+  font-family: 'Falling button', cursive, sans-serif;
+  font-size: 4rem;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.description {
+  max-width: 43rem;
+  margin: 0 0 1.25rem;
+  font-family: var(--font-family-primary);
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.description + .description {
+  margin-bottom: 1.875rem;
+}
+
+.slogan {
+  margin: 0;
+  font-family: var(--font-family-primary);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.imageFrame {
+  display: flex;
+  justify-content: center;
+}
+
+.image {
+  width: min(100%, 31rem);
+  height: auto;
+  max-height: 65vh;
+  object-fit: contain;
+}
+
+@media (max-width: 768px) {
+  .page {
+    min-height: 0;
+    padding: 1.25rem;
+    background-position: 58% center;
+  }
+
+  .content {
+    grid-template-columns: 1fr;
+    gap: 1.5625rem;
+  }
+
+  .title {
+    margin-bottom: 0.9375rem;
+    font-size: 2.75rem;
+  }
+
+  .description {
+    font-size: 1rem;
+  }
+
+  .slogan {
+    font-size: 1.125rem;
+  }
+
+  .copy {
+    order: 1;
+  }
+
+  .imageFrame {
+    order: 2;
+  }
+
+  .image {
+    width: min(100%, 17.5rem);
+    max-height: none;
+  }
+}

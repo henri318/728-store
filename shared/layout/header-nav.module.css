@@ -8,6 +8,24 @@
   justify-content: center;
 }
 
+.aboutLink {
+  color: var(--color-green-dark);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.25rem;
+  transition:
+    color 0.2s ease,
+    text-decoration-color 0.2s ease;
+}
+
+.aboutLink:hover,
+.aboutLink:focus-visible {
+  color: var(--color-coral);
+  text-decoration-color: currentcolor;
+}
+
 .userIcon {
   width: 46px;
   height: 46px;
@@ -56,6 +74,10 @@
 }
 
 @media (max-width: 768px) {
+  .aboutLink {
+    font-size: 0.78rem;
+  }
+
   .badge {
     font-size: 0.7rem;
     min-width: 18px;
