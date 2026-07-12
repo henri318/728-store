@@ -49,6 +49,7 @@ describe('ProductForm locale tabs', () => {
       sizesAddLabel: 'Añadir talla',
       sizesEmptyLabel: 'Aún no hay tallas',
       designChangeDescriptionLabel: 'Descripción del cambio',
+      designChangeDescriptionHelp: 'Indica el cambio.',
       designChangeDescriptionPlaceholder: 'Describe el cambio',
     },
     customization: {
@@ -59,6 +60,7 @@ describe('ProductForm locale tabs', () => {
         sizeOptionsPlaceholder: 'S, M, L',
         allowPhotoDesignLabel: 'Permitir diseño con foto',
         designChangeDescriptionLabel: 'Descripción del cambio de diseño',
+        designChangeDescriptionHelp: 'Indica el cambio.',
         designChangeDescriptionPlaceholder: 'Describe los cambios...',
         categoryLabel: 'Categoría',
         categoryPlaceholder: 'Seleccionar categoría',

@@ -11,6 +11,7 @@ export interface ProductTranslationDraft {
   tags: string[];
   sizes: string[];
   designChangeDescription: string | null;
+  customizationInstructions?: string | null;
 }
 
 interface ProductTranslationSectionLabels {
@@ -27,6 +28,7 @@ interface ProductTranslationSectionLabels {
   sizesAddLabel: string;
   sizesEmptyLabel: string;
   designChangeDescriptionLabel: string;
+  designChangeDescriptionHelp: string;
   designChangeDescriptionPlaceholder: string;
 }
 
@@ -108,6 +110,7 @@ export function ProductTranslationSection({
               designChangeDescription: next.trim().length > 0 ? next : null,
             })
           }
+          helpText={labels.designChangeDescriptionHelp}
           placeholder={labels.designChangeDescriptionPlaceholder}
         />
       </div>

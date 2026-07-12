@@ -44,8 +44,10 @@ describe('CustomizationExperience', () => {
     customizeProduct: 'Customize',
     addWithoutCustomization: 'Add without customization',
     alreadyInCartDifferent: 'Already in cart',
-    customizationDesign: 'Design description',
+    customizationDesign: 'Instrucciones de personalización',
     customizationPhrase: 'Phrase',
+    goToEdit: 'Go to edit',
+    customizationCapabilityHeading: 'What can the customer customize?',
     customizationColor: 'Color',
     customizationSize: 'Size',
     customizationSizePlaceholder: 'Choose a size',
@@ -94,6 +96,7 @@ describe('CustomizationExperience', () => {
     price: 12.5,
     formattedPrice: '$12.50',
     previewBaseImageUrl: '/mug.png',
+    sizes: ['M'],
     publicMedia: [
       {
         id: 'cover-1',
@@ -103,11 +106,13 @@ describe('CustomizationExperience', () => {
         posterUrl: null,
       },
     ],
-    productImages: [] as {
-      url: string;
-      alt: string;
-      purpose: ProductImagePurpose;
-    }[],
+    productImages: [
+      {
+        url: '/red.png',
+        alt: 'Red',
+        purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+      },
+    ],
   };
 
   beforeEach(() => {
@@ -168,6 +173,47 @@ describe('CustomizationExperience', () => {
     expect(
       within(leftColumn).getByTestId('mock-add-to-cart'),
     ).toBeInTheDocument();
+  });
+
+  it('renders public customization content in description, capability, style, form, and canvas order', () => {
+    render(
+      <CustomizationExperience
+        {...commonProps}
+        customizationConfig={ProductCustomizationConfig.default().toJson()}
+        designChangeDescription="Puede cambiar el color y añadir una imagen"
+        labels={labels}
+      />,
+    );
+
+    const layout = screen.getByTestId('purchase-layout');
+    const description = within(layout).getByText('A nice mug');
+    const capability = within(layout).getByTestId('customization-capability');
+    const style = within(layout).getAllByTestId(
+      'customization-style-selectors',
+    )[0];
+    const form = within(layout).getByTestId('customization-form');
+    const descriptionField = within(form).getByLabelText(
+      labels.customizationDesign,
+    );
+    const canvas = within(layout).getByTestId('mockup-canvas');
+    expect(description.compareDocumentPosition(capability)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    expect(capability.compareDocumentPosition(style)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    expect(style.compareDocumentPosition(descriptionField)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    expect(form.compareDocumentPosition(canvas)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    expect(screen.getByTestId('customization-capability')).toHaveTextContent(
+      'Puede cambiar el color y añadir una imagen',
+    );
+    expect(
+      screen.queryByText('Instrucciones subidas por el diseñador'),
+    ).toBeNull();
   });
 
   it('falls back to the legacy add-to-cart button when the feature flag is disabled', () => {

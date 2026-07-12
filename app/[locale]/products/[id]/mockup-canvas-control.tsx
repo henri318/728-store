@@ -118,9 +118,9 @@ export function MockupCanvasControl({
     if (!ctx) return;
 
     ctx.save();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     ctx.fillStyle = '#f4f2e6';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     const productImage = productImageRef.current;
     if (
@@ -128,7 +128,7 @@ export function MockupCanvasControl({
       productImage.complete &&
       productImage.naturalWidth > 0
     ) {
-      drawCover(ctx, productImage, canvas.width, canvas.height);
+      drawCover(ctx, productImage, CANVAS_WIDTH, CANVAS_HEIGHT);
     }
 
     const designImage = designImageRef.current;
@@ -140,11 +140,35 @@ export function MockupCanvasControl({
     ) {
       ctx.globalCompositeOperation = 'multiply';
       ctx.globalAlpha = position.opacity / 100;
-      drawDesign(ctx, designImage, position, canvas.width, canvas.height);
+      drawDesign(ctx, designImage, position, CANVAS_WIDTH, CANVAS_HEIGHT);
     }
 
     ctx.restore();
   }, [designImageUrl, position]);
+
+  const configureCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const dpr = Math.max(window.devicePixelRatio || 1, 1);
+    canvas.width = Math.round(CANVAS_WIDTH * dpr);
+    canvas.height = Math.round(CANVAS_HEIGHT * dpr);
+    canvas.getContext('2d')?.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawCanvas();
+  }, [drawCanvas]);
+
+  useEffect(() => {
+    configureCanvas();
+    const mediaQuery = globalThis.matchMedia?.(
+      `(resolution: ${window.devicePixelRatio || 1}dppx)`,
+    );
+    mediaQuery?.addEventListener('change', configureCanvas);
+    window.addEventListener('resize', configureCanvas);
+    return () => {
+      mediaQuery?.removeEventListener('change', configureCanvas);
+      window.removeEventListener('resize', configureCanvas);
+    };
+  }, [configureCanvas]);
 
   useEffect(() => {
     const designImg = designImageRef.current;

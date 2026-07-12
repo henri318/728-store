@@ -79,6 +79,7 @@ model ProductTranslation {
   tags        String[] @default([])
   sizes       String[] @default([])
   designChangeDescription String?
+  customizationInstructions String?
   productId   String
   product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 

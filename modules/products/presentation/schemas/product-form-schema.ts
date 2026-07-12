@@ -25,6 +25,12 @@ export const productTranslationInputSchema = z
     tags: z.array(z.string().trim().min(1)).max(20).default([]),
     sizes: z.array(z.string().trim().min(1)).max(20).default([]),
     designChangeDescription: z.string().trim().max(2000).nullable().optional(),
+    customizationInstructions: z
+      .string()
+      .trim()
+      .max(2000)
+      .nullable()
+      .optional(),
   })
   .strict();
 
@@ -33,6 +39,7 @@ export const productTranslationSchema = z
     tags: z.array(z.string().min(1)).max(20).nullable().optional(),
     sizes: z.array(z.string().min(1)).nullable().optional(),
     designChangeDescription: z.string().max(2000).nullable().optional(),
+    customizationInstructions: z.string().max(2000).nullable().optional(),
   })
   .strip();
 

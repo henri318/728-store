@@ -6,6 +6,35 @@ import { ProductImagePurpose } from '@/modules/products/domain/value-objects/pro
 import { CustomizationDraftProvider } from '@/app/[locale]/products/[id]/customization-draft-context';
 import { CustomizationForm } from '@/app/[locale]/products/[id]/customization-form';
 
+const descriptionFieldMock = vi.fn(
+  ({ label, value, onChange, error, placeholder }: Record<string, unknown>) => (
+    <div data-testid="description-field">
+      <label>
+        {String(label)}
+        <textarea
+          value={String(value)}
+          placeholder={placeholder ? String(placeholder) : undefined}
+          aria-invalid={error ? 'true' : undefined}
+          aria-describedby={error ? 'description-field-error' : undefined}
+          onChange={(event) =>
+            (onChange as (value: string) => void)(event.target.value)
+          }
+        />
+      </label>
+      {error ? (
+        <p id="description-field-error" role="alert">
+          {String(error)}
+        </p>
+      ) : null}
+    </div>
+  ),
+);
+
+vi.mock('@/shared/ui/description-field', () => ({
+  DescriptionField: (props: Record<string, unknown>) =>
+    descriptionFieldMock(props),
+}));
+
 vi.mock('next/image', () => ({
   default: (props: ImgHTMLAttributes<HTMLImageElement>) => {
     // eslint-disable-next-line @next/next/no-img-element
@@ -22,7 +51,7 @@ describe('CustomizationForm', () => {
   };
 
   const labels = {
-    customizationDesign: 'Design description',
+    customizationDesign: 'Instrucciones de personalización',
     customizationPhrase: 'Phrase',
     customizationColor: 'Color',
     customizationSize: 'Size',
@@ -61,7 +90,7 @@ describe('CustomizationForm', () => {
     vi.clearAllMocks();
   });
 
-  it('renders the design textarea, color carousel (with images), and size select', () => {
+  it('uses DescriptionField for the existing design text and renders style selectors', () => {
     const productImages = [
       {
         url: '/cover.png',
@@ -96,10 +125,18 @@ describe('CustomizationForm', () => {
       </CustomizationDraftProvider>,
     );
 
-    expect(screen.getByLabelText(labels.customizationDesign)).toHaveAttribute(
-      'rows',
-      '2',
+    expect(screen.getByTestId('description-field')).toBeInTheDocument();
+    expect(descriptionFieldMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        label: labels.customizationDesign,
+      }),
     );
+    expect(
+      screen.getByLabelText(labels.customizationDesign),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('Instrucciones subidas por el diseñador'),
+    ).toBeNull();
     expect(screen.getByText(labels.customizationColor)).toBeTruthy();
     expect(screen.getByText('Red')).toBeTruthy();
     expect(screen.getByText('Blue')).toBeTruthy();

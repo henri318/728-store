@@ -26,6 +26,7 @@ export interface ProductFormLabels {
     sizesAddLabel: string;
     sizesEmptyLabel: string;
     designChangeDescriptionLabel: string;
+    designChangeDescriptionHelp: string;
     designChangeDescriptionPlaceholder: string;
   };
   customization: {
@@ -101,7 +102,9 @@ export function getProductFormLabels(
     nameLabel: sd.productNameLabel as string,
     descriptionLabel: sd.productDescriptionLabel as string,
     priceLabel: sd.productPriceLabel as string,
-    submit: (mode === 'create' ? sd.createProduct : sd.editProduct) as string,
+    submit: (mode === 'create'
+      ? sd.createProduct
+      : sd.editProductSubmit) as string,
     saved: sd.productSaved as string,
     error: sd.productFormError as string,
     missingTranslationNameError:
@@ -125,6 +128,8 @@ export function getProductFormLabels(
       sizesEmptyLabel: sd.productTranslationSizesEmptyLabel as string,
       designChangeDescriptionLabel:
         sd.productTranslationDesignChangeDescriptionLabel as string,
+      designChangeDescriptionHelp:
+        sd.productTranslationDesignChangeDescriptionHelp as string,
       designChangeDescriptionPlaceholder:
         sd.productTranslationDesignChangeDescriptionPlaceholder as string,
     },

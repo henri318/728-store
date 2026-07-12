@@ -94,6 +94,7 @@ describe('UpdateProductUseCase', () => {
         tags: ['ceramica'],
         sizes: ['M', 'L'],
         designChangeDescription: 'Mantén el texto base',
+        customizationInstructions: 'Configura el texto en el frontal',
       },
     });
 
@@ -108,6 +109,7 @@ describe('UpdateProductUseCase', () => {
       tags: ['ceramica'],
       sizes: ['M', 'L'],
       designChangeDescription: 'Mantén el texto base',
+      customizationInstructions: 'Configura el texto en el frontal',
     });
     expect(saved?.basePrice.amount).toBe(14.5);
     expect(saved?.customizationConfig?.mode).toBe('photo');
@@ -157,6 +159,7 @@ describe('UpdateProductUseCase', () => {
           tags: ['ceràmica'],
           sizes: ['L'],
           designChangeDescription: 'Mantén el text base',
+          customizationInstructions: 'Configura el text al frontal',
         },
       ],
     });
@@ -167,7 +170,11 @@ describe('UpdateProductUseCase', () => {
     expect(saved?.translations).toHaveLength(2);
     expect(saved?.translations).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ locale: 'es', name: 'Taza nueva' }),
+        expect.objectContaining({
+          locale: 'es',
+          name: 'Taza nueva',
+          customizationInstructions: 'Configura el texto en el frontal',
+        }),
         expect.objectContaining({ locale: 'cat', name: 'Tassa nova' }),
       ]),
     );

@@ -8,6 +8,7 @@ interface DescriptionFieldProps {
   value: string;
   onChange: (value: string) => void;
   error?: string;
+  helpText?: string;
   placeholder?: string;
   rows?: number;
 }
@@ -17,6 +18,7 @@ export function DescriptionField({
   value,
   onChange,
   error,
+  helpText,
   placeholder,
   rows = 4,
 }: DescriptionFieldProps) {
@@ -25,7 +27,9 @@ export function DescriptionField({
     onChange(e.target.value);
   };
 
+  const helpId = helpText ? `${id}-help` : undefined;
   const errorId = error ? `${id}-error` : undefined;
+  const describedBy = [helpId, errorId].filter(Boolean).join(' ') || undefined;
 
   return (
     <div className={styles.wrapper}>
@@ -40,8 +44,13 @@ export function DescriptionField({
         placeholder={placeholder}
         rows={rows}
         aria-invalid={error ? true : undefined}
-        aria-describedby={errorId}
+        aria-describedby={describedBy}
       />
+      {helpText && (
+        <span id={helpId} className={styles.helpText}>
+          {helpText}
+        </span>
+      )}
       {error && (
         <span id={errorId} role="alert" className={styles.errorText}>
           {error}

@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ImgHTMLAttributes } from 'react';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
 import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
 import { ProductForm } from '@/app/[locale]/seller/products/product-form';
@@ -52,6 +54,7 @@ describe('ProductForm', () => {
       sizesAddLabel: 'Añadir talla',
       sizesEmptyLabel: 'Aún no hay tallas',
       designChangeDescriptionLabel: 'Descripción del cambio',
+      designChangeDescriptionHelp: 'Indica el cambio.',
       designChangeDescriptionPlaceholder: 'Describe el cambio',
     },
     customization: {
@@ -62,6 +65,7 @@ describe('ProductForm', () => {
         sizeOptionsPlaceholder: 'S, M, L',
         allowPhotoDesignLabel: 'Permitir diseño con foto',
         designChangeDescriptionLabel: 'Descripción del cambio de diseño',
+        designChangeDescriptionHelp: 'Indica el cambio.',
         designChangeDescriptionPlaceholder: 'Describe los cambios...',
         categoryLabel: 'Categoría',
         categoryPlaceholder: 'Seleccionar categoría',
@@ -114,6 +118,61 @@ describe('ProductForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
+  });
+
+  it('removes customizationInstructions from the seller form and its page inputs', () => {
+    const sellerProductLayer = [
+      'app/[locale]/seller/products/product-form.tsx',
+      'app/[locale]/seller/products/new/page.tsx',
+      'app/[locale]/seller/products/[id]/edit/page.tsx',
+    ]
+      .map((file) => readFileSync(resolve(process.cwd(), file), 'utf8'))
+      .join('\n');
+
+    expect(sellerProductLayer).not.toContain('customizationInstructions');
+  });
+
+  it('does not render the removed customer-instruction UI', () => {
+    render(
+      <ProductForm
+        locale="es"
+        mode="edit"
+        initialValues={{
+          price: 1,
+          translations: [
+            {
+              locale: 'es',
+              name: 'Producto',
+              description: '',
+              tags: [],
+              sizes: [],
+              designChangeDescription: 'Descripción válida del cambio',
+            },
+          ],
+          customizationConfig: {
+            mode: 'text',
+            previewEnabled: false,
+            previewTemplateUrl: null,
+            textOffset: null,
+            imageOffset: null,
+          },
+          images: [],
+        }}
+        labels={labels}
+      />,
+    );
+
+    expect(
+      screen.queryByText('Instrucciones subidas por el diseñador'),
+    ).toBeNull();
+    expect(
+      screen.queryByPlaceholderText('Escribe como configurar tu producto'),
+    ).toBeNull();
+    expect(
+      screen.getByLabelText(
+        labels.translationSection.designChangeDescriptionLabel,
+      ),
+    ).toBeInTheDocument();
   });
 
   it('uploads photos from the file selector, lets the designer name and choose a preview variant, and submits translated payloads', async () => {

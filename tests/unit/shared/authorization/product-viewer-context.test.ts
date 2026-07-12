@@ -79,4 +79,18 @@ describe('resolveProductViewerContext', () => {
       editHref: null,
     });
   });
+
+  it('falls back to anonymous access when the server-side identity lookup fails', async () => {
+    getSession.mockReturnValue({
+      getSession: vi.fn().mockRejectedValue(new Error('session unavailable')),
+    });
+
+    await expect(resolveProductViewerContext(product, 'es')).resolves.toEqual({
+      viewerUserId: null,
+      viewerRole: null,
+      isOwner: false,
+      canEdit: false,
+      editHref: null,
+    });
+  });
 });

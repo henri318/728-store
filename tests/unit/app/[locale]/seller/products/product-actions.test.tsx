@@ -23,6 +23,8 @@ vi.mock('next/navigation', () => {
 vi.stubGlobal('fetch', mocks.fetchMock as typeof fetch);
 
 import { ProductActions } from '@/modules/products/presentation/components/product-actions';
+import es from '@/shared/i18n/locales/es.json';
+import cat from '@/shared/i18n/locales/cat.json';
 
 function makeDict() {
   return {
@@ -71,6 +73,26 @@ describe('ProductActions', () => {
       body: JSON.stringify({ status: 'ARCHIVED' }),
     });
   });
+
+  it.each([
+    ['es', es, 'Editar'],
+    ['cat', cat, 'Editar'],
+  ] as const)(
+    'keeps the product-list edit action as %s',
+    (locale, dict, expected) => {
+      mocks.useDictionaryMock.mockReturnValue(dict);
+
+      render(
+        <ProductActions
+          locale={locale}
+          productId="p-1"
+          currentStatus="DRAFT"
+        />,
+      );
+
+      expect(screen.getByRole('link', { name: expected })).toBeInTheDocument();
+    },
+  );
 
   it('shows Activate for DRAFT products', () => {
     render(

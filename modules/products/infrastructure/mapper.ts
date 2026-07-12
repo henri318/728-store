@@ -34,6 +34,7 @@ export interface PrismaTranslationRow {
   tags?: string[] | null;
   sizes?: string[] | null;
   designChangeDescription?: string | null;
+  customizationInstructions?: string | null;
 }
 
 export interface PrismaProductImageRow {
@@ -176,6 +177,7 @@ export function toDomainProduct(
       tags: t.tags ?? [],
       sizes: t.sizes ?? [],
       designChangeDescription: t.designChangeDescription ?? null,
+      customizationInstructions: t.customizationInstructions ?? null,
     })),
     images: prismaProduct.images.map((img) => toDomainProductImage(img)),
     tags: prismaProduct.tags.map((tag) => toDomainTag(tag)),

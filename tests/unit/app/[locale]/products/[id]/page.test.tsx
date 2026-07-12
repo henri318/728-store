@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => {
   const getDictionaryMock = vi.fn();
   const getProductRepositoryMock = vi.fn();
   const notFoundMock = vi.fn();
+  const resolveViewerContextMock = vi.fn();
   const productShowcaseGalleryMock = vi.fn(
     ({ items }: { items: Array<{ id: string }> }) => (
       <div data-testid="showcase-gallery">{items.length}</div>
@@ -18,13 +19,25 @@ const mocks = vi.hoisted(() => {
   const customizationExperienceMock = vi.fn(
     ({
       labels,
+      designChangeDescription,
     }: {
-      labels: { adding: string; added: string; error: string };
+      labels: {
+        adding: string;
+        added: string;
+        error: string;
+        customizationDesign: string;
+        customizationPhrase: string;
+      };
+      viewerContext?: { canEdit: boolean; editHref: string | null };
+      designChangeDescription?: string | null;
+      sizes?: string[];
+      publicMedia?: Array<{ id: string }>;
     }) => (
       <div data-testid="customization-experience">
         <span>{labels.adding}</span>
         <span>{labels.added}</span>
         <span>{labels.error}</span>
+        {designChangeDescription ? <p>{designChangeDescription}</p> : null}
       </div>
     ),
   );
@@ -32,6 +45,7 @@ const mocks = vi.hoisted(() => {
     getDictionaryMock,
     getProductRepositoryMock,
     notFoundMock,
+    resolveViewerContextMock,
     productShowcaseGalleryMock,
     customizationExperienceMock,
   };
@@ -66,6 +80,10 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/shared/i18n/get-dictionary', () => ({
   getDictionary: mocks.getDictionaryMock,
+}));
+
+vi.mock('@/shared/authorization/product-viewer-context', () => ({
+  resolveProductViewerContext: mocks.resolveViewerContextMock,
 }));
 
 vi.mock('@/composition-root/container', () => ({
@@ -105,8 +123,88 @@ describe('ProductDetailPage', () => {
         addingToCart: 'Adding...',
         addedToCart: 'Added',
         cartError: 'Cart error',
+        customizationDesignDesigner: 'Designer brief',
+        customizationDesignCustomer: 'Customer brief',
+        customizationPhraseDesigner: 'Designer phrase',
+        customizationPhraseCustomer: 'Customer phrase',
       },
     });
+  });
+
+  it('passes the designer-owned viewer context and role-aware edit action to the purchase experience', async () => {
+    mocks.resolveViewerContextMock.mockResolvedValue({
+      viewerUserId: 'user-1',
+      viewerRole: 'DESIGNER',
+      isOwner: true,
+      canEdit: true,
+      editHref: '/es/seller/products/prod-1/edit',
+    });
+    mocks.getProductRepositoryMock.mockReturnValue({
+      findById: vi.fn().mockResolvedValue({
+        id: 'prod-1',
+        basePrice: ProductPrice.create(25, Currency.EUR),
+        sellerId: 'seller-1',
+        sellerName: 'Test Shop',
+        status: ProductStatus.ACTIVE,
+        categoryId: null,
+        category: null,
+        customizationConfig: null,
+        createdAt: new Date('2025-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2025-01-02T00:00:00.000Z'),
+        translations: [
+          {
+            locale: 'es',
+            name: 'Mug',
+            description: 'Nice mug',
+            designChangeDescription: 'The designer change description',
+          },
+        ],
+        images: [],
+        tags: [],
+      }),
+    });
+
+    const element = await ProductDetailPage({
+      params: Promise.resolve({ locale: 'es', id: 'prod-1' }),
+    });
+    render(element);
+
+    const props = mocks.customizationExperienceMock.mock.calls[0][0] as {
+      viewerContext: { canEdit: boolean; editHref: string };
+      labels: { customizationDesign: string; customizationPhrase: string };
+      designChangeDescription?: string | null;
+    };
+    expect(props.viewerContext).toMatchObject({
+      canEdit: true,
+      editHref: '/es/seller/products/prod-1/edit',
+    });
+    expect(props.labels.customizationDesign).toBe('Designer brief');
+    expect(props.labels.customizationPhrase).toBe('Designer phrase');
+    expect(props.designChangeDescription).toBe(
+      'The designer change description',
+    );
+    expect(
+      screen.getByText('The designer change description'),
+    ).toBeInTheDocument();
+
+    mocks.resolveViewerContextMock.mockResolvedValue({
+      viewerUserId: 'customer-1',
+      viewerRole: 'CUSTOMER',
+      isOwner: false,
+      canEdit: false,
+      editHref: null,
+    });
+    const customerElement = await ProductDetailPage({
+      params: Promise.resolve({ locale: 'es', id: 'prod-1' }),
+    });
+    render(customerElement);
+
+    const customerProps = mocks.customizationExperienceMock.mock
+      .calls[1][0] as {
+      labels: { customizationDesign: string; customizationPhrase: string };
+    };
+    expect(customerProps.labels.customizationDesign).toBe('Customer brief');
+    expect(customerProps.labels.customizationPhrase).toBe('Customer phrase');
   });
 
   it('passes only public media into the purchase card and keeps product meta out of the page shell', async () => {

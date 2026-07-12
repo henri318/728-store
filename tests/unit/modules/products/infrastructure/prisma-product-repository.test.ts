@@ -65,6 +65,7 @@ function makeProduct(overrides: Partial<ProductEntity> = {}): ProductEntity {
         tags: ['ropa'],
         sizes: ['S', 'M'],
         designChangeDescription: null,
+        customizationInstructions: 'Configura el frontal',
       },
       {
         locale: 'cat',
@@ -73,6 +74,7 @@ function makeProduct(overrides: Partial<ProductEntity> = {}): ProductEntity {
         tags: ['roba'],
         sizes: ['M', 'L'],
         designChangeDescription: 'Canvi',
+        customizationInstructions: 'Configura el frontal',
       },
     ],
     images: [],
@@ -135,6 +137,7 @@ describe('PrismaProductRepository', () => {
               tags: ['ropa'],
               sizes: ['S', 'M'],
               designChangeDescription: null,
+              customizationInstructions: 'Configura el frontal',
             },
             {
               locale: 'cat',
@@ -143,6 +146,7 @@ describe('PrismaProductRepository', () => {
               tags: ['roba'],
               sizes: ['M', 'L'],
               designChangeDescription: 'Canvi',
+              customizationInstructions: 'Configura el frontal',
             },
           ],
         },

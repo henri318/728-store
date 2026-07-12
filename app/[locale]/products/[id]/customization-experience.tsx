@@ -1,6 +1,5 @@
 'use client';
 
-import { AddToCartButton } from '@/modules/cart/presentation/components/add-to-cart-button';
 import type { ProductCustomizationConfigJson } from '@/modules/products/domain/value-objects/product-customization-config';
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
 import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
@@ -19,6 +18,8 @@ import {
 } from './product-showcase-gallery';
 import styles from './customization-experience.module.css';
 import pageStyles from './page.module.css';
+import { RoleAwarePurchaseFooter } from './role-aware-purchase-footer';
+import type { ProductViewerContext } from '@/shared/authorization/product-viewer-context';
 
 export interface ProductImageItem {
   url: string;
@@ -76,12 +77,15 @@ export interface CustomizationExperienceLabels {
   customizationInvalidImageUrl: string;
   mediaPrevious: string;
   mediaNext: string;
+  goToEdit: string;
+  customizationCapabilityHeading: string;
 }
 
 interface CustomizationExperienceProps {
   productId: string;
   productName: string;
   productDescription: string;
+  designChangeDescription?: string | null;
   sellerId: string;
   sellerName: string;
   price: number;
@@ -93,12 +97,14 @@ interface CustomizationExperienceProps {
   publicMedia: ProductShowcaseMedia[];
   labels: CustomizationExperienceLabels;
   initialDraft?: Partial<Omit<CustomizationDraft, 'error'>>;
+  viewerContext?: ProductViewerContext;
 }
 
 function CustomizationExperienceInner({
   productId,
   productName,
   productDescription,
+  designChangeDescription,
   sellerId,
   sellerName,
   price,
@@ -109,6 +115,7 @@ function CustomizationExperienceInner({
   productImages,
   publicMedia,
   labels,
+  viewerContext,
 }: CustomizationExperienceProps) {
   const { draft, setImage, setDesignPosition } = useCustomizationDraft();
   const customizationModel =
@@ -230,11 +237,45 @@ function CustomizationExperienceInner({
   return (
     <Card as="section" padding="lg" className={styles.card}>
       <div className={styles.layout} data-testid="purchase-layout">
+        <aside
+          className={styles.presentationColumn}
+          data-testid="purchase-layout-right"
+        >
+          <header className={styles.header}>
+            <span className={pageStyles.seller}>{sellerName}</span>
+            <h1 className={pageStyles.title}>{productName}</h1>
+            <p className={pageStyles.description}>{productDescription}</p>
+            {designChangeDescription?.trim() && (
+              <div data-testid="customization-capability">
+                <h2>{labels.customizationCapabilityHeading}</h2>
+                <p>{designChangeDescription}</p>
+              </div>
+            )}
+          </header>
+
+          <ProductShowcaseGallery
+            items={publicMedia}
+            labels={{
+              previous: labels.mediaPrevious,
+              next: labels.mediaNext,
+            }}
+          />
+        </aside>
+
         <section
           className={styles.purchaseColumn}
           data-testid="purchase-layout-left"
         >
-          <div className={styles.canvasCol}>
+          <div className={styles.formCol}>
+            <CustomizationForm
+              customizationConfig={resolvedCustomizationConfig}
+              sizes={sizes}
+              productImages={customizableBaseImages}
+              labels={formLabels}
+            />
+          </div>
+
+          <div className={styles.canvasCol} data-testid="mockup-canvas">
             {isAllowsPhoto && previewBaseImageUrl && (
               <MockupCanvasControl
                 productImageUrl={activeProductImageUrl}
@@ -247,57 +288,33 @@ function CustomizationExperienceInner({
             )}
           </div>
 
-          <div className={styles.formCol}>
-            <CustomizationForm
-              customizationConfig={resolvedCustomizationConfig}
-              sizes={sizes}
-              productImages={customizableBaseImages}
-              labels={formLabels}
-            />
-          </div>
-
           <footer className={styles.footer}>
             <p className={styles.price}>{formattedPrice}</p>
-            <AddToCartButton
-              productId={productId}
-              productName={productName}
-              sellerId={sellerId}
-              sellerName={sellerName}
-              price={price}
-              imageUrl={activeProductImageUrl}
-              customizationAvailable={!customizationModel.isDefault()}
-              customizeHref="#customization-form"
-              labels={cartLabels}
-              customization={{
-                text: draft.text,
-                color: draft.color,
-                size: draft.size,
-                imageUploadId: draft.imageUploadId,
-                imageUrl: draft.imageUrl,
-                designPosition: draft.designPosition,
+            <RoleAwarePurchaseFooter
+              viewerContext={viewerContext ?? anonymousViewerContext}
+              editLabel={labels.goToEdit}
+              cart={{
+                productId,
+                productName,
+                sellerId,
+                sellerName,
+                price,
+                imageUrl: activeProductImageUrl,
+                customizationAvailable: !customizationModel.isDefault(),
+                customizeHref: '#customization-form',
+                labels: cartLabels,
+                customization: {
+                  text: draft.text,
+                  color: draft.color,
+                  size: draft.size,
+                  imageUploadId: draft.imageUploadId,
+                  imageUrl: draft.imageUrl,
+                  designPosition: draft.designPosition,
+                },
               }}
             />
           </footer>
         </section>
-
-        <aside
-          className={styles.presentationColumn}
-          data-testid="purchase-layout-right"
-        >
-          <header className={styles.header}>
-            <span className={pageStyles.seller}>{sellerName}</span>
-            <h1 className={pageStyles.title}>{productName}</h1>
-            <p className={pageStyles.description}>{productDescription}</p>
-          </header>
-
-          <ProductShowcaseGallery
-            items={publicMedia}
-            labels={{
-              previous: labels.mediaPrevious,
-              next: labels.mediaNext,
-            }}
-          />
-        </aside>
       </div>
     </Card>
   );
@@ -320,15 +337,19 @@ export function CustomizationExperience(props: CustomizationExperienceProps) {
 
   if (process.env.NEXT_PUBLIC_CUSTOMIZATION_FRONTEND_ENABLED === 'false') {
     return (
-      <AddToCartButton
-        productId={props.productId}
-        productName={props.productName}
-        sellerId={props.sellerId}
-        sellerName={props.sellerName}
-        price={props.price}
-        imageUrl={props.previewBaseImageUrl}
-        customizationAvailable={false}
-        labels={cartLabels}
+      <RoleAwarePurchaseFooter
+        viewerContext={props.viewerContext ?? anonymousViewerContext}
+        editLabel={props.labels.goToEdit}
+        cart={{
+          productId: props.productId,
+          productName: props.productName,
+          sellerId: props.sellerId,
+          sellerName: props.sellerName,
+          price: props.price,
+          imageUrl: props.previewBaseImageUrl,
+          customizationAvailable: false,
+          labels: cartLabels,
+        }}
       />
     );
   }
@@ -349,3 +370,11 @@ export function CustomizationExperience(props: CustomizationExperienceProps) {
     </CustomizationDraftProvider>
   );
 }
+
+const anonymousViewerContext: ProductViewerContext = {
+  viewerUserId: null,
+  viewerRole: null,
+  isOwner: false,
+  canEdit: false,
+  editHref: null,
+};
