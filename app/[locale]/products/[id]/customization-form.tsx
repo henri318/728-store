@@ -82,7 +82,7 @@ export function CustomizationForm({
       {customizableBaseImages.length > 0 && (
         <div
           className={formStyles.colorSection}
-          data-testid="customization-style-selectors"
+          data-testid="customization-color-selector"
         >
           <span className={formStyles.colorLabel}>
             {labels.customizationColor}
@@ -122,7 +122,7 @@ export function CustomizationForm({
       )}
 
       {sizeOptions.length > 0 && (
-        <div data-testid="customization-style-selectors">
+        <div data-testid="customization-size-selector">
           <SelectField
             label={labels.customizationSize}
             value={draft.size ?? ''}
