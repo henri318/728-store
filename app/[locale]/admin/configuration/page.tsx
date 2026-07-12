@@ -24,9 +24,6 @@ export default async function AdminConfigurationPage({
       <header className={styles.header}>
         <span className={styles.kicker}>ADMIN</span>
         <h1 className={styles.title}>{dict.admin.configuration.title}</h1>
-        <p className={styles.description}>
-          {dict.admin.configuration.description}
-        </p>
       </header>
 
       <ConfigurationForm

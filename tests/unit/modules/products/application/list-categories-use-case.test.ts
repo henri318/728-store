@@ -27,6 +27,7 @@ describe('ListCategoriesUseCase', () => {
       save: vi.fn(),
       delete: vi.fn(),
       countProducts: vi.fn(),
+      update: vi.fn(),
     };
     const result = await new ListCategoriesUseCase(repo).execute('cat');
     expect(
@@ -48,6 +49,7 @@ describe('ListCategoriesUseCase', () => {
       save: vi.fn(),
       delete: vi.fn(),
       countProducts: vi.fn(),
+      update: vi.fn(),
     };
     const result = await new ListCategoriesUseCase(repo).execute('es');
     expect(result.map((item) => item.id)).toEqual(['a', 'ropa']);

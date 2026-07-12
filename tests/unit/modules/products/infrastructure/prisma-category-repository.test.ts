@@ -32,8 +32,23 @@ const store = vi.hoisted(() => {
         return row;
       }),
       delete: vi.fn(async () => {}),
+      update: vi.fn(async ({ data }: { data: Record<string, unknown> }) => ({
+        id: 'cat-1',
+        slug: data.slug,
+        parentId: null,
+        createdAt: new Date(),
+        translations: [
+          { locale: 'es', name: 'Updated' },
+          { locale: 'cat', name: 'Actualitzat' },
+        ],
+      })),
     },
-    product: { count: vi.fn(async () => 0) },
+    product: {
+      count: vi.fn(async () => 0),
+      findMany: vi.fn(async () => [
+        { tags: [{ name: 'Gift' }, { name: 'gift' }, { name: 'Home' }] },
+      ]),
+    },
   };
   return { categories, prismaMock };
 });
@@ -145,5 +160,22 @@ describe('PrismaCategoryRepository', () => {
         ],
       }),
     ).rejects.toBeInstanceOf(ConflictError);
+  });
+
+  it('updates category translations', async () => {
+    const repo = new PrismaCategoryRepository();
+    const updated = await repo.update({
+      id: 'cat-1',
+      slug: 'home-garden',
+      parentId: null,
+      createdAt: new Date(),
+      translations: [
+        { locale: 'es', name: 'Hogar' },
+        { locale: 'cat', name: 'Llar' },
+      ],
+    });
+
+    expect(updated.slug).toBe('home-garden');
+    expect(store.prismaMock.category.update).toHaveBeenCalled();
   });
 });

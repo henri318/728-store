@@ -56,6 +56,44 @@ export class PrismaCategoryRepository implements CategoryRepository {
     }
   }
 
+  async update(category: CategoryEntity): Promise<CategoryEntity> {
+    try {
+      const row = await prisma.category.update({
+        where: { id: category.id },
+        data: {
+          slug: category.slug,
+          parentId: category.parentId,
+          translations: {
+            deleteMany: {},
+            create: category.translations.map((translation) => ({
+              locale: translation.locale,
+              name: translation.name,
+            })),
+          },
+        },
+        include: { translations: true },
+      });
+      return toDomainCategory(row);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictError(
+          'Category already exists',
+          'Category already exists',
+        );
+      }
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundError('Category not found');
+      }
+      throw error;
+    }
+  }
+
   async delete(id: string): Promise<void> {
     const productCount = await this.countProducts(id);
     if (productCount > 0) {

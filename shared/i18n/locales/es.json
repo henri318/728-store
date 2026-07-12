@@ -390,7 +390,6 @@
     "paginationAriaLabel": "Paginación",
     "configuration": {
       "title": "Configuración",
-      "description": "Gestiona las categorías del catálogo.",
       "label": "Categorías",
       "placeholder": "Escribe una categoría y pulsa Enter",
       "addLabel": "Añadir",
@@ -398,6 +397,7 @@
       "delete": "Eliminar",
       "createError": "No se pudo crear la categoría",
       "deleteError": "No se pudo eliminar la categoría",
+      "updateError": "No se pudo actualizar la categoría",
       "validationError": "Introduce un nombre válido",
       "duplicateError": "Ya existe una categoría con ese nombre",
       "inUseError": "La categoría está en uso",
@@ -406,7 +406,12 @@
       "nameEsPlaceholder": "Ej. Electrónica",
       "nameCatPlaceholder": "Ej. Electrònica",
       "missingBothError": "Completa los nombres en español y catalán",
-      "missingOneError": "Completa ambos nombres antes de crear la categoría"
+      "missingOneError": "Completa ambos nombres antes de crear la categoría",
+      "submitSave": "Guardar",
+      "edit": "Editar",
+      "cancel": "Cancelar",
+      "confirmDelete": "¿Eliminar esta categoría?",
+      "actionsLabel": "Acciones de categoría"
     },
     "sellerDetail": {
       "editTitle": "Editar vendedor",

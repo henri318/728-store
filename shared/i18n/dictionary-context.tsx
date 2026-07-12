@@ -66,7 +66,6 @@ export interface AdminDictionary {
   eliminateProductConfirm: string;
   configuration: {
     title: string;
-    description: string;
     label: string;
     placeholder: string;
     addLabel: string;
@@ -77,6 +76,12 @@ export interface AdminDictionary {
     validationError: string;
     duplicateError: string;
     inUseError: string;
+    updateError: string;
+    submitSave: string;
+    edit: string;
+    cancel: string;
+    confirmDelete: string;
+    actionsLabel: string;
   };
   sellerDetail: SellerDetailDictionary;
 }
