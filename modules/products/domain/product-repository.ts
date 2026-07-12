@@ -16,6 +16,11 @@ export type { CategoryEntity } from './entities/category';
  */
 export type ProductAudience = 'public' | 'seller' | 'admin';
 
+export interface SitemapProduct {
+  readonly id: string;
+  readonly updatedAt: Date;
+}
+
 export interface ProductsListFilter {
   q?: string;
   category?: string;
@@ -35,6 +40,7 @@ export interface ProductsListFilter {
 
 export interface ProductRepository {
   findAll(locale: string): Promise<ProductEntity[]>;
+  findAllPublicForSitemap(): Promise<SitemapProduct[]>;
   findById(
     id: string,
     locale: string,

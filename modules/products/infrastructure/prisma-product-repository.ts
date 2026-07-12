@@ -5,7 +5,9 @@ import {
   ProductEntity,
   ProductsListFilter,
   ProductRepository,
+  SitemapProduct,
 } from '../domain/product-repository';
+import { ProductStatus } from '../domain/value-objects/product-status';
 import {
   toDomainProduct,
   toPersistenceNestedProductImage,
@@ -133,6 +135,19 @@ export class PrismaProductRepository implements ProductRepository {
     });
 
     return products.map((product) => toDomainProduct(product));
+  }
+
+  async findAllPublicForSitemap(): Promise<SitemapProduct[]> {
+    return prisma.product.findMany({
+      where: {
+        status: ProductStatus.ACTIVE,
+        AND: [
+          { translations: { some: { locale: 'es' } } },
+          { translations: { some: { locale: 'cat' } } },
+        ],
+      },
+      select: { id: true, updatedAt: true },
+    });
   }
 
   async findById(

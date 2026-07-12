@@ -9,6 +9,7 @@ import { ProductImagePurpose } from '@/modules/products/domain/value-objects/pro
 const mocks = vi.hoisted(() => {
   const getDictionaryMock = vi.fn();
   const getProductRepositoryMock = vi.fn();
+  const notFoundMock = vi.fn();
   const productShowcaseGalleryMock = vi.fn(
     ({ items }: { items: Array<{ id: string }> }) => (
       <div data-testid="showcase-gallery">{items.length}</div>
@@ -30,6 +31,7 @@ const mocks = vi.hoisted(() => {
   return {
     getDictionaryMock,
     getProductRepositoryMock,
+    notFoundMock,
     productShowcaseGalleryMock,
     customizationExperienceMock,
   };
@@ -58,6 +60,10 @@ vi.mock('next/link', () => ({
   ),
 }));
 
+vi.mock('next/navigation', () => ({
+  notFound: mocks.notFoundMock,
+}));
+
 vi.mock('@/shared/i18n/get-dictionary', () => ({
   getDictionary: mocks.getDictionaryMock,
 }));
@@ -80,7 +86,9 @@ vi.mock('@/app/[locale]/products/[id]/product-showcase-gallery', () => ({
     mocks.productShowcaseGalleryMock(props),
 }));
 
-import ProductDetailPage from '@/app/[locale]/products/[id]/page';
+import ProductDetailPage, {
+  generateMetadata,
+} from '@/app/[locale]/products/[id]/page';
 
 describe('ProductDetailPage', () => {
   beforeEach(() => {
@@ -220,5 +228,101 @@ describe('ProductDetailPage', () => {
     };
 
     expect(props.publicMedia).toEqual([]);
+  });
+
+  it('generates localized product metadata with canonical, alternates, and absolute cover image', async () => {
+    mocks.getProductRepositoryMock.mockReturnValue({
+      findById: vi.fn().mockResolvedValue({
+        id: 'prod-1',
+        basePrice: ProductPrice.create(25, Currency.EUR),
+        sellerId: 'seller-1',
+        sellerName: 'Test Shop',
+        status: ProductStatus.ACTIVE,
+        categoryId: null,
+        category: null,
+        customizationConfig: null,
+        createdAt: new Date('2025-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2025-01-02T00:00:00.000Z'),
+        translations: [{ locale: 'es', name: 'Mug', description: 'Nice mug' }],
+        images: [
+          {
+            id: 'cover-1',
+            url: '/products/mug.jpg',
+            alt: 'Mug cover',
+            position: 0,
+            purpose: ProductImagePurpose.COVER,
+            mimeType: 'image/jpeg',
+            posterUrl: null,
+            productId: 'prod-1',
+            createdAt: new Date('2025-01-01T00:00:00.000Z'),
+          },
+        ],
+        tags: [],
+      }),
+    });
+
+    const metadata = await generateMetadata({
+      params: Promise.resolve({ locale: 'es', id: 'prod-1' }),
+    });
+
+    expect(metadata).toMatchObject({
+      title: 'Mug',
+      description: 'Nice mug',
+      alternates: {
+        canonical: 'http://localhost:3000/es/products/prod-1',
+        languages: {
+          es: 'http://localhost:3000/es/products/prod-1',
+          ca: 'http://localhost:3000/cat/products/prod-1',
+          'x-default': 'http://localhost:3000/es/products/prod-1',
+        },
+      },
+      openGraph: {
+        url: 'http://localhost:3000/es/products/prod-1',
+        images: ['http://localhost:3000/products/mug.jpg'],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        images: ['http://localhost:3000/products/mug.jpg'],
+      },
+    });
+    expect(mocks.getProductRepositoryMock().findById).toHaveBeenCalledWith(
+      'prod-1',
+      'es',
+      'public',
+    );
+  });
+
+  it('calls notFound when the product is missing from the public catalog', async () => {
+    mocks.notFoundMock.mockImplementation(() => {
+      throw new Error('NEXT_NOT_FOUND');
+    });
+    mocks.getProductRepositoryMock.mockReturnValue({
+      findById: vi.fn().mockResolvedValue(null),
+    });
+
+    await expect(
+      ProductDetailPage({
+        params: Promise.resolve({ locale: 'es', id: 'missing-product' }),
+      }),
+    ).rejects.toThrow('NEXT_NOT_FOUND');
+
+    expect(mocks.notFoundMock).toHaveBeenCalledOnce();
+  });
+
+  it('calls notFound when loading the public product fails', async () => {
+    mocks.notFoundMock.mockImplementation(() => {
+      throw new Error('NEXT_NOT_FOUND');
+    });
+    mocks.getProductRepositoryMock.mockReturnValue({
+      findById: vi.fn().mockRejectedValue(new Error('Database unavailable')),
+    });
+
+    await expect(
+      ProductDetailPage({
+        params: Promise.resolve({ locale: 'es', id: 'unavailable-product' }),
+      }),
+    ).rejects.toThrow('NEXT_NOT_FOUND');
+
+    expect(mocks.notFoundMock).toHaveBeenCalledOnce();
   });
 });

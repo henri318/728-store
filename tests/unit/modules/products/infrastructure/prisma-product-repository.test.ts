@@ -182,6 +182,30 @@ describe('PrismaProductRepository', () => {
     });
   });
 
+  it('finds only active products with Spanish and Catalan translations for the sitemap', async () => {
+    const sitemapProducts = [
+      { id: 'product-1', updatedAt: new Date('2025-01-02T00:00:00.000Z') },
+    ];
+    mocks.prismaMock.product.findMany.mockResolvedValue(sitemapProducts);
+
+    await expect(repo.findAllPublicForSitemap()).resolves.toEqual(
+      sitemapProducts,
+    );
+
+    expect(mocks.prismaMock.product.findMany).toHaveBeenCalledTimes(1);
+    expect(mocks.prismaMock.product.findMany).toHaveBeenCalledWith({
+      where: {
+        status: ProductStatus.ACTIVE,
+        AND: [
+          { translations: { some: { locale: 'es' } } },
+          { translations: { some: { locale: 'cat' } } },
+        ],
+      },
+      select: { id: true, updatedAt: true },
+    });
+    expect(mocks.prismaMock.product.count).not.toHaveBeenCalled();
+  });
+
   it('updates scalar fields and upserts translated rows', async () => {
     const product = makeProduct({
       basePrice: ProductPrice.create(32, Currency.EUR),

@@ -2,13 +2,66 @@ import { container } from '@/composition-root/container';
 import { GetProductByIdUseCase } from '@/modules/products/application/get-product-by-id-use-case';
 import { serializeProduct } from '@/modules/products/presentation/product-response';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
+import { APP_BASE_URL } from '@/shared/kernel/config';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import {
   CustomizationExperience,
   type CustomizationExperienceLabels,
 } from './customization-experience';
 import styles from './page.module.css';
 import type { ProductShowcaseMedia } from './product-showcase-gallery';
+
+async function getPublicProduct(id: string, locale: string) {
+  const repository = container.getProductRepository();
+  return new GetProductByIdUseCase(repository).execute(id, locale, 'public');
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>;
+}): Promise<Metadata> {
+  const { locale, id } = await params;
+  let product;
+
+  try {
+    product = await getPublicProduct(id, locale);
+  } catch {
+    notFound();
+  }
+
+  const canonical = `${APP_BASE_URL}/${locale}/products/${id}`;
+  const defaultUrl = `${APP_BASE_URL}/es/products/${id}`;
+  const cover = product.images.find((image) => image.purpose === 'COVER');
+  const image = cover ? new URL(cover.url, APP_BASE_URL).href : undefined;
+
+  return {
+    title: product.displayName,
+    description: product.displayDescription,
+    alternates: {
+      canonical,
+      languages: {
+        es: defaultUrl,
+        ca: `${APP_BASE_URL}/cat/products/${id}`,
+        'x-default': defaultUrl,
+      },
+    },
+    openGraph: {
+      url: canonical,
+      title: product.displayName,
+      description: product.displayDescription,
+      images: image ? [image] : undefined,
+    },
+    twitter: {
+      card: image ? 'summary_large_image' : 'summary',
+      title: product.displayName,
+      description: product.displayDescription,
+      images: image ? [image] : undefined,
+    },
+  };
+}
 
 export default async function ProductDetailPage({
   params,
@@ -18,20 +71,12 @@ export default async function ProductDetailPage({
   const { locale, id } = await params;
   const dict = await getDictionary(locale as 'es' | 'cat');
 
-  const repository = container.getProductRepository();
-  const useCase = new GetProductByIdUseCase(repository);
-
-  let product = null;
-  let isError = false;
+  let product;
 
   try {
-    product = await useCase.execute(id, locale, 'public');
+    product = await getPublicProduct(id, locale);
   } catch {
-    isError = true;
-  }
-
-  if (isError || !product) {
-    return <div>{dict.common.productDetailsError}</div>;
+    notFound();
   }
 
   const view = serializeProduct(product);

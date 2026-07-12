@@ -26,6 +26,23 @@ export class MemoryProductRepository implements ProductRepository {
     }));
   }
 
+  async findAllPublicForSitemap(): Promise<
+    Array<{ id: string; updatedAt: Date }>
+  > {
+    return this.products
+      .filter(
+        (product) =>
+          product.status === ProductStatus.ACTIVE &&
+          product.translations.some(
+            (translation) => translation.locale === 'es',
+          ) &&
+          product.translations.some(
+            (translation) => translation.locale === 'cat',
+          ),
+      )
+      .map(({ id, updatedAt }) => ({ id, updatedAt }));
+  }
+
   async findById(
     id: string,
     _locale: string,
