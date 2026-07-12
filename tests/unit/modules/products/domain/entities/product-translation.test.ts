@@ -5,20 +5,20 @@ describe('resolveDisplay', () => {
   it('returns the requested locale when it exists', () => {
     const translations = [
       {
-        locale: 'es',
-        name: 'Camiseta',
-        description: 'Una camiseta',
-        tags: ['ropa'],
-        sizes: ['S', 'M'],
-        designChangeDescription: 'Base',
-      },
-      {
         locale: 'cat',
         name: 'Samarreta',
         description: 'Una samarreta',
         tags: ['roba'],
         sizes: ['M', 'L'],
         designChangeDescription: 'Canvi base',
+      },
+      {
+        locale: 'es',
+        name: 'Camiseta',
+        description: 'Una camiseta',
+        tags: ['ropa'],
+        sizes: ['S', 'M'],
+        designChangeDescription: 'Base',
       },
     ] as const;
 
@@ -37,20 +37,20 @@ describe('resolveDisplay', () => {
   it('falls back to es when the requested locale is missing', () => {
     const translations = [
       {
-        locale: 'es',
-        name: 'Camiseta',
-        description: 'Una camiseta',
-        tags: ['ropa'],
-        sizes: ['S'],
-        designChangeDescription: null,
-      },
-      {
         locale: 'cat',
         name: 'Samarreta',
         description: 'Una samarreta',
         tags: ['roba'],
         sizes: ['M'],
         designChangeDescription: 'Canvi base',
+      },
+      {
+        locale: 'es',
+        name: 'Camiseta',
+        description: 'Una camiseta',
+        tags: ['ropa'],
+        sizes: ['S'],
+        designChangeDescription: null,
       },
     ] as const;
 

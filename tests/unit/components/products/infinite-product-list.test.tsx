@@ -129,6 +129,28 @@ describe('InfiniteProductList', () => {
     expect(screen.getByText('Lamp')).toBeInTheDocument();
   });
 
+  it('renders the Catalan name regardless of translation ordering', () => {
+    render(
+      <InfiniteProductList
+        initialItems={[
+          {
+            ...makeProduct('p1', 'Spanish name'),
+            translations: [
+              { locale: 'es', name: 'Spanish name', description: null },
+              { locale: 'cat', name: 'Nom català', description: null },
+            ],
+          },
+        ]}
+        pageSize={10}
+        q=""
+        locale="cat"
+        labels={baseLabels}
+      />,
+    );
+
+    expect(screen.getByText('Nom català')).toBeInTheDocument();
+  });
+
   it('expands a long description with an accessible toggle', () => {
     const description = 'A '.repeat(120).trim();
     render(

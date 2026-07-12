@@ -58,6 +58,7 @@ export const GET = requireRole('CUSTOMER')(async function GET() {
         item,
         productMap.get(item.productId.value),
         customizations,
+        'es',
       );
     });
 

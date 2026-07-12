@@ -9,6 +9,7 @@ import {
 } from '@/modules/cart/presentation/components/cart-view';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
 import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
+import { resolveDisplay } from '@/modules/products/domain/entities/product-translation';
 
 /**
  * Cart page — RSC shell.
@@ -76,7 +77,9 @@ export default async function CartPage({
         return {
           id: item.id,
           productId: item.productId.value,
-          productName: product?.translations?.[0]?.name ?? 'Unknown Product',
+          productName:
+            resolveDisplay(product?.translations ?? [], locale)?.name ??
+            'Unknown Product',
           productImageUrl: product?.images?.[0]?.url ?? null,
           sellerId: item.sellerId.value,
           sellerName: product?.sellerName ?? 'Unknown Seller',

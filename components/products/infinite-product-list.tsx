@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { AddToCartButton } from '@/modules/cart/presentation/components/add-to-cart-button';
+import { resolveDisplay } from '@/modules/products/domain/entities/product-translation';
 import styles from '@/app/[locale]/page.module.css';
 
 /**
@@ -194,14 +195,10 @@ export function InfiniteProductList({
       </div>
       <div className={styles.productGrid}>
         {items.map((product) => {
-          const translation = product.translations.find(
-            (t) => t.locale === locale,
-          ) ??
-            product.translations.find((t) => t.locale === 'es') ??
-            product.translations[0] ?? {
-              name: '',
-              description: '',
-            };
+          const translation = resolveDisplay(product.translations, locale) ?? {
+            name: '',
+            description: '',
+          };
           return (
             <div
               key={product.id}

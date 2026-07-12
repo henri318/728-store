@@ -61,7 +61,12 @@ export const POST = requireRole('CUSTOMER')(async function POST(
         ? await customizationLookup.findByIds(item.customizationIdList)
         : [];
 
-    const enriched = enrichCartItem(item, product ?? undefined, customizations);
+    const enriched = enrichCartItem(
+      item,
+      product ?? undefined,
+      customizations,
+      'es',
+    );
 
     return NextResponse.json(enriched, { status: 201 });
   } catch (error: unknown) {

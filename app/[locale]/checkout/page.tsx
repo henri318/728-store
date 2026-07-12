@@ -8,6 +8,7 @@ import type { ProductEntity } from '@/modules/products/domain/product-repository
 import { Money } from '@/shared/kernel/domain/value-objects/money';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
+import { resolveDisplay } from '@/modules/products/domain/entities/product-translation';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { Card } from '@/shared/ui/card';
 import Image from 'next/image';
@@ -136,7 +137,8 @@ export default async function CheckoutPage({
       id: item.id,
       productId: item.productId.value,
       productName:
-        product?.translations?.[0]?.name ?? dict.common.unknownProduct,
+        resolveDisplay(product?.translations ?? [], locale)?.name ??
+        dict.common.unknownProduct,
       productImageUrl: product?.images?.[0]?.url ?? null,
       sellerId: item.sellerId.value,
       sellerName: product?.sellerName ?? dict.common.unknownSeller,
