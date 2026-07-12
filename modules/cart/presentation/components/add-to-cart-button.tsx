@@ -29,8 +29,8 @@ export interface CartButtonLabels {
   increaseQuantity?: string;
   saveDesign?: string;
   savingDesign?: string;
+  addAnotherPersonalization?: string;
   alreadyInCart?: string;
-  alreadyInCartDifferent?: string;
 }
 
 interface AddToCartButtonProps {
@@ -44,6 +44,7 @@ interface AddToCartButtonProps {
   customizationAvailable?: boolean;
   customizeHref?: string;
   disabled?: boolean;
+  editCartItemId?: string;
   labels: CartButtonLabels;
 }
 
@@ -97,11 +98,6 @@ function isAuthCustomizationMatching(
   return customizations.some((c) => isCustomizationMatching(c, draft));
 }
 
-interface CartItemInfoResult {
-  found: { cartItemId: string; quantity: number } | null;
-  hasDifferent: boolean;
-}
-
 function findCartItemInfo(
   items: Array<{
     id: string;
@@ -116,8 +112,7 @@ function findCartItemInfo(
   }>,
   productId: string,
   normalizedCustomization: CustomizationDraftPayload,
-): CartItemInfoResult {
-  const anyInCart = items.some((item) => item.productId === productId);
+): { found: { cartItemId: string; quantity: number } | null } {
   const found = items.find(
     (item) =>
       item.productId === productId &&
@@ -128,8 +123,15 @@ function findCartItemInfo(
   );
   return {
     found: found ? { cartItemId: found.id, quantity: found.quantity } : null,
-    hasDifferent: anyInCart && !found,
   };
+}
+
+function findCartItemById(
+  items: Array<{ id: string; quantity: number }>,
+  cartItemId: string,
+): CartItemInfo | null {
+  const item = items.find((candidate) => candidate.id === cartItemId);
+  return item ? { cartItemId: item.id, quantity: item.quantity } : null;
 }
 
 /**
@@ -151,6 +153,7 @@ export function AddToCartButton({
   customizationAvailable = false,
   customizeHref,
   disabled = false,
+  editCartItemId,
   labels,
 }: AddToCartButtonProps) {
   const { status } = useSession();
@@ -165,8 +168,6 @@ export function AddToCartButton({
 
   const [state, setState] = useState<ButtonState>('idle');
   const [cartItemInfo, setCartItemInfo] = useState<CartItemInfo | null>(null);
-  const [hasDifferentCustomization, setHasDifferentCustomization] =
-    useState(false);
   const [showCustomizationChoice, setShowCustomizationChoice] = useState(false);
   const [savingDesign, setSavingDesign] = useState(false);
 
@@ -192,13 +193,16 @@ export function AddToCartButton({
         if (isCancelled || !res.ok) return;
         const data = await res.json();
         if (isCancelled) return;
-        const result = findCartItemInfo(
-          data.items ?? [],
-          productId,
-          normalizedCustomization,
-        );
+        const result = editCartItemId
+          ? {
+              found: findCartItemById(data.items ?? [], editCartItemId),
+            }
+          : findCartItemInfo(
+              data.items ?? [],
+              productId,
+              normalizedCustomization,
+            );
         setCartItemInfo(result.found);
-        setHasDifferentCustomization(result.hasDifferent);
       } catch {
         /* fallback to "Add to Cart" */
       }
@@ -208,7 +212,7 @@ export function AddToCartButton({
     return () => {
       isCancelled = true;
     };
-  }, [isAuthenticated, productId, normalizedCustomization]);
+  }, [editCartItemId, isAuthenticated, productId, normalizedCustomization]);
 
   // Determine current quantity (match by productId + customization).
   const guestMatch = isAuthenticated
@@ -226,18 +230,11 @@ export function AddToCartButton({
             normalizedCustomization,
           ),
       );
-  const guestDiffMatch =
-    !isAuthenticated && !guestMatch
-      ? items.find((i) => i.productId === productId)
-      : undefined;
   const currentQuantity = isAuthenticated
     ? (cartItemInfo?.quantity ?? 0)
     : (guestMatch?.quantity ?? 0);
 
   const isInCart = currentQuantity > 0;
-  const alreadyInCartDifferent = isAuthenticated
-    ? hasDifferentCustomization
-    : !!guestDiffMatch;
 
   const customizeProductLabel = labels.customizeProduct ?? 'Customize';
   const addWithoutCustomizationLabel =
@@ -266,7 +263,6 @@ export function AddToCartButton({
         normalizedCustomization,
       );
       setCartItemInfo(result.found);
-      setHasDifferentCustomization(result.hasDifferent);
     } catch {
       /* ignore */
     }
@@ -308,14 +304,22 @@ export function AddToCartButton({
         const newId = customizationData.id;
 
         if (newId && cartItemInfo) {
-          await fetch(`/api/cart/items/${cartItemInfo.cartItemId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              quantity: cartItemInfo.quantity,
-              customizationIdList: [newId],
-            }),
-          });
+          const cartResponse = await fetch(
+            `/api/cart/items/${cartItemInfo.cartItemId}`,
+            {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                quantity: cartItemInfo.quantity,
+                customizationIdList: [newId],
+              }),
+            },
+          );
+          if (!cartResponse.ok) {
+            setState('error');
+            setTimeout(() => setState('idle'), 3000);
+            return;
+          }
           dispatchCartUpdated();
         }
       } else if (guestMatch?.id) {
@@ -329,7 +333,8 @@ export function AddToCartButton({
         });
       }
     } catch {
-      /* ignore */
+      setState('error');
+      setTimeout(() => setState('idle'), 3000);
     } finally {
       setSavingDesign(false);
     }
@@ -455,6 +460,16 @@ export function AddToCartButton({
     ],
   );
 
+  const handleAddAnother = useCallback(
+    async (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (savingDesign || state === 'adding' || disabled) return;
+
+      await performAdd(normalizedCustomization);
+    },
+    [disabled, normalizedCustomization, performAdd, savingDesign, state],
+  );
+
   const handleAdd = useCallback(
     async (e: React.MouseEvent) => {
       e.preventDefault();
@@ -483,7 +498,7 @@ export function AddToCartButton({
   }, [performAdd]);
 
   const handleIncrement = useCallback(async () => {
-    if (!isInCart || currentQuantity >= MAX_QUANTITY) return;
+    if (savingDesign || !isInCart || currentQuantity >= MAX_QUANTITY) return;
     const newQty = currentQuantity + 1;
     if (isAuthenticated && cartItemInfo) {
       const prevCartItemInfo = cartItemInfo;
@@ -512,10 +527,11 @@ export function AddToCartButton({
     cartItemInfo,
     guestMatch,
     updateItemQuantity,
+    savingDesign,
   ]);
 
   const handleDecrement = useCallback(async () => {
-    if (!isInCart) return;
+    if (savingDesign || !isInCart) return;
     if (currentQuantity <= 1) return; // use explicit remove button
 
     const newQty = currentQuantity - 1;
@@ -546,9 +562,11 @@ export function AddToCartButton({
     cartItemInfo,
     guestMatch,
     updateItemQuantity,
+    savingDesign,
   ]);
 
   const handleRemove = useCallback(async () => {
+    if (savingDesign) return;
     if (isAuthenticated && cartItemInfo) {
       const prev = cartItemInfo;
       setCartItemInfo(null);
@@ -567,7 +585,7 @@ export function AddToCartButton({
     } else if (guestMatch?.id) {
       removeItemById(guestMatch.id);
     }
-  }, [isAuthenticated, cartItemInfo, guestMatch, removeItemById]);
+  }, [isAuthenticated, cartItemInfo, guestMatch, removeItemById, savingDesign]);
 
   const feedbackLabel = (() => {
     if (state === 'adding') return labels.adding;
@@ -599,7 +617,7 @@ export function AddToCartButton({
             type="button"
             className={styles.quantityButton}
             onClick={handleDecrement}
-            disabled={currentQuantity <= 1}
+            disabled={savingDesign || currentQuantity <= 1}
             aria-label={decreaseQuantityLabel}
           >
             −
@@ -611,7 +629,7 @@ export function AddToCartButton({
             type="button"
             className={styles.quantityButton}
             onClick={handleIncrement}
-            disabled={currentQuantity >= MAX_QUANTITY}
+            disabled={savingDesign || currentQuantity >= MAX_QUANTITY}
             aria-label={increaseQuantityLabel}
           >
             +
@@ -622,17 +640,30 @@ export function AddToCartButton({
             type="button"
             className={styles.saveButton}
             onClick={handleSaveDesign}
-            disabled={savingDesign}
+            disabled={savingDesign || state === 'adding'}
           >
             {savingDesign
               ? (labels.savingDesign ?? labels.saveDesign)
               : labels.saveDesign}
           </button>
         )}
+        {isCustomizationHasContent && labels.addAnotherPersonalization && (
+          <button
+            type="button"
+            className={styles.saveButton}
+            onClick={handleAddAnother}
+            disabled={disabled || savingDesign || state === 'adding'}
+          >
+            {state === 'adding'
+              ? labels.adding
+              : labels.addAnotherPersonalization}
+          </button>
+        )}
         <button
           type="button"
           className={styles.iconButton}
           onClick={handleRemove}
+          disabled={savingDesign}
           aria-label={labels.removeFromCart}
         >
           <svg aria-hidden="true" width="36" height="36">
@@ -643,7 +674,7 @@ export function AddToCartButton({
     );
   }
 
-  // Default: "Add to Cart" (with optional "already in cart" label).
+  // Default: "Add to Cart".
   return (
     <>
       <AddToCartChoiceModal
@@ -669,11 +700,6 @@ export function AddToCartButton({
             <use href="/img/icons/sprites.svg#icon-add" />
           </svg>
         </button>
-        {alreadyInCartDifferent && labels.alreadyInCartDifferent && (
-          <span className={styles.alreadyInCartLabel}>
-            {labels.alreadyInCartDifferent}
-          </span>
-        )}
       </div>
     </>
   );

@@ -35,6 +35,8 @@ describe('AddToCartButton', () => {
       error: 'Error',
       increaseQuantity: 'Increase quantity',
       decreaseQuantity: 'Decrease quantity',
+      saveDesign: 'Save design',
+      addAnotherPersonalization: 'Add another personalization',
     },
   };
 
@@ -148,73 +150,301 @@ describe('AddToCartButton', () => {
       });
     });
 
-    // PR-3 feature: distinct personalization adds new line without warning
-    // it('adds a distinct personalized line without showing a conflicting-customization warning', async () => {
-    //   mockUseGuestCart.mockReturnValue({
-    //     items: [
-    //       {
-    //         id: 'guest-item-1',
-    //         productId: 'prod-1',
-    //         sellerId: 'seller-1',
-    //         quantity: 1,
-    //         unitPriceSnapshot: 29.99,
-    //         customizationText: 'First design',
-    //       },
-    //     ],
-    //     itemCount: 1,
-    //     addItem: mockAddItem,
-    //     updateQuantity: vi.fn(),
-    //     removeItem: vi.fn(),
-    //     updateItemQuantity: vi.fn(),
-    //     removeItemById: vi.fn(),
-    //     updateCustomization: vi.fn(),
-    //     updateItemCustomization: vi.fn(),
-    //     clearCart: vi.fn(),
-    //     hydrated: true,
-    //   });
-    //   render(
-    //     <AddToCartButton
-    //       {...defaultProps}
-    //       customization={{ text: 'Second design' }}
-    //       labels={{
-    //         ...defaultProps.labels,
-    //         alreadyInCartDifferent: 'Already customized differently',
-    //       }}
-    //     />,
-    //   );
-    //   expect(
-    //     screen.queryByText('Already customized differently'),
-    //   ).not.toBeInTheDocument();
-    //   fireEvent.click(screen.getByRole('button', { name: /add to cart/i }));
-    //   expect(mockAddItem).toHaveBeenCalledWith(
-    //     expect.objectContaining({ customizationText: 'Second design' }),
-    //   );
-    // });
+    it('does not render a warning when a different personalization is already in the cart', () => {
+      mockUseGuestCart.mockReturnValue({
+        items: [
+          {
+            id: 'guest-item-1',
+            productId: 'prod-1',
+            sellerId: 'seller-1',
+            quantity: 1,
+            unitPriceSnapshot: 29.99,
+            customizationText: 'First design',
+          },
+        ],
+        itemCount: 1,
+        addItem: mockAddItem,
+        updateQuantity: vi.fn(),
+        removeItem: vi.fn(),
+        updateItemQuantity: vi.fn(),
+        removeItemById: vi.fn(),
+        updateCustomization: vi.fn(),
+        updateItemCustomization: vi.fn(),
+        clearCart: vi.fn(),
+        hydrated: true,
+      });
 
-    // PR-3 feature: save/add-another UX
-    // it('offers explicit save and add-another actions while editing a cart line', () => {
-    //   render(
-    //     <AddToCartButton
-    //       {...defaultProps}
-    //       customization={{ text: 'Edited design' }}
-    //       editCartItemId="guest-item-1"
-    //       labels={{
-    //         ...defaultProps.labels,
-    //         saveEditedDesign: 'Save changes to this product',
-    //         addAnotherPersonalizedProduct:
-    //           'Add as another personalized product',
-    //       }}
-    //     />,
-    //   );
-    //   expect(
-    //     screen.getByRole('button', { name: 'Save changes to this product' }),
-    //   ).toBeInTheDocument();
-    //   expect(
-    //     screen.getByRole('button', {
-    //       name: 'Add as another personalized product',
-    //     }),
-    //   ).toBeInTheDocument();
-    // });
+      render(
+        <AddToCartButton
+          {...defaultProps}
+          customization={{ text: 'Second design' }}
+          labels={defaultProps.labels}
+        />,
+      );
+
+      expect(
+        screen.queryByText('Already customized differently'),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /add to cart/i }),
+      ).toBeEnabled();
+    });
+
+    it('offers explicit save and add-another actions for a matching cart line', () => {
+      mockUseGuestCart.mockReturnValue({
+        items: [
+          {
+            id: 'guest-item-1',
+            productId: 'prod-1',
+            sellerId: 'seller-1',
+            quantity: 1,
+            unitPriceSnapshot: 29.99,
+            customizationText: 'Edited design',
+            customizationColor: 'red',
+          },
+        ],
+        itemCount: 1,
+        addItem: mockAddItem,
+        updateQuantity: vi.fn(),
+        removeItem: vi.fn(),
+        updateItemQuantity: vi.fn(),
+        removeItemById: vi.fn(),
+        updateCustomization: vi.fn(),
+        updateItemCustomization: vi.fn(),
+        clearCart: vi.fn(),
+        hydrated: true,
+      });
+
+      render(
+        <AddToCartButton
+          {...defaultProps}
+          customization={{ text: 'Edited design', color: 'red' }}
+          labels={defaultProps.labels}
+        />,
+      );
+
+      expect(
+        screen.getByRole('button', { name: 'Save design' }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Add another personalization' }),
+      ).toBeInTheDocument();
+    });
+
+    it('saves the current guest line without creating another line', () => {
+      const updateItemCustomization = vi.fn();
+      mockUseGuestCart.mockReturnValue({
+        items: [
+          {
+            id: 'guest-item-1',
+            productId: 'prod-1',
+            sellerId: 'seller-1',
+            quantity: 1,
+            unitPriceSnapshot: 29.99,
+            customizationText: 'Edited design',
+            customizationColor: 'red',
+          },
+        ],
+        itemCount: 1,
+        addItem: mockAddItem,
+        updateQuantity: vi.fn(),
+        removeItem: vi.fn(),
+        updateItemQuantity: vi.fn(),
+        removeItemById: vi.fn(),
+        updateCustomization: vi.fn(),
+        updateItemCustomization,
+        clearCart: vi.fn(),
+        hydrated: true,
+      });
+
+      render(
+        <AddToCartButton
+          {...defaultProps}
+          customization={{ text: 'Edited design', color: 'red' }}
+        />,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Save design' }));
+
+      expect(updateItemCustomization).toHaveBeenCalledWith(
+        'guest-item-1',
+        expect.objectContaining({ text: 'Edited design', color: 'red' }),
+      );
+      expect(mockAddItem).not.toHaveBeenCalled();
+    });
+
+    it('adds another guest line while preserving the current line', async () => {
+      mockUseGuestCart.mockReturnValue({
+        items: [
+          {
+            id: 'guest-item-1',
+            productId: 'prod-1',
+            sellerId: 'seller-1',
+            quantity: 1,
+            unitPriceSnapshot: 29.99,
+            customizationText: 'Edited design',
+          },
+        ],
+        itemCount: 1,
+        addItem: mockAddItem,
+        updateQuantity: vi.fn(),
+        removeItem: vi.fn(),
+        updateItemQuantity: vi.fn(),
+        removeItemById: vi.fn(),
+        updateCustomization: vi.fn(),
+        updateItemCustomization: vi.fn(),
+        clearCart: vi.fn(),
+        hydrated: true,
+      });
+
+      render(
+        <AddToCartButton
+          {...defaultProps}
+          customization={{ text: 'Edited design' }}
+        />,
+      );
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Add another personalization' }),
+      );
+
+      await waitFor(() => expect(mockAddItem).toHaveBeenCalledTimes(1));
+      expect(mockAddItem).toHaveBeenCalledWith(
+        expect.objectContaining({ customizationText: 'Edited design' }),
+      );
+    });
+
+    it('locks add-another while an authenticated customization and cart POST are pending', async () => {
+      mockUseSession.mockReturnValue({
+        data: { user: { id: 'user-1', name: 'Test' } } as never,
+        status: 'authenticated',
+        update: vi.fn(),
+      } as never);
+      const { promise: customizationResponse, resolve: resolveCustomization } =
+        Promise.withResolvers<Response>();
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          items: [
+            {
+              id: 'cart-item-1',
+              productId: 'prod-1',
+              quantity: 1,
+              customizations: [{ text: 'Edited design' }],
+            },
+          ],
+        }),
+      });
+      mockFetch.mockReturnValueOnce(customizationResponse);
+
+      render(
+        <AddToCartButton
+          {...defaultProps}
+          customization={{ text: 'Edited design' }}
+        />,
+      );
+
+      await waitFor(() =>
+        expect(
+          screen.getByRole('button', { name: 'Add another personalization' }),
+        ).toBeEnabled(),
+      );
+      const addAnother = screen.getByRole('button', {
+        name: 'Add another personalization',
+      });
+      fireEvent.click(addAnother);
+      fireEvent.click(addAnother);
+
+      expect(addAnother).toBeDisabled();
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+
+      resolveCustomization({
+        ok: true,
+        json: async () => ({ id: 'customization-2' }),
+      } as Response);
+      mockFetch.mockResolvedValueOnce({ ok: true });
+      await waitFor(() =>
+        expect(mockFetch).toHaveBeenCalledWith(
+          '/api/cart/items',
+          expect.objectContaining({ method: 'POST' }),
+        ),
+      );
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/cart/items',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            productId: 'prod-1',
+            quantity: 1,
+            customizationIdList: ['customization-2'],
+          }),
+        }),
+      );
+      expect(mockFetch.mock.invocationCallOrder[1]).toBeLessThan(
+        mockFetch.mock.invocationCallOrder[2],
+      );
+    });
+
+    it('locks conflicting cart actions and reports a failed authenticated save', async () => {
+      mockUseSession.mockReturnValue({
+        data: { user: { id: 'user-1', name: 'Test' } } as never,
+        status: 'authenticated',
+        update: vi.fn(),
+      } as never);
+      const dispatchSpy = vi.spyOn(globalThis, 'dispatchEvent');
+      const { promise: patchResponse, resolve: resolvePatch } =
+        Promise.withResolvers<Response>();
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          items: [
+            {
+              id: 'cart-item-1',
+              productId: 'prod-1',
+              quantity: 2,
+              customizations: [{ text: 'Updated design' }],
+            },
+          ],
+        }),
+      });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: 'customization-2' }),
+      });
+      mockFetch.mockReturnValueOnce(patchResponse);
+
+      render(
+        <AddToCartButton
+          {...defaultProps}
+          customization={{ text: 'Updated design' }}
+        />,
+      );
+
+      await waitFor(() =>
+        expect(
+          screen.getByRole('button', { name: /save design/i }),
+        ).toBeEnabled(),
+      );
+      fireEvent.click(screen.getByRole('button', { name: /save design/i }));
+
+      await waitFor(() =>
+        expect(
+          screen.getByRole('button', { name: /save design/i }),
+        ).toBeDisabled(),
+      );
+      expect(screen.getByRole('button', { name: /remove/i })).toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: /increase quantity/i }),
+      ).toBeDisabled();
+
+      resolvePatch({ ok: false, status: 409 } as Response);
+      await waitFor(() =>
+        expect(screen.getByText('Error')).toBeInTheDocument(),
+      );
+      expect(dispatchSpy).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'cart:updated' }),
+      );
+    });
   });
 
   describe('authenticated user', () => {

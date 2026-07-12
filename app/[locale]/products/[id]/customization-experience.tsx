@@ -36,9 +36,9 @@ export interface CustomizationExperienceLabels {
   increaseQuantity: string;
   decreaseQuantity: string;
   saveDesign: string;
+  addAnotherPersonalization: string;
   customizeProduct: string;
   addWithoutCustomization: string;
-  alreadyInCartDifferent: string;
   customizationDesign: string;
   customizationPhrase: string;
   customizationColor: string;
@@ -96,6 +96,7 @@ interface CustomizationExperienceProps {
   publicMedia: ProductShowcaseMedia[];
   labels: CustomizationExperienceLabels;
   initialDraft?: Partial<Omit<CustomizationDraft, 'error'>>;
+  editCartItemId?: string;
   viewerContext?: ProductViewerContext;
 }
 
@@ -114,6 +115,7 @@ function CustomizationExperienceInner({
   productImages,
   publicMedia,
   labels,
+  editCartItemId,
   viewerContext,
 }: CustomizationExperienceProps) {
   const { draft, setImage, setDesignPosition } = useCustomizationDraft();
@@ -191,9 +193,9 @@ function CustomizationExperienceInner({
     increaseQuantity: labels.increaseQuantity,
     decreaseQuantity: labels.decreaseQuantity,
     saveDesign: labels.saveDesign,
+    addAnotherPersonalization: labels.addAnotherPersonalization,
     customizeProduct: labels.customizeProduct,
     addWithoutCustomization: labels.addWithoutCustomization,
-    alreadyInCartDifferent: labels.alreadyInCartDifferent,
   };
 
   const uploadDesign = async (file: File) => {
@@ -281,34 +283,35 @@ function CustomizationExperienceInner({
               />
             )}
           </div>
-
-          <footer className={styles.footer}>
-            <p className={styles.price}>{formattedPrice}</p>
-            <RoleAwarePurchaseFooter
-              viewerContext={viewerContext ?? anonymousViewerContext}
-              editLabel={labels.goToEdit}
-              cart={{
-                productId,
-                productName,
-                sellerId,
-                sellerName,
-                price,
-                imageUrl: activeProductImageUrl,
-                customizationAvailable: !customizationModel.isDefault(),
-                customizeHref: '#customization-form',
-                labels: cartLabels,
-                customization: {
-                  text: draft.text,
-                  color: draft.color,
-                  size: draft.size,
-                  imageUploadId: draft.imageUploadId,
-                  imageUrl: draft.imageUrl,
-                  designPosition: draft.designPosition,
-                },
-              }}
-            />
-          </footer>
         </section>
+
+        <footer className={styles.footer}>
+          <p className={styles.price}>{formattedPrice}</p>
+          <RoleAwarePurchaseFooter
+            viewerContext={viewerContext ?? anonymousViewerContext}
+            editLabel={labels.goToEdit}
+            cart={{
+              productId,
+              productName,
+              sellerId,
+              sellerName,
+              price,
+              imageUrl: activeProductImageUrl,
+              customizationAvailable: !customizationModel.isDefault(),
+              customizeHref: '#customization-form',
+              labels: cartLabels,
+              editCartItemId,
+              customization: {
+                text: draft.text,
+                color: draft.color,
+                size: draft.size,
+                imageUploadId: draft.imageUploadId,
+                imageUrl: draft.imageUrl,
+                designPosition: draft.designPosition,
+              },
+            }}
+          />
+        </footer>
       </div>
     </Card>
   );
@@ -324,9 +327,9 @@ export function CustomizationExperience(props: CustomizationExperienceProps) {
     increaseQuantity: props.labels.increaseQuantity,
     decreaseQuantity: props.labels.decreaseQuantity,
     saveDesign: props.labels.saveDesign,
+    addAnotherPersonalization: props.labels.addAnotherPersonalization,
     customizeProduct: props.labels.customizeProduct,
     addWithoutCustomization: props.labels.addWithoutCustomization,
-    alreadyInCartDifferent: props.labels.alreadyInCartDifferent,
   };
 
   if (process.env.NEXT_PUBLIC_CUSTOMIZATION_FRONTEND_ENABLED === 'false') {
@@ -343,6 +346,7 @@ export function CustomizationExperience(props: CustomizationExperienceProps) {
           imageUrl: props.previewBaseImageUrl,
           customizationAvailable: false,
           labels: cartLabels,
+          editCartItemId: props.editCartItemId,
         }}
       />
     );

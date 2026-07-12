@@ -19,6 +19,10 @@ async function getPublicProduct(id: string, locale: string) {
   return new GetProductByIdUseCase(repository).execute(id, locale, 'public');
 }
 
+function firstQueryValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -66,10 +70,18 @@ export async function generateMetadata({
 
 export default async function ProductDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; id: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale, id } = await params;
+  const query = (await searchParams) ?? {};
+  const customizationText = firstQueryValue(query.customizationText);
+  const customizationColor = firstQueryValue(query.customizationColor);
+  const customizationCartItemId = firstQueryValue(
+    query.customizationCartItemId,
+  );
   const dict = await getDictionary(locale as 'es' | 'cat');
 
   let product;
@@ -95,9 +107,9 @@ export default async function ProductDetailPage({
     increaseQuantity: dict.common.increaseQuantity,
     decreaseQuantity: dict.common.decreaseQuantity,
     saveDesign: dict.common.saveDesign,
+    addAnotherPersonalization: dict.common.addAnotherPersonalization,
     customizeProduct: dict.common.customizeProduct,
     addWithoutCustomization: dict.common.addWithoutCustomization,
-    alreadyInCartDifferent: dict.common.alreadyInCartDifferent,
     customizationDesign: dict.common.customizationDesign,
     customizationPhrase: dict.common.customizationPhrase,
     customizationColor: dict.common.customizationColor,
@@ -199,6 +211,11 @@ export default async function ProductDetailPage({
           productImages={customizableBaseImages}
           publicMedia={publicMedia}
           labels={customizationLabels}
+          initialDraft={{
+            text: customizationText,
+            color: customizationColor,
+          }}
+          editCartItemId={customizationCartItemId}
           viewerContext={viewerContext}
         />
       </div>
