@@ -1,9 +1,6 @@
 @import '../shared/presentation/design-tokens.css';
 @import '../shared/presentation/sprites.css';
 
-/* CDN Fonts — Poppins */
-@import url('https://fonts.cdnfonts.com/css/poppins');
-
 /* Base reset */
 *,
 *::before,

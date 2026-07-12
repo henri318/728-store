@@ -16,16 +16,6 @@ export function HeroSection({ imageSrc, imageAlt }: HeroSectionProps) {
         sizes="100vw"
         className={styles.heroImage}
       />
-      <svg
-        className={styles.waveTop}
-        viewBox="0 0 1440 150"
-        preserveAspectRatio="none"
-      >
-        <path
-          fill="var(--color-coral)"
-          d="M0,50 C400,150 1000,-10 1440,60 L1440,155 L0,155 Z"
-        />
-      </svg>
     </section>
   );
 }

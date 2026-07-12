@@ -3,7 +3,6 @@ import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { HeroSection } from '@/shared/ui/hero-section';
 import { MiddleSection } from '@/shared/ui/middle-section';
 import { WaveTransition } from '@/shared/ui/wave-transition';
-import { BottomSection } from '@/shared/ui/bottom-section';
 import { InfiniteProductList } from '@/components/products/infinite-product-list';
 import {
   SearchInputWithSuggestions,
@@ -77,9 +76,11 @@ export default async function HomePage({
   return (
     <div>
       <HeroSection
-        imageSrc="/img/hero/Elementos-14.svg"
+        imageSrc="/img/decorations/Portada.png"
         imageAlt={dict.common.heroImageAlt}
       />
+
+      <WaveTransition animatedText={dict.common.slogan} />
 
       <MiddleSection ariaLabel={dict.common.products}>
         <SearchInputWithSuggestions
@@ -115,10 +116,6 @@ export default async function HomePage({
           }}
         />
       </MiddleSection>
-
-      <WaveTransition animatedText={dict.common.slogan} />
-
-      <BottomSection />
     </div>
   );
 }
