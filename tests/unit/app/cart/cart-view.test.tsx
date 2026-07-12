@@ -103,8 +103,8 @@ describe('CartView', () => {
     expect(screen.getByText('Test Product')).toBeTruthy();
     expect(screen.getByText('Another Product')).toBeTruthy();
     expect(screen.getByText('2')).toBeTruthy();
-    expect(screen.getByText('20.00 €')).toBeTruthy();
-    expect(screen.getAllByText('25.00 €').length).toBe(2);
+    expect(screen.getByText('20,00 €')).toBeTruthy();
+    expect(screen.getAllByText('25,00 €').length).toBe(2);
   });
 
   it('renders empty state with CTA when no items', () => {
@@ -131,7 +131,7 @@ describe('CartView', () => {
         labels={labels}
       />,
     );
-    expect(screen.getByText('45.00 €')).toBeTruthy();
+    expect(screen.getByText('45,00 €')).toBeTruthy();
   });
 
   it('renders checkout CTA linking to /{locale}/checkout', () => {
@@ -186,7 +186,7 @@ describe('CartView', () => {
     );
 
     expect(screen.getByText('Merged Product')).toBeTruthy();
-    expect(screen.getByText('60.00 €')).toBeTruthy();
+    expect(screen.getByText('60,00 €')).toBeTruthy();
   });
 
   it('clicking "+" sends PATCH with quantity+1 and updates UI optimistically', async () => {

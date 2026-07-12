@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MockupCanvasControl } from '@/app/[locale]/products/[id]/mockup-canvas-control';
 
@@ -92,5 +92,25 @@ describe('MockupCanvasControl backing store', () => {
     expect(canvas.width).toBe(900);
     expect(canvas.height).toBe(675);
     expect(context.setTransform).toHaveBeenLastCalledWith(3, 0, 0, 3, 0, 0);
+  });
+
+  it('redraws once after a replacement product image has loaded', () => {
+    const { getByAltText, rerender } = renderCanvas();
+    const firstImage = getByAltText('') as HTMLImageElement;
+
+    rerender(
+      <MockupCanvasControl
+        productImageUrl="/replacement.png"
+        labels={labels}
+        onUpload={vi.fn()}
+        onPositionChange={vi.fn()}
+      />,
+    );
+
+    const replacementImage = getByAltText('') as HTMLImageElement;
+    expect(replacementImage).toBe(firstImage);
+    expect(replacementImage.getAttribute('src')).toBe('/replacement.png');
+    fireEvent.load(replacementImage);
+    expect(context.clearRect).toHaveBeenCalled();
   });
 });

@@ -158,4 +158,26 @@ describe('HomePage', () => {
     });
     expect(infiniteListProps.initialItems[0]).not.toHaveProperty('images');
   });
+
+  it('uses PUBLIC_PAGE_SIZE of 12 for the public product query', async () => {
+    const findPaginatedMock = vi.fn().mockResolvedValue({
+      items: [],
+      total: 0,
+      page: 1,
+      pageSize: 12,
+      totalPages: 0,
+    });
+    mocks.getProductRepositoryMock.mockReturnValue({
+      findPaginated: findPaginatedMock,
+    });
+
+    await HomePage({
+      params: Promise.resolve({ locale: 'es' }),
+      searchParams: Promise.resolve({}),
+    });
+
+    expect(findPaginatedMock).toHaveBeenCalledWith(
+      expect.objectContaining({ pageSize: 12 }),
+    );
+  });
 });

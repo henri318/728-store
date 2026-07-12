@@ -8,7 +8,6 @@ export { EyeToggleWrapper } from './eye-toggle-wrapper';
 export { HeaderBanner } from './header-banner';
 export { HeroSection } from './hero-section';
 export { Input } from './input';
-export { MiddleSection } from './middle-section';
 export { Modal } from './modal';
 export { PasswordStrengthIndicator } from './password-strength-indicator';
 export { Pagination } from './pagination';

@@ -98,4 +98,46 @@ describe('Money', () => {
       expect(a.equals(b)).toBe(false);
     });
   });
+
+  describe('format() — static', () => {
+    it('should format EUR with decimal comma and euro symbol', () => {
+      expect(Money.format(7.99, Currency.EUR)).toBe('7,99\u{A0}€');
+    });
+
+    it('should format USD with Intl locale convention', () => {
+      // Intl.NumberFormat('es') formats USD as "7,99 US$"
+      expect(Money.format(7.99, Currency.USD)).toBe('7,99\u{A0}US$');
+    });
+
+    it('should format GBP with Intl locale convention', () => {
+      // Intl.NumberFormat('es') formats GBP as "7,99 GBP"
+      expect(Money.format(7.99, Currency.GBP)).toBe('7,99\u{A0}GBP');
+    });
+
+    it('should format zero amount', () => {
+      expect(Money.format(0, Currency.EUR)).toBe('0,00\u{A0}€');
+    });
+
+    it('should format large values with thousands separator', () => {
+      expect(Money.format(1_234_567.89, Currency.EUR)).toBe(
+        '1.234.567,89\u{A0}€',
+      );
+    });
+
+    it('should format single decimal place with trailing zero', () => {
+      expect(Money.format(5.5, Currency.EUR)).toBe('5,50\u{A0}€');
+    });
+  });
+
+  describe('format() — instance', () => {
+    it('should format instance with Intl.NumberFormat', () => {
+      const money = Money.create(7.99, Currency.EUR);
+      expect(money.format()).toBe('7,99\u{A0}€');
+    });
+
+    it('should format USD instance', () => {
+      const money = Money.create(19.99, Currency.USD);
+      expect(money.format()).toBe('19,99\u{A0}US$');
+    });
+  });
 });

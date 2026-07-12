@@ -27,7 +27,16 @@ export class Money {
     if (!currency) {
       throw new Error('Money.format currency is required');
     }
-    return `${amount.toFixed(2)} ${this.getSymbol(currency)}`;
+    try {
+      return new Intl.NumberFormat('es', {
+        style: 'currency',
+        currency,
+        minimumFractionDigits: 2,
+      }).format(amount);
+    } catch {
+      // Fallback for currencies Intl.NumberFormat doesn't support
+      return `${amount.toFixed(2)} ${this.getSymbol(currency)}`;
+    }
   }
 
   private static getSymbol(currency: Currency): string {
@@ -108,6 +117,14 @@ export class Money {
   }
 
   format(): string {
-    return `${this.amount.toFixed(2)} ${Money.getSymbol(this.currency)}`;
+    try {
+      return new Intl.NumberFormat('es', {
+        style: 'currency',
+        currency: this.currency,
+        minimumFractionDigits: 2,
+      }).format(this.amount);
+    } catch {
+      return `${this.amount.toFixed(2)} ${Money.getSymbol(this.currency)}`;
+    }
   }
 }

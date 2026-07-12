@@ -8,12 +8,14 @@ import {
   type CartItemDTO,
 } from '@/modules/cart/presentation/components/cart-view';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
+import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
 
 /**
  * Cart page — RSC shell.
  *
  * - Authenticated users: fetches the server cart via GetCart, enriches
- *   items with product display data, and passes them to <CartView />.
+ *   items with product display data and customization snapshots, and
+ *   passes them to <CartView />.
  * - Unauthenticated users: passes an empty items array; the <CartView />
  *   will be hydrated on the client via the GuestCartContext (which is
  *   provided at the layout level).
@@ -49,8 +51,28 @@ export default async function CartPage({
         if (p) productMap.set(p.id, p);
       }
 
+      // Resolve customization snapshots from customizationIdList.
+      // The cart module never imports the customizations module directly;
+      // the container wires a CustomizationLookupAdapter at runtime.
+      const allCustomizationIds = cart.items.flatMap(
+        (item) => item.customizationIdList,
+      );
+      const uniqueCustomizationIds = [...new Set(allCustomizationIds)];
+      const customizationLookup = container.getCustomizationLookup();
+      const customizationSnapshots =
+        uniqueCustomizationIds.length > 0
+          ? await customizationLookup.findByIds(uniqueCustomizationIds)
+          : [];
+      const customizationMap = new Map(
+        customizationSnapshots.map((s: CustomizationSnapshot) => [s.id, s]),
+      );
+
       items = cart.items.map((item) => {
         const product = productMap.get(item.productId.value);
+        const snapshot = resolveCustomizationSnapshot(
+          item.customizationIdList,
+          customizationMap,
+        );
         return {
           id: item.id,
           productId: item.productId.value,
@@ -64,10 +86,13 @@ export default async function CartPage({
             2,
           ),
           customization: {
-            text: null,
-            color: null,
-            size: null,
-            imageUrl: null,
+            text: snapshot?.text ?? null,
+            color: snapshot?.color ?? null,
+            size: snapshot?.size ?? null,
+            imageUrl: snapshot?.imageUrl ?? null,
+            imageUploadId: null,
+            colorImageUrl: null,
+            designPosition: snapshot?.designPosition ?? null,
           },
         };
       });
@@ -95,9 +120,27 @@ export default async function CartPage({
         customizationText: dict.common.customizationText,
         increaseQuantity: dict.common.increaseQuantity,
         decreaseQuantity: dict.common.decreaseQuantity,
+        customizationEditFromCart: dict.common.customizationEditFromCart,
         customizationDesignImageAlt: dict.common.customizationDesignImageAlt,
         price: dict.common.price,
       }}
     />
   );
+}
+
+/**
+ * Resolves a single item's customization snapshot from the pre-fetched map.
+ * Returns the first matching snapshot or null when the item has no
+ * customizations or all IDs were deleted.
+ */
+function resolveCustomizationSnapshot(
+  customizationIdList: string[],
+  customizationMap: Map<string, CustomizationSnapshot>,
+): CustomizationSnapshot | null {
+  if (customizationIdList.length === 0) return null;
+  for (const id of customizationIdList) {
+    const snap = customizationMap.get(id);
+    if (snap) return snap;
+  }
+  return null;
 }

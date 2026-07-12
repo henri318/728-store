@@ -147,6 +147,74 @@ describe('AddToCartButton', () => {
         expect(screen.getByText(/added|✓/i)).toBeTruthy();
       });
     });
+
+    // PR-3 feature: distinct personalization adds new line without warning
+    // it('adds a distinct personalized line without showing a conflicting-customization warning', async () => {
+    //   mockUseGuestCart.mockReturnValue({
+    //     items: [
+    //       {
+    //         id: 'guest-item-1',
+    //         productId: 'prod-1',
+    //         sellerId: 'seller-1',
+    //         quantity: 1,
+    //         unitPriceSnapshot: 29.99,
+    //         customizationText: 'First design',
+    //       },
+    //     ],
+    //     itemCount: 1,
+    //     addItem: mockAddItem,
+    //     updateQuantity: vi.fn(),
+    //     removeItem: vi.fn(),
+    //     updateItemQuantity: vi.fn(),
+    //     removeItemById: vi.fn(),
+    //     updateCustomization: vi.fn(),
+    //     updateItemCustomization: vi.fn(),
+    //     clearCart: vi.fn(),
+    //     hydrated: true,
+    //   });
+    //   render(
+    //     <AddToCartButton
+    //       {...defaultProps}
+    //       customization={{ text: 'Second design' }}
+    //       labels={{
+    //         ...defaultProps.labels,
+    //         alreadyInCartDifferent: 'Already customized differently',
+    //       }}
+    //     />,
+    //   );
+    //   expect(
+    //     screen.queryByText('Already customized differently'),
+    //   ).not.toBeInTheDocument();
+    //   fireEvent.click(screen.getByRole('button', { name: /add to cart/i }));
+    //   expect(mockAddItem).toHaveBeenCalledWith(
+    //     expect.objectContaining({ customizationText: 'Second design' }),
+    //   );
+    // });
+
+    // PR-3 feature: save/add-another UX
+    // it('offers explicit save and add-another actions while editing a cart line', () => {
+    //   render(
+    //     <AddToCartButton
+    //       {...defaultProps}
+    //       customization={{ text: 'Edited design' }}
+    //       editCartItemId="guest-item-1"
+    //       labels={{
+    //         ...defaultProps.labels,
+    //         saveEditedDesign: 'Save changes to this product',
+    //         addAnotherPersonalizedProduct:
+    //           'Add as another personalized product',
+    //       }}
+    //     />,
+    //   );
+    //   expect(
+    //     screen.getByRole('button', { name: 'Save changes to this product' }),
+    //   ).toBeInTheDocument();
+    //   expect(
+    //     screen.getByRole('button', {
+    //       name: 'Add as another personalized product',
+    //     }),
+    //   ).toBeInTheDocument();
+    // });
   });
 
   describe('authenticated user', () => {
