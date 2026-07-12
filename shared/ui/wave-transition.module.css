@@ -9,6 +9,12 @@
   margin-bottom: -1px;
 }
 
+@media (max-width: 768px) {
+  .waveBottom text {
+    font-size: 0.8rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .waveBottom text {
     display: none;

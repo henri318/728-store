@@ -74,6 +74,14 @@ vi.mock('next/link', () => ({
   ),
 }));
 
+vi.mock('@/shared/ui/back-link', () => ({
+  BackLink: ({ children, href }: { children: ReactNode; href: string }) => (
+    <a href={href} data-testid="back-link">
+      {children}
+    </a>
+  ),
+}));
+
 vi.mock('next/navigation', () => ({
   notFound: mocks.notFoundMock,
 }));
@@ -129,6 +137,40 @@ describe('ProductDetailPage', () => {
         customizationPhraseCustomer: 'Customer phrase',
       },
     });
+  });
+
+  it('uses the shared BackLink for home navigation', async () => {
+    mocks.resolveViewerContextMock.mockResolvedValue({
+      viewerUserId: null,
+      viewerRole: null,
+      isOwner: false,
+      canEdit: false,
+      editHref: null,
+    });
+    mocks.getProductRepositoryMock.mockReturnValue({
+      findById: vi.fn().mockResolvedValue({
+        id: 'prod-1',
+        basePrice: ProductPrice.create(25, Currency.EUR),
+        sellerId: 'seller-1',
+        sellerName: 'Test Shop',
+        status: ProductStatus.ACTIVE,
+        categoryId: null,
+        category: null,
+        customizationConfig: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        translations: [{ locale: 'es', name: 'Mug', description: 'Nice mug' }],
+        images: [],
+        tags: [],
+      }),
+    });
+
+    const element = await ProductDetailPage({
+      params: Promise.resolve({ locale: 'es', id: 'prod-1' }),
+    });
+    render(element);
+
+    expect(screen.getByTestId('back-link')).toHaveAttribute('href', '/es');
   });
 
   it('passes the designer-owned viewer context and role-aware edit action to the purchase experience', async () => {

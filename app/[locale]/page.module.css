@@ -74,6 +74,25 @@
   flex: 1;
 }
 
+.descriptionClamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+.descriptionToggle {
+  align-self: flex-start;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--color-green-dark);
+  font: inherit;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .productPrice {
   font-family: var(--font-family-primary);
   font-weight: var(--font-weight-bold);

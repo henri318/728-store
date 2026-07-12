@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import type { ProductCustomizationConfigJson } from '@/modules/products/domain/value-objects/product-customization-config';
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
 import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
@@ -100,6 +101,12 @@ interface CustomizationExperienceProps {
   viewerContext?: ProductViewerContext;
 }
 
+async function preloadAndDecodeImage(url: string): Promise<void> {
+  const image = new Image();
+  image.src = url;
+  await image.decode();
+}
+
 function CustomizationExperienceInner({
   productId,
   productName,
@@ -130,6 +137,26 @@ function CustomizationExperienceInner({
   const activeProductImageUrl =
     customizableBaseImages.find((img) => img.alt === draft.color)?.url ??
     previewBaseImageUrl;
+  const [displayedProductImageUrl, setDisplayedProductImageUrl] = useState(
+    activeProductImageUrl,
+  );
+
+  useEffect(() => {
+    if (activeProductImageUrl === displayedProductImageUrl) return;
+    let isCancelled = false;
+    async function updateDecodedImage() {
+      try {
+        await preloadAndDecodeImage(activeProductImageUrl);
+        if (!isCancelled) setDisplayedProductImageUrl(activeProductImageUrl);
+      } catch {
+        // Retain the previous decoded image when the next asset fails.
+      }
+    }
+    updateDecodedImage();
+    return () => {
+      isCancelled = true;
+    };
+  }, [activeProductImageUrl, displayedProductImageUrl]);
   const formLabels = {
     customizationDesign: labels.customizationDesign,
     customizationPhrase: labels.customizationPhrase,
@@ -274,7 +301,7 @@ function CustomizationExperienceInner({
           <div className={styles.canvasCol} data-testid="mockup-canvas">
             {isAllowsPhoto && previewBaseImageUrl && (
               <MockupCanvasControl
-                productImageUrl={activeProductImageUrl}
+                productImageUrl={displayedProductImageUrl}
                 initialDesignUrl={draft.imageUrl}
                 initialPosition={draft.designPosition}
                 labels={mockupLabels}
@@ -296,7 +323,7 @@ function CustomizationExperienceInner({
               sellerId,
               sellerName,
               price,
-              imageUrl: activeProductImageUrl,
+              imageUrl: displayedProductImageUrl,
               customizationAvailable: !customizationModel.isDefault(),
               customizeHref: '#customization-form',
               labels: cartLabels,

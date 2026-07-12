@@ -38,6 +38,8 @@ export interface InfiniteProductListLabels {
   noImageAvailable: string;
   itemsLoadedOne: string;
   itemsLoadedMany: string;
+  showMore: string;
+  showLess: string;
 }
 
 export interface InfiniteProductListProps {
@@ -51,6 +53,38 @@ export interface InfiniteProductListProps {
   q: string;
   locale: string;
   labels: InfiniteProductListLabels;
+}
+
+function ProductDescription({
+  description,
+  labels,
+}: {
+  description: string | null;
+  labels: Pick<InfiniteProductListLabels, 'showMore' | 'showLess'>;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const text = description ?? '';
+  const canToggle = text.length > 160;
+
+  return (
+    <>
+      <p
+        className={`${styles.productDescription} ${canToggle && !expanded ? styles.descriptionClamp : ''}`}
+      >
+        {text}
+      </p>
+      {canToggle && (
+        <button
+          type="button"
+          aria-expanded={expanded}
+          className={styles.descriptionToggle}
+          onClick={() => setExpanded((current) => !current)}
+        >
+          {expanded ? labels.showLess : labels.showMore}
+        </button>
+      )}
+    </>
+  );
 }
 
 /**
@@ -191,9 +225,10 @@ export function InfiniteProductList({
                 )}
               </div>
               <h3 className={styles.productName}>{translation.name}</h3>
-              <p className={styles.productDescription}>
-                {translation.description}
-              </p>
+              <ProductDescription
+                description={translation.description}
+                labels={labels}
+              />
               <p className={styles.productPrice}>
                 {product.basePrice.formattedPrice}
               </p>

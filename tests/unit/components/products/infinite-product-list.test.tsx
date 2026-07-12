@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { render, screen, waitFor, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  waitFor,
+  act,
+  fireEvent,
+} from '@testing-library/react';
 import type { ImgHTMLAttributes } from 'react';
 
 vi.mock('next/navigation', () => ({
@@ -94,6 +100,8 @@ const baseLabels = {
   noImageAvailable: 'Imagen no disponible',
   itemsLoadedOne: '{count} producto cargado',
   itemsLoadedMany: '{count} productos cargados',
+  showMore: 'Ver más',
+  showLess: 'Ver menos',
 };
 
 function triggerIntersection(): void {
@@ -119,6 +127,48 @@ describe('InfiniteProductList', () => {
 
     expect(screen.getByText('Mug')).toBeInTheDocument();
     expect(screen.getByText('Lamp')).toBeInTheDocument();
+  });
+
+  it('expands a long description with an accessible toggle', () => {
+    const description = 'A '.repeat(120).trim();
+    render(
+      <InfiniteProductList
+        initialItems={[
+          {
+            ...makeProduct('p1', 'Mug'),
+            translations: [{ locale: 'es', name: 'Mug', description }],
+          },
+        ]}
+        pageSize={10}
+        q=""
+        locale="es"
+        labels={baseLabels}
+      />,
+    );
+
+    const toggle = screen.getByRole('button', { name: 'Ver más' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(toggle);
+    expect(screen.getByRole('button', { name: 'Ver menos' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+  });
+
+  it('does not show a description toggle for short descriptions', () => {
+    render(
+      <InfiniteProductList
+        initialItems={[makeProduct('p1', 'Mug')]}
+        pageSize={10}
+        q=""
+        locale="es"
+        labels={baseLabels}
+      />,
+    );
+
+    expect(
+      screen.queryByRole('button', { name: 'Ver más' }),
+    ).not.toBeInTheDocument();
   });
 
   it('renders the cover image when present', () => {

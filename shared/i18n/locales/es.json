@@ -58,6 +58,8 @@
     "noSearchResults": "No se encontraron productos para «{term}»",
     "itemsLoadedOne": "{count} producto cargado",
     "itemsLoadedMany": "{count} productos cargados",
+    "showMore": "Ver más",
+    "showLess": "Ver menos",
     "profileIcon": "Perfil",
     "cartIcon": "Carrito",
     "addToCart": "Añadir al carrito",

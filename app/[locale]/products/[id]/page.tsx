@@ -4,7 +4,7 @@ import { serializeProduct } from '@/modules/products/presentation/product-respon
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { resolveProductViewerContext } from '@/shared/authorization/product-viewer-context';
 import { APP_BASE_URL } from '@/shared/kernel/config';
-import Link from 'next/link';
+import { BackLink } from '@/shared/ui/back-link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import {
@@ -190,9 +190,7 @@ export default async function ProductDetailPage({
 
   return (
     <div className={styles.container}>
-      <Link href={`/${locale}`} className={styles.backLink}>
-        ← {dict.common.home}
-      </Link>
+      <BackLink href={`/${locale}`}>← {dict.common.home}</BackLink>
       <div className={styles.detailLayout}>
         <CustomizationExperience
           productId={product.id}

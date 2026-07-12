@@ -58,6 +58,8 @@
     "noSearchResults": "No s'han trobat productes per a «{term}»",
     "itemsLoadedOne": "{count} producte carregat",
     "itemsLoadedMany": "{count} productes carregats",
+    "showMore": "Veure més",
+    "showLess": "Veure menys",
     "profileIcon": "Perfil",
     "cartIcon": "Cistella",
     "addToCart": "Afegir a la cistella",
