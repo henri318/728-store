@@ -77,7 +77,7 @@ export default async function HomePage({
   return (
     <div>
       <HeroSection
-        imageSrc="/img/hero/Elementos-14.svg"
+        imageSrc="/img/decorations/Portada.png"
         imageAlt={dict.common.heroImageAlt}
       />
 
