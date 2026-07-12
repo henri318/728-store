@@ -410,7 +410,8 @@
       "submitSave": "Guardar",
       "edit": "Editar",
       "cancel": "Cancelar",
-      "confirmDelete": "¿Eliminar esta categoría?"
+      "confirmDelete": "¿Eliminar esta categoría?",
+      "actionsLabel": "Acciones de categoría"
     },
     "sellerDetail": {
       "editTitle": "Editar vendedor",

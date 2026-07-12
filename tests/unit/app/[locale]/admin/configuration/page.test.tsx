@@ -39,7 +39,6 @@ const dictionary = () => ({
   admin: {
     configuration: {
       title: 'Categories',
-      description: 'Manage categories',
       label: 'Categories',
       placeholder: '',
       addLabel: 'Add',
@@ -60,6 +59,7 @@ const dictionary = () => ({
       edit: 'Edit',
       cancel: 'Cancel',
       confirmDelete: 'Delete this category?',
+      actionsLabel: 'Category actions',
       updateError: 'Update error',
     },
   },

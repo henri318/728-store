@@ -81,6 +81,7 @@ export interface AdminDictionary {
     edit: string;
     cancel: string;
     confirmDelete: string;
+    actionsLabel: string;
   };
   sellerDetail: SellerDetailDictionary;
 }

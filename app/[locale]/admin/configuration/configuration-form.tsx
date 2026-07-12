@@ -50,6 +50,7 @@ interface ConfigurationDict {
       edit: string;
       cancel: string;
       confirmDelete: string;
+      actionsLabel: string;
     };
   };
 }

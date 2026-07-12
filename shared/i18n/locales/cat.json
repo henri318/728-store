@@ -410,7 +410,8 @@
       "submitSave": "Desar",
       "edit": "Editar",
       "cancel": "Cancel·lar",
-      "confirmDelete": "Eliminar aquesta categoria?"
+      "confirmDelete": "Eliminar aquesta categoria?",
+      "actionsLabel": "Accions de categoria"
     },
     "sellerDetail": {
       "editTitle": "Editar venedor",

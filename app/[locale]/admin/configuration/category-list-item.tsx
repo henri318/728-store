@@ -15,6 +15,7 @@ interface CategoryListItemDict {
   confirmDelete: string;
   nameEsLabel: string;
   nameCatLabel: string;
+  actionsLabel: string;
 }
 
 interface CategoryListItemProps {
@@ -72,7 +73,7 @@ export function CategoryListItem({
           <div
             className={styles.actions}
             role="group"
-            aria-label="Category actions"
+            aria-label={dict.actionsLabel}
           >
             <Button type="button" onClick={() => void save()}>
               {dict.submitSave}
@@ -92,7 +93,7 @@ export function CategoryListItem({
           <div
             className={styles.actions}
             role="group"
-            aria-label="Category actions"
+            aria-label={dict.actionsLabel}
           >
             <Button
               type="button"
