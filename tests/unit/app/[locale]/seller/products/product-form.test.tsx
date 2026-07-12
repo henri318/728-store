@@ -32,7 +32,7 @@ describe('ProductForm', () => {
     nameLabel: 'Nombre',
     descriptionLabel: 'Descripción',
     priceLabel: 'Precio',
-    save: 'Guardar producto',
+    submit: 'Guardar producto',
     saved: 'Guardado',
     error: 'No se pudo guardar el producto',
     missingTranslationNameError:
@@ -238,7 +238,7 @@ describe('ProductForm', () => {
       },
     );
 
-    fireEvent.click(screen.getByRole('button', { name: labels.save }));
+    fireEvent.click(screen.getByRole('button', { name: labels.submit }));
 
     await waitFor(() => {
       const lastCall = fetchMock.mock.calls.at(-1);
@@ -332,7 +332,7 @@ describe('ProductForm', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: labels.save }));
+    fireEvent.click(screen.getByRole('button', { name: labels.submit }));
 
     await waitFor(() => {
       const lastCall = fetchMock.mock.calls.at(-1);
@@ -486,7 +486,7 @@ describe('ProductForm', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Añadir talla' }));
 
-    fireEvent.click(screen.getByRole('button', { name: labels.save }));
+    fireEvent.click(screen.getByRole('button', { name: labels.submit }));
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith('/api/products/p-1', {
@@ -550,7 +550,7 @@ describe('ProductForm', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: labels.save }));
+    fireEvent.click(screen.getByRole('button', { name: labels.submit }));
 
     await waitFor(() => {
       expect(screen.getByRole('tab', { name: 'CAT' })).toHaveAttribute(
@@ -653,7 +653,7 @@ describe('ProductForm', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: labels.save }));
+    fireEvent.click(screen.getByRole('button', { name: labels.submit }));
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith('/api/products/p-1', {

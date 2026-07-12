@@ -29,7 +29,7 @@ describe('ProductForm locale tabs', () => {
     nameLabel: 'Nombre',
     descriptionLabel: 'Descripción',
     priceLabel: 'Precio',
-    save: 'Guardar producto',
+    submit: 'Guardar producto',
     saved: 'Guardado',
     error: 'No se pudo guardar el producto',
     missingTranslationNameError:
@@ -204,7 +204,7 @@ describe('ProductForm locale tabs', () => {
     expect(screen.getByText('decoració')).toBeInTheDocument();
     expect(screen.getByText('L')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: labels.save }));
+    fireEvent.click(screen.getByRole('button', { name: labels.submit }));
 
     await waitFor(() => {
       const lastCall = fetchMock.mock.calls.at(-1);

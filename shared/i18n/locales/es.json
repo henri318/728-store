@@ -213,7 +213,7 @@
     "noProducts": "No se encontraron productos",
     "searchPlaceholder": "Buscar productos...",
     "createProduct": "Crear producto",
-    "editProduct": "Editar producto",
+    "editProduct": "Guardar",
     "backToProducts": "Volver a productos",
     "productNameLabel": "Nombre",
     "productDescriptionLabel": "Descripción",

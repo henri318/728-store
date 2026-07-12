@@ -954,7 +954,7 @@ export function ProductForm({
 
         <div className={styles.buttonRow}>
           <Button type="submit" loading={loading || uploading}>
-            {labels.save}
+            {labels.submit}
           </Button>
         </div>
       </Card>

@@ -108,12 +108,13 @@ describe('getProductFormLabels', () => {
   it('uses edit title when mode is edit', () => {
     const labels = getProductFormLabels(makeDict(), 'edit');
     expect(labels.title).toBe('Editar producto');
-    expect(labels.save).toBe('Guardar');
+    expect(labels.submit).toBe('Guardar');
+    expect(labels).not.toHaveProperty('save');
   });
 
   it('uses create title when mode is create', () => {
     const labels = getProductFormLabels(makeDict(), 'create');
     expect(labels.title).toBe('Crear producto');
-    expect(labels.save).toBe('Crear');
+    expect(labels.submit).toBe('Crear');
   });
 });

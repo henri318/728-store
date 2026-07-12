@@ -4,7 +4,7 @@ export interface ProductFormLabels {
   nameLabel: string;
   descriptionLabel: string;
   priceLabel: string;
-  save: string;
+  submit: string;
   saved: string;
   error: string;
   missingTranslationNameError: string;
@@ -101,7 +101,7 @@ export function getProductFormLabels(
     nameLabel: sd.productNameLabel as string,
     descriptionLabel: sd.productDescriptionLabel as string,
     priceLabel: sd.productPriceLabel as string,
-    save: (mode === 'create' ? sd.createProduct : sd.editProduct) as string,
+    submit: (mode === 'create' ? sd.createProduct : sd.editProduct) as string,
     saved: sd.productSaved as string,
     error: sd.productFormError as string,
     missingTranslationNameError:
