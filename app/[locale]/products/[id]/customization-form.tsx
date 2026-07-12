@@ -48,6 +48,7 @@ interface CustomizationFormProps {
   sizes?: string[];
   productImages: ProductImageItem[];
   labels: CustomizationFormLabels;
+  helpText?: string | null;
   onValidate?: () => void;
 }
 
@@ -56,6 +57,7 @@ export function CustomizationForm({
   sizes,
   productImages,
   labels,
+  helpText,
   onValidate,
 }: CustomizationFormProps) {
   const { draft, errors, setText, setColor, setSize, validateDraft } =
@@ -140,6 +142,7 @@ export function CustomizationForm({
         value={draft.text ?? ''}
         onChange={(value) => setText(value || null)}
         error={errors.text}
+        helpText={helpText?.trim() || undefined}
         rows={2}
       />
     </form>

@@ -78,7 +78,6 @@ export interface CustomizationExperienceLabels {
   mediaPrevious: string;
   mediaNext: string;
   goToEdit: string;
-  customizationCapabilityHeading: string;
 }
 
 interface CustomizationExperienceProps {
@@ -245,12 +244,6 @@ function CustomizationExperienceInner({
             <span className={pageStyles.seller}>{sellerName}</span>
             <h1 className={pageStyles.title}>{productName}</h1>
             <p className={pageStyles.description}>{productDescription}</p>
-            {designChangeDescription?.trim() && (
-              <div data-testid="customization-capability">
-                <h2>{labels.customizationCapabilityHeading}</h2>
-                <p>{designChangeDescription}</p>
-              </div>
-            )}
           </header>
 
           <ProductShowcaseGallery
@@ -272,6 +265,7 @@ function CustomizationExperienceInner({
               sizes={sizes}
               productImages={customizableBaseImages}
               labels={formLabels}
+              helpText={designChangeDescription}
             />
           </div>
 

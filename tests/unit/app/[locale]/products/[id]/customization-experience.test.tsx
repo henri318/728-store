@@ -47,7 +47,6 @@ describe('CustomizationExperience', () => {
     customizationDesign: 'Instrucciones de personalización',
     customizationPhrase: 'Phrase',
     goToEdit: 'Go to edit',
-    customizationCapabilityHeading: 'What can the customer customize?',
     customizationColor: 'Color',
     customizationSize: 'Size',
     customizationSizePlaceholder: 'Choose a size',
@@ -175,7 +174,7 @@ describe('CustomizationExperience', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders public customization content in description, capability, style, form, and canvas order', () => {
+  it('renders the designer text as personalization help', () => {
     render(
       <CustomizationExperience
         {...commonProps}
@@ -187,28 +186,14 @@ describe('CustomizationExperience', () => {
 
     const layout = screen.getByTestId('purchase-layout');
     const description = within(layout).getByText('A nice mug');
-    const capability = within(layout).getByTestId('customization-capability');
-    const style = within(layout).getAllByTestId(
-      'customization-style-selectors',
-    )[0];
     const form = within(layout).getByTestId('customization-form');
     const descriptionField = within(form).getByLabelText(
       labels.customizationDesign,
     );
-    const canvas = within(layout).getByTestId('mockup-canvas');
-    expect(description.compareDocumentPosition(capability)).toBe(
+    expect(description.compareDocumentPosition(form)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
-    expect(capability.compareDocumentPosition(style)).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
-    );
-    expect(style.compareDocumentPosition(descriptionField)).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
-    );
-    expect(form.compareDocumentPosition(canvas)).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
-    );
-    expect(screen.getByTestId('customization-capability')).toHaveTextContent(
+    expect(descriptionField).toHaveAccessibleDescription(
       'Puede cambiar el color y añadir una imagen',
     );
     expect(
