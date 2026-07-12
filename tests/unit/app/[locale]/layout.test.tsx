@@ -42,6 +42,31 @@ vi.mock('next/image', () => ({ default: () => null }));
 import RootLayout from '@/app/[locale]/layout';
 
 describe('RootLayout', () => {
+  it('loads the supplied CDN font stylesheets once for localized public pages', async () => {
+    const element = await RootLayout({
+      children: <div>Content</div>,
+      params: Promise.resolve({ locale: 'es' }),
+    });
+
+    const head = element.props.children[0];
+
+    expect(head.type).toBe('head');
+    expect(head.props.children).toEqual([
+      expect.objectContaining({
+        props: {
+          href: 'https://fonts.cdnfonts.com/css/poppins',
+          rel: 'stylesheet',
+        },
+      }),
+      expect.objectContaining({
+        props: {
+          href: 'https://fonts.cdnfonts.com/css/falling-button',
+          rel: 'stylesheet',
+        },
+      }),
+    ]);
+  });
+
   it('uses the BCP-47 Catalan language tag for the cat route locale', async () => {
     const element = await RootLayout({
       children: <div>Content</div>,

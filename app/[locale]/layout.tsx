@@ -107,6 +107,13 @@ export default async function RootLayout({
 
   return (
     <html lang={normalizeLocale(locale)}>
+      <head>
+        <link href="https://fonts.cdnfonts.com/css/poppins" rel="stylesheet" />
+        <link
+          href="https://fonts.cdnfonts.com/css/falling-button"
+          rel="stylesheet"
+        />
+      </head>
       <body className={styles.body}>
         <SessionProviderWrapper session={session}>
           <GuestCartProvider>
