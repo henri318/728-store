@@ -2,6 +2,7 @@ import { container } from '@/composition-root/container';
 import { GetProductByIdUseCase } from '@/modules/products/application/get-product-by-id-use-case';
 import { serializeProduct } from '@/modules/products/presentation/product-response';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
+import { resolveProductViewerContext } from '@/shared/authorization/product-viewer-context';
 import { APP_BASE_URL } from '@/shared/kernel/config';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -79,7 +80,12 @@ export default async function ProductDetailPage({
     notFound();
   }
 
-  const view = serializeProduct(product);
+  const viewerContext = await resolveProductViewerContext(
+    product,
+    locale as 'es' | 'cat',
+  );
+  const view = serializeProduct(product, { publicView: true });
+  const isDesigner = viewerContext.viewerRole === 'DESIGNER';
   const customizationLabels = {
     addToCart: dict.common.addToCart,
     removeFromCart: dict.common.removeFromCart,
@@ -133,7 +139,14 @@ export default async function ProductDetailPage({
     customizationInvalidImageUrl: dict.common.customizationInvalidImageUrl,
     mediaPrevious: dict.orders?.previous ?? 'Previous',
     mediaNext: dict.orders?.next ?? 'Next',
+    goToEdit: dict.common.goToEdit,
   } satisfies CustomizationExperienceLabels;
+  customizationLabels.customizationDesign = isDesigner
+    ? dict.common.customizationDesignDesigner
+    : dict.common.customizationDesignCustomer;
+  customizationLabels.customizationPhrase = isDesigner
+    ? dict.common.customizationPhraseDesigner
+    : dict.common.customizationPhraseCustomer;
   const publicMedia: ProductShowcaseMedia[] = [
     ...(view.cover
       ? [
@@ -173,6 +186,9 @@ export default async function ProductDetailPage({
           productId={product.id}
           productName={product.displayName}
           productDescription={product.displayDescription}
+          designChangeDescription={
+            product.displayTranslation?.designChangeDescription ?? null
+          }
           sellerId={product.sellerId}
           sellerName={product.sellerName}
           price={product.basePrice.amount}
@@ -183,6 +199,7 @@ export default async function ProductDetailPage({
           productImages={customizableBaseImages}
           publicMedia={publicMedia}
           labels={customizationLabels}
+          viewerContext={viewerContext}
         />
       </div>
     </div>

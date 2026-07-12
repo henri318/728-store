@@ -1,9 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
-import { productFormSchema } from '@/modules/products/presentation/schemas/product-form-schema';
+import {
+  productFormSchema,
+  productTranslationInputSchema,
+} from '@/modules/products/presentation/schemas/product-form-schema';
 
 describe('productFormSchema', () => {
+  it('accepts translated input with design change description', () => {
+    const result = productTranslationInputSchema.safeParse({
+      locale: 'es',
+      name: 'Taza',
+      designChangeDescription: 'Descripción interna',
+    });
+
+    expect(result.success).toBe(true);
+  });
+
   it('strips translated fields from customizationConfig while keeping them in translations', () => {
     const result = productFormSchema.parse({
       price: 19.99,

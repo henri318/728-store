@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getProductFormLabels } from '@/modules/products/presentation/product-form-labels';
+import es from '@/shared/i18n/locales/es.json';
+import cat from '@/shared/i18n/locales/cat.json';
 
 function makeDict(overrides: Record<string, unknown> = {}) {
   const sd: Record<string, string> = {
@@ -10,7 +12,8 @@ function makeDict(overrides: Record<string, unknown> = {}) {
     productDescriptionLabel: 'Descripción',
     productPriceLabel: 'Precio',
     createProduct: 'Crear',
-    editProduct: 'Guardar',
+    editProduct: 'Editar producto',
+    editProductSubmit: 'Guardar',
     productSaved: 'Guardado',
     productFormError: 'Error',
     productMissingTranslationNameError:
@@ -82,6 +85,7 @@ function makeDict(overrides: Record<string, unknown> = {}) {
     productTranslationSizesAddLabel: 'Add',
     productTranslationSizesEmptyLabel: 'Empty',
     productTranslationDesignChangeDescriptionLabel: 'Desc',
+    productTranslationDesignChangeDescriptionHelp: 'Help change',
     productTranslationDesignChangeDescriptionPlaceholder: 'Desc',
     ...overrides,
   };
@@ -108,12 +112,34 @@ describe('getProductFormLabels', () => {
   it('uses edit title when mode is edit', () => {
     const labels = getProductFormLabels(makeDict(), 'edit');
     expect(labels.title).toBe('Editar producto');
-    expect(labels.save).toBe('Guardar');
+    expect(labels.submit).toBe('Guardar');
+    expect(labels).not.toHaveProperty('save');
+  });
+
+  it.each([
+    ['es', es, 'Guardar'],
+    ['cat', cat, 'Desar'],
+  ] as const)(
+    'uses the localized Save submit label for %s edit forms',
+    (_, dict, expected) => {
+      expect(getProductFormLabels(dict, 'edit').submit).toBe(expected);
+    },
+  );
+
+  it('maps the design-change help text and placeholder', () => {
+    const labels = getProductFormLabels(makeDict(), 'edit');
+
+    expect(labels.translationSection.designChangeDescriptionHelp).toBe(
+      'Help change',
+    );
+    expect(labels.translationSection.designChangeDescriptionPlaceholder).toBe(
+      'Desc',
+    );
   });
 
   it('uses create title when mode is create', () => {
     const labels = getProductFormLabels(makeDict(), 'create');
     expect(labels.title).toBe('Crear producto');
-    expect(labels.save).toBe('Crear');
+    expect(labels.submit).toBe('Crear');
   });
 });

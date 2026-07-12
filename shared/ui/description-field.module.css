@@ -38,3 +38,8 @@
   color: var(--color-coral);
   font-size: 0.78rem;
 }
+
+.helpText {
+  color: rgba(13, 92, 70, 0.68);
+  font-size: 0.78rem;
+}

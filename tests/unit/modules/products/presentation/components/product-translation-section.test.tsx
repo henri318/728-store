@@ -41,6 +41,8 @@ describe('ProductTranslationSection', () => {
             sizesAddLabel: 'Añadir talla',
             sizesEmptyLabel: 'Aún no hay tallas',
             designChangeDescriptionLabel: 'Descripción del cambio',
+            designChangeDescriptionHelp:
+              'Indica qué elemento puede cambiar y cómo debe hacerlo.',
             designChangeDescriptionPlaceholder: 'Describe el cambio',
           }}
         />
@@ -114,6 +116,8 @@ describe('ProductTranslationSection', () => {
             sizesAddLabel: 'Afegir talla',
             sizesEmptyLabel: 'Encara no hi ha talles',
             designChangeDescriptionLabel: 'Descripció del canvi',
+            designChangeDescriptionHelp:
+              'Indica quin element pot canviar i com ho ha de fer.',
             designChangeDescriptionPlaceholder: 'Descriu el canvi',
           }}
         />
@@ -137,5 +141,58 @@ describe('ProductTranslationSection', () => {
     );
 
     expect(screen.getByText('Encara no hi ha etiquetes')).toBeInTheDocument();
+  });
+
+  it('renders the designer change-description label, help text, and placeholder', () => {
+    render(
+      <ProductTranslationSection
+        locale="es"
+        value={{
+          name: '',
+          description: '',
+          tags: [],
+          sizes: [],
+          designChangeDescription: null,
+        }}
+        onChange={vi.fn()}
+        labels={{
+          title: 'Contenido traducido',
+          hint: 'Edita cada idioma por separado.',
+          nameLabel: 'Nombre',
+          descriptionLabel: 'Descripción',
+          tagsLabel: 'Etiquetas',
+          tagsPlaceholder: 'ropa, verano',
+          tagsAddLabel: 'Añadir etiqueta',
+          tagsEmptyLabel: 'Aún no hay etiquetas',
+          sizesLabel: 'Tallas',
+          sizesPlaceholder: 'S, M, L',
+          sizesAddLabel: 'Añadir talla',
+          sizesEmptyLabel: 'Aún no hay tallas',
+          designChangeDescriptionLabel: '¿Qué podrá personalizar el cliente?',
+          designChangeDescriptionHelp:
+            'Indica qué elemento puede cambiar y cómo debe hacerlo.',
+          designChangeDescriptionPlaceholder:
+            'Puedes cambiar el nombre, el color y añadir una imagen.',
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByLabelText('¿Qué podrá personalizar el cliente?'),
+    ).toHaveAttribute(
+      'placeholder',
+      'Puedes cambiar el nombre, el color y añadir una imagen.',
+    );
+    expect(
+      screen.getByText(
+        'Indica qué elemento puede cambiar y cómo debe hacerlo.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText('Instrucciones de personalización'),
+    ).toBeNull();
+    expect(
+      screen.queryByText('Instrucciones subidas por el diseñador'),
+    ).toBeNull();
   });
 });

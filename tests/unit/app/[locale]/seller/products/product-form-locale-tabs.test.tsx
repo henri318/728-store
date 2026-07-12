@@ -29,7 +29,7 @@ describe('ProductForm locale tabs', () => {
     nameLabel: 'Nombre',
     descriptionLabel: 'Descripción',
     priceLabel: 'Precio',
-    save: 'Guardar producto',
+    submit: 'Guardar producto',
     saved: 'Guardado',
     error: 'No se pudo guardar el producto',
     missingTranslationNameError:
@@ -49,6 +49,7 @@ describe('ProductForm locale tabs', () => {
       sizesAddLabel: 'Añadir talla',
       sizesEmptyLabel: 'Aún no hay tallas',
       designChangeDescriptionLabel: 'Descripción del cambio',
+      designChangeDescriptionHelp: 'Indica el cambio.',
       designChangeDescriptionPlaceholder: 'Describe el cambio',
     },
     customization: {
@@ -59,6 +60,7 @@ describe('ProductForm locale tabs', () => {
         sizeOptionsPlaceholder: 'S, M, L',
         allowPhotoDesignLabel: 'Permitir diseño con foto',
         designChangeDescriptionLabel: 'Descripción del cambio de diseño',
+        designChangeDescriptionHelp: 'Indica el cambio.',
         designChangeDescriptionPlaceholder: 'Describe los cambios...',
         categoryLabel: 'Categoría',
         categoryPlaceholder: 'Seleccionar categoría',
@@ -204,7 +206,7 @@ describe('ProductForm locale tabs', () => {
     expect(screen.getByText('decoració')).toBeInTheDocument();
     expect(screen.getByText('L')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: labels.save }));
+    fireEvent.click(screen.getByRole('button', { name: labels.submit }));
 
     await waitFor(() => {
       const lastCall = fetchMock.mock.calls.at(-1);

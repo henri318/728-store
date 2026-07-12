@@ -167,7 +167,10 @@ describe('UpdateProductUseCase', () => {
     expect(saved?.translations).toHaveLength(2);
     expect(saved?.translations).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ locale: 'es', name: 'Taza nueva' }),
+        expect.objectContaining({
+          locale: 'es',
+          name: 'Taza nueva',
+        }),
         expect.objectContaining({ locale: 'cat', name: 'Tassa nova' }),
       ]),
     );

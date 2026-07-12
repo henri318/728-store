@@ -5,6 +5,7 @@ import { ProductImagePurpose } from '@/modules/products/domain/value-objects/pro
 import { useCustomizationDraft } from './customization-draft-context';
 import type { ProductImageItem } from './customization-experience';
 import { SelectField } from '@/shared/ui/select-field';
+import { DescriptionField } from '@/shared/ui/description-field';
 import formStyles from './customization-form.module.css';
 
 interface CustomizationFormLabels {
@@ -47,6 +48,7 @@ interface CustomizationFormProps {
   sizes?: string[];
   productImages: ProductImageItem[];
   labels: CustomizationFormLabels;
+  helpText?: string | null;
   onValidate?: () => void;
 }
 
@@ -55,6 +57,7 @@ export function CustomizationForm({
   sizes,
   productImages,
   labels,
+  helpText,
   onValidate,
 }: CustomizationFormProps) {
   const { draft, errors, setText, setColor, setSize, validateDraft } =
@@ -64,12 +67,11 @@ export function CustomizationForm({
     (image) => image.purpose === ProductImagePurpose.CUSTOMIZABLE_BASE,
   );
 
-  const textErrorId = errors.text ? 'customization-text-error' : undefined;
-
   return (
     <form
       className="customization-form"
       id="customization-form"
+      data-testid="customization-form"
       onSubmit={(event) => {
         event.preventDefault();
         if (validateDraft()) {
@@ -77,25 +79,11 @@ export function CustomizationForm({
         }
       }}
     >
-      <label className={formStyles.fieldLabel}>
-        <span>{labels.customizationDesign}</span>
-        <textarea
-          rows={2}
-          maxLength={500}
-          aria-invalid={errors.text ? 'true' : undefined}
-          aria-describedby={textErrorId}
-          value={draft.text ?? ''}
-          onChange={(event) => setText(event.target.value || null)}
-        />
-        {errors.text && (
-          <p id={textErrorId} role="alert">
-            {errors.text}
-          </p>
-        )}
-      </label>
-
       {customizableBaseImages.length > 0 && (
-        <div className={formStyles.colorSection}>
+        <div
+          className={formStyles.colorSection}
+          data-testid="customization-color-selector"
+        >
           <span className={formStyles.colorLabel}>
             {labels.customizationColor}
           </span>
@@ -134,18 +122,29 @@ export function CustomizationForm({
       )}
 
       {sizeOptions.length > 0 && (
-        <SelectField
-          label={labels.customizationSize}
-          value={draft.size ?? ''}
-          onChange={(value) => setSize(value || null)}
-          options={sizeOptions.map((option) => ({
-            value: option,
-            label: option,
-          }))}
-          placeholder={labels.customizationSizePlaceholder}
-          error={errors.size}
-        />
+        <div data-testid="customization-size-selector">
+          <SelectField
+            label={labels.customizationSize}
+            value={draft.size ?? ''}
+            onChange={(value) => setSize(value || null)}
+            options={sizeOptions.map((option) => ({
+              value: option,
+              label: option,
+            }))}
+            placeholder={labels.customizationSizePlaceholder}
+            error={errors.size}
+          />
+        </div>
       )}
+
+      <DescriptionField
+        label={labels.customizationDesign}
+        value={draft.text ?? ''}
+        onChange={(value) => setText(value || null)}
+        error={errors.text}
+        helpText={helpText?.trim() || undefined}
+        rows={2}
+      />
     </form>
   );
 }

@@ -44,8 +44,9 @@ describe('CustomizationExperience', () => {
     customizeProduct: 'Customize',
     addWithoutCustomization: 'Add without customization',
     alreadyInCartDifferent: 'Already in cart',
-    customizationDesign: 'Design description',
+    customizationDesign: 'Instrucciones de personalización',
     customizationPhrase: 'Phrase',
+    goToEdit: 'Go to edit',
     customizationColor: 'Color',
     customizationSize: 'Size',
     customizationSizePlaceholder: 'Choose a size',
@@ -94,6 +95,7 @@ describe('CustomizationExperience', () => {
     price: 12.5,
     formattedPrice: '$12.50',
     previewBaseImageUrl: '/mug.png',
+    sizes: ['M'],
     publicMedia: [
       {
         id: 'cover-1',
@@ -103,11 +105,13 @@ describe('CustomizationExperience', () => {
         posterUrl: null,
       },
     ],
-    productImages: [] as {
-      url: string;
-      alt: string;
-      purpose: ProductImagePurpose;
-    }[],
+    productImages: [
+      {
+        url: '/red.png',
+        alt: 'Red',
+        purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+      },
+    ],
   };
 
   beforeEach(() => {
@@ -168,6 +172,33 @@ describe('CustomizationExperience', () => {
     expect(
       within(leftColumn).getByTestId('mock-add-to-cart'),
     ).toBeInTheDocument();
+  });
+
+  it('renders the designer text as personalization help', () => {
+    render(
+      <CustomizationExperience
+        {...commonProps}
+        customizationConfig={ProductCustomizationConfig.default().toJson()}
+        designChangeDescription="Puede cambiar el color y añadir una imagen"
+        labels={labels}
+      />,
+    );
+
+    const layout = screen.getByTestId('purchase-layout');
+    const description = within(layout).getByText('A nice mug');
+    const form = within(layout).getByTestId('customization-form');
+    const descriptionField = within(form).getByLabelText(
+      labels.customizationDesign,
+    );
+    expect(description.compareDocumentPosition(form)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    expect(descriptionField).toHaveAccessibleDescription(
+      'Puede cambiar el color y añadir una imagen',
+    );
+    expect(
+      screen.queryByText('Instrucciones subidas por el diseñador'),
+    ).toBeNull();
   });
 
   it('falls back to the legacy add-to-cart button when the feature flag is disabled', () => {
