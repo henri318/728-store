@@ -138,7 +138,7 @@ describe('SellerDetailForm', () => {
       (screen.getByRole('button', { name: 'Save' }) as HTMLButtonElement).form!,
     );
 
-    expect(screen.getByRole('button', { name: 'Loading...' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Cargando...' })).toBeDisabled();
 
     await act(async () => {
       resolveFetch({

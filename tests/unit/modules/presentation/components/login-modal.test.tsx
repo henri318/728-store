@@ -78,7 +78,7 @@ describe('LoginModal component', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Iniciar sesión' }));
 
     await waitFor(() => {
-      const btn = screen.getByRole('button', { name: 'Loading...' });
+      const btn = screen.getByRole('button', { name: 'Cargando...' });
       expect(btn).toBeInTheDocument();
       expect(btn).toBeDisabled();
     });

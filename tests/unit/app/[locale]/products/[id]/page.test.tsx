@@ -207,6 +207,53 @@ describe('ProductDetailPage', () => {
     expect(customerProps.labels.customizationPhrase).toBe('Customer phrase');
   });
 
+  it('restores the cart customization snapshot and target line for editing', async () => {
+    mocks.resolveViewerContextMock.mockResolvedValue({
+      viewerUserId: null,
+      viewerRole: null,
+      isOwner: false,
+      canEdit: false,
+      editHref: null,
+    });
+    mocks.getProductRepositoryMock.mockReturnValue({
+      findById: vi.fn().mockResolvedValue({
+        id: 'prod-1',
+        basePrice: ProductPrice.create(25, Currency.EUR),
+        sellerId: 'seller-1',
+        sellerName: 'Test Shop',
+        status: ProductStatus.ACTIVE,
+        categoryId: null,
+        category: null,
+        customizationConfig: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        translations: [{ locale: 'es', name: 'Mug', description: 'Nice mug' }],
+        images: [],
+        tags: [],
+      }),
+    });
+
+    const element = await ProductDetailPage({
+      params: Promise.resolve({ locale: 'es', id: 'prod-1' }),
+      searchParams: Promise.resolve({
+        customizationText: 'Original design',
+        customizationColor: 'Blue',
+        customizationCartItemId: 'cart-item-1',
+      }),
+    });
+    render(element);
+
+    const props = mocks.customizationExperienceMock.mock.calls[0][0] as {
+      initialDraft: { text: string; color: string };
+      editCartItemId: string;
+    };
+    expect(props.initialDraft).toMatchObject({
+      text: 'Original design',
+      color: 'Blue',
+    });
+    expect(props.editCartItemId).toBe('cart-item-1');
+  });
+
   it('passes only public media into the purchase card and keeps product meta out of the page shell', async () => {
     mocks.getProductRepositoryMock.mockReturnValue({
       findById: vi.fn().mockResolvedValue({

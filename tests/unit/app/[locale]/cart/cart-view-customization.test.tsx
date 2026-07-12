@@ -84,5 +84,8 @@ describe('CartView customization links', () => {
     expect(link.getAttribute('href')).toContain(
       'customizationImageUrl=%2Fcustomization.png',
     );
+    expect(link.getAttribute('href')).toContain(
+      'customizationCartItemId=item-1',
+    );
   });
 });

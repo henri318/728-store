@@ -1,7 +1,6 @@
 import { container } from '@/composition-root/container';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { HeroSection } from '@/shared/ui/hero-section';
-import { MiddleSection } from '@/shared/ui/middle-section';
 import { WaveTransition } from '@/shared/ui/wave-transition';
 import { InfiniteProductList } from '@/components/products/infinite-product-list';
 import {
@@ -12,7 +11,7 @@ import { GetRecentSearchesUseCase } from '@/modules/search-history/application/g
 import { ProductListQueryUseCase } from '@/modules/products/application/product-list-query-use-case';
 import { serializeProduct } from '@/modules/products/presentation/product-response';
 
-const PUBLIC_PAGE_SIZE = 10;
+const PUBLIC_PAGE_SIZE = 12;
 
 export default async function HomePage({
   params,
@@ -82,7 +81,7 @@ export default async function HomePage({
 
       <WaveTransition animatedText={dict.common.slogan} />
 
-      <MiddleSection ariaLabel={dict.common.products}>
+      <section aria-label={dict.common.products}>
         <SearchInputWithSuggestions
           initialValue={q}
           recent={recent}
@@ -115,7 +114,7 @@ export default async function HomePage({
             itemsLoadedMany: dict.common.itemsLoadedMany,
           }}
         />
-      </MiddleSection>
+      </section>
     </div>
   );
 }

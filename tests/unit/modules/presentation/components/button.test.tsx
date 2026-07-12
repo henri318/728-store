@@ -1,6 +1,22 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Button } from '@/shared/ui/button';
+import { DictionaryProvider } from '@/shared/i18n/dictionary-context';
+import type { Dictionary } from '@/shared/i18n/dictionary-context';
+
+const mockEsDict = {
+  common: {
+    loading: 'Cargando...',
+    submit: 'Enviar',
+    cancel: 'Cancelar',
+  },
+} as unknown as Dictionary;
+
+function renderWithDictionary(ui: React.ReactNode) {
+  return render(
+    <DictionaryProvider dict={mockEsDict}>{ui}</DictionaryProvider>,
+  );
+}
 
 describe('Button component', () => {
   it('renders with children text', () => {
@@ -20,10 +36,19 @@ describe('Button component', () => {
     expect(screen.getByRole('button')).toBeDisabled();
   });
 
-  it('shows loading text and is disabled when loading', () => {
+  it('shows localized loading text and is disabled when loading', () => {
+    // Without DictionaryProvider, falls back to Spanish (es.json default)
     render(<Button loading>Submit</Button>);
     const btn = screen.getByRole('button');
-    expect(btn).toHaveTextContent('Loading...');
+    expect(btn).toHaveTextContent('Cargando...');
+    expect(btn).toBeDisabled();
+  });
+
+  it('shows localized loading text via i18n dictionary', () => {
+    renderWithDictionary(<Button loading>Submit</Button>);
+    const btn = screen.getByRole('button');
+    expect(btn).toHaveTextContent('Cargando...');
+    expect(btn).not.toHaveTextContent('Loading...');
     expect(btn).toBeDisabled();
   });
 

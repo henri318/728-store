@@ -1,6 +1,7 @@
 'use client';
 
 import type { MouseEvent } from 'react';
+import { useDictionary } from '@/shared/i18n/dictionary-context';
 import styles from './button.module.css';
 
 interface ButtonProps {
@@ -20,6 +21,7 @@ export function Button({
   type = 'submit',
   variant = 'primary',
 }: ButtonProps) {
+  const dict = useDictionary();
   const isDisabled = disabled || loading;
 
   const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
@@ -35,7 +37,7 @@ export function Button({
       data-variant={variant}
       className={`${styles.button} ${styles[variant]}`}
     >
-      {loading ? 'Loading...' : children}
+      {loading ? dict.common.loading : children}
     </button>
   );
 }

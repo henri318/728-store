@@ -210,6 +210,6 @@ describe('CartView — guest cart', () => {
     );
 
     // 10*2 + 25*1 = 45
-    expect(screen.getByText('45.00 €')).toBeTruthy();
+    expect(screen.getByText('45,00 €')).toBeTruthy();
   });
 });
