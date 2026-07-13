@@ -331,16 +331,17 @@ function CustomizationExperienceInner({
             <header className={styles.header}>
               <span className={pageStyles.seller}>{sellerName}</span>
               <h1 className={pageStyles.title}>{productName}</h1>
-              {categoryLink && (
-                <Link
-                  href={`/${locale}?category=${categoryLink.slug}`}
-                  className={styles.categoryLink}
-                >
-                  {labels.categoryLabel}: {categoryLink.name}
-                </Link>
-              )}
               <p className={pageStyles.description}>{productDescription}</p>
             </header>
+
+            {categoryLink && (
+              <Link
+                href={`/${locale}?category=${categoryLink.slug}`}
+                className={styles.categoryLink}
+              >
+                {labels.categoryLabel}: {categoryLink.name}
+              </Link>
+            )}
 
             <ProductShowcaseGallery
               items={publicMedia}

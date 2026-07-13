@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import {
   loadImage,
-  drawCover,
+  drawContain,
   drawDesign,
 } from '@/shared/presentation/canvas-utils';
 
@@ -52,7 +52,7 @@ export function DesignPreview({
       c.fillRect(0, 0, width, height);
 
       if (productImg) {
-        drawCover(c, productImg, width, height);
+        drawContain(c, productImg, width, height);
       }
 
       if (designImg) {

@@ -209,7 +209,10 @@ describe('InfiniteProductList', () => {
       />,
     );
 
-    expect(screen.getByAltText('Mug cover')).toBeInTheDocument();
+    expect(screen.getByAltText('Mug cover')).toHaveAttribute(
+      'crossorigin',
+      'anonymous',
+    );
   });
 
   it('shows a placeholder when a cover is missing', () => {

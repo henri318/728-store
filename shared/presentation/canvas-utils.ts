@@ -8,7 +8,7 @@ export function loadImage(src: string): Promise<HTMLImageElement | null> {
   });
 }
 
-export function drawCover(
+export function drawContain(
   ctx: CanvasRenderingContext2D,
   image: HTMLImageElement,
   width: number,
@@ -20,11 +20,11 @@ export function drawCover(
   let drawHeight: number;
 
   if (ratio > targetRatio) {
-    drawHeight = height;
-    drawWidth = height * ratio;
-  } else {
     drawWidth = width;
     drawHeight = width / ratio;
+  } else {
+    drawHeight = height;
+    drawWidth = height * ratio;
   }
 
   const offsetX = (width - drawWidth) / 2;

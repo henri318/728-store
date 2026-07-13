@@ -218,6 +218,7 @@ export function InfiniteProductList({
                     height={640}
                     unoptimized
                     className={styles.productCoverImage}
+                    crossOrigin="anonymous"
                   />
                 ) : (
                   <div className={styles.productCoverPlaceholder}>

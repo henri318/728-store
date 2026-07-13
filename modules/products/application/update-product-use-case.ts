@@ -107,7 +107,13 @@ function buildTranslations(
       throw new ValidationError('Product locale is required');
     }
 
-    const name = (translation.name ?? dto.name ?? '').trim();
+    const existingTranslation = merged.get(locale);
+    const name = (
+      translation.name ??
+      dto.name ??
+      existingTranslation?.name ??
+      ''
+    ).trim();
 
     if (!name) {
       throw new ValidationError('Product name is required');
@@ -116,14 +122,19 @@ function buildTranslations(
     merged.set(locale, {
       locale,
       name,
-      description: translation.description?.trim() || null,
-      tags: translation.tags ?? [],
-      sizes: translation.sizes ?? [],
+      description:
+        translation.description === undefined
+          ? (existingTranslation?.description ?? null)
+          : translation.description.trim() || null,
+      tags: translation.tags ?? existingTranslation?.tags ?? [],
+      sizes: translation.sizes ?? existingTranslation?.sizes ?? [],
       designChangeDescription:
-        translation.designChangeDescription?.trim() || null,
+        translation.designChangeDescription === undefined
+          ? (existingTranslation?.designChangeDescription ?? null)
+          : translation.designChangeDescription?.trim() || null,
       photoLabels:
         cleanPhotoLabels(translation.photoLabels, product) ??
-        merged.get(locale)?.photoLabels ??
+        existingTranslation?.photoLabels ??
         {},
     });
   }
