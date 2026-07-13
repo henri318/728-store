@@ -252,7 +252,7 @@ export function CartPopup({ labels }: CartPopupProps) {
         <p>{labels.empty}</p>
         <button
           type="button"
-          onClick={() => go(`/${locale}/products`)}
+          onClick={() => go(`/${locale}/`)}
           className={styles.cta}
         >
           {labels.browseProducts}

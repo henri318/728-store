@@ -66,7 +66,7 @@ export default async function AdminSellerProductsPage({
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <div>
+        <div className={styles.headerTop}>
           <BackLink href={`/${locale}/admin/sellers`}>
             {dict.admin.backToSellers}
           </BackLink>

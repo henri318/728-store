@@ -227,7 +227,7 @@ export function CartView({
       <div className={styles.empty}>
         <h2>{labels.emptyTitle}</h2>
         <p>{labels.emptyDescription}</p>
-        <a href={`/${locale}/products`} className={styles.ctaButton}>
+        <a href={`/${locale}/`} className={styles.ctaButton}>
           {labels.browseProducts}
         </a>
       </div>
