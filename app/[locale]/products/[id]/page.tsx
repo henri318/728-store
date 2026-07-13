@@ -140,6 +140,10 @@ export default async function ProductDetailPage({
     mediaPrevious: dict.orders?.previous ?? 'Previous',
     mediaNext: dict.orders?.next ?? 'Next',
     goToEdit: dict.common.goToEdit,
+    unsavedChangesTitle: dict.common.unsavedChangesTitle,
+    unsavedChangesMessage: dict.common.unsavedChangesMessage,
+    unsavedChangesLeave: dict.common.unsavedChangesLeave,
+    unsavedChangesStay: dict.common.unsavedChangesStay,
   } satisfies CustomizationExperienceLabels;
   customizationLabels.customizationDesign = isDesigner
     ? dict.common.customizationDesignDesigner

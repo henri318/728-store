@@ -11,7 +11,6 @@ export interface ProductTranslationDraft {
   tags: string[];
   sizes: string[];
   designChangeDescription: string | null;
-  customizationInstructions?: string | null;
 }
 
 interface ProductTranslationSectionLabels {

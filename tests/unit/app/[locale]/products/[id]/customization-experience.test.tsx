@@ -8,6 +8,8 @@ import {
   type CustomizationExperienceLabels,
 } from '@/app/[locale]/products/[id]/customization-experience';
 
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
+
 const addToCartButtonMock = vi.fn((props: Record<string, unknown>) => (
   <button type="button" data-testid="mock-add-to-cart">
     {String((props as { labels: { addToCart: string } }).labels.addToCart)}

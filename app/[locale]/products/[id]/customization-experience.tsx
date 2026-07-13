@@ -20,6 +20,7 @@ import styles from './customization-experience.module.css';
 import pageStyles from './page.module.css';
 import { RoleAwarePurchaseFooter } from './role-aware-purchase-footer';
 import type { ProductViewerContext } from '@/shared/authorization/product-viewer-context';
+import { useUnsavedChangesGuard } from '@/shared/hooks/use-unsaved-changes-guard';
 
 export interface ProductImageItem {
   url: string;
@@ -78,6 +79,10 @@ export interface CustomizationExperienceLabels {
   mediaPrevious: string;
   mediaNext: string;
   goToEdit: string;
+  unsavedChangesTitle?: string;
+  unsavedChangesMessage?: string;
+  unsavedChangesLeave?: string;
+  unsavedChangesStay?: string;
 }
 
 interface CustomizationExperienceProps {
@@ -114,9 +119,30 @@ function CustomizationExperienceInner({
   productImages,
   publicMedia,
   labels,
+  initialDraft,
   viewerContext,
 }: CustomizationExperienceProps) {
   const { draft, setImage, setDesignPosition } = useCustomizationDraft();
+  const initialDraftSnapshot = {
+    text: initialDraft?.text ?? null,
+    color: initialDraft?.color ?? null,
+    size: initialDraft?.size ?? null,
+    imageUploadId: initialDraft?.imageUploadId ?? null,
+    imageUrl: initialDraft?.imageUrl ?? null,
+    designPosition: initialDraft?.designPosition ?? null,
+    error: null,
+  };
+  const unsavedGuard = useUnsavedChangesGuard(
+    JSON.stringify(draft) !== JSON.stringify(initialDraftSnapshot),
+    {
+      title: labels.unsavedChangesTitle ?? 'Unsaved changes',
+      message:
+        labels.unsavedChangesMessage ??
+        'You have unsaved changes. Leave this page?',
+      leave: labels.unsavedChangesLeave ?? 'Leave',
+      stay: labels.unsavedChangesStay ?? 'Stay',
+    },
+  );
   const customizationModel =
     ProductCustomizationConfig.fromJson(customizationConfig);
   const resolvedCustomizationConfig =
@@ -234,83 +260,86 @@ function CustomizationExperienceInner({
   };
 
   return (
-    <Card as="section" padding="lg" className={styles.card}>
-      <div className={styles.layout} data-testid="purchase-layout">
-        <aside
-          className={styles.presentationColumn}
-          data-testid="purchase-layout-right"
-        >
-          <header className={styles.header}>
-            <span className={pageStyles.seller}>{sellerName}</span>
-            <h1 className={pageStyles.title}>{productName}</h1>
-            <p className={pageStyles.description}>{productDescription}</p>
-          </header>
+    <>
+      {unsavedGuard}
+      <Card as="section" padding="lg" className={styles.card}>
+        <div className={styles.layout} data-testid="purchase-layout">
+          <aside
+            className={styles.presentationColumn}
+            data-testid="purchase-layout-right"
+          >
+            <header className={styles.header}>
+              <span className={pageStyles.seller}>{sellerName}</span>
+              <h1 className={pageStyles.title}>{productName}</h1>
+              <p className={pageStyles.description}>{productDescription}</p>
+            </header>
 
-          <ProductShowcaseGallery
-            items={publicMedia}
-            labels={{
-              previous: labels.mediaPrevious,
-              next: labels.mediaNext,
-            }}
-          />
-        </aside>
-
-        <section
-          className={styles.purchaseColumn}
-          data-testid="purchase-layout-left"
-        >
-          <div className={styles.formCol}>
-            <CustomizationForm
-              customizationConfig={resolvedCustomizationConfig}
-              sizes={sizes}
-              productImages={customizableBaseImages}
-              labels={formLabels}
-              helpText={designChangeDescription}
-            />
-          </div>
-
-          <div className={styles.canvasCol} data-testid="mockup-canvas">
-            {isAllowsPhoto && previewBaseImageUrl && (
-              <MockupCanvasControl
-                productImageUrl={activeProductImageUrl}
-                initialDesignUrl={draft.imageUrl}
-                initialPosition={draft.designPosition}
-                labels={mockupLabels}
-                onUpload={uploadDesign}
-                onPositionChange={setDesignPosition}
-              />
-            )}
-          </div>
-
-          <footer className={styles.footer}>
-            <p className={styles.price}>{formattedPrice}</p>
-            <RoleAwarePurchaseFooter
-              viewerContext={viewerContext ?? anonymousViewerContext}
-              editLabel={labels.goToEdit}
-              cart={{
-                productId,
-                productName,
-                sellerId,
-                sellerName,
-                price,
-                imageUrl: activeProductImageUrl,
-                customizationAvailable: !customizationModel.isDefault(),
-                customizeHref: '#customization-form',
-                labels: cartLabels,
-                customization: {
-                  text: draft.text,
-                  color: draft.color,
-                  size: draft.size,
-                  imageUploadId: draft.imageUploadId,
-                  imageUrl: draft.imageUrl,
-                  designPosition: draft.designPosition,
-                },
+            <ProductShowcaseGallery
+              items={publicMedia}
+              labels={{
+                previous: labels.mediaPrevious,
+                next: labels.mediaNext,
               }}
             />
-          </footer>
-        </section>
-      </div>
-    </Card>
+          </aside>
+
+          <section
+            className={styles.purchaseColumn}
+            data-testid="purchase-layout-left"
+          >
+            <div className={styles.formCol}>
+              <CustomizationForm
+                customizationConfig={resolvedCustomizationConfig}
+                sizes={sizes}
+                productImages={customizableBaseImages}
+                labels={formLabels}
+                helpText={designChangeDescription}
+              />
+            </div>
+
+            <div className={styles.canvasCol} data-testid="mockup-canvas">
+              {isAllowsPhoto && previewBaseImageUrl && (
+                <MockupCanvasControl
+                  productImageUrl={activeProductImageUrl}
+                  initialDesignUrl={draft.imageUrl}
+                  initialPosition={draft.designPosition}
+                  labels={mockupLabels}
+                  onUpload={uploadDesign}
+                  onPositionChange={setDesignPosition}
+                />
+              )}
+            </div>
+
+            <footer className={styles.footer}>
+              <p className={styles.price}>{formattedPrice}</p>
+              <RoleAwarePurchaseFooter
+                viewerContext={viewerContext ?? anonymousViewerContext}
+                editLabel={labels.goToEdit}
+                cart={{
+                  productId,
+                  productName,
+                  sellerId,
+                  sellerName,
+                  price,
+                  imageUrl: activeProductImageUrl,
+                  customizationAvailable: !customizationModel.isDefault(),
+                  customizeHref: '#customization-form',
+                  labels: cartLabels,
+                  customization: {
+                    text: draft.text,
+                    color: draft.color,
+                    size: draft.size,
+                    imageUploadId: draft.imageUploadId,
+                    imageUrl: draft.imageUrl,
+                    designPosition: draft.designPosition,
+                  },
+                }}
+              />
+            </footer>
+          </section>
+        </div>
+      </Card>
+    </>
   );
 }
 

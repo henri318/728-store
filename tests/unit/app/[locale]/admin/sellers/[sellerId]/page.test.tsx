@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 const fetchMock = vi.fn();
-
 const mocks = vi.hoisted(() => {
   const assertRoleMock = vi.fn(async () => {});
   const getDictionaryMock = vi.fn();
@@ -24,6 +23,7 @@ const mocks = vi.hoisted(() => {
 });
 
 vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
   redirect: mocks.redirectMock,
   notFound: mocks.notFoundMock,
 }));
