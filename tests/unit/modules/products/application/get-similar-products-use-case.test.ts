@@ -5,6 +5,7 @@ import { ProductPrice } from '@/modules/products/domain/value-objects/product-pr
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
 import type { TagEntity } from '@/modules/products/domain/entities/tag';
+import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
 
 function makeTag(id: string, name: string, slug: string): TagEntity {
   return { id, name, slug, createdAt: new Date() };
@@ -505,13 +506,11 @@ describe('GetSimilarProductsUseCase', () => {
             url: '/cover.png',
             alt: 'Cover',
             mimeType: 'image/png',
-            purpose: 'COVER' as const,
+            purpose: ProductImagePurpose.COVER,
             position: 0,
-            storageKey: null,
-            width: null,
-            height: null,
-            size: null,
             posterUrl: null,
+            productId: 'source',
+            createdAt: new Date(),
           },
         ],
         tags: [tagSummer],
@@ -542,13 +541,11 @@ describe('GetSimilarProductsUseCase', () => {
             url: '/p1-cover.png',
             alt: 'P1 Cover',
             mimeType: 'image/png',
-            purpose: 'COVER' as const,
+            purpose: ProductImagePurpose.COVER,
             position: 0,
-            storageKey: null,
-            width: null,
-            height: null,
-            size: null,
             posterUrl: null,
+            productId: 'p1',
+            createdAt: new Date(),
           },
         ],
         tags: [tagSummer],
