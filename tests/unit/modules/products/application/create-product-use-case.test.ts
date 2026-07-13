@@ -141,6 +141,30 @@ describe('CreateProductUseCase', () => {
     );
   });
 
+  it('preserves photo labels and defaults absent labels to an empty map', async () => {
+    const repo = new MemoryProductRepository();
+    const useCase = new CreateProductUseCase(repo);
+    const result = await useCase.execute({
+      sellerId: 'seller-1',
+      sellerName: 'Test Shop',
+      price: 10,
+      translations: [
+        { locale: 'es', name: 'Producto', photoLabels: { 'img-1': 'Frontal' } },
+        { locale: 'cat', name: 'Producte' },
+      ],
+    });
+    const saved = await repo.findById(result.id, 'es');
+    expect(saved?.translations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          locale: 'es',
+          photoLabels: { 'img-1': 'Frontal' },
+        }),
+        expect.objectContaining({ locale: 'cat', photoLabels: {} }),
+      ]),
+    );
+  });
+
   it('rejects missing product name', async () => {
     const repo = new MemoryProductRepository();
     const useCase = new CreateProductUseCase(repo);

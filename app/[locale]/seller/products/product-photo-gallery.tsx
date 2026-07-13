@@ -47,6 +47,7 @@ interface ProductPhotoBucketGalleryProps {
   labels: ProductPhotoBucketGalleryLabels;
   commonLabels: ProductPhotoCommonLabels;
   photos: ProductPhotoDraft[];
+  localizedPhotoLabels?: Readonly<Record<string, string>>;
   selectedPhotoId: string | null;
   accept: string;
   onFilesSelected: (files: File[]) => Promise<void>;
@@ -65,6 +66,7 @@ export function ProductPhotoBucketGallery({
   labels,
   commonLabels,
   photos,
+  localizedPhotoLabels,
   selectedPhotoId,
   accept,
   onFilesSelected,
@@ -157,7 +159,11 @@ export function ProductPhotoBucketGallery({
                   <span>{commonLabels.photoDisplayNameLabel}</span>
                   <input
                     className={styles.input}
-                    value={photo.alt}
+                    value={
+                      localizedPhotoLabels
+                        ? (localizedPhotoLabels[photo.id] ?? '')
+                        : photo.alt
+                    }
                     placeholder={commonLabels.photoDisplayNamePlaceholder}
                     required
                     onChange={(event) =>

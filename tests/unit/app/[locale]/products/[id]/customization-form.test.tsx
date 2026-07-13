@@ -147,6 +147,35 @@ describe('CustomizationForm', () => {
     ).toBeTruthy();
   });
 
+  it('uses a localized style label when available and falls back to the shared alt', () => {
+    render(
+      <CustomizationDraftProvider validationLabels={validationLabels}>
+        <CustomizationForm
+          customizationConfig={ProductCustomizationConfig.default().toJson()}
+          productImages={[
+            {
+              url: '/red.png',
+              alt: 'Red',
+              label: 'Rojo',
+              purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+            },
+            {
+              url: '/blue.png',
+              alt: 'Blue',
+              purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+            },
+          ]}
+          labels={labels}
+        />
+      </CustomizationDraftProvider>,
+    );
+
+    expect(screen.getByText('Rojo')).toBeInTheDocument();
+    expect(screen.getByText('Blue')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Red' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Blue' })).toBeInTheDocument();
+  });
+
   it('renders custom size options from the config', () => {
     const config = ProductCustomizationConfig.fromJson({
       mode: 'text_photo',

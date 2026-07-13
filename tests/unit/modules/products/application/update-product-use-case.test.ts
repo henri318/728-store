@@ -176,6 +176,58 @@ describe('UpdateProductUseCase', () => {
     );
   });
 
+  it('cleans stale photo label keys and preserves omitted locale labels', async () => {
+    const repo = new MemoryProductRepository();
+    repo.seed([
+      makeProduct({
+        translations: [
+          {
+            locale: 'es',
+            name: 'Taza',
+            description: null,
+            photoLabels: { 'img-1': 'Uno', old: 'Borrar' },
+          },
+          {
+            locale: 'cat',
+            name: 'Tassa',
+            description: null,
+            photoLabels: { 'img-1': 'Un' },
+          },
+        ],
+        images: [
+          {
+            id: 'img-1',
+            url: 'image',
+            alt: 'Image',
+            position: 0,
+            purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+            mimeType: 'image/png',
+            posterUrl: null,
+            productId: 'p-1',
+            createdAt: new Date('2025-01-01'),
+          },
+        ],
+      }),
+    ]);
+    const result = await new UpdateProductUseCase(repo).execute({
+      productId: 'p-1',
+      sellerId: 'seller-1',
+      translations: [
+        {
+          locale: 'es',
+          name: 'Taza',
+          photoLabels: { 'img-1': 'Nuevo', old: 'No' },
+        },
+      ],
+    });
+    expect(
+      result.translations.find((t) => t.locale === 'es')?.photoLabels,
+    ).toEqual({ 'img-1': 'Nuevo' });
+    expect(
+      result.translations.find((t) => t.locale === 'cat')?.photoLabels,
+    ).toEqual({ 'img-1': 'Un' });
+  });
+
   it('rejects missing products', async () => {
     const repo = new MemoryProductRepository();
     const useCase = new UpdateProductUseCase(repo);

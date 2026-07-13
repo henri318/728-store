@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useUnsavedChangesGuard } from '@/shared/hooks/use-unsaved-changes-guard';
 import { type ZodError } from 'zod';
 import { Button } from '@/shared/ui/button';
 import { BackLink } from '@/shared/ui/back-link';
@@ -47,6 +48,7 @@ interface CategoryOption {
 }
 
 interface ProductFormImageSeed {
+  id?: string;
   url: string;
   alt: string | null;
   purpose?: ProductImagePurpose;
@@ -209,7 +211,7 @@ function createPhotoDraft(
   purpose: ProductImagePurpose,
 ): ProductPhotoDraft {
   return {
-    id: createPhotoId(),
+    id: seed.id ?? createPhotoId(),
     url: seed.url,
     alt: normalizePhotoName(seed.alt ?? '', fallbackName),
     size: null,
@@ -310,6 +312,7 @@ function createTranslationDraft(
     tags: [],
     sizes: [],
     designChangeDescription: null,
+    photoLabels: {},
   };
 }
 
@@ -324,7 +327,58 @@ function normalizeTranslationDraft(
     tags: [...(draft?.tags ?? [])],
     sizes: [...(draft?.sizes ?? [])],
     designChangeDescription: draft?.designChangeDescription ?? null,
+    photoLabels: clonePhotoLabels(draft?.photoLabels),
   };
+}
+
+function clonePhotoLabels(labels?: Record<string, string>) {
+  return labels ? { ...labels } : {};
+}
+
+function cleanPhotoLabels(
+  labels: Record<string, string> | undefined,
+  photoIds: ReadonlySet<string>,
+) {
+  return Object.fromEntries(
+    Object.entries(labels ?? {}).filter(([photoId]) => photoIds.has(photoId)),
+  );
+}
+
+function photoIdsFor(images: ProductPhotoBucketsState) {
+  return new Set(images.customizableBase.map((photo) => photo.id));
+}
+
+function addPhotoLabels(
+  translations: TranslationMap,
+  photoIds: readonly string[],
+): TranslationMap {
+  if (photoIds.length === 0) return translations;
+
+  return Object.fromEntries(
+    Object.entries(translations).map(([locale, translation]) => [
+      locale,
+      {
+        ...translation,
+        photoLabels: {
+          ...translation.photoLabels,
+          ...Object.fromEntries(photoIds.map((photoId) => [photoId, ''])),
+        },
+      },
+    ]),
+  ) as TranslationMap;
+}
+
+function removePhotoLabels(
+  translations: TranslationMap,
+  photoId: string,
+): TranslationMap {
+  return Object.fromEntries(
+    Object.entries(translations).map(([locale, translation]) => {
+      const photoLabels = { ...translation.photoLabels };
+      delete photoLabels[photoId];
+      return [locale, { ...translation, photoLabels }];
+    }),
+  ) as TranslationMap;
 }
 
 function hasInactiveTranslationContent(
@@ -383,6 +437,7 @@ function buildTranslationMap(
     sizes: initialValues.translation?.sizes ?? [],
     designChangeDescription:
       initialValues.translation?.designChangeDescription ?? null,
+    photoLabels: initialValues.translation?.photoLabels ?? {},
   });
 
   base[locale] = active;
@@ -399,13 +454,13 @@ function buildPayload(locale: SupportedLocale, form: FormState) {
   const currentDesignChangeDescription =
     current.designChangeDescription?.trim() ?? '';
 
+  const photoIds = photoIdsFor(form.images);
   const translations = Object.values(form.translations)
     .map((translation) => {
       const name = translation.name.trim();
       const description = translation.description.trim();
       const designChangeDescription =
         translation.designChangeDescription?.trim() ?? '';
-
       return {
         locale: translation.locale,
         name,
@@ -414,6 +469,7 @@ function buildPayload(locale: SupportedLocale, form: FormState) {
         sizes: [...translation.sizes],
         designChangeDescription:
           designChangeDescription.length > 0 ? designChangeDescription : null,
+        photoLabels: cleanPhotoLabels(translation.photoLabels, photoIds),
       };
     })
     .filter(
@@ -422,7 +478,8 @@ function buildPayload(locale: SupportedLocale, form: FormState) {
         translation.description !== undefined ||
         translation.tags.length > 0 ||
         translation.sizes.length > 0 ||
-        translation.designChangeDescription !== null,
+        translation.designChangeDescription !== null ||
+        Object.keys(translation.photoLabels ?? {}).length > 0,
     );
 
   const images = [
@@ -443,6 +500,7 @@ function buildPayload(locale: SupportedLocale, form: FormState) {
       position: index,
     })),
   ].map((image) => ({
+    id: image.id,
     url: image.url,
     alt: image.alt.trim(),
     position: image.position,
@@ -463,6 +521,7 @@ function buildPayload(locale: SupportedLocale, form: FormState) {
         currentDesignChangeDescription.length > 0
           ? currentDesignChangeDescription
           : null,
+      photoLabels: cleanPhotoLabels(current.photoLabels, photoIds),
     },
     translations,
     customizationConfig,
@@ -551,11 +610,26 @@ export function ProductForm({
   const initialLocale = normalizeLocale(locale);
   const [form, setForm] = useState<FormState>(() => {
     const images = normalizeInitialImages(labels, initialValues.images);
+    const validPhotoIds = photoIdsFor(images);
+    const translations = Object.fromEntries(
+      Object.entries(buildTranslationMap(initialLocale, initialValues)).map(
+        ([translationLocale, translation]) => [
+          translationLocale,
+          {
+            ...translation,
+            photoLabels: cleanPhotoLabels(
+              translation.photoLabels,
+              validPhotoIds,
+            ),
+          },
+        ],
+      ),
+    ) as TranslationMap;
 
     return {
       price: String(initialValues.price),
       activeLocale: initialLocale,
-      translations: buildTranslationMap(initialLocale, initialValues),
+      translations,
       customizationConfig: initialValues.customizationConfig,
       images,
       selectedPhotoId:
@@ -571,6 +645,29 @@ export function ProductForm({
   const [saved, setSaved] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
+  const initialFormSnapshot = useMemo(
+    () =>
+      JSON.stringify({
+        price: String(initialValues.price),
+        translations: buildTranslationMap(initialLocale, initialValues),
+        customizationConfig: initialValues.customizationConfig,
+      }),
+    [initialLocale, initialValues],
+  );
+  const unsavedGuard = useUnsavedChangesGuard(
+    mode === 'edit' &&
+      JSON.stringify({
+        price: form.price,
+        translations: form.translations,
+        customizationConfig: form.customizationConfig,
+      }) !== initialFormSnapshot,
+    labels.unsavedChanges ?? {
+      title: 'Unsaved changes',
+      message: 'You have unsaved changes. Leave this page?',
+      leave: 'Leave',
+      stay: 'Stay',
+    },
+  );
   const photoLabels = labels.gallery;
 
   const endpoint = useMemo(
@@ -635,12 +732,32 @@ export function ProductForm({
     }));
   };
 
+  const updatePhotoLabel = (photoId: string, label: string) => {
+    setForm((current) => ({
+      ...current,
+      translations: {
+        ...current.translations,
+        [current.activeLocale]: {
+          ...current.translations[current.activeLocale],
+          photoLabels: {
+            ...current.translations[current.activeLocale].photoLabels,
+            [photoId]: label,
+          },
+        },
+      },
+    }));
+  };
+
   const removePhoto = (
     bucket: keyof ProductPhotoBucketsState,
     photoId: string,
   ) => {
     setForm((current) => {
       const nextImages = removeBucketPhoto(current.images, bucket, photoId);
+      const nextTranslations =
+        bucket === 'customizableBase'
+          ? removePhotoLabels(current.translations, photoId)
+          : current.translations;
       const nextSelected =
         current.selectedPhotoId === photoId
           ? (nextImages.cover?.id ??
@@ -652,6 +769,7 @@ export function ProductForm({
       return {
         ...current,
         images: nextImages,
+        translations: nextTranslations,
         selectedPhotoId: nextSelected,
       };
     });
@@ -714,6 +832,13 @@ export function ProductForm({
         return {
           ...current,
           images: nextImages,
+          translations:
+            bucket === 'customizableBase'
+              ? addPhotoLabels(
+                  current.translations,
+                  uploads.map((photo) => photo.id),
+                )
+              : current.translations,
           selectedPhotoId:
             bucket === 'cover'
               ? (uploads[0]?.id ?? current.selectedPhotoId ?? null)
@@ -799,168 +924,176 @@ export function ProductForm({
   };
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
-      <BackLink href={`/${locale}/seller/products`}>
-        {labels.backToProducts}
-      </BackLink>
+    <>
+      {unsavedGuard}
+      <form className={styles.form} onSubmit={handleSubmit}>
+        <BackLink href={`/${locale}/seller/products`}>
+          {labels.backToProducts}
+        </BackLink>
 
-      <div className={styles.content}>
-        <header className={styles.header}>
-          <div>
-            <p className={styles.kicker}>{labels.customization.label}</p>
-            <h1 className={styles.title}>{labels.title}</h1>
-            <p className={styles.subtitle}>{labels.customization.hint}</p>
-          </div>
-        </header>
+        <div className={styles.content}>
+          <header className={styles.header}>
+            <div>
+              <p className={styles.kicker}>{labels.customization.label}</p>
+              <h1 className={styles.title}>{labels.title}</h1>
+              <p className={styles.subtitle}>{labels.customization.hint}</p>
+            </div>
+          </header>
 
-        {serverError ? (
-          <p className={styles.alert} role="alert">
-            {serverError}
-          </p>
-        ) : null}
-        {saved ? (
-          <p className={styles.success} role="status">
-            {saved}
-          </p>
-        ) : null}
+          {serverError ? (
+            <p className={styles.alert} role="alert">
+              {serverError}
+            </p>
+          ) : null}
+          {saved ? (
+            <p className={styles.success} role="status">
+              {saved}
+            </p>
+          ) : null}
 
-        <Card padding="md">
-          <div className={styles.formBody}>
-            <ProductLocaleTabs
-              value={form.activeLocale}
-              onChange={updateLocale}
-              labels={labels.localeTabs}
-            />
-
-            <ProductTranslationSection
-              locale={form.activeLocale}
-              value={form.translations[form.activeLocale]}
-              onChange={updateTranslation}
-              labels={labels.translationSection}
-              errors={{ name: errors.name, description: errors.description }}
-            />
-          </div>
-
-          <hr className={styles.divider} />
-
-          <div className={styles.formBody}>
-            <PriceField
-              label={labels.priceLabel}
-              value={form.price}
-              onChange={(v) => updateField('price', v)}
-              error={errors.price}
-              required
-            />
-
-            {errors.images ? (
-              <p className={styles.alert} role="alert">
-                {errors.images}
-              </p>
-            ) : null}
-
-            {photoError ? (
-              <p className={styles.error} role="alert">
-                {photoError}
-              </p>
-            ) : null}
-
-            <div className={styles['gallery-stack']}>
-              <ProductPhotoBucketGallery
-                mode="single"
-                labels={photoLabels.buckets.cover}
-                commonLabels={photoLabels}
-                photos={form.images.cover ? [form.images.cover] : []}
-                selectedPhotoId={form.selectedPhotoId}
-                accept="image/png,image/jpeg,image/webp"
-                onFilesSelected={(files) => handleUpload('cover', files)}
-                onPhotoLabelChange={(photoId, alt) =>
-                  updatePhoto('cover', photoId, { alt })
-                }
-                onSelectPhoto={selectPhoto}
-                onRemovePhoto={(photoId) => removePhoto('cover', photoId)}
-                uploading={uploading}
-                error={null}
+          <Card padding="md">
+            <div className={styles.formBody}>
+              <ProductLocaleTabs
+                value={form.activeLocale}
+                onChange={updateLocale}
+                labels={labels.localeTabs}
               />
 
-              <ProductPhotoBucketGallery
-                mode="multiple"
-                labels={photoLabels.buckets.showcase}
-                commonLabels={photoLabels}
-                photos={form.images.showcase}
-                selectedPhotoId={form.selectedPhotoId}
-                accept="image/png,image/jpeg,image/webp,video/mp4,video/webm"
-                onFilesSelected={(files) => handleUpload('showcase', files)}
-                onPhotoLabelChange={(photoId, alt) =>
-                  updatePhoto('showcase', photoId, { alt })
-                }
-                onSelectPhoto={selectPhoto}
-                onRemovePhoto={(photoId) => removePhoto('showcase', photoId)}
-                onMovePhotoUp={(photoId) => movePhoto('showcase', photoId, -1)}
-                onMovePhotoDown={(photoId) => movePhoto('showcase', photoId, 1)}
-                onPosterUrlChange={(photoId, posterUrl) =>
-                  updatePhoto('showcase', photoId, {
-                    posterUrl:
-                      posterUrl.trim().length > 0 ? posterUrl.trim() : null,
-                  })
-                }
-                uploading={uploading}
-                error={null}
-              />
-
-              <ProductPhotoBucketGallery
-                mode="multiple"
-                labels={photoLabels.buckets.customizableBase}
-                commonLabels={photoLabels}
-                photos={form.images.customizableBase}
-                selectedPhotoId={form.selectedPhotoId}
-                accept="image/png,image/jpeg,image/webp"
-                onFilesSelected={(files) =>
-                  handleUpload('customizableBase', files)
-                }
-                onPhotoLabelChange={(photoId, alt) =>
-                  updatePhoto('customizableBase', photoId, { alt })
-                }
-                onSelectPhoto={selectPhoto}
-                onRemovePhoto={(photoId) =>
-                  removePhoto('customizableBase', photoId)
-                }
-                onMovePhotoUp={(photoId) =>
-                  movePhoto('customizableBase', photoId, -1)
-                }
-                onMovePhotoDown={(photoId) =>
-                  movePhoto('customizableBase', photoId, 1)
-                }
-                uploading={uploading}
-                error={null}
+              <ProductTranslationSection
+                locale={form.activeLocale}
+                value={form.translations[form.activeLocale]}
+                onChange={updateTranslation}
+                labels={labels.translationSection}
+                errors={{ name: errors.name, description: errors.description }}
               />
             </div>
-          </div>
 
-          <hr className={styles.divider} />
+            <hr className={styles.divider} />
 
-          <div className={styles.formBody}>
-            <ProductCustomizationConfigEditor
-              value={form.customizationConfig}
-              labels={labels.customization.editor}
-              categories={categories}
-              onChange={(value) => updateField('customizationConfig', value)}
-            />
+            <div className={styles.formBody}>
+              <PriceField
+                label={labels.priceLabel}
+                value={form.price}
+                onChange={(v) => updateField('price', v)}
+                error={errors.price}
+                required
+              />
 
-            {errors.customizationConfig ? (
-              <p className={styles.alert} role="alert">
-                {errors.customizationConfig}
-              </p>
-            ) : null}
-          </div>
+              {errors.images ? (
+                <p className={styles.alert} role="alert">
+                  {errors.images}
+                </p>
+              ) : null}
 
-          <div className={styles.buttonRow}>
-            <Button type="submit" loading={loading || uploading}>
-              {labels.submit}
-            </Button>
-          </div>
-        </Card>
-      </div>
-    </form>
+              {photoError ? (
+                <p className={styles.error} role="alert">
+                  {photoError}
+                </p>
+              ) : null}
+
+              <div className={styles['gallery-stack']}>
+                <ProductPhotoBucketGallery
+                  mode="single"
+                  labels={photoLabels.buckets.cover}
+                  commonLabels={photoLabels}
+                  photos={form.images.cover ? [form.images.cover] : []}
+                  selectedPhotoId={form.selectedPhotoId}
+                  accept="image/png,image/jpeg,image/webp"
+                  onFilesSelected={(files) => handleUpload('cover', files)}
+                  onPhotoLabelChange={(photoId, alt) =>
+                    updatePhoto('cover', photoId, { alt })
+                  }
+                  onSelectPhoto={selectPhoto}
+                  onRemovePhoto={(photoId) => removePhoto('cover', photoId)}
+                  uploading={uploading}
+                  error={null}
+                />
+
+                <ProductPhotoBucketGallery
+                  mode="multiple"
+                  labels={photoLabels.buckets.showcase}
+                  commonLabels={photoLabels}
+                  photos={form.images.showcase}
+                  selectedPhotoId={form.selectedPhotoId}
+                  accept="image/png,image/jpeg,image/webp,video/mp4,video/webm"
+                  onFilesSelected={(files) => handleUpload('showcase', files)}
+                  onPhotoLabelChange={(photoId, alt) =>
+                    updatePhoto('showcase', photoId, { alt })
+                  }
+                  onSelectPhoto={selectPhoto}
+                  onRemovePhoto={(photoId) => removePhoto('showcase', photoId)}
+                  onMovePhotoUp={(photoId) =>
+                    movePhoto('showcase', photoId, -1)
+                  }
+                  onMovePhotoDown={(photoId) =>
+                    movePhoto('showcase', photoId, 1)
+                  }
+                  onPosterUrlChange={(photoId, posterUrl) =>
+                    updatePhoto('showcase', photoId, {
+                      posterUrl:
+                        posterUrl.trim().length > 0 ? posterUrl.trim() : null,
+                    })
+                  }
+                  uploading={uploading}
+                  error={null}
+                />
+
+                <ProductPhotoBucketGallery
+                  mode="multiple"
+                  labels={photoLabels.buckets.customizableBase}
+                  commonLabels={photoLabels}
+                  photos={form.images.customizableBase}
+                  localizedPhotoLabels={
+                    form.translations[form.activeLocale].photoLabels
+                  }
+                  selectedPhotoId={form.selectedPhotoId}
+                  accept="image/png,image/jpeg,image/webp"
+                  onFilesSelected={(files) =>
+                    handleUpload('customizableBase', files)
+                  }
+                  onPhotoLabelChange={updatePhotoLabel}
+                  onSelectPhoto={selectPhoto}
+                  onRemovePhoto={(photoId) =>
+                    removePhoto('customizableBase', photoId)
+                  }
+                  onMovePhotoUp={(photoId) =>
+                    movePhoto('customizableBase', photoId, -1)
+                  }
+                  onMovePhotoDown={(photoId) =>
+                    movePhoto('customizableBase', photoId, 1)
+                  }
+                  uploading={uploading}
+                  error={null}
+                />
+              </div>
+            </div>
+
+            <hr className={styles.divider} />
+
+            <div className={styles.formBody}>
+              <ProductCustomizationConfigEditor
+                value={form.customizationConfig}
+                labels={labels.customization.editor}
+                categories={categories}
+                onChange={(value) => updateField('customizationConfig', value)}
+              />
+
+              {errors.customizationConfig ? (
+                <p className={styles.alert} role="alert">
+                  {errors.customizationConfig}
+                </p>
+              ) : null}
+            </div>
+
+            <div className={styles.buttonRow}>
+              <Button type="submit" loading={loading || uploading}>
+                {labels.submit}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </form>
+    </>
   );
 }
 

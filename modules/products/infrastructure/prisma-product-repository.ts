@@ -1,5 +1,5 @@
 import { prisma } from '@/shared/infrastructure/prisma';
-import type { PrismaClient } from '@prisma/client';
+import { Prisma, type PrismaClient } from '@prisma/client';
 import type { PaginatedResult } from '@/shared/kernel/domain/value-objects/pagination';
 import {
   ProductEntity,
@@ -270,6 +270,7 @@ export class PrismaProductRepository implements ProductRepository {
             sizes: [...(translation.sizes ?? [])],
             designChangeDescription:
               translation.designChangeDescription ?? null,
+            photoLabels: translation.photoLabels ?? Prisma.JsonNull,
           })),
         },
         images: {
@@ -323,6 +324,7 @@ export class PrismaProductRepository implements ProductRepository {
             sizes: [...(translation.sizes ?? [])],
             designChangeDescription:
               translation.designChangeDescription ?? null,
+            photoLabels: translation.photoLabels ?? Prisma.JsonNull,
           },
           update: {
             name: translation.name,
@@ -331,6 +333,7 @@ export class PrismaProductRepository implements ProductRepository {
             sizes: [...(translation.sizes ?? [])],
             designChangeDescription:
               translation.designChangeDescription ?? null,
+            photoLabels: translation.photoLabels ?? Prisma.JsonNull,
           },
         });
       }

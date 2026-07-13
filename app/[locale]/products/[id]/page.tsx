@@ -152,6 +152,10 @@ export default async function ProductDetailPage({
     mediaPrevious: dict.orders?.previous ?? 'Previous',
     mediaNext: dict.orders?.next ?? 'Next',
     goToEdit: dict.common.goToEdit,
+    unsavedChangesTitle: dict.common.unsavedChangesTitle,
+    unsavedChangesMessage: dict.common.unsavedChangesMessage,
+    unsavedChangesLeave: dict.common.unsavedChangesLeave,
+    unsavedChangesStay: dict.common.unsavedChangesStay,
   } satisfies CustomizationExperienceLabels;
   customizationLabels.customizationDesign = isDesigner
     ? dict.common.customizationDesignDesigner
@@ -180,6 +184,7 @@ export default async function ProductDetailPage({
     })),
   ];
   const customizableBaseImages = view.customizableBase.map((image) => ({
+    id: image.id,
     url: image.url,
     alt: image.alt ?? product.displayName,
     purpose: image.purpose,
@@ -194,6 +199,8 @@ export default async function ProductDetailPage({
       <div className={styles.detailLayout}>
         <CustomizationExperience
           productId={product.id}
+          locale={locale}
+          translations={product.translations}
           productName={product.displayName}
           productDescription={product.displayDescription}
           designChangeDescription={

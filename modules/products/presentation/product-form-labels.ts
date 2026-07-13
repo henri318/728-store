@@ -7,6 +7,12 @@ export interface ProductFormLabels {
   submit: string;
   saved: string;
   error: string;
+  unsavedChanges?: {
+    title: string;
+    message: string;
+    leave: string;
+    stay: string;
+  };
   missingTranslationNameError: string;
   localeTabs: {
     es: string;
@@ -107,6 +113,12 @@ export function getProductFormLabels(
       : sd.editProductSubmit) as string,
     saved: sd.productSaved as string,
     error: sd.productFormError as string,
+    unsavedChanges: {
+      title: dict.common.unsavedChangesTitle,
+      message: dict.common.unsavedChangesMessage,
+      leave: dict.common.unsavedChangesLeave,
+      stay: dict.common.unsavedChangesStay,
+    },
     missingTranslationNameError:
       sd.productMissingTranslationNameError as string,
     localeTabs: {

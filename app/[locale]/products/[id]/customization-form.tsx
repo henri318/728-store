@@ -105,7 +105,7 @@ export function CustomizationForm({
                     e.preventDefault();
                     setColor(img.alt);
                   }}
-                  title={img.alt}
+                  title={img.label || undefined}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -113,7 +113,9 @@ export function CustomizationForm({
                     alt={img.alt}
                     className={formStyles.colorThumb}
                   />
-                  <span className={formStyles.colorAlt}>{img.alt}</span>
+                  <span className={formStyles.colorAlt}>
+                    {img.label || img.alt}
+                  </span>
                 </div>
               );
             })}

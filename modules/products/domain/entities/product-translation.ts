@@ -5,6 +5,23 @@ export interface ProductTranslationEntity {
   tags?: readonly string[];
   sizes?: readonly string[];
   designChangeDescription?: string | null;
+  photoLabels?: Readonly<Record<string, string>>;
+}
+
+export function resolvePhotoLabel(
+  translations: readonly ProductTranslationEntity[],
+  photoId: string,
+  locale: string,
+): string {
+  const active = translations.find(
+    (translation) => translation.locale === locale,
+  );
+  const neutral = translations.find(
+    (translation) => translation.locale === 'es',
+  );
+  return (
+    active?.photoLabels?.[photoId] ?? neutral?.photoLabels?.[photoId] ?? ''
+  );
 }
 
 export function resolveDisplay(
@@ -44,5 +61,6 @@ function normalizeTranslation(
     tags: translation.tags ?? [],
     sizes: translation.sizes ?? [],
     designChangeDescription: translation.designChangeDescription ?? null,
+    photoLabels: translation.photoLabels ?? {},
   };
 }

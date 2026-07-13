@@ -25,6 +25,12 @@ export const productTranslationInputSchema = z
     tags: z.array(z.string().trim().min(1)).max(20).default([]),
     sizes: z.array(z.string().trim().min(1)).max(20).default([]),
     designChangeDescription: z.string().trim().max(2000).nullable().optional(),
+    photoLabels: z
+      .record(z.string(), z.string().trim().max(200))
+      .refine((labels) => Object.keys(labels).length <= 50, {
+        message: 'A maximum of 50 photo labels is allowed',
+      })
+      .optional(),
   })
   .strict();
 
@@ -33,6 +39,7 @@ export const productTranslationSchema = z
     tags: z.array(z.string().min(1)).max(20).nullable().optional(),
     sizes: z.array(z.string().min(1)).nullable().optional(),
     designChangeDescription: z.string().max(2000).nullable().optional(),
+    photoLabels: z.record(z.string(), z.string().max(200)).optional(),
   })
   .strip();
 
@@ -50,6 +57,7 @@ export const productCustomizationConfigSchema = z
 
 export const productImageSchema = z
   .object({
+    id: z.string().min(1).optional(),
     url: z.string().trim().min(1),
     alt: z.string().trim().min(1),
     position: z.number().int().nonnegative(),

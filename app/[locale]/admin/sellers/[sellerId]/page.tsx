@@ -73,6 +73,12 @@ export default async function AdminSellerDetailPage({
         errorLabel={dict.admin.sellerDetail.error}
         initialName={seller.name}
         initialDescription={seller.description ?? ''}
+        unsavedChangesLabels={{
+          title: dict.common?.unsavedChangesTitle,
+          message: dict.common?.unsavedChangesMessage,
+          leave: dict.common?.unsavedChangesLeave,
+          stay: dict.common?.unsavedChangesStay,
+        }}
       />
     </div>
   );

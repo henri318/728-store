@@ -34,6 +34,7 @@ export interface PrismaTranslationRow {
   tags?: string[] | null;
   sizes?: string[] | null;
   designChangeDescription?: string | null;
+  photoLabels?: import('@prisma/client').Prisma.JsonValue | null;
 }
 
 export interface PrismaProductImageRow {
@@ -176,6 +177,16 @@ export function toDomainProduct(
       tags: t.tags ?? [],
       sizes: t.sizes ?? [],
       designChangeDescription: t.designChangeDescription ?? null,
+      photoLabels:
+        t.photoLabels &&
+        typeof t.photoLabels === 'object' &&
+        !Array.isArray(t.photoLabels)
+          ? (Object.fromEntries(
+              Object.entries(t.photoLabels).filter(
+                ([, value]) => typeof value === 'string',
+              ),
+            ) as Record<string, string>)
+          : {},
     })),
     images: prismaProduct.images.map((img) => toDomainProductImage(img)),
     tags: prismaProduct.tags.map((tag) => toDomainTag(tag)),

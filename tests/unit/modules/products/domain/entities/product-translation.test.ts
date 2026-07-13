@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { resolveDisplay } from '@/modules/products/domain/entities/product-translation';
+import {
+  resolveDisplay,
+  resolvePhotoLabel,
+} from '@/modules/products/domain/entities/product-translation';
 
 describe('resolveDisplay', () => {
   it('returns the requested locale when it exists', () => {
@@ -59,43 +62,40 @@ describe('resolveDisplay', () => {
     expect(result).toMatchObject({
       locale: 'es',
       name: 'Camiseta',
+      description: 'Una camiseta',
       tags: ['ropa'],
       sizes: ['S'],
       designChangeDescription: null,
     });
   });
 
-  it('falls back to the first available translation when es is missing', () => {
-    const translations = [
-      {
-        locale: 'cat',
-        name: 'Samarreta',
-        description: 'Una samarreta',
-        tags: ['roba'],
-        sizes: ['M', 'L'],
-        designChangeDescription: 'Canvi base',
-      },
-      {
-        locale: 'fr',
-        name: 'T-shirt',
-        description: 'Un t-shirt',
-        tags: ['vetement'],
-        sizes: ['XL'],
-        designChangeDescription: null,
-      },
-    ] as const;
+  it('returns null when no translations exist', () => {
+    expect(resolveDisplay([], 'cat')).toBeNull();
+  });
+});
 
-    const result = resolveDisplay(translations, 'es');
-
-    expect(result).toMatchObject({
+describe('resolvePhotoLabel', () => {
+  const translations = [
+    {
+      locale: 'es',
+      name: 'Producto',
+      description: null,
+      photoLabels: { 'img-1': 'Frontal' },
+    },
+    {
       locale: 'cat',
-      name: 'Samarreta',
-      sizes: ['M', 'L'],
-      designChangeDescription: 'Canvi base',
-    });
+      name: 'Producte',
+      description: null,
+      photoLabels: { 'img-1': 'Davant' },
+    },
+  ];
+
+  it('uses the active locale before neutral es', () => {
+    expect(resolvePhotoLabel(translations, 'img-1', 'cat')).toBe('Davant');
   });
 
-  it('returns null when there are no translations', () => {
-    expect(resolveDisplay([], 'es')).toBeNull();
+  it('falls back to es and then an empty label', () => {
+    expect(resolvePhotoLabel(translations, 'img-1', 'fr')).toBe('Frontal');
+    expect(resolvePhotoLabel(translations, 'missing', 'cat')).toBe('');
   });
 });

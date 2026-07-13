@@ -5,6 +5,7 @@ import { Button } from '@/shared/ui/button';
 import { ErrorMessage } from '@/shared/ui/error-message';
 import { TextField } from '@/shared/ui/text-field';
 import { DescriptionField } from '@/shared/ui/description-field';
+import { useUnsavedChangesGuard } from '@/shared/hooks/use-unsaved-changes-guard';
 import styles from '@/app/[locale]/admin/sellers/[sellerId]/page.module.css';
 
 interface SellerDetailFormProps {
@@ -16,6 +17,12 @@ interface SellerDetailFormProps {
   errorLabel: string;
   initialName: string;
   initialDescription: string;
+  unsavedChangesLabels?: {
+    title: string;
+    message: string;
+    leave: string;
+    stay: string;
+  };
 }
 
 export function SellerDetailForm({
@@ -27,12 +34,23 @@ export function SellerDetailForm({
   errorLabel,
   initialName,
   initialDescription,
+  unsavedChangesLabels,
 }: SellerDetailFormProps) {
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
+  const guard = useUnsavedChangesGuard(
+    saved === null &&
+      (name !== initialName || description !== initialDescription),
+    unsavedChangesLabels ?? {
+      title: 'Unsaved changes',
+      message: 'You have unsaved changes. Leave this page?',
+      leave: 'Leave',
+      stay: 'Stay',
+    },
+  );
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -84,29 +102,32 @@ export function SellerDetailForm({
   };
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
-      <h3 className={styles.sectionTitle}>{saveLabel}</h3>
+    <>
+      {guard}
+      <form className={styles.form} onSubmit={handleSubmit}>
+        <h3 className={styles.sectionTitle}>{saveLabel}</h3>
 
-      {error ? <ErrorMessage message={error} /> : null}
-      {saved ? (
-        <div role="status" className={styles.successMessage}>
-          {saved}
+        {error ? <ErrorMessage message={error} /> : null}
+        {saved ? (
+          <div role="status" className={styles.successMessage}>
+            {saved}
+          </div>
+        ) : null}
+
+        <TextField label={nameLabel} value={name} onChange={setName} required />
+
+        <DescriptionField
+          label={descriptionLabel}
+          value={description}
+          onChange={setDescription}
+        />
+
+        <div className={styles.formActions}>
+          <Button type="submit" loading={loading}>
+            {saveLabel}
+          </Button>
         </div>
-      ) : null}
-
-      <TextField label={nameLabel} value={name} onChange={setName} required />
-
-      <DescriptionField
-        label={descriptionLabel}
-        value={description}
-        onChange={setDescription}
-      />
-
-      <div className={styles.formActions}>
-        <Button type="submit" loading={loading}>
-          {saveLabel}
-        </Button>
-      </div>
-    </form>
+      </form>
+    </>
   );
 }

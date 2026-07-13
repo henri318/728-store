@@ -48,6 +48,26 @@ export interface UpdateProductDTO {
   images?: ProductImageInput[];
 }
 
+function cleanPhotoLabels(
+  labels: Record<string, string> | undefined,
+  product: ProductEntity,
+): Record<string, string> | undefined {
+  if (labels === undefined) return undefined;
+  if (Object.keys(labels).length > 50) {
+    throw new ValidationError('A maximum of 50 photo labels is allowed');
+  }
+  const validIds = new Set(
+    product.images
+      .filter((image) => image.purpose === 'CUSTOMIZABLE_BASE')
+      .map((image) => image.id),
+  );
+  return Object.fromEntries(
+    Object.entries(labels)
+      .filter(([id]) => validIds.has(id))
+      .map(([id, label]) => [id, label.trim().slice(0, 200)]),
+  );
+}
+
 function buildTranslations(
   dto: UpdateProductDTO,
   product: ProductEntity,
@@ -101,6 +121,10 @@ function buildTranslations(
       sizes: translation.sizes ?? [],
       designChangeDescription:
         translation.designChangeDescription?.trim() || null,
+      photoLabels:
+        cleanPhotoLabels(translation.photoLabels, product) ??
+        merged.get(locale)?.photoLabels ??
+        {},
     });
   }
 

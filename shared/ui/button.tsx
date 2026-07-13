@@ -11,6 +11,7 @@ interface ButtonProps {
   loading?: boolean;
   type?: 'submit' | 'button' | 'reset';
   variant?: 'primary' | 'secondary' | 'danger';
+  'data-action'?: string;
 }
 
 export function Button({
@@ -20,6 +21,7 @@ export function Button({
   loading = false,
   type = 'submit',
   variant = 'primary',
+  'data-action': dataAction,
 }: ButtonProps) {
   const dict = useDictionary();
   const isDisabled = disabled || loading;
@@ -35,6 +37,7 @@ export function Button({
       onClick={handleClick}
       disabled={isDisabled}
       data-variant={variant}
+      data-action={dataAction}
       className={`${styles.button} ${styles[variant]}`}
     >
       {loading ? dict.common.loading : children}

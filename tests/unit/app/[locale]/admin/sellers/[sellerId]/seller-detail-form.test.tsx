@@ -9,6 +9,7 @@ import {
 import { SellerDetailForm } from '@/modules/sellers/presentation/components/seller-detail-form';
 
 const fetchMock = vi.fn();
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 describe('SellerDetailForm', () => {
   beforeEach(() => {
