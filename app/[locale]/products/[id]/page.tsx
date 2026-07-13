@@ -202,6 +202,11 @@ export default async function ProductDetailPage({
     alt: image.alt ?? product.displayName,
     purpose: image.purpose,
   }));
+  const initialColor =
+    customizationColor ??
+    (product.customizationConfig?.allowsStyleOptions()
+      ? customizableBaseImages[0]?.alt
+      : null);
   const sizes = product.displayTranslation?.sizes?.length
     ? [...product.displayTranslation.sizes]
     : undefined;
@@ -230,7 +235,7 @@ export default async function ProductDetailPage({
           labels={customizationLabels}
           initialDraft={{
             text: customizationText,
-            color: customizationColor ?? customizableBaseImages[0]?.alt ?? null,
+            color: initialColor,
           }}
           editCartItemId={customizationCartItemId}
           viewerContext={viewerContext}

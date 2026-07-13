@@ -369,14 +369,17 @@ describe('ProductDetailPage', () => {
     expect(screen.getByText('Added')).toBeInTheDocument();
     expect(screen.getByText('Cart error')).toBeInTheDocument();
 
-    const props = mocks.customizationExperienceMock.mock.calls[0][0] as {
+    const props = mocks.customizationExperienceMock.mock
+      .calls[0][0] as unknown as {
       labels: { adding: string; added: string; error: string };
+      initialDraft: { color: string | null };
       sizes: string[];
       publicMedia: Array<{ id: string }>;
     };
     expect(props.labels.adding).toBe('Adding...');
     expect(props.labels.added).toBe('Added');
     expect(props.labels.error).toBe('Cart error');
+    expect(props.initialDraft.color).toBeNull();
     expect(props.sizes).toEqual(['S', 'M']);
     expect(props.publicMedia).toHaveLength(2);
     expect(props.publicMedia[0].id).toBe('cover-1');
