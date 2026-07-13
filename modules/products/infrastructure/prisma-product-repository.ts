@@ -201,24 +201,24 @@ export class PrismaProductRepository implements ProductRepository {
 
   async findSimilar(
     productId: string,
-    tagIds: string[],
+    tagNames: string[],
     locale: string,
     limit: number = 3,
   ): Promise<ProductEntity[]> {
-    if (tagIds.length === 0) return [];
+    if (tagNames.length === 0) return [];
 
     const rows = await prisma.$queryRawUnsafe<Array<{ id: string }>>(
       `SELECT p.id
        FROM "Product" p
-       JOIN "_ProductTags" pt ON pt."A" = p.id
-       WHERE pt."B" IN (${tagIds.map((_, i) => `$${i + 2}`).join(', ')})
+       JOIN "ProductTranslation" pt ON pt."productId" = p.id
+       WHERE pt.tags && ARRAY[${tagNames.map((_, i) => `$${i + 2}`).join(', ')}]::text[]
          AND p.id != $1
          AND p.status = 'ACTIVE'
        GROUP BY p.id
        ORDER BY COUNT(*) DESC
-       LIMIT $${tagIds.length + 2}`,
+       LIMIT $${tagNames.length + 2}`,
       productId,
-      ...tagIds,
+      ...tagNames,
       limit,
     );
 

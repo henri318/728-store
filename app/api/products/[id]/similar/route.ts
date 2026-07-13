@@ -17,13 +17,13 @@ export async function GET(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    const tagIds = product.tags.map((tag) => tag.id);
+    const tagNames = [...new Set(product.tags.map((tag) => tag.slug))];
 
     const useCase = new GetSimilarProductsUseCase(
       container.getProductRepository(),
     );
 
-    const similar = await useCase.execute(id, tagIds, 'es', 3);
+    const similar = await useCase.execute(id, tagNames, 'es', 3);
 
     const items = similar.map((p) => ({
       id: p.id,

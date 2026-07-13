@@ -52,7 +52,7 @@ export interface ProductRepository {
   ): Promise<PaginatedResult<ProductEntity>>;
   findSimilar(
     productId: string,
-    tagIds: string[],
+    tagNames: string[],
     locale: string,
     limit?: number,
   ): Promise<ProductEntity[]>;

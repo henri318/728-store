@@ -175,18 +175,22 @@ export class MemoryProductRepository implements ProductRepository {
 
   async findSimilar(
     productId: string,
-    tagIds: string[],
+    tagNames: string[],
     _locale: string,
     limit: number = 3,
   ): Promise<ProductEntity[]> {
-    if (tagIds.length === 0 || this.products.every((p) => p.id !== productId))
+    if (tagNames.length === 0 || this.products.every((p) => p.id !== productId))
       return [];
+
+    const tagSet = new Set(tagNames);
 
     const withSharedTags = this.products
       .filter((p) => p.id !== productId && p.status === ProductStatus.ACTIVE)
       .map((p) => ({
         product: p,
-        sharedCount: p.tags.filter((t) => tagIds.includes(t.id)).length,
+        sharedCount: [
+          ...new Set((p.translations ?? []).flatMap((t) => t.tags ?? [])),
+        ].filter((tag) => tagSet.has(tag)).length,
       }))
       .filter((entry) => entry.sharedCount > 0)
       .toSorted((a, b) => b.sharedCount - a.sharedCount)

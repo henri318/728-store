@@ -108,17 +108,18 @@ export class CreateProductUseCase {
       const price = ProductPrice.create(dto.price, 'EUR' as Currency);
       const now = new Date();
       const productId = randomUUID();
+      const customizationConfig = ProductCustomizationConfig.fromJson(
+        dto.customizationConfig ?? null,
+      );
       const product: ProductEntity = {
         id: productId,
         basePrice: price,
         sellerId: dto.sellerId,
         sellerName: dto.sellerName,
         status: dto.status ?? ProductStatus.DRAFT,
-        categoryId: null,
+        categoryId: customizationConfig.categoryId,
         category: null,
-        customizationConfig: ProductCustomizationConfig.fromJson(
-          dto.customizationConfig ?? null,
-        ),
+        customizationConfig,
         createdAt: now,
         updatedAt: now,
         translations,

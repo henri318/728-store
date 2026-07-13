@@ -570,11 +570,13 @@ async function main() {
               locale: 'es',
               name: translations.es.name,
               description: translations.es.description,
+              tags: tagSlugs,
             },
             {
               locale: 'cat',
               name: translations.cat.name,
               description: translations.cat.description,
+              tags: tagSlugs,
             },
           ],
         },
