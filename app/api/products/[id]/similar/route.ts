@@ -17,7 +17,11 @@ export async function GET(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    const tagNames = [...new Set(product.tags.map((tag) => tag.slug))];
+    const tagNames = [
+      ...new Set(
+        product.translations.flatMap((translation) => translation.tags ?? []),
+      ),
+    ];
 
     const useCase = new GetSimilarProductsUseCase(
       container.getProductRepository(),
