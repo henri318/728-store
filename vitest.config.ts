@@ -9,6 +9,10 @@ export default defineConfig({
   test: {
     globals: true,
     allowOnly: !IS_CI,
+    // jsdom setup/import costs dominate this suite; VM workers reuse the Vite
+    // runtime while preserving isolation between test files.
+    pool: 'vmThreads',
+    maxWorkers: '50%',
     projects: [
       {
         extends: true,

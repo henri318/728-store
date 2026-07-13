@@ -17,14 +17,9 @@ const modules: EventModule[] = [
 describe.each(modules)('$name', ({ events, prefix }) => {
   const entries = Object.entries(events);
 
-  it(`has exactly ${entries.length} events`, () => {
-    expect(Object.keys(events)).toHaveLength(entries.length);
-  });
-
   describe('event values and GlobalEvents registration', () => {
     it.each(entries)('%s = %s → registered in GlobalEvents', (key, value) => {
       expect(key).toMatch(new RegExp(`^${prefix}_`));
-      expect(events[key]).toBe(value);
       expect(GlobalEvents).toHaveProperty(key);
       expect(GlobalEvents[key as keyof typeof GlobalEvents]).toBe(value);
     });

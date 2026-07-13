@@ -90,9 +90,6 @@ describe('RecordSearchUseCase', () => {
       limit: 10,
     });
 
-    // Small delay so searchedAt moves forward.
-    await new Promise((r) => setTimeout(r, 5));
-
     await useCase.execute({ userId: 'user-1', term: 'ceramic', locale: 'es' });
     const second = await repo.findRecent({
       userId: 'user-1',
