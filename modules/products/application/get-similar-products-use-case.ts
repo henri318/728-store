@@ -17,13 +17,13 @@ export class GetSimilarProductsUseCase {
 
   async execute(
     productId: string,
-    tagIds: string[],
+    tagNames: string[],
     locale: string,
     limit?: number,
   ): Promise<SimilarProductItem[]> {
     const products = await this.productRepository.findSimilar(
       productId,
-      tagIds,
+      tagNames,
       locale,
       limit,
     );

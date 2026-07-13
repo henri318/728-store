@@ -132,6 +132,19 @@ describe('UpdateProductUseCase', () => {
     ]);
   });
 
+  it('syncs the selected customization category to the product category', async () => {
+    const repo = new MemoryProductRepository();
+    repo.seed([makeProduct()]);
+
+    const result = await new UpdateProductUseCase(repo).execute({
+      productId: 'p-1',
+      sellerId: 'seller-1',
+      customizationConfig: { categoryId: 'category-1' },
+    });
+
+    expect(result.categoryId).toBe('category-1');
+  });
+
   it('upserts all submitted locale translations in one save', async () => {
     const repo = new MemoryProductRepository();
     repo.seed([makeProduct()]);

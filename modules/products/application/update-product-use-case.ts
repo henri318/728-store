@@ -198,6 +198,10 @@ export class UpdateProductUseCase {
       }
 
       const translations = buildTranslations(dto, product);
+      const nextCustomizationConfig =
+        dto.customizationConfig === undefined
+          ? product.customizationConfig
+          : ProductCustomizationConfig.fromJson(dto.customizationConfig);
 
       const now = new Date();
 
@@ -205,10 +209,11 @@ export class UpdateProductUseCase {
         ...product,
         basePrice: nextPrice,
         status: nextStatus,
-        customizationConfig:
+        categoryId:
           dto.customizationConfig === undefined
-            ? product.customizationConfig
-            : ProductCustomizationConfig.fromJson(dto.customizationConfig),
+            ? product.categoryId
+            : (nextCustomizationConfig?.categoryId ?? null),
+        customizationConfig: nextCustomizationConfig,
         images:
           dto.images === undefined
             ? product.images

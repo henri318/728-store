@@ -141,6 +141,22 @@ describe('CreateProductUseCase', () => {
     );
   });
 
+  it('persists the selected customization category as the product category', async () => {
+    const repository = new MemoryProductRepository();
+    const useCase = new CreateProductUseCase(repository);
+
+    const result = await useCase.execute({
+      sellerId: 'seller-1',
+      sellerName: 'Shop',
+      locale: 'es',
+      name: 'Taza',
+      price: 10,
+      customizationConfig: { categoryId: 'category-1' },
+    });
+
+    expect(result.categoryId).toBe('category-1');
+  });
+
   it('preserves photo labels and defaults absent labels to an empty map', async () => {
     const repo = new MemoryProductRepository();
     const useCase = new CreateProductUseCase(repo);

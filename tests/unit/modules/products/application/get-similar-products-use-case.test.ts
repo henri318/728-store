@@ -4,17 +4,7 @@ import { MemoryProductRepository } from '@/tests/doubles/memory-product-reposito
 import { ProductPrice } from '@/modules/products/domain/value-objects/product-price';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
-import type { TagEntity } from '@/modules/products/domain/entities/tag';
 import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
-
-function makeTag(id: string, name: string, slug: string): TagEntity {
-  return { id, name, slug, createdAt: new Date() };
-}
-
-const tagSummer = makeTag('t1', 'Summer', 'summer');
-const tagMug = makeTag('t2', 'Mug', 'mug');
-const tagGift = makeTag('t3', 'Gift', 'gift');
-const tagWood = makeTag('t5', 'Wood', 'wood');
 
 describe('GetSimilarProductsUseCase', () => {
   it('returns products ordered by shared tag count', async () => {
@@ -35,7 +25,7 @@ describe('GetSimilarProductsUseCase', () => {
             locale: 'es',
             name: 'Taza A',
             description: null,
-            tags: [],
+            tags: ['Summer', 'Mug', 'Gift'],
             sizes: [],
             designChangeDescription: null,
           },
@@ -49,7 +39,7 @@ describe('GetSimilarProductsUseCase', () => {
           },
         ],
         images: [],
-        tags: [tagSummer, tagMug, tagGift],
+        tags: [],
       },
       {
         id: 'p1',
@@ -66,7 +56,7 @@ describe('GetSimilarProductsUseCase', () => {
             locale: 'es',
             name: 'Taza 1',
             description: 'Comparte 3 tags',
-            tags: [],
+            tags: ['Summer', 'Mug', 'Gift'],
             sizes: [],
             designChangeDescription: null,
           },
@@ -80,7 +70,7 @@ describe('GetSimilarProductsUseCase', () => {
           },
         ],
         images: [],
-        tags: [tagSummer, tagMug, tagGift],
+        tags: [],
       },
       {
         id: 'p2',
@@ -97,13 +87,13 @@ describe('GetSimilarProductsUseCase', () => {
             locale: 'es',
             name: 'Taza 2',
             description: 'Comparte 2 tags',
-            tags: [],
+            tags: ['Summer', 'Mug'],
             sizes: [],
             designChangeDescription: null,
           },
         ],
         images: [],
-        tags: [tagSummer, tagMug],
+        tags: [],
       },
       {
         id: 'p3',
@@ -120,20 +110,20 @@ describe('GetSimilarProductsUseCase', () => {
             locale: 'es',
             name: 'Taza 3',
             description: 'Comparte 1 tag',
-            tags: [],
+            tags: ['Summer'],
             sizes: [],
             designChangeDescription: null,
           },
         ],
         images: [],
-        tags: [tagSummer],
+        tags: [],
       },
     ]);
 
     const useCase = new GetSimilarProductsUseCase(repository);
     const result = await useCase.execute(
       'source',
-      [tagSummer.id, tagMug.id, tagGift.id],
+      ['Summer', 'Mug', 'Gift'],
       'es',
       3,
     );
@@ -196,13 +186,13 @@ describe('GetSimilarProductsUseCase', () => {
             locale: 'es',
             name: 'Source',
             description: null,
-            tags: [],
+            tags: ['Summer'],
             sizes: [],
             designChangeDescription: null,
           },
         ],
         images: [],
-        tags: [tagSummer],
+        tags: [],
       },
       {
         id: 'other',
@@ -219,18 +209,18 @@ describe('GetSimilarProductsUseCase', () => {
             locale: 'es',
             name: 'Other',
             description: null,
-            tags: [],
+            tags: ['Wood'],
             sizes: [],
             designChangeDescription: null,
           },
         ],
         images: [],
-        tags: [tagWood],
+        tags: [],
       },
     ]);
 
     const useCase = new GetSimilarProductsUseCase(repository);
-    const result = await useCase.execute('source', [tagSummer.id], 'es');
+    const result = await useCase.execute('source', ['Summer'], 'es');
 
     expect(result).toHaveLength(0);
   });
@@ -253,22 +243,18 @@ describe('GetSimilarProductsUseCase', () => {
             locale: 'es',
             name: 'Source',
             description: null,
-            tags: [],
+            tags: ['Summer', 'Mug'],
             sizes: [],
             designChangeDescription: null,
           },
         ],
         images: [],
-        tags: [tagSummer, tagMug],
+        tags: [],
       },
     ]);
 
     const useCase = new GetSimilarProductsUseCase(repository);
-    const result = await useCase.execute(
-      'source',
-      [tagSummer.id, tagMug.id],
-      'es',
-    );
+    const result = await useCase.execute('source', ['Summer', 'Mug'], 'es');
 
     expect(result).toHaveLength(0);
   });
@@ -291,13 +277,13 @@ describe('GetSimilarProductsUseCase', () => {
             locale: 'es',
             name: 'Source',
             description: null,
-            tags: [],
+            tags: ['Summer'],
             sizes: [],
             designChangeDescription: null,
           },
         ],
         images: [],
-        tags: [tagSummer],
+        tags: [],
       },
       {
         id: 'p1',
@@ -314,13 +300,13 @@ describe('GetSimilarProductsUseCase', () => {
             locale: 'es',
             name: 'P1',
             description: null,
-            tags: [],
+            tags: ['Summer'],
             sizes: [],
             designChangeDescription: null,
           },
         ],
         images: [],
-        tags: [tagSummer],
+        tags: [],
       },
       {
         id: 'p2',
@@ -337,18 +323,18 @@ describe('GetSimilarProductsUseCase', () => {
             locale: 'es',
             name: 'P2',
             description: null,
-            tags: [],
+            tags: ['Summer'],
             sizes: [],
             designChangeDescription: null,
           },
         ],
         images: [],
-        tags: [tagSummer],
+        tags: [],
       },
     ]);
 
     const useCase = new GetSimilarProductsUseCase(repository);
-    const result = await useCase.execute('source', [tagSummer.id], 'es', 1);
+    const result = await useCase.execute('source', ['Summer'], 'es', 1);
 
     expect(result).toHaveLength(1);
   });
@@ -371,13 +357,13 @@ describe('GetSimilarProductsUseCase', () => {
             locale: 'es',
             name: 'Source',
             description: null,
-            tags: [],
+            tags: ['Summer'],
             sizes: [],
             designChangeDescription: null,
           },
         ],
         images: [],
-        tags: [tagSummer],
+        tags: [],
       },
       {
         id: 'draft-p',
@@ -394,18 +380,18 @@ describe('GetSimilarProductsUseCase', () => {
             locale: 'es',
             name: 'Draft',
             description: null,
-            tags: [],
+            tags: ['Summer'],
             sizes: [],
             designChangeDescription: null,
           },
         ],
         images: [],
-        tags: [tagSummer],
+        tags: [],
       },
     ]);
 
     const useCase = new GetSimilarProductsUseCase(repository);
-    const result = await useCase.execute('source', [tagSummer.id], 'es');
+    const result = await useCase.execute('source', ['Summer'], 'es');
 
     expect(result).toHaveLength(0);
   });
@@ -428,13 +414,13 @@ describe('GetSimilarProductsUseCase', () => {
             locale: 'es',
             name: 'Source',
             description: null,
-            tags: [],
+            tags: ['Summer'],
             sizes: [],
             designChangeDescription: null,
           },
         ],
         images: [],
-        tags: [tagSummer],
+        tags: [],
       },
       {
         id: 'p1',
@@ -451,7 +437,7 @@ describe('GetSimilarProductsUseCase', () => {
             locale: 'cat',
             name: 'Tassa cat',
             description: 'Desc cat',
-            tags: [],
+            tags: ['Summer'],
             sizes: [],
             designChangeDescription: null,
           },
@@ -459,21 +445,21 @@ describe('GetSimilarProductsUseCase', () => {
             locale: 'es',
             name: 'Taza es',
             description: 'Desc es',
-            tags: [],
+            tags: ['Summer'],
             sizes: [],
             designChangeDescription: null,
           },
         ],
         images: [],
-        tags: [tagSummer],
+        tags: [],
       },
     ]);
 
     const useCase = new GetSimilarProductsUseCase(repository);
-    const catResult = await useCase.execute('source', [tagSummer.id], 'cat');
+    const catResult = await useCase.execute('source', ['Summer'], 'cat');
     expect(catResult[0].displayName).toBe('Tassa cat');
 
-    const esResult = await useCase.execute('source', [tagSummer.id], 'es');
+    const esResult = await useCase.execute('source', ['Summer'], 'es');
     expect(esResult[0].displayName).toBe('Taza es');
   });
 
@@ -495,7 +481,7 @@ describe('GetSimilarProductsUseCase', () => {
             locale: 'es',
             name: 'Source',
             description: null,
-            tags: [],
+            tags: ['Summer'],
             sizes: [],
             designChangeDescription: null,
           },
@@ -513,7 +499,7 @@ describe('GetSimilarProductsUseCase', () => {
             createdAt: new Date(),
           },
         ],
-        tags: [tagSummer],
+        tags: [],
       },
       {
         id: 'p1',
@@ -530,7 +516,7 @@ describe('GetSimilarProductsUseCase', () => {
             locale: 'es',
             name: 'P1',
             description: null,
-            tags: [],
+            tags: ['Summer'],
             sizes: [],
             designChangeDescription: null,
           },
@@ -548,12 +534,12 @@ describe('GetSimilarProductsUseCase', () => {
             createdAt: new Date(),
           },
         ],
-        tags: [tagSummer],
+        tags: [],
       },
     ]);
 
     const useCase = new GetSimilarProductsUseCase(repository);
-    const result = await useCase.execute('source', [tagSummer.id], 'es');
+    const result = await useCase.execute('source', ['Summer'], 'es');
 
     expect(result[0].cover).not.toBeNull();
     expect(result[0].cover!.url).toBe('/p1-cover.png');
