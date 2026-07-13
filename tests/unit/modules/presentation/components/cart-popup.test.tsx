@@ -14,7 +14,7 @@ const mockUseSession = vi.fn();
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
-  usePathname: () => '/es/products',
+  usePathname: () => '/es/',
 }));
 
 vi.mock('next-auth/react', () => ({

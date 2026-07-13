@@ -119,7 +119,7 @@ describe('CartView', () => {
 
     expect(screen.getByText(labels.emptyTitle)).toBeTruthy();
     const link = screen.getByRole('link');
-    expect(link.getAttribute('href')).toBe('/es/products');
+    expect(link.getAttribute('href')).toBe('/es/');
   });
 
   it('renders subtotal', () => {

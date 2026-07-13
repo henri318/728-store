@@ -11,6 +11,7 @@
   font-weight: var(--font-weight-medium);
   font-size: 0.85rem;
   text-decoration: none;
+  margin-block: 1rem;
   transition:
     transform 0.15s ease,
     box-shadow 0.15s ease,

@@ -2,6 +2,9 @@
   max-width: 700px;
   margin: 0 auto;
   padding: var(--spacing-xl);
+}
+
+.content {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);

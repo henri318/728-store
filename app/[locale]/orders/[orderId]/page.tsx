@@ -49,109 +49,111 @@ export default async function OrderDetailPage({
     <div className={styles.container}>
       <BackLink href={`/${locale}/orders`}>← {dict.orders?.myOrders}</BackLink>
 
-      <Card padding="lg">
-        <h1 className={styles.title}>{dict.orders?.myOrders}</h1>
+      <div className={styles.content}>
+        <Card padding="lg">
+          <h1 className={styles.title}>{dict.orders?.myOrders}</h1>
 
-        <div className={styles.detailRow}>
-          <span className={styles.detailLabel}>{dict.orders?.status}</span>
-          <StatusBadge status={order.status} label={statusLabel} />
-        </div>
-
-        <div className={styles.detailRow}>
-          <span className={styles.detailLabel}>{dict.orders?.total}</span>
-          <span className={styles.detailValue}>
-            {Money.format(order.total, Currency.EUR)}
-          </span>
-        </div>
-
-        {order.createdAt && (
           <div className={styles.detailRow}>
-            <span className={styles.detailLabel}>{dict.orders?.date}</span>
+            <span className={styles.detailLabel}>{dict.orders?.status}</span>
+            <StatusBadge status={order.status} label={statusLabel} />
+          </div>
+
+          <div className={styles.detailRow}>
+            <span className={styles.detailLabel}>{dict.orders?.total}</span>
             <span className={styles.detailValue}>
-              {new Date(order.createdAt).toLocaleDateString(
-                normalizeLocale(locale),
-              )}
+              {Money.format(order.total, Currency.EUR)}
             </span>
           </div>
-        )}
-      </Card>
 
-      <Card className={styles.itemsCard}>
-        <h2 className={styles.itemsTitle}>{dict.orders?.items}</h2>
+          {order.createdAt && (
+            <div className={styles.detailRow}>
+              <span className={styles.detailLabel}>{dict.orders?.date}</span>
+              <span className={styles.detailValue}>
+                {new Date(order.createdAt).toLocaleDateString(
+                  normalizeLocale(locale),
+                )}
+              </span>
+            </div>
+          )}
+        </Card>
 
-        {items.length === 0 ? (
-          <p className={styles.noItems}>{dict.orders?.noItems}</p>
-        ) : (
-          <div className={styles.itemsList}>
-            {items.map((item) => {
-              const customImage = item.customizationSnapshot?.find(
-                (c) => c.imageUrl,
-              )?.imageUrl;
-              const displayImage = customImage ?? item.productImageUrl;
-              const lineTotal =
-                item.unitPrice == null
-                  ? undefined
-                  : item.unitPrice * item.quantity;
+        <Card className={styles.itemsCard}>
+          <h2 className={styles.itemsTitle}>{dict.orders?.items}</h2>
 
-              return (
-                <div key={item.id} className={styles.itemRow}>
-                  {displayImage && (
-                    <Image
-                      src={displayImage}
-                      alt={item.productName ?? ''}
-                      width={56}
-                      height={56}
-                      className={styles.itemImage}
-                    />
-                  )}
-                  <div className={styles.itemInfo}>
-                    <span className={styles.itemName}>
-                      {item.productName ?? item.productId}
-                    </span>
-                    {item.customizationSnapshot &&
-                      item.customizationSnapshot.length > 0 && (
-                        <span className={styles.itemCustomization}>
-                          {item.customizationSnapshot
-                            .flatMap((c) => [
-                              c.size != null &&
-                                `${dict.common.customizationSize}: ${c.size}`,
-                              c.color &&
-                                `${dict.common.customizationColor}: ${c.color}`,
-                              c.text &&
-                                `${dict.common.customizationText}: ${c.text}`,
-                            ])
-                            .filter(Boolean)
-                            .join(' · ')}
+          {items.length === 0 ? (
+            <p className={styles.noItems}>{dict.orders?.noItems}</p>
+          ) : (
+            <div className={styles.itemsList}>
+              {items.map((item) => {
+                const customImage = item.customizationSnapshot?.find(
+                  (c) => c.imageUrl,
+                )?.imageUrl;
+                const displayImage = customImage ?? item.productImageUrl;
+                const lineTotal =
+                  item.unitPrice == null
+                    ? undefined
+                    : item.unitPrice * item.quantity;
+
+                return (
+                  <div key={item.id} className={styles.itemRow}>
+                    {displayImage && (
+                      <Image
+                        src={displayImage}
+                        alt={item.productName ?? ''}
+                        width={56}
+                        height={56}
+                        className={styles.itemImage}
+                      />
+                    )}
+                    <div className={styles.itemInfo}>
+                      <span className={styles.itemName}>
+                        {item.productName ?? item.productId}
+                      </span>
+                      {item.customizationSnapshot &&
+                        item.customizationSnapshot.length > 0 && (
+                          <span className={styles.itemCustomization}>
+                            {item.customizationSnapshot
+                              .flatMap((c) => [
+                                c.size != null &&
+                                  `${dict.common.customizationSize}: ${c.size}`,
+                                c.color &&
+                                  `${dict.common.customizationColor}: ${c.color}`,
+                                c.text &&
+                                  `${dict.common.customizationText}: ${c.text}`,
+                              ])
+                              .filter(Boolean)
+                              .join(' · ')}
+                          </span>
+                        )}
+                    </div>
+                    <div className={styles.itemRight}>
+                      <span className={styles.itemQty}>×{item.quantity}</span>
+                      {lineTotal !== undefined && (
+                        <span className={styles.itemLineTotal}>
+                          {Money.format(lineTotal, Currency.EUR)}
                         </span>
                       )}
+                    </div>
                   </div>
-                  <div className={styles.itemRight}>
-                    <span className={styles.itemQty}>×{item.quantity}</span>
-                    {lineTotal !== undefined && (
-                      <span className={styles.itemLineTotal}>
-                        {Money.format(lineTotal, Currency.EUR)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </Card>
+                );
+              })}
+            </div>
+          )}
+        </Card>
 
-      {order.checkoutGroupId &&
-        order.checkoutGroupPaymentStatus === 'failed' && (
-          <form
-            method="post"
-            action={`/api/payments/checkout-groups/${order.checkoutGroupId}/retry`}
-            className={styles.retrySection}
-          >
-            <button type="submit" className={styles.retryButton}>
-              {dict.orders?.retryPayment}
-            </button>
-          </form>
-        )}
+        {order.checkoutGroupId &&
+          order.checkoutGroupPaymentStatus === 'failed' && (
+            <form
+              method="post"
+              action={`/api/payments/checkout-groups/${order.checkoutGroupId}/retry`}
+              className={styles.retrySection}
+            >
+              <button type="submit" className={styles.retryButton}>
+                {dict.orders?.retryPayment}
+              </button>
+            </form>
+          )}
+      </div>
     </div>
   );
 }

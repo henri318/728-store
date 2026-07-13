@@ -4,13 +4,6 @@
   padding-bottom: 3rem;
 }
 
-.backLink {
-  color: var(--color-link);
-  text-decoration: none;
-  margin-bottom: 1rem;
-  display: inline-block;
-}
-
 .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

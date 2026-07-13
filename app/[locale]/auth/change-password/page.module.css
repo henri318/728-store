@@ -6,9 +6,6 @@
 .wrapper {
   max-width: 480px;
   margin: 2rem auto;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
 }
 
 .title {

@@ -1,9 +1,12 @@
 .form {
-  display: grid;
-  gap: 1rem;
   padding: 1.25rem;
   max-width: 680px;
   margin: 2rem auto;
+}
+
+.content {
+  display: grid;
+  gap: 1rem;
 }
 
 .header {
