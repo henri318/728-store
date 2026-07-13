@@ -98,6 +98,14 @@
   gap: var(--spacing-md);
 }
 
+.tabsSticky {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--color-cream);
+  padding: 0.5rem 0;
+}
+
 .gallery-stack {
   display: grid;
   gap: 1rem;

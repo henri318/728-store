@@ -45,7 +45,7 @@ export function SimilarProducts({
     if (!node || hasLoaded) return;
 
     const observer = new IntersectionObserver(
-      (entries) => {
+      async (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting && !hasLoaded && !isLoading) {
             setIsLoading(true);

@@ -953,14 +953,16 @@ export function ProductForm({
             </p>
           ) : null}
 
+          <div className={styles.tabsSticky}>
+            <ProductLocaleTabs
+              value={form.activeLocale}
+              onChange={updateLocale}
+              labels={labels.localeTabs}
+            />
+          </div>
+
           <Card padding="md">
             <div className={styles.formBody}>
-              <ProductLocaleTabs
-                value={form.activeLocale}
-                onChange={updateLocale}
-                labels={labels.localeTabs}
-              />
-
               <ProductTranslationSection
                 locale={form.activeLocale}
                 value={form.translations[form.activeLocale]}
