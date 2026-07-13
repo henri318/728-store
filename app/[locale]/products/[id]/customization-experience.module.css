@@ -20,6 +20,18 @@
   gap: 0.35rem;
 }
 
+.categoryLink {
+  font-family: var(--font-family-primary);
+  font-size: 0.85rem;
+  color: var(--color-coral);
+  text-decoration: none;
+  width: fit-content;
+}
+
+.categoryLink:hover {
+  text-decoration: underline;
+}
+
 .purchaseColumn {
   display: grid;
   gap: 1.5rem;

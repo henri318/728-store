@@ -33,6 +33,10 @@ vi.mock('@/app/[locale]/products/[id]/mockup-canvas-control', () => ({
   ),
 }));
 
+vi.mock('@/app/[locale]/products/[id]/similar-products', () => ({
+  SimilarProducts: () => null,
+}));
+
 vi.mock('next/image', () => ({
   default: (props: ImgHTMLAttributes<HTMLImageElement>) => {
     // eslint-disable-next-line sonarjs/no-unused-vars -- stripping unoptimized prop
@@ -98,6 +102,9 @@ describe('CustomizationExperience', () => {
     customizationPositionXLabel: 'X',
     customizationPositionYLabel: 'Y',
     customizationCanvasReset: 'Reset',
+    categoryLabel: 'Category',
+    similarProducts: 'Similar products',
+    similarProductsLoading: 'Loading...',
   } satisfies CustomizationExperienceLabels;
 
   const commonProps = {
@@ -126,6 +133,14 @@ describe('CustomizationExperience', () => {
         purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
       },
     ],
+    categoryLink: { slug: 'mugs', name: 'Mugs' },
+    locale: 'es',
+    similarProductsLabels: {
+      title: 'Similar products',
+      loading: 'Loading...',
+      noImageAvailable: 'No image',
+      viewDetails: 'View details',
+    },
   };
 
   beforeEach(() => {

@@ -57,6 +57,7 @@ function ProductShowcaseItem({ media }: { media: ProductShowcaseMedia }) {
         height={720}
         unoptimized
         className={styles.showcaseImage}
+        crossOrigin="anonymous"
       />
     </div>
   );

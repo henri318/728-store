@@ -173,6 +173,33 @@ export class MemoryProductRepository implements ProductRepository {
     };
   }
 
+  async findSimilar(
+    productId: string,
+    tagIds: string[],
+    _locale: string,
+    limit: number = 3,
+  ): Promise<ProductEntity[]> {
+    if (tagIds.length === 0 || this.products.every((p) => p.id !== productId))
+      return [];
+
+    const withSharedTags = this.products
+      .filter((p) => p.id !== productId && p.status === ProductStatus.ACTIVE)
+      .map((p) => ({
+        product: p,
+        sharedCount: p.tags.filter((t) => tagIds.includes(t.id)).length,
+      }))
+      .filter((entry) => entry.sharedCount > 0)
+      .toSorted((a, b) => b.sharedCount - a.sharedCount)
+      .slice(0, limit)
+      .map((entry) => ({
+        ...entry.product,
+        category: this.deriveCategory(entry.product.categoryId),
+        translations: entry.product.translations,
+      }));
+
+    return withSharedTags;
+  }
+
   async save(entity: ProductEntity, _tx?: unknown): Promise<void> {
     const index = this.products.findIndex((p) => p.id === entity.id);
     if (index === -1) {

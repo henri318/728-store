@@ -154,7 +154,10 @@
     "cartMergeKeepGuestHint": "Reemplaza el carrito del servidor con los artículos de invitado",
     "genericError": "Algo salió mal. Inténtalo de nuevo.",
     "customizationRemoved": "Personalización eliminada",
-    "price": "Precio"
+    "price": "Precio",
+    "similarProducts": "Productos similares",
+    "similarProductsLoading": "Cargando productos similares...",
+    "categoryLabel": "Categoría"
   },
   "auth": {
     "signInTitle": "Iniciar sesión",

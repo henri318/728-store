@@ -112,6 +112,7 @@ export function CustomizationForm({
                     src={img.url}
                     alt={img.alt}
                     className={formStyles.colorThumb}
+                    crossOrigin="anonymous"
                   />
                   <span className={formStyles.colorAlt}>
                     {img.label || img.alt}

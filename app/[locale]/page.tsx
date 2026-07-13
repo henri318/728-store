@@ -18,11 +18,12 @@ export default async function HomePage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; category?: string }>;
 }) {
   const { locale } = await params;
-  const { q: qParam } = await searchParams;
+  const { q: qParam, category: categoryParam } = await searchParams;
   const q = (qParam ?? '').trim();
+  const category = (categoryParam ?? '').trim() || undefined;
   const dict = await getDictionary(locale as 'es' | 'cat');
 
   // SSR first page — the storefront never renders a blank shell.
@@ -39,6 +40,7 @@ export default async function HomePage({
     pageSize: PUBLIC_PAGE_SIZE,
     page: 1,
     q: q || undefined,
+    category,
     lang: locale as 'es' | 'cat',
     userId: session?.id ?? null,
   });
@@ -95,10 +97,11 @@ export default async function HomePage({
           }}
         />
         <InfiniteProductList
-          key={q || 'all-products'}
+          key={JSON.stringify([q, category])}
           initialItems={initialItems}
           pageSize={PUBLIC_PAGE_SIZE}
           q={q}
+          category={category}
           locale={locale}
           labels={{
             viewDetails: dict.common.viewDetails,

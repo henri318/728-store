@@ -87,6 +87,7 @@ export function MockupCanvasControl({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const productImageRef = useRef<HTMLImageElement | null>(null);
   const designImageRef = useRef<HTMLImageElement | null>(null);
+
   const [designImageUrl, setDesignImageUrl] = useState<string | null>(
     initialDesignUrl,
   );

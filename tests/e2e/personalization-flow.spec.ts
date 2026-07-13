@@ -29,6 +29,14 @@ function waitForCartSync(page: Page) {
   );
 }
 
+function waitForCustomizationCreation(page: Page) {
+  return page.waitForResponse(
+    (response) =>
+      response.url().endsWith('/api/customizations/customer') &&
+      response.request().method() === 'POST',
+  );
+}
+
 test.describe('Personalization flow', () => {
   test('adds two different personalizations as separate cart lines', async ({
     customerPage,
@@ -83,9 +91,16 @@ test.describe('Personalization flow', () => {
     const firstCartSync = waitForCartSync(customerPage);
     await designField.fill('First design');
     await firstCartSync;
+    const firstCustomizationCreation =
+      waitForCustomizationCreation(customerPage);
     await customerPage
       .getByRole('button', { name: 'Añadir al carrito' })
       .click();
+    const firstCustomizationResponse = await firstCustomizationCreation;
+    expect(
+      firstCustomizationResponse.status(),
+      await firstCustomizationResponse.text(),
+    ).toBe(201);
 
     await expect(
       customerPage.getByRole('button', { name: 'Añadido' }),
@@ -94,9 +109,16 @@ test.describe('Personalization flow', () => {
     const secondCartSync = waitForCartSync(customerPage);
     await designField.fill('Second design');
     await secondCartSync;
+    const secondCustomizationCreation =
+      waitForCustomizationCreation(customerPage);
     await customerPage
       .getByRole('button', { name: 'Añadir al carrito' })
       .click();
+    const secondCustomizationResponse = await secondCustomizationCreation;
+    expect(
+      secondCustomizationResponse.status(),
+      await secondCustomizationResponse.text(),
+    ).toBe(201);
     await expect(
       customerPage.getByRole('button', { name: 'Añadido' }),
     ).toBeVisible();

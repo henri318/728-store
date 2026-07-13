@@ -199,6 +199,52 @@ export class PrismaProductRepository implements ProductRepository {
     return products.map((product) => toDomainProduct(product));
   }
 
+  async findSimilar(
+    productId: string,
+    tagIds: string[],
+    locale: string,
+    limit: number = 3,
+  ): Promise<ProductEntity[]> {
+    if (tagIds.length === 0) return [];
+
+    const rows = await prisma.$queryRawUnsafe<Array<{ id: string }>>(
+      `SELECT p.id
+       FROM "Product" p
+       JOIN "_ProductTags" pt ON pt."A" = p.id
+       WHERE pt."B" IN (${tagIds.map((_, i) => `$${i + 2}`).join(', ')})
+         AND p.id != $1
+         AND p.status = 'ACTIVE'
+       GROUP BY p.id
+       ORDER BY COUNT(*) DESC
+       LIMIT $${tagIds.length + 2}`,
+      productId,
+      ...tagIds,
+      limit,
+    );
+
+    if (rows.length === 0) return [];
+
+    const ids = rows.map((r) => r.id);
+    const products = await prisma.product.findMany({
+      where: { id: { in: ids } },
+      include: {
+        seller: true,
+        category: { include: { translations: true } },
+        translations: true,
+        images: {
+          orderBy: [{ purpose: 'asc' }, { position: 'asc' }],
+        },
+        tags: true,
+      },
+    });
+
+    // Preserve the order by shared tag count
+    const orderMap = new Map(ids.map((id, i) => [id, i]));
+    return products
+      .toSorted((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0))
+      .map((p) => toDomainProduct(p));
+  }
+
   async findPaginated(
     filter: ProductsListFilter,
   ): Promise<PaginatedResult<ProductEntity>> {

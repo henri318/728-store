@@ -58,7 +58,6 @@ describe('ProductForm locale tabs', () => {
       editor: {
         sizeOptionsLabel: 'Tallas disponibles',
         sizeOptionsPlaceholder: 'S, M, L',
-        allowPhotoDesignLabel: 'Permitir diseño con foto',
         designChangeDescriptionLabel: 'Descripción del cambio de diseño',
         designChangeDescriptionHelp: 'Indica el cambio.',
         designChangeDescriptionPlaceholder: 'Describe los cambios...',

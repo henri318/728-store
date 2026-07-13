@@ -38,10 +38,6 @@ interface ProductPhotoCommonLabels {
   defaultPhotoName: string;
 }
 
-function getSingleEmptyLabel(labels: ProductPhotoBucketGalleryLabels) {
-  return labels.noCoverPlaceholder ?? labels.emptyState;
-}
-
 interface ProductPhotoBucketGalleryProps {
   mode: 'single' | 'multiple';
   labels: ProductPhotoBucketGalleryLabels;
@@ -79,9 +75,6 @@ export function ProductPhotoBucketGallery({
   uploading,
   error,
 }: ProductPhotoBucketGalleryProps) {
-  const emptyLabel =
-    mode === 'single' ? getSingleEmptyLabel(labels) : labels.emptyState;
-
   return (
     <section className={styles.bucket} aria-label={labels.title}>
       <FileUploadDropzone
@@ -89,136 +82,130 @@ export function ProductPhotoBucketGallery({
         helpText={labels.hint}
         buttonLabel={labels.addPhotoLabel}
         removeLabel={commonLabels.removePhotoLabel}
-        items={photos.map((photo) => ({
-          id: photo.id,
-          name: photo.alt,
-          size: photo.size ?? null,
-        }))}
+        items={[]}
         multiple={mode === 'multiple'}
         accept={accept}
         variant="compact"
         busy={uploading}
         busyLabel={commonLabels.uploadingLabel}
-        emptyLabel={emptyLabel}
-        selectedItemId={selectedPhotoId}
         onFilesSelected={onFilesSelected}
         onRemoveItem={onRemovePhoto}
-      />
+      >
+        {error ? <p className={styles.error}>{error}</p> : null}
 
-      {error ? <p className={styles.error}>{error}</p> : null}
+        {photos.length === 0 ? null : (
+          <ul className={styles.galleryGrid}>
+            {photos.map((photo, index) => {
+              const isSelected = selectedPhotoId === photo.id;
+              const video = isVideoMimeType(photo.mimeType);
+              const selectPhoto = () => onSelectPhoto(photo.id);
 
-      {photos.length === 0 ? null : (
-        <ul className={styles.galleryGrid}>
-          {photos.map((photo, index) => {
-            const isSelected = selectedPhotoId === photo.id;
-            const video = isVideoMimeType(photo.mimeType);
-            const selectPhoto = () => onSelectPhoto(photo.id);
-
-            return (
-              <li
-                key={photo.id}
-                className={`${styles.photoCard} ${isSelected ? styles.photoCardSelected : ''}`}
-              >
-                <span className={styles.photoIndex}>{index + 1}</span>
-
-                <div
-                  className={styles.photoFrame}
-                  role="button"
-                  aria-label={commonLabels.selectForPreviewLabel}
-                  tabIndex={0}
-                  onClick={selectPhoto}
-                  onKeyDown={(event) => {
-                    if (event.key !== 'Enter' && event.key !== ' ') return;
-
-                    event.preventDefault();
-                    selectPhoto();
-                  }}
+              return (
+                <li
+                  key={photo.id}
+                  className={`${styles.photoCard} ${isSelected ? styles.photoCardSelected : ''}`}
                 >
-                  {video ? (
-                    <video
-                      controls
-                      preload="metadata"
-                      poster={photo.posterUrl ?? undefined}
-                      className={styles.photoImage}
-                    >
-                      <source src={photo.url} type={photo.mimeType} />
-                    </video>
-                  ) : (
-                    <Image
-                      src={photo.url}
-                      alt={photo.alt}
-                      width={320}
-                      height={240}
-                      unoptimized
-                      className={styles.photoImage}
-                    />
-                  )}
-                </div>
+                  <span className={styles.photoIndex}>{index + 1}</span>
 
-                <label className={styles.field}>
-                  <span>{commonLabels.photoDisplayNameLabel}</span>
-                  <input
-                    className={styles.input}
-                    value={
-                      localizedPhotoLabels
-                        ? (localizedPhotoLabels[photo.id] ?? '')
-                        : photo.alt
-                    }
-                    placeholder={commonLabels.photoDisplayNamePlaceholder}
-                    required
-                    onChange={(event) =>
-                      onPhotoLabelChange(photo.id, event.target.value)
-                    }
-                  />
-                </label>
+                  <div
+                    className={styles.photoFrame}
+                    role="button"
+                    aria-label={commonLabels.selectForPreviewLabel}
+                    tabIndex={0}
+                    onClick={selectPhoto}
+                    onKeyDown={(event) => {
+                      if (event.key !== 'Enter' && event.key !== ' ') return;
 
-                {video && onPosterUrlChange && labels.posterLabel ? (
+                      event.preventDefault();
+                      selectPhoto();
+                    }}
+                  >
+                    {video ? (
+                      <video
+                        controls
+                        preload="metadata"
+                        poster={photo.posterUrl ?? undefined}
+                        className={styles.photoImage}
+                      >
+                        <source src={photo.url} type={photo.mimeType} />
+                      </video>
+                    ) : (
+                      <Image
+                        src={photo.url}
+                        alt={photo.alt}
+                        width={320}
+                        height={240}
+                        unoptimized
+                        className={styles.photoImage}
+                      />
+                    )}
+                  </div>
+
                   <label className={styles.field}>
-                    <span>{labels.posterLabel}</span>
+                    <span>{commonLabels.photoDisplayNameLabel}</span>
                     <input
                       className={styles.input}
-                      value={photo.posterUrl ?? ''}
-                      placeholder={labels.posterPlaceholder}
+                      value={
+                        localizedPhotoLabels
+                          ? (localizedPhotoLabels[photo.id] ?? '')
+                          : photo.alt
+                      }
+                      placeholder={commonLabels.photoDisplayNamePlaceholder}
+                      required
                       onChange={(event) =>
-                        onPosterUrlChange(photo.id, event.target.value)
+                        onPhotoLabelChange(photo.id, event.target.value)
                       }
                     />
                   </label>
-                ) : null}
 
-                <div className={styles.photoActions}>
-                  {mode === 'multiple' && onMovePhotoUp && onMovePhotoDown ? (
-                    <>
-                      <button
-                        type="button"
-                        className={styles.ghostButton}
-                        onClick={() => onMovePhotoUp(photo.id)}
-                      >
-                        {commonLabels.moveUpLabel}
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.ghostButton}
-                        onClick={() => onMovePhotoDown(photo.id)}
-                      >
-                        {commonLabels.moveDownLabel}
-                      </button>
-                    </>
+                  {video && onPosterUrlChange && labels.posterLabel ? (
+                    <label className={styles.field}>
+                      <span>{labels.posterLabel}</span>
+                      <input
+                        className={styles.input}
+                        value={photo.posterUrl ?? ''}
+                        placeholder={labels.posterPlaceholder}
+                        onChange={(event) =>
+                          onPosterUrlChange(photo.id, event.target.value)
+                        }
+                      />
+                    </label>
                   ) : null}
 
-                  <button
-                    type="button"
-                    className={styles.ghostButtonDanger}
-                    onClick={() => onRemovePhoto(photo.id)}
-                  >
-                    {commonLabels.removePhotoLabel}
-                  </button>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                  <div className={styles.photoActions}>
+                    {mode === 'multiple' && onMovePhotoUp && onMovePhotoDown ? (
+                      <>
+                        <button
+                          type="button"
+                          className={styles.ghostButton}
+                          onClick={() => onMovePhotoUp(photo.id)}
+                        >
+                          {commonLabels.moveUpLabel}
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.ghostButton}
+                          onClick={() => onMovePhotoDown(photo.id)}
+                        >
+                          {commonLabels.moveDownLabel}
+                        </button>
+                      </>
+                    ) : null}
+
+                    <button
+                      type="button"
+                      className={styles.ghostButtonDanger}
+                      onClick={() => onRemovePhoto(photo.id)}
+                    >
+                      {commonLabels.removePhotoLabel}
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </FileUploadDropzone>
     </section>
   );
 }

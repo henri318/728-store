@@ -43,6 +43,30 @@ describe('CreateCustomerCustomization', () => {
     expect(repo.save).toHaveBeenCalledTimes(1);
   });
 
+  it('allows text-only customization for text_photo products', async () => {
+    capability = {
+      async getConfig() {
+        return ProductCustomizationConfig.fromJson({
+          mode: 'text_photo',
+          previewEnabled: true,
+          previewTemplateUrl: 'https://cdn.example.com/base.png',
+        });
+      },
+    };
+    useCase = new CreateCustomerCustomization(repo, capability);
+
+    const result = await useCase.execute(
+      {
+        productId: 'p-1',
+        text: 'Personal note',
+      },
+      'user-1',
+    );
+
+    expect(result.text).toBe('Personal note');
+    expect(repo.save).toHaveBeenCalledTimes(1);
+  });
+
   it('rejects a photo upload when the product only allows text', async () => {
     capability = {
       async getConfig() {

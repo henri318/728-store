@@ -60,39 +60,6 @@ export class CreateCustomerCustomization {
     }
   }
 
-  private assertModeRequirement(
-    dto: CreateCustomerCustomizationDTO,
-    config: ProductCustomizationConfig,
-  ): void {
-    const hasText = dto.text !== undefined && dto.text !== null;
-    const hasImage = dto.imageUrl !== undefined && dto.imageUrl !== null;
-    const hasDesignPosition =
-      dto.designPosition !== undefined && dto.designPosition !== null;
-    const hasImageForCapability = hasImage || hasDesignPosition;
-    const mode = config.mode;
-
-    if ((mode === 'description' || mode === 'text') && !hasText) {
-      throw new ValidationError(
-        'Text customization is required for this product',
-        'Customization is not allowed for this product',
-      );
-    }
-
-    if ((mode === 'photo' || mode === 'text_photo') && !hasImageForCapability) {
-      throw new ValidationError(
-        'Photo customization is required for this product',
-        'Customization is not allowed for this product',
-      );
-    }
-
-    if (mode === 'text_photo' && (!hasText || !hasImageForCapability)) {
-      throw new ValidationError(
-        'Both text and photo customization are required for this product',
-        'Customization is not allowed for this product',
-      );
-    }
-  }
-
   async execute(
     dto: CreateCustomerCustomizationDTO,
     ownerUserId: string,
@@ -106,7 +73,6 @@ export class CreateCustomerCustomization {
       ProductCustomizationConfig.default();
 
     this.assertCapability(dto, config);
-    this.assertModeRequirement(dto, config);
     CustomizationOptions.create(dto);
 
     const entity: CustomizationEntity = {
