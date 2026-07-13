@@ -97,7 +97,7 @@ export default async function HomePage({
           }}
         />
         <InfiniteProductList
-          key={(q || 'all-products') + (category ? '-cat-' + category : '')}
+          key={JSON.stringify([q, category])}
           initialItems={initialItems}
           pageSize={PUBLIC_PAGE_SIZE}
           q={q}

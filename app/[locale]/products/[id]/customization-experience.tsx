@@ -409,6 +409,7 @@ function CustomizationExperienceInner({
         </div>
 
         <SimilarProducts
+          key={productId}
           productId={productId}
           locale={locale}
           labels={similarProductsLabels}

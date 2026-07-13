@@ -51,8 +51,12 @@ export function SimilarProducts({
             setIsLoading(true);
             try {
               const res = await fetch(`/api/products/${productId}/similar`);
-              const data: { items: SimilarProductCard[] } = await res.json();
-              setItems(data.items);
+              if (!res.ok) {
+                setHasLoaded(true);
+                return;
+              }
+              const data: { items?: unknown } = await res.json();
+              setItems(Array.isArray(data.items) ? data.items : []);
               setHasLoaded(true);
             } catch {
               setHasLoaded(true);

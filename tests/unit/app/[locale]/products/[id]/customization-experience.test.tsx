@@ -33,10 +33,6 @@ vi.mock('@/app/[locale]/products/[id]/mockup-canvas-control', () => ({
   ),
 }));
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
-}));
-
 vi.mock('@/app/[locale]/products/[id]/similar-products', () => ({
   SimilarProducts: () => null,
 }));
