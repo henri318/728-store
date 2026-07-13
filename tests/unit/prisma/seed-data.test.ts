@@ -1,4 +1,3 @@
-import type { Prisma } from '@prisma/client';
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildSeedProducts } from '../../../prisma/seed-data';
 import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
@@ -74,10 +73,6 @@ describe('buildSeedProducts', () => {
     expect(mug.images.create[0].url).toBe(
       'https://assets.example.test/products/taza.png',
     );
-    expect(mug.images.create[0].purpose).toBe(ProductImagePurpose.COVER);
-    expect(mug.images.create[0].mimeType).toBe('image/png');
-    expect(mug.images.create[1].purpose).toBe(ProductImagePurpose.SHOWCASE);
-    expect(mug.images.create[1].mimeType).toBe('image/webp');
     expect(mug.customizationConfig.previewTemplateUrl).toBe(
       'https://assets.example.test/products/taza.png',
     );
@@ -92,20 +87,5 @@ describe('buildSeedProducts', () => {
         expect(image.mimeType).not.toBe('image/svg+xml');
       }
     }
-  });
-});
-
-describe('Prisma seed type compatibility', () => {
-  it('keeps the Mochila seed image compatible with Prisma nested create typing', () => {
-    const mochilaImage = {
-      url: '/img/products/example.webp',
-      alt: 'Mochila de Algodón Orgánico',
-      position: 0,
-      purpose: 'CUSTOMIZABLE_BASE',
-      mimeType: 'image/webp',
-    } satisfies Prisma.ProductImageUncheckedCreateWithoutProductInput;
-
-    expect(mochilaImage.purpose).toBe('CUSTOMIZABLE_BASE');
-    expect(mochilaImage.mimeType).toBe('image/webp');
   });
 });

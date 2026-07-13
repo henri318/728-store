@@ -74,15 +74,21 @@ describe('EventBusPort — port contract (via EventBus)', () => {
 
     it('should support async handlers and await their resolution', async () => {
       const seen: string[] = [];
+      const { promise: handlerComplete, resolve: resolveHandler } =
+        Promise.withResolvers<void>();
       bus.on('order.paid', async () => {
-        await new Promise((r) => setTimeout(r, 5));
+        await handlerComplete;
         seen.push('slow');
       });
       bus.on('order.paid', () => {
         seen.push('fast');
       });
 
-      await bus.emit('order.paid', {});
+      const emission = bus.emit('order.paid', {});
+      await Promise.resolve();
+      expect(seen).toEqual(['fast']);
+      resolveHandler!();
+      await emission;
 
       // Both handlers completed before emit resolves
       expect(seen).toEqual(expect.arrayContaining(['fast', 'slow']));

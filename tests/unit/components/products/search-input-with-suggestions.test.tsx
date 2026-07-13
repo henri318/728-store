@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, screen, fireEvent } from '@testing-library/react';
 import {
   SearchInputWithSuggestions,
   type SearchInputWithSuggestionsProps,
@@ -99,22 +99,11 @@ describe('SearchInputWithSuggestions', () => {
     );
   });
 
-  it('Enter on a focused option calls router.replace with that term', async () => {
+  it('Enter on a focused option calls router.replace with that term', () => {
     renderAndOpen();
     const input = screen.getByRole('combobox');
     fireEvent.focus(input);
     // Skip past the first (ceramic) suggestion to reach lamp.
-    fireEvent.keyDown(input, { key: 'ArrowDown' });
-    fireEvent.keyDown(input, { key: 'ArrowDown' });
-    fireEvent.keyDown(input, { key: 'Enter' });
-
-    // Wait for the debounced effect to clear so we can isolate the
-    // explicit Enter call.
-    await new Promise((r) => setTimeout(r, 300));
-    mockReplace.mockClear();
-
-    // Re-focus to retrigger and then press Enter.
-    fireEvent.focus(input);
     fireEvent.keyDown(input, { key: 'ArrowDown' });
     fireEvent.keyDown(input, { key: 'ArrowDown' });
     fireEvent.keyDown(input, { key: 'Enter' });
@@ -135,19 +124,19 @@ describe('SearchInputWithSuggestions', () => {
   });
 
   it('debounces router.replace on typing (no immediate call on each keystroke)', async () => {
-    renderAndOpen({ recent: [] });
-    const input = screen.getByRole('combobox');
-    fireEvent.change(input, { target: { value: 'c' } });
-    fireEvent.change(input, { target: { value: 'ce' } });
-    fireEvent.change(input, { target: { value: 'cer' } });
-    // 500ms debounce + 3-char minimum — typing "cer" (3 chars) starts
-    // the debounce timer at the last change. Give it 800ms total.
-    await waitFor(
-      () => {
-        expect(mockReplace).toHaveBeenCalled();
-      },
-      { timeout: 800 },
-    );
+    vi.useFakeTimers();
+    try {
+      renderAndOpen({ recent: [] });
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'c' } });
+      fireEvent.change(input, { target: { value: 'ce' } });
+      fireEvent.change(input, { target: { value: 'cer' } });
+      expect(mockReplace).not.toHaveBeenCalled();
+      await act(() => vi.advanceTimersByTimeAsync(500));
+      expect(mockReplace).toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('does NOT call localStorage / sessionStorage / document.cookie', () => {
