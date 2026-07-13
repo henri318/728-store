@@ -33,12 +33,13 @@ export function WaveTransition({
         fill="none"
         stroke="var(--color-green-dark)"
         strokeWidth="28"
+        className={styles.waveStroke}
         d="M-50,90 C320,180 420,0 840,60 C1140,100 1280,30 1490,90"
       />
 
       <text
+        className={styles.slogan}
         fill="var(--color-white)"
-        fontSize="20"
         fontWeight="bold"
         letterSpacing="5"
       >

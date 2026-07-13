@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import type { ProductCustomizationConfigJson } from '@/modules/products/domain/value-objects/product-customization-config';
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
 import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
@@ -43,9 +44,9 @@ export interface CustomizationExperienceLabels {
   increaseQuantity: string;
   decreaseQuantity: string;
   saveDesign: string;
+  addAnotherPersonalization: string;
   customizeProduct: string;
   addWithoutCustomization: string;
-  alreadyInCartDifferent: string;
   customizationDesign: string;
   customizationPhrase: string;
   customizationColor: string;
@@ -109,7 +110,14 @@ interface CustomizationExperienceProps {
   publicMedia: ProductShowcaseMedia[];
   labels: CustomizationExperienceLabels;
   initialDraft?: Partial<Omit<CustomizationDraft, 'error'>>;
+  editCartItemId?: string;
   viewerContext?: ProductViewerContext;
+}
+
+async function preloadAndDecodeImage(url: string): Promise<void> {
+  const image = new Image();
+  image.src = url;
+  await image.decode();
 }
 
 function CustomizationExperienceInner({
@@ -130,6 +138,7 @@ function CustomizationExperienceInner({
   publicMedia,
   labels,
   initialDraft,
+  editCartItemId,
   viewerContext,
 }: CustomizationExperienceProps) {
   const { draft, setImage, setDesignPosition } = useCustomizationDraft();
@@ -163,13 +172,34 @@ function CustomizationExperienceInner({
   );
   const labeledImages = customizableBaseImages.map((image) => ({
     ...image,
-    label: image.id
-      ? resolvePhotoLabel(translations ?? [], image.id, locale ?? 'es')
-      : '',
+    label:
+      (image.id
+        ? resolvePhotoLabel(translations ?? [], image.id, locale ?? 'es')
+        : '') || image.alt,
   }));
   const activeProductImageUrl =
     customizableBaseImages.find((img) => img.alt === draft.color)?.url ??
     previewBaseImageUrl;
+  const [displayedProductImageUrl, setDisplayedProductImageUrl] = useState(
+    activeProductImageUrl,
+  );
+
+  useEffect(() => {
+    if (activeProductImageUrl === displayedProductImageUrl) return;
+    let isCancelled = false;
+    async function updateDecodedImage() {
+      try {
+        await preloadAndDecodeImage(activeProductImageUrl);
+        if (!isCancelled) setDisplayedProductImageUrl(activeProductImageUrl);
+      } catch {
+        // Retain the previous decoded image when the next asset fails.
+      }
+    }
+    updateDecodedImage();
+    return () => {
+      isCancelled = true;
+    };
+  }, [activeProductImageUrl, displayedProductImageUrl]);
   const formLabels = {
     customizationDesign: labels.customizationDesign,
     customizationPhrase: labels.customizationPhrase,
@@ -233,9 +263,9 @@ function CustomizationExperienceInner({
     increaseQuantity: labels.increaseQuantity,
     decreaseQuantity: labels.decreaseQuantity,
     saveDesign: labels.saveDesign,
+    addAnotherPersonalization: labels.addAnotherPersonalization,
     customizeProduct: labels.customizeProduct,
     addWithoutCustomization: labels.addWithoutCustomization,
-    alreadyInCartDifferent: labels.alreadyInCartDifferent,
   };
 
   const uploadDesign = async (file: File) => {
@@ -316,7 +346,7 @@ function CustomizationExperienceInner({
             <div className={styles.canvasCol} data-testid="mockup-canvas">
               {isAllowsPhoto && previewBaseImageUrl && (
                 <MockupCanvasControl
-                  productImageUrl={activeProductImageUrl}
+                  productImageUrl={displayedProductImageUrl}
                   initialDesignUrl={draft.imageUrl}
                   initialPosition={draft.designPosition}
                   labels={mockupLabels}
@@ -325,34 +355,35 @@ function CustomizationExperienceInner({
                 />
               )}
             </div>
-
-            <footer className={styles.footer}>
-              <p className={styles.price}>{formattedPrice}</p>
-              <RoleAwarePurchaseFooter
-                viewerContext={viewerContext ?? anonymousViewerContext}
-                editLabel={labels.goToEdit}
-                cart={{
-                  productId,
-                  productName,
-                  sellerId,
-                  sellerName,
-                  price,
-                  imageUrl: activeProductImageUrl,
-                  customizationAvailable: !customizationModel.isDefault(),
-                  customizeHref: '#customization-form',
-                  labels: cartLabels,
-                  customization: {
-                    text: draft.text,
-                    color: draft.color,
-                    size: draft.size,
-                    imageUploadId: draft.imageUploadId,
-                    imageUrl: draft.imageUrl,
-                    designPosition: draft.designPosition,
-                  },
-                }}
-              />
-            </footer>
           </section>
+
+          <footer className={styles.footer}>
+            <p className={styles.price}>{formattedPrice}</p>
+            <RoleAwarePurchaseFooter
+              viewerContext={viewerContext ?? anonymousViewerContext}
+              editLabel={labels.goToEdit}
+              cart={{
+                productId,
+                productName,
+                sellerId,
+                sellerName,
+                price,
+                imageUrl: displayedProductImageUrl,
+                customizationAvailable: !customizationModel.isDefault(),
+                customizeHref: '#customization-form',
+                labels: cartLabels,
+                editCartItemId,
+                customization: {
+                  text: draft.text,
+                  color: draft.color,
+                  size: draft.size,
+                  imageUploadId: draft.imageUploadId,
+                  imageUrl: draft.imageUrl,
+                  designPosition: draft.designPosition,
+                },
+              }}
+            />
+          </footer>
         </div>
       </Card>
     </>
@@ -369,9 +400,9 @@ export function CustomizationExperience(props: CustomizationExperienceProps) {
     increaseQuantity: props.labels.increaseQuantity,
     decreaseQuantity: props.labels.decreaseQuantity,
     saveDesign: props.labels.saveDesign,
+    addAnotherPersonalization: props.labels.addAnotherPersonalization,
     customizeProduct: props.labels.customizeProduct,
     addWithoutCustomization: props.labels.addWithoutCustomization,
-    alreadyInCartDifferent: props.labels.alreadyInCartDifferent,
   };
 
   if (process.env.NEXT_PUBLIC_CUSTOMIZATION_FRONTEND_ENABLED === 'false') {
@@ -388,6 +419,7 @@ export function CustomizationExperience(props: CustomizationExperienceProps) {
           imageUrl: props.previewBaseImageUrl,
           customizationAvailable: false,
           labels: cartLabels,
+          editCartItemId: props.editCartItemId,
         }}
       />
     );

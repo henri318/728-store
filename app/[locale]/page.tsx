@@ -112,6 +112,8 @@ export default async function HomePage({
             noImageAvailable: dict.common.noImageAvailable,
             itemsLoadedOne: dict.common.itemsLoadedOne,
             itemsLoadedMany: dict.common.itemsLoadedMany,
+            showMore: dict.common.showMore,
+            showLess: dict.common.showLess,
           }}
         />
       </section>

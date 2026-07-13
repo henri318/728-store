@@ -1,5 +1,78 @@
 import { describe, expect, it } from 'vitest';
-import { resolvePhotoLabel } from '@/modules/products/domain/entities/product-translation';
+import {
+  resolveDisplay,
+  resolvePhotoLabel,
+} from '@/modules/products/domain/entities/product-translation';
+
+describe('resolveDisplay', () => {
+  it('returns the requested locale when it exists', () => {
+    const translations = [
+      {
+        locale: 'cat',
+        name: 'Samarreta',
+        description: 'Una samarreta',
+        tags: ['roba'],
+        sizes: ['M', 'L'],
+        designChangeDescription: 'Canvi base',
+      },
+      {
+        locale: 'es',
+        name: 'Camiseta',
+        description: 'Una camiseta',
+        tags: ['ropa'],
+        sizes: ['S', 'M'],
+        designChangeDescription: 'Base',
+      },
+    ] as const;
+
+    const result = resolveDisplay(translations, 'cat');
+
+    expect(result).toMatchObject({
+      locale: 'cat',
+      name: 'Samarreta',
+      description: 'Una samarreta',
+      tags: ['roba'],
+      sizes: ['M', 'L'],
+      designChangeDescription: 'Canvi base',
+    });
+  });
+
+  it('falls back to es when the requested locale is missing', () => {
+    const translations = [
+      {
+        locale: 'cat',
+        name: 'Samarreta',
+        description: 'Una samarreta',
+        tags: ['roba'],
+        sizes: ['M'],
+        designChangeDescription: 'Canvi base',
+      },
+      {
+        locale: 'es',
+        name: 'Camiseta',
+        description: 'Una camiseta',
+        tags: ['ropa'],
+        sizes: ['S'],
+        designChangeDescription: null,
+      },
+    ] as const;
+
+    const result = resolveDisplay(translations, 'fr');
+
+    expect(result).toMatchObject({
+      locale: 'es',
+      name: 'Camiseta',
+      description: 'Una camiseta',
+      tags: ['ropa'],
+      sizes: ['S'],
+      designChangeDescription: null,
+    });
+  });
+
+  it('returns null when no translations exist', () => {
+    expect(resolveDisplay([], 'cat')).toBeNull();
+  });
+});
 
 describe('resolvePhotoLabel', () => {
   const translations = [

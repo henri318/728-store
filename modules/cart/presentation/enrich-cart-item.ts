@@ -1,13 +1,17 @@
 import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
 import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
+import { resolveDisplay } from '@/modules/products/domain/entities/product-translation';
 
 export function enrichCartItem(
   item: CartItemEntity,
   product: ProductEntity | undefined,
   customizations: CustomizationSnapshot[],
+  locale: string,
 ): Record<string, unknown> {
-  const productName = product?.translations?.[0]?.name ?? 'Unknown Product';
+  const productName =
+    resolveDisplay(product?.translations ?? [], locale)?.name ??
+    'Unknown Product';
   const productImageUrl = product?.images?.[0]?.url ?? null;
   const sellerName = product?.sellerName ?? 'Unknown Seller';
   const unitPrice = item.unitPriceSnapshot.amount;

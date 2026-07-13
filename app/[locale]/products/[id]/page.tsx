@@ -4,7 +4,7 @@ import { serializeProduct } from '@/modules/products/presentation/product-respon
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { resolveProductViewerContext } from '@/shared/authorization/product-viewer-context';
 import { APP_BASE_URL } from '@/shared/kernel/config';
-import Link from 'next/link';
+import { BackLink } from '@/shared/ui/back-link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import {
@@ -17,6 +17,10 @@ import type { ProductShowcaseMedia } from './product-showcase-gallery';
 async function getPublicProduct(id: string, locale: string) {
   const repository = container.getProductRepository();
   return new GetProductByIdUseCase(repository).execute(id, locale, 'public');
+}
+
+function firstQueryValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
 }
 
 export async function generateMetadata({
@@ -66,10 +70,18 @@ export async function generateMetadata({
 
 export default async function ProductDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; id: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale, id } = await params;
+  const query = (await searchParams) ?? {};
+  const customizationText = firstQueryValue(query.customizationText);
+  const customizationColor = firstQueryValue(query.customizationColor);
+  const customizationCartItemId = firstQueryValue(
+    query.customizationCartItemId,
+  );
   const dict = await getDictionary(locale as 'es' | 'cat');
 
   let product;
@@ -95,9 +107,9 @@ export default async function ProductDetailPage({
     increaseQuantity: dict.common.increaseQuantity,
     decreaseQuantity: dict.common.decreaseQuantity,
     saveDesign: dict.common.saveDesign,
+    addAnotherPersonalization: dict.common.addAnotherPersonalization,
     customizeProduct: dict.common.customizeProduct,
     addWithoutCustomization: dict.common.addWithoutCustomization,
-    alreadyInCartDifferent: dict.common.alreadyInCartDifferent,
     customizationDesign: dict.common.customizationDesign,
     customizationPhrase: dict.common.customizationPhrase,
     customizationColor: dict.common.customizationColor,
@@ -183,9 +195,7 @@ export default async function ProductDetailPage({
 
   return (
     <div className={styles.container}>
-      <Link href={`/${locale}`} className={styles.backLink}>
-        ← {dict.common.home}
-      </Link>
+      <BackLink href={`/${locale}`}>← {dict.common.home}</BackLink>
       <div className={styles.detailLayout}>
         <CustomizationExperience
           productId={product.id}
@@ -206,6 +216,11 @@ export default async function ProductDetailPage({
           productImages={customizableBaseImages}
           publicMedia={publicMedia}
           labels={customizationLabels}
+          initialDraft={{
+            text: customizationText,
+            color: customizationColor,
+          }}
+          editCartItemId={customizationCartItemId}
           viewerContext={viewerContext}
         />
       </div>

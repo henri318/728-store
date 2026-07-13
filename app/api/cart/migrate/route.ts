@@ -137,6 +137,7 @@ export const POST = requireRole('CUSTOMER')(async function POST(
         item.customizationIdList
           .map((id) => customizationMap.get(id))
           .filter((c): c is CustomizationSnapshot => c != null),
+        'es',
       ),
     );
 

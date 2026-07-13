@@ -1,5 +1,11 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import {
+  render,
+  screen,
+  within,
+  fireEvent,
+  waitFor,
+} from '@testing-library/react';
 import type { ImgHTMLAttributes } from 'react';
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
 import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
@@ -19,6 +25,12 @@ const addToCartButtonMock = vi.fn((props: Record<string, unknown>) => (
 vi.mock('@/modules/cart/presentation/components/add-to-cart-button', () => ({
   AddToCartButton: (props: Record<string, unknown>) =>
     addToCartButtonMock(props),
+}));
+
+vi.mock('@/app/[locale]/products/[id]/mockup-canvas-control', () => ({
+  MockupCanvasControl: ({ productImageUrl }: { productImageUrl: string }) => (
+    <div data-testid="mockup-image">{productImageUrl}</div>
+  ),
 }));
 
 vi.mock('next/image', () => ({
@@ -43,9 +55,9 @@ describe('CustomizationExperience', () => {
     increaseQuantity: 'Increase quantity',
     decreaseQuantity: 'Decrease quantity',
     saveDesign: 'Save design',
+    addAnotherPersonalization: 'Add another personalization',
     customizeProduct: 'Customize',
     addWithoutCustomization: 'Add without customization',
-    alreadyInCartDifferent: 'Already in cart',
     customizationDesign: 'Instrucciones de personalización',
     customizationPhrase: 'Phrase',
     goToEdit: 'Go to edit',
@@ -145,6 +157,84 @@ describe('CustomizationExperience', () => {
     expect(props.customization.imageUrl).toBe('/upload.png');
   });
 
+  it('keeps the previous image until the selected image is decoded', async () => {
+    const decodeResolvers: Array<() => void> = [];
+    class MockImage {
+      src = '';
+      // eslint-disable-next-line unicorn/consistent-function-scoping -- resolver is scoped to this test
+      decode = vi.fn(function decodeImage() {
+        return new Promise<void>((resolve) => {
+          decodeResolvers.push(resolve);
+        });
+      });
+    }
+    vi.stubGlobal('Image', MockImage);
+
+    render(
+      <CustomizationExperience
+        {...commonProps}
+        productImages={[
+          {
+            url: '/red.png',
+            alt: 'Red',
+            purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+          },
+          {
+            url: '/blue.png',
+            alt: 'Blue',
+            purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+          },
+        ]}
+        customizationConfig={ProductCustomizationConfig.default().toJson()}
+        labels={labels}
+        initialDraft={{ color: 'Red' }}
+      />,
+    );
+
+    fireEvent.click(screen.getByTitle('Blue'));
+    expect(screen.getByTestId('mockup-image')).toHaveTextContent('/red.png');
+    expect(decodeResolvers).toHaveLength(1);
+
+    decodeResolvers[0]();
+    await waitFor(() =>
+      expect(screen.getByTestId('mockup-image')).toHaveTextContent('/blue.png'),
+    );
+  });
+
+  it('retains the previous image when the selected image fails to decode', async () => {
+    class FailedImage {
+      src = '';
+      decode = vi.fn().mockRejectedValue(new Error('image unavailable'));
+    }
+    vi.stubGlobal('Image', FailedImage);
+
+    render(
+      <CustomizationExperience
+        {...commonProps}
+        productImages={[
+          {
+            url: '/red.png',
+            alt: 'Red',
+            purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+          },
+          {
+            url: '/blue.png',
+            alt: 'Blue',
+            purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
+          },
+        ]}
+        customizationConfig={ProductCustomizationConfig.default().toJson()}
+        labels={labels}
+        initialDraft={{ color: 'Red' }}
+      />,
+    );
+
+    fireEvent.click(screen.getByTitle('Blue'));
+    await waitFor(() =>
+      expect(screen.getByTestId('mockup-image')).toHaveTextContent('/red.png'),
+    );
+  });
+
   it('keeps the product presentation in the right column and the form in the left column', () => {
     const config = ProductCustomizationConfig.default();
 
@@ -171,9 +261,18 @@ describe('CustomizationExperience', () => {
     expect(
       within(leftColumn).getByLabelText(labels.customizationDesign),
     ).toBeInTheDocument();
+
+    const purchaseFooter = layout.querySelector('footer');
+    expect(purchaseFooter).not.toBeNull();
+    if (!purchaseFooter) return;
+
+    expect(purchaseFooter.parentElement).toBe(layout);
     expect(
-      within(leftColumn).getByTestId('mock-add-to-cart'),
+      within(purchaseFooter).getByTestId('mock-add-to-cart'),
     ).toBeInTheDocument();
+    expect(leftColumn).not.toContainElement(
+      screen.getByTestId('mock-add-to-cart'),
+    );
   });
 
   it('renders the designer text as personalization help', () => {

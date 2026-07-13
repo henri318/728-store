@@ -9,8 +9,26 @@
   margin-bottom: -1px;
 }
 
+.slogan {
+  font-size: 20px;
+}
+
+.waveStroke {
+  stroke-width: 28;
+}
+
+@media (max-width: 768px) {
+  .slogan {
+    font-size: clamp(2rem, 10vw, 2.75rem);
+  }
+
+  .waveStroke {
+    stroke-width: 45;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .waveBottom text {
+  .slogan {
     display: none;
   }
 }
