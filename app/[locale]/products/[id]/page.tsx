@@ -172,6 +172,7 @@ export default async function ProductDetailPage({
     })),
   ];
   const customizableBaseImages = view.customizableBase.map((image) => ({
+    id: image.id,
     url: image.url,
     alt: image.alt ?? product.displayName,
     purpose: image.purpose,
@@ -188,6 +189,8 @@ export default async function ProductDetailPage({
       <div className={styles.detailLayout}>
         <CustomizationExperience
           productId={product.id}
+          locale={locale}
+          translations={product.translations}
           productName={product.displayName}
           productDescription={product.displayDescription}
           designChangeDescription={

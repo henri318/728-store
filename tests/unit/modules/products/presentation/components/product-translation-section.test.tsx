@@ -195,4 +195,41 @@ describe('ProductTranslationSection', () => {
       screen.queryByText('Instrucciones subidas por el diseñador'),
     ).toBeNull();
   });
+
+  it('does not render the localized photo-label fieldset', () => {
+    render(
+      <ProductTranslationSection
+        locale="cat"
+        value={{
+          name: 'Tassa',
+          description: '',
+          tags: [],
+          sizes: [],
+          designChangeDescription: null,
+          photoLabels: { 'img-1': 'Davant' },
+        }}
+        onChange={vi.fn()}
+        labels={{
+          title: 'Contingut traduït',
+          hint: 'Edita',
+          nameLabel: 'Nom',
+          descriptionLabel: 'Descripció',
+          tagsLabel: 'Etiquetes',
+          tagsPlaceholder: '',
+          tagsAddLabel: 'Afegir',
+          tagsEmptyLabel: 'Buit',
+          sizesLabel: 'Talles',
+          sizesPlaceholder: '',
+          sizesAddLabel: 'Afegir',
+          sizesEmptyLabel: 'Buit',
+          designChangeDescriptionLabel: 'Canvi',
+          designChangeDescriptionHelp: 'Ajuda',
+          designChangeDescriptionPlaceholder: 'Descriu',
+        }}
+      />,
+    );
+
+    expect(screen.queryByText('Davant')).toBeNull();
+    expect(screen.queryByText('Fotos')).toBeNull();
+  });
 });

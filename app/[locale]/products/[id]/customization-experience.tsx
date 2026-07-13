@@ -21,10 +21,16 @@ import pageStyles from './page.module.css';
 import { RoleAwarePurchaseFooter } from './role-aware-purchase-footer';
 import type { ProductViewerContext } from '@/shared/authorization/product-viewer-context';
 import { useUnsavedChangesGuard } from '@/shared/hooks/use-unsaved-changes-guard';
+import {
+  resolvePhotoLabel,
+  type ProductTranslationEntity,
+} from '@/modules/products/domain/entities/product-translation';
 
 export interface ProductImageItem {
   url: string;
   alt: string;
+  id?: string;
+  label?: string;
   purpose: ProductImagePurpose;
 }
 
@@ -87,6 +93,8 @@ export interface CustomizationExperienceLabels {
 
 interface CustomizationExperienceProps {
   productId: string;
+  locale?: string;
+  translations?: ProductTranslationEntity[];
   productName: string;
   productDescription: string;
   designChangeDescription?: string | null;
@@ -106,6 +114,8 @@ interface CustomizationExperienceProps {
 
 function CustomizationExperienceInner({
   productId,
+  locale,
+  translations,
   productName,
   productDescription,
   designChangeDescription,
@@ -151,6 +161,12 @@ function CustomizationExperienceInner({
   const customizableBaseImages = productImages.filter(
     (image) => image.purpose === ProductImagePurpose.CUSTOMIZABLE_BASE,
   );
+  const labeledImages = customizableBaseImages.map((image) => ({
+    ...image,
+    label: image.id
+      ? resolvePhotoLabel(translations ?? [], image.id, locale ?? 'es')
+      : '',
+  }));
   const activeProductImageUrl =
     customizableBaseImages.find((img) => img.alt === draft.color)?.url ??
     previewBaseImageUrl;
@@ -291,7 +307,7 @@ function CustomizationExperienceInner({
               <CustomizationForm
                 customizationConfig={resolvedCustomizationConfig}
                 sizes={sizes}
-                productImages={customizableBaseImages}
+                productImages={labeledImages}
                 labels={formLabels}
                 helpText={designChangeDescription}
               />

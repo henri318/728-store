@@ -64,6 +64,9 @@ export default async function SellerProductEditPage({
               sizes: [...(translation.sizes ?? [])],
               designChangeDescription:
                 translation.designChangeDescription ?? null,
+              photoLabels: translation.photoLabels
+                ? { ...translation.photoLabels }
+                : {},
             };
           }),
         ],

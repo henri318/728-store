@@ -48,6 +48,7 @@ interface CategoryOption {
 }
 
 interface ProductFormImageSeed {
+  id?: string;
   url: string;
   alt: string | null;
   purpose?: ProductImagePurpose;
@@ -210,7 +211,7 @@ function createPhotoDraft(
   purpose: ProductImagePurpose,
 ): ProductPhotoDraft {
   return {
-    id: createPhotoId(),
+    id: seed.id ?? createPhotoId(),
     url: seed.url,
     alt: normalizePhotoName(seed.alt ?? '', fallbackName),
     size: null,
@@ -311,6 +312,7 @@ function createTranslationDraft(
     tags: [],
     sizes: [],
     designChangeDescription: null,
+    photoLabels: {},
   };
 }
 
@@ -325,7 +327,58 @@ function normalizeTranslationDraft(
     tags: [...(draft?.tags ?? [])],
     sizes: [...(draft?.sizes ?? [])],
     designChangeDescription: draft?.designChangeDescription ?? null,
+    photoLabels: clonePhotoLabels(draft?.photoLabels),
   };
+}
+
+function clonePhotoLabels(labels?: Record<string, string>) {
+  return labels ? { ...labels } : {};
+}
+
+function cleanPhotoLabels(
+  labels: Record<string, string> | undefined,
+  photoIds: ReadonlySet<string>,
+) {
+  return Object.fromEntries(
+    Object.entries(labels ?? {}).filter(([photoId]) => photoIds.has(photoId)),
+  );
+}
+
+function photoIdsFor(images: ProductPhotoBucketsState) {
+  return new Set(images.customizableBase.map((photo) => photo.id));
+}
+
+function addPhotoLabels(
+  translations: TranslationMap,
+  photoIds: readonly string[],
+): TranslationMap {
+  if (photoIds.length === 0) return translations;
+
+  return Object.fromEntries(
+    Object.entries(translations).map(([locale, translation]) => [
+      locale,
+      {
+        ...translation,
+        photoLabels: {
+          ...translation.photoLabels,
+          ...Object.fromEntries(photoIds.map((photoId) => [photoId, ''])),
+        },
+      },
+    ]),
+  ) as TranslationMap;
+}
+
+function removePhotoLabels(
+  translations: TranslationMap,
+  photoId: string,
+): TranslationMap {
+  return Object.fromEntries(
+    Object.entries(translations).map(([locale, translation]) => {
+      const photoLabels = { ...translation.photoLabels };
+      delete photoLabels[photoId];
+      return [locale, { ...translation, photoLabels }];
+    }),
+  ) as TranslationMap;
 }
 
 function hasInactiveTranslationContent(
@@ -384,6 +437,7 @@ function buildTranslationMap(
     sizes: initialValues.translation?.sizes ?? [],
     designChangeDescription:
       initialValues.translation?.designChangeDescription ?? null,
+    photoLabels: initialValues.translation?.photoLabels ?? {},
   });
 
   base[locale] = active;
@@ -400,6 +454,7 @@ function buildPayload(locale: SupportedLocale, form: FormState) {
   const currentDesignChangeDescription =
     current.designChangeDescription?.trim() ?? '';
 
+  const photoIds = photoIdsFor(form.images);
   const translations = Object.values(form.translations)
     .map((translation) => {
       const name = translation.name.trim();
@@ -414,6 +469,7 @@ function buildPayload(locale: SupportedLocale, form: FormState) {
         sizes: [...translation.sizes],
         designChangeDescription:
           designChangeDescription.length > 0 ? designChangeDescription : null,
+        photoLabels: cleanPhotoLabels(translation.photoLabels, photoIds),
       };
     })
     .filter(
@@ -422,7 +478,8 @@ function buildPayload(locale: SupportedLocale, form: FormState) {
         translation.description !== undefined ||
         translation.tags.length > 0 ||
         translation.sizes.length > 0 ||
-        translation.designChangeDescription !== null,
+        translation.designChangeDescription !== null ||
+        Object.keys(translation.photoLabels ?? {}).length > 0,
     );
 
   const images = [
@@ -443,6 +500,7 @@ function buildPayload(locale: SupportedLocale, form: FormState) {
       position: index,
     })),
   ].map((image) => ({
+    id: image.id,
     url: image.url,
     alt: image.alt.trim(),
     position: image.position,
@@ -463,6 +521,7 @@ function buildPayload(locale: SupportedLocale, form: FormState) {
         currentDesignChangeDescription.length > 0
           ? currentDesignChangeDescription
           : null,
+      photoLabels: cleanPhotoLabels(current.photoLabels, photoIds),
     },
     translations,
     customizationConfig,
@@ -551,11 +610,26 @@ export function ProductForm({
   const initialLocale = normalizeLocale(locale);
   const [form, setForm] = useState<FormState>(() => {
     const images = normalizeInitialImages(labels, initialValues.images);
+    const validPhotoIds = photoIdsFor(images);
+    const translations = Object.fromEntries(
+      Object.entries(buildTranslationMap(initialLocale, initialValues)).map(
+        ([translationLocale, translation]) => [
+          translationLocale,
+          {
+            ...translation,
+            photoLabels: cleanPhotoLabels(
+              translation.photoLabels,
+              validPhotoIds,
+            ),
+          },
+        ],
+      ),
+    ) as TranslationMap;
 
     return {
       price: String(initialValues.price),
       activeLocale: initialLocale,
-      translations: buildTranslationMap(initialLocale, initialValues),
+      translations,
       customizationConfig: initialValues.customizationConfig,
       images,
       selectedPhotoId:
@@ -658,12 +732,32 @@ export function ProductForm({
     }));
   };
 
+  const updatePhotoLabel = (photoId: string, label: string) => {
+    setForm((current) => ({
+      ...current,
+      translations: {
+        ...current.translations,
+        [current.activeLocale]: {
+          ...current.translations[current.activeLocale],
+          photoLabels: {
+            ...current.translations[current.activeLocale].photoLabels,
+            [photoId]: label,
+          },
+        },
+      },
+    }));
+  };
+
   const removePhoto = (
     bucket: keyof ProductPhotoBucketsState,
     photoId: string,
   ) => {
     setForm((current) => {
       const nextImages = removeBucketPhoto(current.images, bucket, photoId);
+      const nextTranslations =
+        bucket === 'customizableBase'
+          ? removePhotoLabels(current.translations, photoId)
+          : current.translations;
       const nextSelected =
         current.selectedPhotoId === photoId
           ? (nextImages.cover?.id ??
@@ -675,6 +769,7 @@ export function ProductForm({
       return {
         ...current,
         images: nextImages,
+        translations: nextTranslations,
         selectedPhotoId: nextSelected,
       };
     });
@@ -737,6 +832,13 @@ export function ProductForm({
         return {
           ...current,
           images: nextImages,
+          translations:
+            bucket === 'customizableBase'
+              ? addPhotoLabels(
+                  current.translations,
+                  uploads.map((photo) => photo.id),
+                )
+              : current.translations,
           selectedPhotoId:
             bucket === 'cover'
               ? (uploads[0]?.id ?? current.selectedPhotoId ?? null)
@@ -936,14 +1038,15 @@ export function ProductForm({
                 labels={photoLabels.buckets.customizableBase}
                 commonLabels={photoLabels}
                 photos={form.images.customizableBase}
+                localizedPhotoLabels={
+                  form.translations[form.activeLocale].photoLabels
+                }
                 selectedPhotoId={form.selectedPhotoId}
                 accept="image/png,image/jpeg,image/webp"
                 onFilesSelected={(files) =>
                   handleUpload('customizableBase', files)
                 }
-                onPhotoLabelChange={(photoId, alt) =>
-                  updatePhoto('customizableBase', photoId, { alt })
-                }
+                onPhotoLabelChange={updatePhotoLabel}
                 onSelectPhoto={selectPhoto}
                 onRemovePhoto={(photoId) =>
                   removePhoto('customizableBase', photoId)

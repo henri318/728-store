@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { Prisma } from '@prisma/client';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
 import { PrismaProductRepository } from '@/modules/products/infrastructure/prisma-product-repository';
 import { ProductPrice } from '@/modules/products/domain/value-objects/product-price';
@@ -135,6 +136,7 @@ describe('PrismaProductRepository', () => {
               tags: ['ropa'],
               sizes: ['S', 'M'],
               designChangeDescription: null,
+              photoLabels: Prisma.JsonNull,
             },
             {
               locale: 'cat',
@@ -143,6 +145,7 @@ describe('PrismaProductRepository', () => {
               tags: ['roba'],
               sizes: ['M', 'L'],
               designChangeDescription: 'Canvi',
+              photoLabels: Prisma.JsonNull,
             },
           ],
         },
@@ -263,6 +266,7 @@ describe('PrismaProductRepository', () => {
         tags: ['ceramica'],
         sizes: ['S'],
         designChangeDescription: null,
+        photoLabels: Prisma.JsonNull,
       },
       update: {
         name: 'Taza personalizada',
@@ -270,6 +274,7 @@ describe('PrismaProductRepository', () => {
         tags: ['ceramica'],
         sizes: ['S'],
         designChangeDescription: null,
+        photoLabels: Prisma.JsonNull,
       },
     });
   });

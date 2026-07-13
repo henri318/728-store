@@ -128,4 +128,61 @@ describe('ProductPhotoBucketGallery', () => {
     ).toBeTruthy();
     expect(onSelectPhoto).toHaveBeenCalledWith(photo.id);
   });
+
+  it('renders and edits the active locale label without changing the shared photo alt', () => {
+    const onPhotoLabelChange = vi.fn();
+
+    const { rerender } = render(
+      <ProductPhotoBucketGallery
+        mode="multiple"
+        labels={labels}
+        commonLabels={commonLabels}
+        photos={[{ ...photo, purpose: ProductImagePurpose.CUSTOMIZABLE_BASE }]}
+        localizedPhotoLabels={{ 'photo-1': 'Frontal ES' }}
+        selectedPhotoId={null}
+        accept="image/png"
+        onFilesSelected={vi.fn().mockResolvedValue(undefined)}
+        onPhotoLabelChange={onPhotoLabelChange}
+        onSelectPhoto={vi.fn()}
+        onRemovePhoto={vi.fn()}
+        onMovePhotoUp={vi.fn()}
+        onMovePhotoDown={vi.fn()}
+        uploading={false}
+        error={null}
+      />,
+    );
+
+    const input = screen.getByLabelText(commonLabels.photoDisplayNameLabel);
+    expect(input).toHaveValue('Frontal ES');
+    fireEvent.change(input, { target: { value: 'Frontal editado' } });
+    expect(onPhotoLabelChange).toHaveBeenCalledWith(
+      'photo-1',
+      'Frontal editado',
+    );
+
+    rerender(
+      <ProductPhotoBucketGallery
+        mode="multiple"
+        labels={labels}
+        commonLabels={commonLabels}
+        photos={[{ ...photo, purpose: ProductImagePurpose.CUSTOMIZABLE_BASE }]}
+        localizedPhotoLabels={{ 'photo-1': 'Frontal CAT' }}
+        selectedPhotoId={null}
+        accept="image/png"
+        onFilesSelected={vi.fn().mockResolvedValue(undefined)}
+        onPhotoLabelChange={onPhotoLabelChange}
+        onSelectPhoto={vi.fn()}
+        onRemovePhoto={vi.fn()}
+        onMovePhotoUp={vi.fn()}
+        onMovePhotoDown={vi.fn()}
+        uploading={false}
+        error={null}
+      />,
+    );
+
+    expect(
+      screen.getByLabelText(commonLabels.photoDisplayNameLabel),
+    ).toHaveValue('Frontal CAT');
+    expect(screen.getByAltText(photo.alt)).toBeInTheDocument();
+  });
 });

@@ -7,6 +7,7 @@ import {
 } from '../domain/value-objects/product-image-purpose';
 
 export interface ProductImageInput {
+  id?: string;
   url: string;
   alt: string;
   purpose?: ProductImagePurpose;
@@ -54,7 +55,7 @@ export function buildProductImages(
     const metadata = resolveImageMetadata(input, existingImage);
 
     return {
-      id: randomUUID(),
+      id: input.id ?? existingImage?.id ?? randomUUID(),
       url: input.url,
       alt: input.alt,
       position: index,

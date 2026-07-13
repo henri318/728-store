@@ -11,6 +11,7 @@ export interface ProductTranslationDraft {
   tags: string[];
   sizes: string[];
   designChangeDescription: string | null;
+  photoLabels?: Record<string, string>;
 }
 
 interface ProductTranslationSectionLabels {
