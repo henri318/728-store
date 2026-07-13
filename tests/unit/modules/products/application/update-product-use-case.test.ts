@@ -176,6 +176,32 @@ describe('UpdateProductUseCase', () => {
     );
   });
 
+  it('preserves an untouched locale and omitted fields from a partial update', async () => {
+    const repo = new MemoryProductRepository();
+    repo.seed([makeProduct()]);
+
+    const result = await new UpdateProductUseCase(repo).execute({
+      productId: 'p-1',
+      sellerId: 'seller-1',
+      translations: [{ locale: 'es', name: 'Taza editada' }],
+    });
+
+    expect(result.translations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          locale: 'es',
+          name: 'Taza editada',
+          description: 'Una taza',
+        }),
+        expect.objectContaining({
+          locale: 'cat',
+          name: 'Tassa',
+          description: 'Una tassa',
+        }),
+      ]),
+    );
+  });
+
   it('cleans stale photo label keys and preserves omitted locale labels', async () => {
     const repo = new MemoryProductRepository();
     repo.seed([

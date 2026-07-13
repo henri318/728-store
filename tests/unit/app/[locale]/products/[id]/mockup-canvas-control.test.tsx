@@ -65,8 +65,8 @@ describe('MockupCanvasControl backing store', () => {
     const { getByLabelText } = renderCanvas();
     const canvas = getByLabelText('Canvas') as HTMLCanvasElement;
 
-    expect(canvas.width).toBe(600);
-    expect(canvas.height).toBe(450);
+    expect(canvas.width).toBe(1200);
+    expect(canvas.height).toBe(900);
     expect(canvas.style.width).toBe('');
     expect(canvas.style.height).toBe('');
     expect(context.setTransform).toHaveBeenCalledWith(2, 0, 0, 2, 0, 0);
@@ -80,8 +80,8 @@ describe('MockupCanvasControl backing store', () => {
     const { getByLabelText } = renderCanvas();
     const canvas = getByLabelText('Canvas') as HTMLCanvasElement;
 
-    expect(canvas.width).toBe(300);
-    expect(canvas.height).toBe(225);
+    expect(canvas.width).toBe(600);
+    expect(canvas.height).toBe(450);
 
     Object.defineProperty(globalThis, 'devicePixelRatio', {
       configurable: true,
@@ -89,8 +89,8 @@ describe('MockupCanvasControl backing store', () => {
     });
     globalThis.dispatchEvent(new Event('resize'));
 
-    expect(canvas.width).toBe(900);
-    expect(canvas.height).toBe(675);
+    expect(canvas.width).toBe(1800);
+    expect(canvas.height).toBe(1350);
     expect(context.setTransform).toHaveBeenLastCalledWith(3, 0, 0, 3, 0, 0);
   });
 

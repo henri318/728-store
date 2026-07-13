@@ -23,11 +23,12 @@ import {
   MIN_DESIGN_SCALE_PERCENT,
   type DesignPosition,
 } from '@/modules/products/domain/value-objects/product-customization-config';
-import { drawCover, drawDesign } from '@/shared/presentation/canvas-utils';
+import { drawContain, drawDesign } from '@/shared/presentation/canvas-utils';
 import styles from './mockup-canvas-control.module.css';
 
-const CANVAS_WIDTH = 300;
-const CANVAS_HEIGHT = 225;
+// Keep enough backing pixels for the responsive canvas when the device DPR is 1.
+const CANVAS_WIDTH = 600;
+const CANVAS_HEIGHT = 450;
 
 interface MockupCanvasControlLabels {
   canvasLabel: string;
@@ -129,7 +130,7 @@ export function MockupCanvasControl({
       productImage.complete &&
       productImage.naturalWidth > 0
     ) {
-      drawCover(ctx, productImage, CANVAS_WIDTH, CANVAS_HEIGHT);
+      drawContain(ctx, productImage, CANVAS_WIDTH, CANVAS_HEIGHT);
     }
 
     const designImage = designImageRef.current;

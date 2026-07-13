@@ -172,6 +172,29 @@ describe('CustomizationExperience', () => {
     expect(props.customization.imageUrl).toBe('/upload.png');
   });
 
+  it('places the category link between the description and gallery', () => {
+    render(
+      <CustomizationExperience
+        {...commonProps}
+        customizationConfig={ProductCustomizationConfig.default().toJson()}
+        labels={labels}
+      />,
+    );
+
+    const categoryLink = screen.getByRole('link', { name: 'Category: Mugs' });
+    const description = screen.getByText('A nice mug');
+    const gallery = screen.getByTestId('showcase-gallery');
+
+    expect(
+      description.compareDocumentPosition(categoryLink) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      categoryLink.compareDocumentPosition(gallery) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   it('keeps the previous image until the selected image is decoded', async () => {
     const decodeResolvers: Array<() => void> = [];
     class MockImage {
