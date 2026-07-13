@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/shared/ui/button';
 import { Modal } from '@/shared/ui/modal';
+import styles from './use-unsaved-changes-guard.module.css';
 
 export interface UnsavedChangesLabels {
   title: string;
@@ -45,10 +46,10 @@ export function useUnsavedChangesGuard(
       );
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('click', handleClick);
+    document.addEventListener('click', handleClick, { capture: true });
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('click', handleClick);
+      document.removeEventListener('click', handleClick, true);
     };
   }, [isDirty, labels.message]);
 
@@ -59,24 +60,33 @@ export function useUnsavedChangesGuard(
 
   return (
     <Modal isOpen={pendingHref !== null} onClose={() => setPendingHref(null)}>
-      <div role="dialog" aria-modal="true" aria-labelledby="unsaved-title">
-        <h2 id="unsaved-title">{labels.title}</h2>
-        <p>{labels.message}</p>
-        <Button
-          type="button"
-          data-action="stay"
-          onClick={() => setPendingHref(null)}
-        >
-          {labels.stay}
-        </Button>
-        <Button
-          type="button"
-          data-action="leave"
-          variant="danger"
-          onClick={leave}
-        >
-          {labels.leave}
-        </Button>
+      <div
+        className={styles.dialog}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="unsaved-title"
+      >
+        <h2 id="unsaved-title" className={styles.title}>
+          {labels.title}
+        </h2>
+        <p className={styles.message}>{labels.message}</p>
+        <div className={styles.actions} data-testid="unsaved-actions">
+          <Button
+            type="button"
+            data-action="stay"
+            onClick={() => setPendingHref(null)}
+          >
+            {labels.stay}
+          </Button>
+          <Button
+            type="button"
+            data-action="leave"
+            variant="danger"
+            onClick={leave}
+          >
+            {labels.leave}
+          </Button>
+        </div>
       </div>
     </Modal>
   );

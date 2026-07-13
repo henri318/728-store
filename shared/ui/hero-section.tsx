@@ -13,6 +13,7 @@ export function HeroSection({ imageSrc, imageAlt }: HeroSectionProps) {
         src={imageSrc}
         alt={imageAlt}
         fill
+        loading="eager"
         sizes="100vw"
         className={styles.heroImage}
       />
