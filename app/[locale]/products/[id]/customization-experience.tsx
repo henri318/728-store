@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import type { ProductCustomizationConfigJson } from '@/modules/products/domain/value-objects/product-customization-config';
 import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
 import { ProductImagePurpose } from '@/modules/products/domain/value-objects/product-image-purpose';
@@ -20,6 +21,7 @@ import {
 import styles from './customization-experience.module.css';
 import pageStyles from './page.module.css';
 import { RoleAwarePurchaseFooter } from './role-aware-purchase-footer';
+import { SimilarProducts } from './similar-products';
 import type { ProductViewerContext } from '@/shared/authorization/product-viewer-context';
 import { useUnsavedChangesGuard } from '@/shared/hooks/use-unsaved-changes-guard';
 import {
@@ -90,11 +92,14 @@ export interface CustomizationExperienceLabels {
   unsavedChangesMessage?: string;
   unsavedChangesLeave?: string;
   unsavedChangesStay?: string;
+  categoryLabel: string;
+  similarProducts: string;
+  similarProductsLoading: string;
 }
 
 interface CustomizationExperienceProps {
   productId: string;
-  locale?: string;
+  locale: string;
   translations?: ProductTranslationEntity[];
   productName: string;
   productDescription: string;
@@ -112,6 +117,13 @@ interface CustomizationExperienceProps {
   initialDraft?: Partial<Omit<CustomizationDraft, 'error'>>;
   editCartItemId?: string;
   viewerContext?: ProductViewerContext;
+  categoryLink: { slug: string; name: string } | null;
+  similarProductsLabels: {
+    title: string;
+    loading: string;
+    noImageAvailable: string;
+    viewDetails: string;
+  };
 }
 
 async function preloadAndDecodeImage(url: string): Promise<void> {
@@ -140,6 +152,8 @@ function CustomizationExperienceInner({
   initialDraft,
   editCartItemId,
   viewerContext,
+  categoryLink,
+  similarProductsLabels,
 }: CustomizationExperienceProps) {
   const { draft, setImage, setDesignPosition } = useCustomizationDraft();
   const initialDraftSnapshot = {
@@ -317,6 +331,14 @@ function CustomizationExperienceInner({
             <header className={styles.header}>
               <span className={pageStyles.seller}>{sellerName}</span>
               <h1 className={pageStyles.title}>{productName}</h1>
+              {categoryLink && (
+                <Link
+                  href={`/${locale}?category=${categoryLink.slug}`}
+                  className={styles.categoryLink}
+                >
+                  {labels.categoryLabel}: {categoryLink.name}
+                </Link>
+              )}
               <p className={pageStyles.description}>{productDescription}</p>
             </header>
 
@@ -385,11 +407,16 @@ function CustomizationExperienceInner({
             />
           </footer>
         </div>
+
+        <SimilarProducts
+          productId={productId}
+          locale={locale}
+          labels={similarProductsLabels}
+        />
       </Card>
     </>
   );
 }
-
 export function CustomizationExperience(props: CustomizationExperienceProps) {
   const cartLabels = {
     addToCart: props.labels.addToCart,

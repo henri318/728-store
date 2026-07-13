@@ -52,6 +52,7 @@ export interface InfiniteProductListProps {
    * intentionally a single-search state machine.
    */
   q: string;
+  category?: string;
   locale: string;
   labels: InfiniteProductListLabels;
 }
@@ -102,6 +103,7 @@ export function InfiniteProductList({
   initialItems,
   pageSize,
   q,
+  category,
   locale,
   labels,
 }: InfiniteProductListProps) {
@@ -125,6 +127,8 @@ export function InfiniteProductList({
         lang: locale,
       });
       if (q.trim().length > 0) params.set('q', q);
+      if (category && category.trim().length > 0)
+        params.set('category', category);
 
       const res = await fetch(`/api/products?${params.toString()}`);
       if (!res.ok) throw new Error(`Failed to load (${res.status})`);
@@ -152,7 +156,7 @@ export function InfiniteProductList({
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, hasMore, page, pageSize, q, locale, labels]);
+  }, [isLoading, hasMore, page, pageSize, q, category, locale, labels]);
 
   useEffect(() => {
     const node = sentinelRef.current;

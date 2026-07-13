@@ -154,7 +154,10 @@
     "cartMergeKeepGuestHint": "Substitueix la cistella de l'usuari pels articles de convidat",
     "genericError": "Alguna cosa ha anat malament. Torna-ho a intentar.",
     "customizationRemoved": "Personalització eliminada",
-    "price": "Preu"
+    "price": "Preu",
+    "similarProducts": "Productes similars",
+    "similarProductsLoading": "Carregant productes similars...",
+    "categoryLabel": "Categoria"
   },
   "auth": {
     "signInTitle": "Iniciar sessió",

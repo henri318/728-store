@@ -3,6 +3,7 @@ import { GetProductByIdUseCase } from '@/modules/products/application/get-produc
 import { serializeProduct } from '@/modules/products/presentation/product-response';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { resolveProductViewerContext } from '@/shared/authorization/product-viewer-context';
+import { resolveCategoryDisplay } from '@/modules/products/domain/entities/category-translation';
 import { APP_BASE_URL } from '@/shared/kernel/config';
 import { BackLink } from '@/shared/ui/back-link';
 import type { Metadata } from 'next';
@@ -98,6 +99,15 @@ export default async function ProductDetailPage({
   );
   const view = serializeProduct(product, { publicView: true });
   const isDesigner = viewerContext.viewerRole === 'DESIGNER';
+
+  const categoryDisplay = product.category
+    ? resolveCategoryDisplay(product.category.translations, locale)
+    : null;
+  const categoryLink =
+    product.category && categoryDisplay
+      ? { slug: product.category.slug, name: categoryDisplay.name }
+      : null;
+
   const customizationLabels = {
     addToCart: dict.common.addToCart,
     removeFromCart: dict.common.removeFromCart,
@@ -156,6 +166,9 @@ export default async function ProductDetailPage({
     unsavedChangesMessage: dict.common.unsavedChangesMessage,
     unsavedChangesLeave: dict.common.unsavedChangesLeave,
     unsavedChangesStay: dict.common.unsavedChangesStay,
+    categoryLabel: dict.common.categoryLabel,
+    similarProducts: dict.common.similarProducts,
+    similarProductsLoading: dict.common.similarProductsLoading,
   } satisfies CustomizationExperienceLabels;
   customizationLabels.customizationDesign = isDesigner
     ? dict.common.customizationDesignDesigner
@@ -199,7 +212,6 @@ export default async function ProductDetailPage({
       <div className={styles.detailLayout}>
         <CustomizationExperience
           productId={product.id}
-          locale={locale}
           translations={product.translations}
           productName={product.displayName}
           productDescription={product.displayDescription}
@@ -218,10 +230,18 @@ export default async function ProductDetailPage({
           labels={customizationLabels}
           initialDraft={{
             text: customizationText,
-            color: customizationColor,
+            color: customizationColor ?? customizableBaseImages[0]?.alt ?? null,
           }}
           editCartItemId={customizationCartItemId}
           viewerContext={viewerContext}
+          categoryLink={categoryLink}
+          locale={locale}
+          similarProductsLabels={{
+            title: dict.common.similarProducts,
+            loading: dict.common.similarProductsLoading,
+            noImageAvailable: dict.common.noImageAvailable,
+            viewDetails: dict.common.viewDetails,
+          }}
         />
       </div>
     </div>

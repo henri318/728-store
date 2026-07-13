@@ -26,6 +26,7 @@ interface FileUploadDropzoneProps {
   selectedItemId?: string | null;
   onFilesSelected: (files: File[]) => void | Promise<void>;
   onRemoveItem: (itemId: string) => void;
+  children?: React.ReactNode;
 }
 
 export function FileUploadDropzone({
@@ -44,6 +45,7 @@ export function FileUploadDropzone({
   selectedItemId,
   onFilesSelected,
   onRemoveItem,
+  children,
 }: FileUploadDropzoneProps) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -147,6 +149,8 @@ export function FileUploadDropzone({
           })}
         </ul>
       )}
+
+      {children}
     </section>
   );
 }

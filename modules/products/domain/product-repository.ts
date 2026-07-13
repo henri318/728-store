@@ -50,6 +50,12 @@ export interface ProductRepository {
   findPaginated(
     filter: ProductsListFilter,
   ): Promise<PaginatedResult<ProductEntity>>;
+  findSimilar(
+    productId: string,
+    tagIds: string[],
+    locale: string,
+    limit?: number,
+  ): Promise<ProductEntity[]>;
   save(entity: ProductEntity, tx?: unknown): Promise<void>;
   update(entity: ProductEntity, tx?: unknown): Promise<boolean>;
 }

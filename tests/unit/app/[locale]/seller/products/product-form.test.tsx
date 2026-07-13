@@ -63,7 +63,6 @@ describe('ProductForm', () => {
       editor: {
         sizeOptionsLabel: 'Tallas disponibles',
         sizeOptionsPlaceholder: 'S, M, L',
-        allowPhotoDesignLabel: 'Permitir diseño con foto',
         designChangeDescriptionLabel: 'Descripción del cambio de diseño',
         designChangeDescriptionHelp: 'Indica el cambio.',
         designChangeDescriptionPlaceholder: 'Describe los cambios...',
@@ -252,8 +251,8 @@ describe('ProductForm', () => {
       screen.getByText(labels.gallery.buckets.customizableBase.title),
     ).toBeTruthy();
     expect(
-      screen.getByText(labels.gallery.buckets.cover.noCoverPlaceholder),
-    ).toBeTruthy();
+      screen.queryByText(labels.gallery.buckets.cover.noCoverPlaceholder),
+    ).toBeNull();
     expect(screen.queryByLabelText('Estado')).toBeNull();
 
     fireEvent.change(screen.getByLabelText(labels.nameLabel), {
@@ -437,47 +436,6 @@ describe('ProductForm', () => {
     expect(
       screen.getAllByText(labels.customization.label).length,
     ).toBeGreaterThan(0);
-  });
-
-  it('toggles the allow-photo-design checkbox in the customization editor', () => {
-    render(
-      <ProductForm
-        locale="es"
-        mode="create"
-        initialValues={{
-          price: 19.99,
-          translations: [
-            {
-              locale: 'es',
-              name: 'Taza',
-              description: 'Base',
-              tags: [],
-              sizes: [],
-              designChangeDescription: null,
-            },
-          ],
-          customizationConfig: {
-            mode: 'text_photo',
-            previewEnabled: true,
-            previewTemplateUrl: null,
-            textOffset: { x: 12, y: 18 },
-            imageOffset: { x: 24, y: 40 },
-          },
-          images: [],
-        }}
-        labels={labels}
-      />,
-    );
-
-    const checkbox = screen.getByLabelText(
-      labels.customization.editor.allowPhotoDesignLabel,
-    );
-
-    expect(checkbox).not.toBeChecked();
-
-    fireEvent.click(checkbox);
-
-    expect(checkbox).toBeChecked();
   });
 
   it('includes translated tags and sizes in the edit-mode PATCH payload', async () => {

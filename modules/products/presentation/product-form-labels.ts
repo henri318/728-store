@@ -41,7 +41,6 @@ export interface ProductFormLabels {
     editor: {
       sizeOptionsLabel: string;
       sizeOptionsPlaceholder: string;
-      allowPhotoDesignLabel: string;
       designChangeDescriptionLabel: string;
       designChangeDescriptionPlaceholder: string;
       categoryLabel: string;
@@ -152,8 +151,6 @@ export function getProductFormLabels(
         sizeOptionsLabel: sd.productCustomizationSizeOptionsLabel as string,
         sizeOptionsPlaceholder:
           sd.productCustomizationSizeOptionsPlaceholder as string,
-        allowPhotoDesignLabel:
-          sd.productCustomizationAllowPhotoDesignLabel as string,
         designChangeDescriptionLabel:
           sd.productCustomizationDesignChangeDescriptionLabel as string,
         designChangeDescriptionPlaceholder:

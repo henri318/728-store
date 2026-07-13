@@ -8,7 +8,7 @@ import { Button } from '@/shared/ui/button';
 import { BackLink } from '@/shared/ui/back-link';
 import { Card } from '@/shared/ui/card';
 import { PriceField } from '@/shared/ui/price-field';
-import { ProductCustomizationConfigEditor } from '@/modules/products/presentation/components/product-customization-config-editor';
+import { SelectField } from '@/shared/ui/select-field';
 import {
   ProductLocaleTabs,
   type ProductLocale,
@@ -388,7 +388,8 @@ function hasInactiveTranslationContent(
     translation.description.trim().length > 0 ||
     translation.tags.length > 0 ||
     translation.sizes.length > 0 ||
-    (translation.designChangeDescription?.trim().length ?? 0) > 0
+    (translation.designChangeDescription?.trim().length ?? 0) > 0 ||
+    Object.keys(translation.photoLabels ?? {}).length > 0
   );
 }
 
@@ -449,6 +450,7 @@ function buildPayload(locale: SupportedLocale, form: FormState) {
   const customizationConfig = form.customizationConfig
     ? {
         ...form.customizationConfig,
+        allowPhotoDesign: form.images.customizableBase.length > 0,
       }
     : undefined;
   const currentDesignChangeDescription =
@@ -979,6 +981,22 @@ export function ProductForm({
                 required
               />
 
+              <SelectField
+                label={labels.customization.editor.categoryLabel}
+                value={form.customizationConfig.categoryId ?? ''}
+                onChange={(v) =>
+                  updateField('customizationConfig', {
+                    ...form.customizationConfig,
+                    categoryId: v || null,
+                  })
+                }
+                options={categories.map((c) => ({
+                  value: c.id,
+                  label: c.name,
+                }))}
+                placeholder={labels.customization.editor.categoryPlaceholder}
+              />
+
               {errors.images ? (
                 <p className={styles.alert} role="alert">
                   {errors.images}
@@ -1066,23 +1084,6 @@ export function ProductForm({
                   error={null}
                 />
               </div>
-            </div>
-
-            <hr className={styles.divider} />
-
-            <div className={styles.formBody}>
-              <ProductCustomizationConfigEditor
-                value={form.customizationConfig}
-                labels={labels.customization.editor}
-                categories={categories}
-                onChange={(value) => updateField('customizationConfig', value)}
-              />
-
-              {errors.customizationConfig ? (
-                <p className={styles.alert} role="alert">
-                  {errors.customizationConfig}
-                </p>
-              ) : null}
             </div>
 
             <div className={styles.buttonRow}>
