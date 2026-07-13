@@ -1,10 +1,22 @@
-import { act, render, renderHook } from '@testing-library/react';
-import type { PropsWithChildren } from 'react';
+import {
+  act,
+  fireEvent,
+  render,
+  renderHook,
+  screen,
+} from '@testing-library/react';
+import type { ComponentProps, PropsWithChildren } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import Link from 'next/link';
 import { useUnsavedChangesGuard } from '@/shared/hooks/use-unsaved-changes-guard';
 
 const push = vi.fn();
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
+vi.mock('next/link', () => ({
+  default: ({ children, ...props }: ComponentProps<'a'>) => (
+    <a {...props}>{children}</a>
+  ),
+}));
 vi.mock('@/shared/ui/button', () => ({
   Button: ({
     children,
@@ -23,6 +35,22 @@ const labels = {
 
 function Harness() {
   return useUnsavedChangesGuard(true, labels);
+}
+
+function ReactNavigationHarness() {
+  const guard = useUnsavedChangesGuard(true, labels);
+
+  return (
+    <>
+      {guard}
+      <Link
+        href="/es/seller/products"
+        onClick={(event) => event.preventDefault()}
+      >
+        Volver a productos
+      </Link>
+    </>
+  );
 }
 
 describe('useUnsavedChangesGuard', () => {
@@ -66,6 +94,12 @@ describe('useUnsavedChangesGuard', () => {
     expect(document.querySelector('[role="dialog"]')).toHaveTextContent(
       labels.message,
     );
+    expect(
+      document.querySelector('[data-testid="unsaved-actions"]'),
+    ).toContainElement(document.querySelector('button[data-action="stay"]'));
+    expect(
+      document.querySelector('[data-testid="unsaved-actions"]'),
+    ).toContainElement(document.querySelector('button[data-action="leave"]'));
     act(() => {
       document
         .querySelector<HTMLButtonElement>('button[data-action="leave"]')
@@ -94,5 +128,15 @@ describe('useUnsavedChangesGuard', () => {
 
     expect(push).not.toHaveBeenCalled();
     expect(document.querySelector('[role="dialog"]')).toBeNull();
+  });
+
+  it('intercepts links whose React handler prevents the default navigation', () => {
+    render(<ReactNavigationHarness />);
+
+    fireEvent.click(screen.getByRole('link', { name: 'Volver a productos' }));
+
+    expect(document.querySelector('[role="dialog"]')).toHaveTextContent(
+      labels.message,
+    );
   });
 });

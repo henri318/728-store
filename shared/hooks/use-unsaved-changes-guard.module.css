@@ -1,0 +1,17 @@
+.dialog {
+  min-width: min(22rem, 100%);
+}
+
+.title {
+  margin: 0;
+}
+
+.message {
+  margin: var(--spacing-lg) 0;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
