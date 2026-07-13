@@ -125,15 +125,18 @@ describe('SearchInputWithSuggestions', () => {
 
   it('debounces router.replace on typing (no immediate call on each keystroke)', async () => {
     vi.useFakeTimers();
-    renderAndOpen({ recent: [] });
-    const input = screen.getByRole('combobox');
-    fireEvent.change(input, { target: { value: 'c' } });
-    fireEvent.change(input, { target: { value: 'ce' } });
-    fireEvent.change(input, { target: { value: 'cer' } });
-    expect(mockReplace).not.toHaveBeenCalled();
-    await act(() => vi.advanceTimersByTimeAsync(500));
-    expect(mockReplace).toHaveBeenCalled();
-    vi.useRealTimers();
+    try {
+      renderAndOpen({ recent: [] });
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'c' } });
+      fireEvent.change(input, { target: { value: 'ce' } });
+      fireEvent.change(input, { target: { value: 'cer' } });
+      expect(mockReplace).not.toHaveBeenCalled();
+      await act(() => vi.advanceTimersByTimeAsync(500));
+      expect(mockReplace).toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('does NOT call localStorage / sessionStorage / document.cookie', () => {
