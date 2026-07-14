@@ -560,6 +560,19 @@ async function main() {
   for (const [index, p] of productsData.entries()) {
     const { tags: tagSlugs, translations, ...productFields } = p;
     const category = categories[index % categories.length];
+    if (
+      !('customizationConfig' in p) &&
+      p.images?.create?.some((img) => img.purpose === 'CUSTOMIZABLE_BASE')
+    ) {
+      (productFields as Record<string, unknown>).customizationConfig = {
+        mode: 'text_photo',
+        previewEnabled: false,
+        previewTemplateUrl: null,
+        textOffset: null,
+        imageOffset: null,
+      };
+    }
+
     const product = await prisma.product.create({
       data: {
         ...productFields,
