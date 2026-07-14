@@ -97,6 +97,12 @@ export default async function SellerOrdersPage({
       header: dict.sellerDashboard?.actions ?? 'Actions',
       render: (order) => (
         <div className={styles.actionCell}>
+          <a
+            href={`/${locale}/seller/orders/${order.id}`}
+            className={styles.viewLink}
+          >
+            {dict.orders?.viewOrder ?? 'Ver pedido'}
+          </a>
           {order.status === 'new' && (
             <form
               method="post"

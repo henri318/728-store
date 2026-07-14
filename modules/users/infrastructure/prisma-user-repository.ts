@@ -6,6 +6,7 @@ import { Email } from '@/shared/kernel/domain/value-objects/email';
 import { Address } from '@/shared/kernel/domain/value-objects/address';
 import { RoleId } from '@/shared/kernel/domain/identifiers/role-id';
 import { PasswordHash } from '@/shared/kernel/domain/value-objects/password-hash';
+import type { UserAddressInput } from '../domain/user-address';
 
 /** Maps a Prisma User row to the domain UserEntity (with VOs). */
 export function toDomain(user: {
@@ -15,10 +16,12 @@ export function toDomain(user: {
   firstName: string;
   lastName: string;
   role: string;
-  addressStreet: string | null;
-  addressCity: string | null;
-  addressPostalCode: string | null;
-  addressCountry: string | null;
+  address?: {
+    street: string | null;
+    city: string | null;
+    postalCode: string | null;
+    country: string | null;
+  } | null;
   emailVerified: Date | null;
   deletedAt: Date | null;
   createdAt: Date;
@@ -27,15 +30,15 @@ export function toDomain(user: {
   if (!user.email) throw new Error('User email is required');
 
   const address =
-    user.addressStreet &&
-    user.addressCity &&
-    user.addressPostalCode &&
-    user.addressCountry
+    user.address?.street &&
+    user.address.city &&
+    user.address.postalCode &&
+    user.address.country
       ? Address.create(
-          user.addressStreet,
-          user.addressCity,
-          user.addressPostalCode,
-          user.addressCountry,
+          user.address.street,
+          user.address.city,
+          user.address.postalCode,
+          user.address.country,
         )
       : null;
 
@@ -57,6 +60,13 @@ export function toDomain(user: {
 }
 
 export class PrismaUserRepository implements UserRepository {
+  async saveAddress(userId: string, address: UserAddressInput): Promise<void> {
+    await prisma.userAddress.upsert({
+      where: { userId },
+      update: address,
+      create: { userId, ...address },
+    });
+  }
   async save(user: UserEntity, tx: PrismaClient = prisma): Promise<UserEntity> {
     const savedUser = await tx.user.upsert({
       where: { id: user.userId.value },
@@ -66,10 +76,6 @@ export class PrismaUserRepository implements UserRepository {
         lastName: user.lastName,
         passwordHash: user.passwordHash?.value ?? null,
         role: user.roleId.value,
-        addressStreet: user.address?.street ?? null,
-        addressCity: user.address?.city ?? null,
-        addressPostalCode: user.address?.postalCode ?? null,
-        addressCountry: user.address?.country ?? null,
         deletedAt: user.deletedAt ?? null,
       },
       create: {
@@ -79,20 +85,28 @@ export class PrismaUserRepository implements UserRepository {
         lastName: user.lastName,
         passwordHash: user.passwordHash?.value ?? null,
         role: user.roleId.value,
-        addressStreet: user.address?.street ?? null,
-        addressCity: user.address?.city ?? null,
-        addressPostalCode: user.address?.postalCode ?? null,
-        addressCountry: user.address?.country ?? null,
         deletedAt: user.deletedAt ?? null,
       },
     });
 
-    return toDomain(savedUser);
+    await tx.userAddress.upsert({
+      where: { userId: user.userId.value },
+      update: addressData(user.address),
+      create: { userId: user.userId.value, ...addressData(user.address) },
+    });
+
+    return toDomain({
+      ...savedUser,
+      address: await tx.userAddress.findUnique({
+        where: { userId: user.userId.value },
+      }),
+    });
   }
 
   async findByEmail(email: string): Promise<UserEntity | null> {
     const user = await prisma.user.findFirst({
       where: { email: email.trim().toLowerCase() },
+      include: { address: true },
     });
 
     if (!user) return null;
@@ -102,6 +116,7 @@ export class PrismaUserRepository implements UserRepository {
   async findById(id: string): Promise<UserEntity | null> {
     const user = await prisma.user.findUnique({
       where: { id },
+      include: { address: true },
     });
 
     if (!user) return null;
@@ -127,15 +142,22 @@ export class PrismaUserRepository implements UserRepository {
         email: user.email.value,
         passwordHash: user.passwordHash?.value ?? null,
         role: user.roleId.value,
-        addressStreet: user.address?.street ?? null,
-        addressCity: user.address?.city ?? null,
-        addressPostalCode: user.address?.postalCode ?? null,
-        addressCountry: user.address?.country ?? null,
         deletedAt: user.deletedAt ?? null,
       },
     });
 
-    return toDomain(updatedUser);
+    await tx.userAddress.upsert({
+      where: { userId: user.userId.value },
+      update: addressData(user.address),
+      create: { userId: user.userId.value, ...addressData(user.address) },
+    });
+
+    return toDomain({
+      ...updatedUser,
+      address: await tx.userAddress.findUnique({
+        where: { userId: user.userId.value },
+      }),
+    });
   }
 
   /**
@@ -147,4 +169,14 @@ export class PrismaUserRepository implements UserRepository {
       where: { id },
     });
   }
+}
+
+function addressData(address: Address | null) {
+  return {
+    street: address?.street ?? null,
+    city: address?.city ?? null,
+    postalCode: address?.postalCode ?? null,
+    country: address?.country ?? null,
+    countryCode: address?.country?.toUpperCase() === 'ES' ? 'ES' : null,
+  };
 }

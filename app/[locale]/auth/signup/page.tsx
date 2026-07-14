@@ -15,13 +15,12 @@ import { useDictionary } from '@/shared/i18n/dictionary-context';
 import { checkPasswordMatch } from '@/shared/validation/password-match';
 import { validateForm } from '@/shared/validation/validate-form';
 import styles from './page.module.css';
+import {
+  AddressAutocompleteFields,
+  type AddressValue,
+} from '@/modules/users/presentation/components/address-autocomplete-fields';
 
-interface AddressFields {
-  street: string;
-  city: string;
-  postalCode: string;
-  country: string;
-}
+type AddressFields = AddressValue;
 
 interface FormState {
   firstName: string;
@@ -107,7 +106,7 @@ export default function SignUpPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    address: { street: '', city: '', postalCode: '', country: '' },
+    address: {},
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
@@ -120,28 +119,6 @@ export default function SignUpPage() {
       setErrors((prev) => {
         const next = { ...prev };
         delete next[field];
-        return next;
-      });
-    }
-  };
-
-  const updateAddressField = (field: keyof AddressFields, value: string) => {
-    setForm((prev) => ({
-      ...prev,
-      address: { ...prev.address, [field]: value },
-    }));
-    if (errors.address?.[field] !== undefined) {
-      setErrors((prev) => {
-        const next = {
-          ...prev,
-          address: prev.address ? { ...prev.address } : undefined,
-        };
-        if (next.address) {
-          delete next.address[field];
-          if (Object.keys(next.address).length === 0) {
-            next.address = undefined;
-          }
-        }
         return next;
       });
     }
@@ -178,6 +155,7 @@ export default function SignUpPage() {
       });
 
       const data = await res.json();
+      console.log('[Signup] Respuesta:', res.status, data);
 
       if (!res.ok) {
         if (data.error === 'Resource already exists') {
@@ -205,6 +183,7 @@ export default function SignUpPage() {
         router.push(`/${locale}/auth/signin?registered=true`);
       }
     } catch (error: unknown) {
+      console.error('[Signup] Error capturado:', error);
       setServerError(
         error instanceof Error ? error.message : 'An unexpected error occurred',
       );
@@ -271,29 +250,27 @@ export default function SignUpPage() {
 
         {showAddress && (
           <div className={styles.addressFields}>
-            <TextField
-              label={dict.auth.street}
-              value={form.address.street}
-              onChange={(v) => updateAddressField('street', v)}
-              error={errors.address?.street}
-            />
-            <TextField
-              label={dict.auth.city}
-              value={form.address.city}
-              onChange={(v) => updateAddressField('city', v)}
-              error={errors.address?.city}
-            />
-            <TextField
-              label={dict.auth.postalCode}
-              value={form.address.postalCode}
-              onChange={(v) => updateAddressField('postalCode', v)}
-              error={errors.address?.postalCode}
-            />
-            <TextField
-              label={dict.auth.country}
-              value={form.address.country}
-              onChange={(v) => updateAddressField('country', v)}
-              error={errors.address?.country}
+            <AddressAutocompleteFields
+              value={form.address}
+              onChange={(address) => setForm((prev) => ({ ...prev, address }))}
+              errors={errors.address}
+              locale={locale === 'cat' ? 'cat' : 'es'}
+              labels={{
+                street: dict.auth.street,
+                houseNumber: dict.auth.houseNumber,
+                postalCode: dict.auth.postalCode,
+                city: dict.auth.city,
+                floor: dict.auth.floor,
+                door: dict.auth.door,
+                instructions: dict.auth.instructions,
+                countryLabel: dict.auth.countryLabel,
+                searchPlaceholder: dict.auth.searchPlaceholder,
+                noResults: dict.auth.noResults,
+                retry: dict.auth.retry,
+                providerError: dict.auth.providerError,
+                listboxLabel: dict.auth.listboxLabel,
+                composedLabel: dict.auth.composedLabel,
+              }}
             />
           </div>
         )}

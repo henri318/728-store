@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import { userAddressSchema } from '@/modules/users/domain/user-address';
+export { userAddressSchema as userAddressInputSchema } from '@/modules/users/domain/user-address';
+const userAddressInputSchema = userAddressSchema;
 
 export const signupSchema = z
   .object({
@@ -18,14 +21,7 @@ export const signupSchema = z
       .regex(/[a-zA-Z]/, 'La contraseña debe contener al menos una letra')
       .regex(/\d/, 'La contraseña debe contener al menos un número'),
     confirmPassword: z.string().optional(),
-    address: z
-      .object({
-        street: z.string().min(1),
-        city: z.string().min(1),
-        postalCode: z.string().min(1),
-        country: z.string().min(1),
-      })
-      .optional(),
+    address: userAddressInputSchema.optional(),
   })
   .refine(
     (data) => !data.confirmPassword || data.password === data.confirmPassword,
@@ -70,12 +66,5 @@ export const resetPasswordSchema = z.object({
 export const updateProfileSchema = z.object({
   firstName: z.string().min(1).max(50).optional(),
   lastName: z.string().min(1).max(50).optional(),
-  address: z
-    .object({
-      street: z.string().min(1),
-      city: z.string().min(1),
-      postalCode: z.string().min(1),
-      country: z.string().min(1),
-    })
-    .optional(),
+  address: userAddressInputSchema.optional(),
 });

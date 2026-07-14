@@ -121,6 +121,18 @@
   background: var(--color-lila);
 }
 
+.viewLink {
+  font-size: 0.82rem;
+  color: var(--color-link);
+  text-decoration: none;
+  padding: 0.3rem 0;
+  white-space: nowrap;
+}
+
+.viewLink:hover {
+  text-decoration: underline;
+}
+
 .emptyState {
   text-align: center;
   padding: var(--spacing-xl);

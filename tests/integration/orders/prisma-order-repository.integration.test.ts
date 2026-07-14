@@ -145,6 +145,49 @@ describe('PrismaOrderRepository — Integration', () => {
       expect(found).not.toBeNull();
       expect(found!.id).toBe('order-int-1');
       expect(found!.total).toBe(100);
+      expect(found!.deliveryAddress).toBeNull();
+    });
+
+    it('should reconstruct the persisted delivery address on single and paginated reads', async () => {
+      await ensurePrerequisites({
+        userId: 'user-order-address',
+        sellerId: 'seller-order-address',
+        productId: 'prod-order-address',
+      });
+
+      const deliveryAddress = {
+        street: 'Calle Mayor',
+        houseNumber: '10',
+        addressLine1: 'Portal B',
+        addressLine2: '2º A',
+        postalCode: '28013',
+        city: 'Madrid',
+        county: 'Madrid',
+        state: 'Comunidad de Madrid',
+        country: 'Spain',
+        countryCode: 'ES',
+        formattedAddress: 'Calle Mayor 10, 28013 Madrid, Spain',
+        floor: '2',
+        door: 'A',
+        stairway: '1',
+        block: 'B',
+        instructions: 'Call on arrival',
+      };
+
+      await repo.save(
+        makeOrder({
+          id: 'order-address',
+          userId: 'user-order-address',
+          sellerId: 'seller-order-address',
+          deliveryAddress,
+        }),
+      );
+
+      const found = await repo.findById('order-address');
+      const page = await repo.findPaginated({ userId: 'user-order-address' });
+
+      expect(found?.deliveryAddress).toEqual(deliveryAddress);
+      expect(page.items[0]?.deliveryAddress).toEqual(deliveryAddress);
     });
 
     it('should coerce legacy object-shaped customizationSnapshot rows on readback', async () => {

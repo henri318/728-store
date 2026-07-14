@@ -6,6 +6,8 @@ import type { OrderLineItemEntity } from './order-line-item';
  * including user, seller, total amount, and current status.
  */
 export interface OrderEntity {
+  /** Copied at confirmation; intentionally has no dependency on users module. */
+  deliveryAddress?: Record<string, string | null> | null;
   /** Unique identifier for the order */
   id: string;
   /** ID of the user who placed the order */

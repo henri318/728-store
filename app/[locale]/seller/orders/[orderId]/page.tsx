@@ -9,6 +9,7 @@ import { StatusBadge } from '@/shared/ui/status-badge';
 import { Card } from '@/shared/ui/card';
 import { BackLink } from '@/shared/ui/back-link';
 import { normalizeLocale } from '@/shared/i18n/normalize-locale';
+import { prisma } from '@/shared/infrastructure/prisma';
 import Image from 'next/image';
 import styles from './page.module.css';
 
@@ -18,7 +19,7 @@ const ORDER_STATUS_LABELS: Record<string, string> = {
   completed: 'completed',
 };
 
-export default async function OrderDetailPage({
+export default async function SellerOrderDetailPage({
   params,
 }: {
   params: Promise<{ locale: string; orderId: string }>;
@@ -27,16 +28,33 @@ export default async function OrderDetailPage({
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    redirect(`/${locale}/auth/signin?callbackUrl=/${locale}/orders/${orderId}`);
+    redirect(
+      `/${locale}/auth/signin?callbackUrl=/${locale}/seller/orders/${orderId}`,
+    );
   }
 
   const dict = await getDictionary(locale as 'es' | 'cat');
   const orderRepository = container.getOrderRepository();
   const order = await orderRepository.findById(orderId, locale);
 
-  if (!order || order.userId !== session.user.id) {
+  if (!order) {
     notFound();
   }
+
+  const seller = await container
+    .getSellerLookup()
+    .findByUserId(session.user.id);
+  if (!seller || order.sellerId !== seller.sellerId) {
+    notFound();
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: order.userId },
+    select: { firstName: true, lastName: true },
+  });
+  const customerName = user
+    ? `${user.firstName} ${user.lastName}`.trim()
+    : null;
 
   const statusLabelKey = ORDER_STATUS_LABELS[order.status];
   const statusLabel = statusLabelKey
@@ -47,11 +65,16 @@ export default async function OrderDetailPage({
 
   return (
     <div className={styles.container}>
-      <BackLink href={`/${locale}/orders`}>← {dict.orders?.myOrders}</BackLink>
+      <BackLink href={`/${locale}/seller/orders`}>
+        ← {dict.orders?.sellerOrdersTitle ?? 'Pedidos'}
+      </BackLink>
 
       <div className={styles.content}>
         <Card padding="lg">
-          <h1 className={styles.title}>{dict.orders?.myOrders}</h1>
+          <h1 className={styles.title}>
+            {dict.orders?.orderDetail ?? 'Detalle del pedido'} #
+            {order.id.slice(0, 8)}
+          </h1>
 
           <div className={styles.detailRow}>
             <span className={styles.detailLabel}>{dict.orders?.status}</span>
@@ -77,9 +100,18 @@ export default async function OrderDetailPage({
           )}
         </Card>
 
+        {customerName && (
+          <Card padding="lg">
+            <h2 className={styles.sectionTitle}>
+              {dict.orders?.customerName ?? 'Cliente'}
+            </h2>
+            <p className={styles.customerName}>{customerName}</p>
+          </Card>
+        )}
+
         {order.deliveryAddress && (
           <Card padding="lg">
-            <h2 className={styles.addressTitle}>
+            <h2 className={styles.sectionTitle}>
               {dict.orders?.deliveryAddress ?? 'Dirección de entrega'}
             </h2>
             <div className={styles.addressBlock}>
@@ -119,7 +151,7 @@ export default async function OrderDetailPage({
         )}
 
         <Card className={styles.itemsCard}>
-          <h2 className={styles.itemsTitle}>{dict.orders?.items}</h2>
+          <h2 className={styles.sectionTitle}>{dict.orders?.items}</h2>
 
           {items.length === 0 ? (
             <p className={styles.noItems}>{dict.orders?.noItems}</p>
@@ -181,19 +213,6 @@ export default async function OrderDetailPage({
             </div>
           )}
         </Card>
-
-        {order.checkoutGroupId &&
-          order.checkoutGroupPaymentStatus === 'failed' && (
-            <form
-              method="post"
-              action={`/api/payments/checkout-groups/${order.checkoutGroupId}/retry`}
-              className={styles.retrySection}
-            >
-              <button type="submit" className={styles.retryButton}>
-                {dict.orders?.retryPayment}
-              </button>
-            </form>
-          )}
       </div>
     </div>
   );

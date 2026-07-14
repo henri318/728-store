@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-useless-fallback-in-spread */
 'use client';
 
 import { useState } from 'react';
@@ -5,7 +6,10 @@ import { useRouter } from 'next/navigation';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 import { Modal } from '@/shared/ui/modal';
-import { TextField } from '@/shared/ui/text-field';
+import {
+  AddressAutocompleteFields,
+  type AddressValue,
+} from '@/modules/users/presentation/components/address-autocomplete-fields';
 import { Money } from '@/shared/kernel/domain/value-objects/money';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import styles from './checkout-confirm-button.module.css';
@@ -18,15 +22,10 @@ interface PriceChange {
 
 interface CheckoutConfirmButtonProps {
   locale: string;
-  initialAddress?: AddressFields | null;
+  initialAddress?: Partial<AddressFields> | null;
 }
 
-interface AddressFields {
-  street: string;
-  city: string;
-  postalCode: string;
-  country: string;
-}
+type AddressFields = AddressValue;
 
 /**
  * Client component for the checkout confirmation flow.
@@ -36,12 +35,7 @@ interface AddressFields {
  * 3. If 409 → show price-change dialog; user can accept or cancel.
  * 4. On success → redirect to /orders/{orderId} and clear guest cart.
  */
-const EMPTY_ADDRESS: AddressFields = {
-  street: '',
-  city: '',
-  postalCode: '',
-  country: '',
-};
+const EMPTY_ADDRESS: AddressFields = {};
 
 export function CheckoutConfirmButton({
   locale,
@@ -53,13 +47,24 @@ export function CheckoutConfirmButton({
   const [loading, setLoading] = useState(false);
   const [priceChanges, setPriceChanges] = useState<PriceChange[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [address, setAddress] = useState<AddressFields>(
-    initialAddress ?? EMPTY_ADDRESS,
-  );
+  const [address, setAddress] = useState<AddressFields>({
+    ...EMPTY_ADDRESS,
+    ...(initialAddress ?? {}),
+  });
+  const normalizedAddress = {
+    ...address,
+    country: dict.auth.countryLabel,
+    countryCode: 'ES',
+  };
 
-  const hasCompleteAddress = Object.values(address).every((value) =>
-    value.trim(),
-  );
+  const hasCompleteAddress = [
+    normalizedAddress.street,
+    normalizedAddress.city,
+    normalizedAddress.postalCode,
+    normalizedAddress.country,
+    normalizedAddress.countryCode,
+    normalizedAddress.houseNumber,
+  ].every((value) => value?.trim());
 
   const persistProfileAddress = async () => {
     if (!hasCompleteAddress) {
@@ -70,7 +75,7 @@ export function CheckoutConfirmButton({
     const profileRes = await fetch('/api/users/me', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ address }),
+      body: JSON.stringify({ address: normalizedAddress }),
     });
 
     if (!profileRes.ok) {
@@ -82,6 +87,10 @@ export function CheckoutConfirmButton({
   };
 
   const handleCheckout = async () => {
+    if (initialAddress !== undefined && !hasCompleteAddress) {
+      setError(dict.common.completeAddressToContinue);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -117,7 +126,10 @@ export function CheckoutConfirmButton({
       const confirmRes = await fetch('/api/cart/checkout/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ acceptPriceChanges: shouldAcceptPriceChanges }),
+        body: JSON.stringify({
+          acceptPriceChanges: shouldAcceptPriceChanges,
+          address: normalizedAddress,
+        }),
       });
 
       if (confirmRes.ok) {
@@ -125,6 +137,14 @@ export function CheckoutConfirmButton({
         clearCart();
         const firstOrderId = data.orderIds?.[0] ?? '';
         router.push(`/${locale}/orders/${firstOrderId}`);
+      } else {
+        let payload: { error?: string } = {};
+        try {
+          payload = await confirmRes.json();
+        } catch {
+          /* Empty error responses are handled below. */
+        }
+        setError(payload.error ?? dict.common.unableToCheckout);
       }
     } finally {
       setLoading(false);
@@ -137,27 +157,26 @@ export function CheckoutConfirmButton({
       <div className={styles.addressCard}>
         <h3 className={styles.addressTitle}>{dict.common.deliveryAddress}</h3>
         <div className={styles.addressForm}>
-          <TextField
-            label={dict.auth.street}
-            value={address.street}
-            onChange={(street) => setAddress((prev) => ({ ...prev, street }))}
-          />
-          <TextField
-            label={dict.auth.city}
-            value={address.city}
-            onChange={(city) => setAddress((prev) => ({ ...prev, city }))}
-          />
-          <TextField
-            label={dict.auth.postalCode}
-            value={address.postalCode}
-            onChange={(postalCode) =>
-              setAddress((prev) => ({ ...prev, postalCode }))
-            }
-          />
-          <TextField
-            label={dict.auth.country}
-            value={address.country}
-            onChange={(country) => setAddress((prev) => ({ ...prev, country }))}
+          <AddressAutocompleteFields
+            value={normalizedAddress}
+            onChange={setAddress}
+            locale={locale === 'cat' ? 'cat' : 'es'}
+            labels={{
+              street: dict.auth.street,
+              houseNumber: dict.auth.houseNumber,
+              postalCode: dict.auth.postalCode,
+              city: dict.auth.city,
+              floor: dict.auth.floor,
+              door: dict.auth.door,
+              instructions: dict.auth.instructions,
+              countryLabel: dict.auth.countryLabel,
+              searchPlaceholder: dict.auth.searchPlaceholder,
+              noResults: dict.auth.noResults,
+              retry: dict.auth.retry,
+              providerError: dict.auth.providerError,
+              listboxLabel: dict.auth.listboxLabel,
+              composedLabel: dict.auth.composedLabel,
+            }}
           />
         </div>
 

@@ -7,8 +7,10 @@ import { handleApiError } from '@/shared/presentation/error-handler';
 
 export async function POST(req: NextRequest) {
   try {
+    const body = await req.json();
+    console.log('[Signup] Body recibido:', JSON.stringify(body, null, 2));
     const { firstName, lastName, email, password, address } =
-      signupSchema.parse(await req.json());
+      signupSchema.parse(body);
 
     // Composition root — retrieve every dependency from the container.
     // No direct Prisma imports — the container is the only place that knows
@@ -23,13 +25,29 @@ export async function POST(req: NextRequest) {
       passwordHasher,
     );
 
+    const legacyAddress =
+      address?.street && address.city && address.postalCode && address.country
+        ? {
+            street: address.street,
+            city: address.city,
+            postalCode: address.postalCode,
+            country: address.country,
+          }
+        : undefined;
     const user = await registerUser.execute({
       firstName,
       lastName,
       email,
       password,
-      address,
+      address: legacyAddress,
     });
+    if (
+      address &&
+      'saveAddress' in userRepository &&
+      typeof userRepository.saveAddress === 'function'
+    ) {
+      await userRepository.saveAddress(user.userId.value, address);
+    }
 
     // Delegate email verification to the application use case
     const sendVerificationEmail = new SendVerificationEmailUseCase(

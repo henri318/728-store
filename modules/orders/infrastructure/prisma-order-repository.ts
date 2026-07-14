@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/consistent-conditional-object-spread */
 import type { PrismaClient } from '@prisma/client';
 import { Prisma } from '@prisma/client';
 import type { PaginatedResult } from '@/shared/kernel/domain/value-objects/pagination';
@@ -76,6 +77,7 @@ export class PrismaOrderRepository implements OrderRepository {
           ...rest,
           total: Number(total),
           checkoutGroupPaymentStatus: checkoutGroup?.paymentStatus ?? null,
+          deliveryAddress: mapDeliveryAddress(order),
           lineItems: lineItems.map((item) => mapOrderLineItem(item)),
         };
       }),
@@ -126,6 +128,27 @@ export class PrismaOrderRepository implements OrderRepository {
         // HandleCartCheckedOut idempotency check works against the
         // production adapter (spec REQ-ORD-001). Null for manual orders.
         cartId: order.cartId ?? null,
+        ...(order.deliveryAddress
+          ? {
+              deliveryStreet: order.deliveryAddress.street ?? null,
+              deliveryHouseNumber: order.deliveryAddress?.houseNumber ?? null,
+              deliveryAddressLine1: order.deliveryAddress?.addressLine1 ?? null,
+              deliveryAddressLine2: order.deliveryAddress?.addressLine2 ?? null,
+              deliveryPostalCode: order.deliveryAddress?.postalCode ?? null,
+              deliveryCity: order.deliveryAddress?.city ?? null,
+              deliveryCounty: order.deliveryAddress?.county ?? null,
+              deliveryState: order.deliveryAddress?.state ?? null,
+              deliveryCountry: order.deliveryAddress?.country ?? null,
+              deliveryCountryCode: order.deliveryAddress?.countryCode ?? null,
+              deliveryFormattedAddress:
+                order.deliveryAddress?.formattedAddress ?? null,
+              deliveryFloor: order.deliveryAddress?.floor ?? null,
+              deliveryDoor: order.deliveryAddress?.door ?? null,
+              deliveryStairway: order.deliveryAddress?.stairway ?? null,
+              deliveryBlock: order.deliveryAddress?.block ?? null,
+              deliveryInstructions: order.deliveryAddress.instructions ?? null,
+            }
+          : {}),
         // Prisma will handle createdAt and updatedAt automatically
         // We will save line items in a separate step or transaction
       },
@@ -202,6 +225,7 @@ export class PrismaOrderRepository implements OrderRepository {
       ...rest,
       total: Number(total),
       checkoutGroupPaymentStatus: checkoutGroup?.paymentStatus ?? null,
+      deliveryAddress: mapDeliveryAddress(order),
       lineItems: lineItems.map((item) => mapOrderLineItem(item)),
     };
   }
@@ -257,6 +281,65 @@ export class PrismaOrderRepository implements OrderRepository {
       where: { userId, status: { in: [...ORDER_PAID_PURCHASE_STATUSES] } },
     });
   }
+}
+
+function mapDeliveryAddress(order: {
+  deliveryStreet: string | null;
+  deliveryHouseNumber: string | null;
+  deliveryAddressLine1: string | null;
+  deliveryAddressLine2: string | null;
+  deliveryPostalCode: string | null;
+  deliveryCity: string | null;
+  deliveryCounty: string | null;
+  deliveryState: string | null;
+  deliveryCountry: string | null;
+  deliveryCountryCode: string | null;
+  deliveryFormattedAddress: string | null;
+  deliveryFloor: string | null;
+  deliveryDoor: string | null;
+  deliveryStairway: string | null;
+  deliveryBlock: string | null;
+  deliveryInstructions: string | null;
+}): Record<string, string | null> | null {
+  const values = [
+    order.deliveryStreet,
+    order.deliveryHouseNumber,
+    order.deliveryAddressLine1,
+    order.deliveryAddressLine2,
+    order.deliveryPostalCode,
+    order.deliveryCity,
+    order.deliveryCounty,
+    order.deliveryState,
+    order.deliveryCountry,
+    order.deliveryCountryCode,
+    order.deliveryFormattedAddress,
+    order.deliveryFloor,
+    order.deliveryDoor,
+    order.deliveryStairway,
+    order.deliveryBlock,
+    order.deliveryInstructions,
+  ];
+
+  if (values.every((value) => value === null)) return null;
+
+  return {
+    street: order.deliveryStreet,
+    houseNumber: order.deliveryHouseNumber,
+    addressLine1: order.deliveryAddressLine1,
+    addressLine2: order.deliveryAddressLine2,
+    postalCode: order.deliveryPostalCode,
+    city: order.deliveryCity,
+    county: order.deliveryCounty,
+    state: order.deliveryState,
+    country: order.deliveryCountry,
+    countryCode: order.deliveryCountryCode,
+    formattedAddress: order.deliveryFormattedAddress,
+    floor: order.deliveryFloor,
+    door: order.deliveryDoor,
+    stairway: order.deliveryStairway,
+    block: order.deliveryBlock,
+    instructions: order.deliveryInstructions,
+  };
 }
 
 function coerceCustomizationSnapshot(

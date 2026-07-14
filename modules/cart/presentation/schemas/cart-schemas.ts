@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { checkoutEligibilitySchema } from './checkout-eligibility-schema';
 
 /**
  * Zod schemas for cart API request validation.
@@ -39,6 +40,7 @@ export type UpdateQuantityInput = z.infer<typeof updateQuantitySchema>;
 
 export const confirmCheckoutSchema = z.object({
   acceptPriceChanges: z.boolean(),
+  address: checkoutEligibilitySchema.optional(),
 });
 
 export type ConfirmCheckoutInput = z.infer<typeof confirmCheckoutSchema>;

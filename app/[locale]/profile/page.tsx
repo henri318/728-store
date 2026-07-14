@@ -11,13 +11,12 @@ import { ErrorMessage } from '@/shared/ui/error-message';
 import { DeleteConfirmModal } from '@/shared/ui/delete-confirm-modal';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 import styles from './page.module.css';
+import {
+  AddressAutocompleteFields,
+  type AddressValue,
+} from '@/modules/users/presentation/components/address-autocomplete-fields';
 
-interface AddressFields {
-  street: string;
-  city: string;
-  postalCode: string;
-  country: string;
-}
+type AddressFields = AddressValue;
 
 interface ProfileData {
   firstName: string;
@@ -41,7 +40,7 @@ export default function ProfilePage() {
     firstName: '',
     lastName: '',
     email: '',
-    address: { street: '', city: '', postalCode: '', country: '' },
+    address: {},
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -71,12 +70,7 @@ export default function ProfilePage() {
             firstName: data.firstName || '',
             lastName: data.lastName || '',
             email: data.email || '',
-            address: data.address || {
-              street: '',
-              city: '',
-              postalCode: '',
-              country: '',
-            },
+            address: data.address || {},
           });
         }
       } catch (error_: unknown) {
@@ -106,7 +100,7 @@ export default function ProfilePage() {
     setError(null);
     setSuccess(null);
 
-    const hasAddress = Object.values(form.address).some((v) => v.trim());
+    const hasAddress = Object.values(form.address).some((v) => v?.trim());
     const body: Record<string, unknown> = {};
     if (form.firstName) body.firstName = form.firstName;
     if (form.lastName) body.lastName = form.lastName;
@@ -192,45 +186,28 @@ export default function ProfilePage() {
             <div className={styles.addressSection}>
               <h3 className={styles.addressTitle}>{dict.auth.address}</h3>
               <div className={styles.addressFields}>
-                <TextField
-                  label={dict.auth.street}
-                  value={form.address.street}
-                  onChange={(v) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      address: { ...prev.address, street: v },
-                    }))
+                <AddressAutocompleteFields
+                  value={form.address}
+                  onChange={(address) =>
+                    setForm((prev) => ({ ...prev, address }))
                   }
-                />
-                <TextField
-                  label={dict.auth.city}
-                  value={form.address.city}
-                  onChange={(v) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      address: { ...prev.address, city: v },
-                    }))
-                  }
-                />
-                <TextField
-                  label={dict.auth.postalCode}
-                  value={form.address.postalCode}
-                  onChange={(v) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      address: { ...prev.address, postalCode: v },
-                    }))
-                  }
-                />
-                <TextField
-                  label={dict.auth.country}
-                  value={form.address.country}
-                  onChange={(v) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      address: { ...prev.address, country: v },
-                    }))
-                  }
+                  locale={locale === 'cat' ? 'cat' : 'es'}
+                  labels={{
+                    street: dict.auth.street,
+                    houseNumber: dict.auth.houseNumber,
+                    postalCode: dict.auth.postalCode,
+                    city: dict.auth.city,
+                    floor: dict.auth.floor,
+                    door: dict.auth.door,
+                    instructions: dict.auth.instructions,
+                    countryLabel: dict.auth.countryLabel,
+                    searchPlaceholder: dict.auth.searchPlaceholder,
+                    noResults: dict.auth.noResults,
+                    retry: dict.auth.retry,
+                    providerError: dict.auth.providerError,
+                    listboxLabel: dict.auth.listboxLabel,
+                    composedLabel: dict.auth.composedLabel,
+                  }}
                 />
               </div>
             </div>
