@@ -113,22 +113,13 @@ function findCartItemInfo(
   productId: string,
   normalizedCustomization: CustomizationDraftPayload,
 ): { found: { cartItemId: string; quantity: number } | null } {
-  const hasDraftContent =
-    hasText(normalizedCustomization.text) ||
-    hasText(normalizedCustomization.color) ||
-    hasText(normalizedCustomization.size) ||
-    hasText(normalizedCustomization.imageUrl) ||
-    Boolean(normalizedCustomization.designPosition);
-
   const found = items.find(
     (item) =>
       item.productId === productId &&
-      (hasDraftContent
-        ? isAuthCustomizationMatching(
-            item.customizations ?? [],
-            normalizedCustomization,
-          )
-        : true),
+      isAuthCustomizationMatching(
+        item.customizations ?? [],
+        normalizedCustomization,
+      ),
   );
   return {
     found: found ? { cartItemId: found.id, quantity: found.quantity } : null,
