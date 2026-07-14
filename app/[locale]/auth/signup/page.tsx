@@ -155,7 +155,6 @@ export default function SignUpPage() {
       });
 
       const data = await res.json();
-      console.log('[Signup] Respuesta:', res.status, data);
 
       if (!res.ok) {
         if (data.error === 'Resource already exists') {
@@ -183,7 +182,6 @@ export default function SignUpPage() {
         router.push(`/${locale}/auth/signin?registered=true`);
       }
     } catch (error: unknown) {
-      console.error('[Signup] Error capturado:', error);
       setServerError(
         error instanceof Error ? error.message : 'An unexpected error occurred',
       );

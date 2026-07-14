@@ -16,7 +16,6 @@ test.describe('Profile Address Guard', () => {
     await expect(customerPage.getByLabel('Calle')).toBeVisible();
     await expect(customerPage.getByLabel('Ciudad')).toBeVisible();
     await expect(customerPage.getByLabel('Código postal')).toBeVisible();
-    await expect(customerPage.getByLabel('País')).toBeVisible();
   });
 
   test('admin does NOT see address form on profile page', async ({

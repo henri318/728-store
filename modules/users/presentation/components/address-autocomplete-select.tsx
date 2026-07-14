@@ -46,7 +46,7 @@ export function AddressAutocompleteSelect({
   const [activeIndex, setActiveIndex] = useState(-1);
   const [hoverIndex, setHoverIndex] = useState(-1);
   const [providerError, setProviderError] = useState(false);
-  const controller = useRef(
+  const controllerRef = useRef(
     new AddressAutocompleteController({
       search: async (query, signal) => {
         const response = await fetch(
@@ -64,14 +64,14 @@ export function AddressAutocompleteSelect({
   const listboxId = 'address-suggestions';
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => () => controller.current.dispose(), []);
+  useEffect(() => () => controllerRef.current.dispose(), []);
 
   const search = (query: string, isRetry = false) => {
     onChange({ ...value, street: query });
     setProviderError(false);
     const run = isRetry
-      ? controller.current.retry.bind(controller.current)
-      : controller.current.search.bind(controller.current);
+      ? controllerRef.current.retry.bind(controllerRef.current)
+      : controllerRef.current.search.bind(controllerRef.current);
     run(
       query,
       (result) => {
@@ -184,26 +184,34 @@ export function AddressAutocompleteSelect({
             zIndex: 20,
           }}
         >
-          {suggestions.map((suggestion, index) => (
-            <li
-              id={`address-suggestion-${index}`}
-              key={`${suggestion.street ?? 'address'}-${index}`}
-              role="option"
-              aria-selected={index === highlightedIndex}
-              onMouseEnter={() => setHoverIndex(index)}
-              onMouseLeave={() => setHoverIndex(-1)}
-              onMouseDown={() => select(suggestion)}
-              style={{
-                padding: '10px 16px',
-                fontSize: '14px',
-                color: '#222',
-                background: index === highlightedIndex ? '#f0f4f2' : '#ffffff',
-                cursor: 'pointer',
-              }}
-            >
-              {composeLabel(suggestion, labels.composedLabel)}
-            </li>
-          ))}
+          {suggestions.map((suggestion, index) => {
+            const suggestionKey =
+              suggestion.formattedAddress ??
+              [suggestion.street, suggestion.houseNumber, suggestion.postalCode]
+                .filter(Boolean)
+                .join('-');
+            return (
+              <li
+                id={`address-suggestion-${index}`}
+                key={suggestionKey}
+                role="option"
+                aria-selected={index === highlightedIndex}
+                onMouseEnter={() => setHoverIndex(index)}
+                onMouseLeave={() => setHoverIndex(-1)}
+                onMouseDown={() => select(suggestion)}
+                style={{
+                  padding: '10px 16px',
+                  fontSize: '14px',
+                  color: '#222',
+                  background:
+                    index === highlightedIndex ? '#f0f4f2' : '#ffffff',
+                  cursor: 'pointer',
+                }}
+              >
+                {composeLabel(suggestion, labels.composedLabel)}
+              </li>
+            );
+          })}
         </ul>
       )}
 

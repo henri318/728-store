@@ -69,7 +69,7 @@ export function AddressAutocompleteFields({
   const normalizedValue = { ...value, country, countryCode: 'ES' as const };
   useEffect(() => {
     if (value.country !== country || value.countryCode !== 'ES')
-      onChange(normalizedValue);
+      onChange({ ...value, country, countryCode: 'ES' as const });
   }, [country, onChange, value, value.country, value.countryCode]);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>

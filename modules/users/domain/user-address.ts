@@ -32,12 +32,13 @@ export const checkoutEligibilitySchema = userAddressSchema.superRefine(
       'country',
       'countryCode',
     ] as const) {
-      if (!address[field])
+      const val = address[field];
+      if (!val)
         ctx.addIssue({
           code: 'custom',
           path: [field],
           message: 'Delivery address is required',
-        }); // eslint-disable-line unicorn/no-computed-property-existence-check
+        });
     }
     if (address.countryCode !== 'ES')
       ctx.addIssue({
