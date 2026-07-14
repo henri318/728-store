@@ -223,7 +223,9 @@ describe('CustomizationExperience', () => {
             purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
           },
         ]}
-        customizationConfig={ProductCustomizationConfig.default().toJson()}
+        customizationConfig={ProductCustomizationConfig.fromJson({
+          mode: 'text_photo',
+        }).toJson()}
         labels={labels}
         initialDraft={{ color: 'Red' }}
       />,
@@ -261,7 +263,9 @@ describe('CustomizationExperience', () => {
             purpose: ProductImagePurpose.CUSTOMIZABLE_BASE,
           },
         ]}
-        customizationConfig={ProductCustomizationConfig.default().toJson()}
+        customizationConfig={ProductCustomizationConfig.fromJson({
+          mode: 'text_photo',
+        }).toJson()}
         labels={labels}
         initialDraft={{ color: 'Red' }}
       />,

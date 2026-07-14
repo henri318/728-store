@@ -113,13 +113,22 @@ function findCartItemInfo(
   productId: string,
   normalizedCustomization: CustomizationDraftPayload,
 ): { found: { cartItemId: string; quantity: number } | null } {
+  const hasDraftContent =
+    hasText(normalizedCustomization.text) ||
+    hasText(normalizedCustomization.color) ||
+    hasText(normalizedCustomization.size) ||
+    hasText(normalizedCustomization.imageUrl) ||
+    Boolean(normalizedCustomization.designPosition);
+
   const found = items.find(
     (item) =>
       item.productId === productId &&
-      isAuthCustomizationMatching(
-        item.customizations ?? [],
-        normalizedCustomization,
-      ),
+      (hasDraftContent
+        ? isAuthCustomizationMatching(
+            item.customizations ?? [],
+            normalizedCustomization,
+          )
+        : true),
   );
   return {
     found: found ? { cartItemId: found.id, quantity: found.quantity } : null,
@@ -168,6 +177,7 @@ export function AddToCartButton({
 
   const [state, setState] = useState<ButtonState>('idle');
   const [cartItemInfo, setCartItemInfo] = useState<CartItemInfo | null>(null);
+  const [productInCart, setProductInCart] = useState(false);
   const [showCustomizationChoice, setShowCustomizationChoice] = useState(false);
   const [savingDesign, setSavingDesign] = useState(false);
 
@@ -203,6 +213,13 @@ export function AddToCartButton({
               normalizedCustomization,
             );
         setCartItemInfo(result.found);
+        setProductInCart(
+          !editCartItemId &&
+            result.found === null &&
+            (data.items ?? []).some(
+              (item: { productId: string }) => item.productId === productId,
+            ),
+        );
       } catch {
         /* fallback to "Add to Cart" */
       }
@@ -263,6 +280,12 @@ export function AddToCartButton({
         normalizedCustomization,
       );
       setCartItemInfo(result.found);
+      setProductInCart(
+        result.found === null &&
+          (data.items ?? []).some(
+            (item: { productId: string }) => item.productId === productId,
+          ),
+      );
     } catch {
       /* ignore */
     }
@@ -669,6 +692,25 @@ export function AddToCartButton({
           <svg aria-hidden="true" width="36" height="36">
             <use href="/img/icons/sprites.svg#icon-trash" />
           </svg>
+        </button>
+      </div>
+    );
+  }
+
+  // Product in cart with a different customization variant: show "Add another"
+  // button without quantity controls (this variant is not yet in the cart).
+  if (productInCart && isCustomizationHasContent && isAuthenticated) {
+    return (
+      <div className={styles.quantityRow}>
+        <button
+          type="button"
+          className={styles.saveButton}
+          onClick={handleAddAnother}
+          disabled={disabled || savingDesign || state === 'adding'}
+        >
+          {state === 'adding'
+            ? labels.adding
+            : labels.addAnotherPersonalization}
         </button>
       </div>
     );

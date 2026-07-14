@@ -124,7 +124,6 @@ describe('PrismaProductRepository', () => {
           previewTemplateUrl: 'https://cdn.example.com/mock.png',
           textOffset: { x: 12, y: 20 },
           imageOffset: { x: 18, y: 30 },
-          allowPhotoDesign: true,
           categoryId: null,
         }),
         translations: {
@@ -244,7 +243,6 @@ describe('PrismaProductRepository', () => {
           previewTemplateUrl: 'https://cdn.example.com/mock.png',
           textOffset: { x: 12, y: 20 },
           imageOffset: { x: 18, y: 30 },
-          allowPhotoDesign: true,
           categoryId: null,
         }),
         updatedAt: product.updatedAt,

@@ -447,10 +447,16 @@ function buildTranslationMap(
 
 function buildPayload(locale: SupportedLocale, form: FormState) {
   const current = form.translations[locale];
+  const hasCustomizableBase = form.images.customizableBase.length > 0;
+  const effectiveMode =
+    hasCustomizableBase && form.customizationConfig?.mode === 'description'
+      ? 'text_photo'
+      : form.customizationConfig?.mode;
+
   const customizationConfig = form.customizationConfig
     ? {
         ...form.customizationConfig,
-        allowPhotoDesign: form.images.customizableBase.length > 0,
+        mode: effectiveMode,
       }
     : undefined;
   const currentDesignChangeDescription =

@@ -44,7 +44,6 @@ export interface ProductCustomizationConfigJson {
   previewTemplateUrl: string | null;
   textOffset: PreviewOffset | null;
   imageOffset: PreviewOffset | null;
-  allowPhotoDesign?: boolean;
   categoryId?: string | null;
 }
 
@@ -72,7 +71,6 @@ const productCustomizationConfigSchema = z
     previewTemplateUrl: z.string().min(1).nullable().optional(),
     textOffset: previewOffsetSchema.nullable().optional(),
     imageOffset: previewOffsetSchema.nullable().optional(),
-    allowPhotoDesign: z.boolean().optional(),
     categoryId: z.string().nullable().optional(),
   })
   .strip();
@@ -85,7 +83,6 @@ export class ProductCustomizationConfig {
       previewTemplateUrl: null,
       textOffset: null,
       imageOffset: null,
-      allowPhotoDesign: true,
       categoryId: null,
     });
   }
@@ -96,15 +93,26 @@ export class ProductCustomizationConfig {
       return this.default();
     }
 
-    const data = parsed.data;
+    const data = parsed.data as Record<string, unknown>;
+    const raw = value as Record<string, unknown> | null;
+
+    // Backward compat: stored JSON may have allowPhotoDesign: true with
+    // mode: 'description' from before the flag was removed.
+    const mode: CustomizationMode =
+      (data.mode as CustomizationMode) ?? 'description';
+    const effectiveMode: CustomizationMode =
+      mode === 'description' &&
+      (raw?.allowPhotoDesign as boolean | undefined) === true
+        ? 'text_photo'
+        : mode;
+
     return new ProductCustomizationConfig({
-      mode: data.mode ?? 'description',
-      previewEnabled: data.previewEnabled ?? false,
-      previewTemplateUrl: data.previewTemplateUrl ?? null,
-      textOffset: data.textOffset ?? null,
-      imageOffset: data.imageOffset ?? null,
-      allowPhotoDesign: data.allowPhotoDesign ?? true,
-      categoryId: data.categoryId ?? null,
+      mode: effectiveMode,
+      previewEnabled: (data.previewEnabled as boolean) ?? false,
+      previewTemplateUrl: (data.previewTemplateUrl as string | null) ?? null,
+      textOffset: (data.textOffset as PreviewOffset | null) ?? null,
+      imageOffset: (data.imageOffset as PreviewOffset | null) ?? null,
+      categoryId: (data.categoryId as string | null) ?? null,
     });
   }
 
@@ -113,7 +121,6 @@ export class ProductCustomizationConfig {
   readonly previewTemplateUrl: string | null;
   readonly textOffset: PreviewOffset | null;
   readonly imageOffset: PreviewOffset | null;
-  readonly allowPhotoDesign: boolean;
   readonly categoryId: string | null;
 
   private constructor(data: ProductCustomizationConfigJson) {
@@ -122,7 +129,6 @@ export class ProductCustomizationConfig {
     this.previewTemplateUrl = data.previewTemplateUrl;
     this.textOffset = data.textOffset;
     this.imageOffset = data.imageOffset;
-    this.allowPhotoDesign = data.allowPhotoDesign ?? true;
     this.categoryId = data.categoryId ?? null;
   }
 
@@ -166,7 +172,6 @@ export class ProductCustomizationConfig {
       previewTemplateUrl: this.previewTemplateUrl,
       textOffset: this.textOffset,
       imageOffset: this.imageOffset,
-      allowPhotoDesign: this.allowPhotoDesign,
       categoryId: this.categoryId,
     };
   }

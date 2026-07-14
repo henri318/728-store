@@ -50,7 +50,6 @@ export const productCustomizationConfigSchema = z
     previewTemplateUrl: z.string().min(1).nullable(),
     textOffset: previewOffsetSchema.nullable(),
     imageOffset: previewOffsetSchema.nullable(),
-    allowPhotoDesign: z.boolean().optional(),
     categoryId: z.string().nullable().optional(),
   })
   .strip();

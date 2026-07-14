@@ -435,17 +435,21 @@ async function resolveGuestCustomizationIds(
   const cached = createdCustomizationCache.get(cacheKey);
   if (cached) return [cached];
 
-  const created = await customizationCreator.create({
-    productId: g.productId,
-    text: g.customizationText ?? null,
-    color: g.customizationColor ?? null,
-    size: g.customizationSize ?? null,
-    imageUrl: g.customizationImageUrl ?? null,
-    designPosition: g.customizationDesignPosition ?? null,
-  });
+  try {
+    const created = await customizationCreator.create({
+      productId: g.productId,
+      text: g.customizationText ?? null,
+      color: g.customizationColor ?? null,
+      size: g.customizationSize ?? null,
+      imageUrl: g.customizationImageUrl ?? null,
+      designPosition: g.customizationDesignPosition ?? null,
+    });
 
-  createdCustomizationCache.set(cacheKey, created.id);
-  return [created.id];
+    createdCustomizationCache.set(cacheKey, created.id);
+    return [created.id];
+  } catch {
+    return null;
+  }
 }
 
 function guestCustomizationKey(g: GuestCartItem): string {
@@ -471,7 +475,10 @@ function isCustomizationAllowed(
     (g.customizationColor !== undefined && g.customizationColor !== null) ||
     (g.customizationSize !== undefined && g.customizationSize !== null);
   const hasPhoto =
-    g.customizationImageUrl !== undefined && g.customizationImageUrl !== null;
+    (g.customizationImageUrl !== undefined &&
+      g.customizationImageUrl !== null) ||
+    (g.customizationDesignPosition !== undefined &&
+      g.customizationDesignPosition !== null);
 
   if (hasPhoto && !capability.allowsPhoto()) return false;
   if (hasStyle && !capability.allowsStyleOptions()) return false;
