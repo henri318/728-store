@@ -61,13 +61,16 @@ export function CartMergeDetector({
                 strategy: 'merge',
               }),
             });
-            if (!res.ok) return;
+            if (!res.ok) {
+              hasCheckedRef.current = false;
+              return;
+            }
             // Clear guest cart after successful migration
             guestCart.clearCart();
             dispatchCartUpdated();
             router.refresh();
           } catch {
-            // Ignore - let user retry manually
+            hasCheckedRef.current = false;
           }
         }
       } catch {

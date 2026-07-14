@@ -10,7 +10,6 @@ describe('ProductCustomizationConfig', () => {
     expect(config.previewTemplateUrl).toBeNull();
     expect(config.textOffset).toBeNull();
     expect(config.imageOffset).toBeNull();
-    expect(config.allowPhotoDesign).toBe(true);
     expect(config.isDefault()).toBe(true);
     expect(config.isPreviewCapable()).toBe(false);
   });

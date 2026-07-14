@@ -180,7 +180,7 @@ function CustomizationExperienceInner({
     ProductCustomizationConfig.fromJson(customizationConfig);
   const resolvedCustomizationConfig =
     customizationConfig ?? ProductCustomizationConfig.default().toJson();
-  const isAllowsPhoto = customizationModel.allowPhotoDesign !== false;
+  const isAllowsPhoto = customizationModel.allowsPhoto();
   const customizableBaseImages = productImages.filter(
     (image) => image.purpose === ProductImagePurpose.CUSTOMIZABLE_BASE,
   );

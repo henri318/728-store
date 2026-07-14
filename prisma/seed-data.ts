@@ -167,7 +167,7 @@ export function buildSeedProducts(sellerId: string): SeedProductData[] {
       sellerId,
       status: 'ACTIVE',
       customizationConfig: {
-        mode: 'description',
+        mode: 'text_photo',
         previewEnabled: false,
         previewTemplateUrl: null,
         sizeOptions: null,
