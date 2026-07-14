@@ -118,18 +118,20 @@ export default async function RootLayout({
         <SessionProviderWrapper session={session}>
           <GuestCartProvider>
             <CartPopupProvider>
-              <CartMergeDetector
-                labels={{
-                  mergeTitle: dict.common.cartMergeTitle,
-                  mergeDescription: dict.common.cartMergeDescription,
-                  mergeBoth: dict.common.cartMergeBoth,
-                  mergeBothHint: dict.common.cartMergeBothHint,
-                  keepServerCart: dict.common.cartMergeKeepServer,
-                  keepServerHint: dict.common.cartMergeKeepServerHint,
-                  keepGuestCart: dict.common.cartMergeKeepGuest,
-                  keepGuestHint: dict.common.cartMergeKeepGuestHint,
-                }}
-              />
+              {!isInternal && (
+                <CartMergeDetector
+                  labels={{
+                    mergeTitle: dict.common.cartMergeTitle,
+                    mergeDescription: dict.common.cartMergeDescription,
+                    mergeBoth: dict.common.cartMergeBoth,
+                    mergeBothHint: dict.common.cartMergeBothHint,
+                    keepServerCart: dict.common.cartMergeKeepServer,
+                    keepServerHint: dict.common.cartMergeKeepServerHint,
+                    keepGuestCart: dict.common.cartMergeKeepGuest,
+                    keepGuestHint: dict.common.cartMergeKeepGuestHint,
+                  }}
+                />
+              )}
               <header className={styles.header}>
                 <div className={styles.spacer} />
                 <a href={`/${locale}`} className={styles.logo}>
@@ -163,24 +165,26 @@ export default async function RootLayout({
               </main>
 
               <SocialFooter />
-              <CartPopup
-                labels={{
-                  title: dict.common.cartIcon,
-                  empty: dict.common.cartEmpty,
-                  browseProducts: dict.common.browseProducts,
-                  checkout: dict.common.checkout,
-                  viewFullCart: dict.common.viewFullCart,
-                  subtotal: dict.common.subtotal,
-                  loading: dict.common.loadingCart,
-                  soldBy: dict.common.soldBy,
-                  remove: dict.common.removeFromCart,
-                  unknownProduct: dict.common.unknownProduct,
-                  unknownSeller: dict.common.unknownSeller,
-                  increaseQuantity: dict.common.increaseQuantity,
-                  decreaseQuantity: dict.common.decreaseQuantity,
-                  close: dict.common.close,
-                }}
-              />
+              {!isInternal && (
+                <CartPopup
+                  labels={{
+                    title: dict.common.cartIcon,
+                    empty: dict.common.cartEmpty,
+                    browseProducts: dict.common.browseProducts,
+                    checkout: dict.common.checkout,
+                    viewFullCart: dict.common.viewFullCart,
+                    subtotal: dict.common.subtotal,
+                    loading: dict.common.loadingCart,
+                    soldBy: dict.common.soldBy,
+                    remove: dict.common.removeFromCart,
+                    unknownProduct: dict.common.unknownProduct,
+                    unknownSeller: dict.common.unknownSeller,
+                    increaseQuantity: dict.common.increaseQuantity,
+                    decreaseQuantity: dict.common.decreaseQuantity,
+                    close: dict.common.close,
+                  }}
+                />
+              )}
             </CartPopupProvider>
           </GuestCartProvider>
         </SessionProviderWrapper>

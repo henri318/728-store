@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Input } from '@/shared/ui/input';
+import { TextField } from '@/shared/ui/text-field';
 import { Button } from '@/shared/ui/button';
 import { ErrorMessage } from '@/shared/ui/error-message';
 import { AuthCard } from '@/shared/ui/auth-card';
@@ -85,14 +85,14 @@ export default function ResetPasswordPage() {
         </div>
       )}
       <form onSubmit={handleSubmit} className={styles.form}>
-        <Input
+        <TextField
           label={dict.auth.newPassword}
           type="password"
           value={newPassword}
           onChange={setNewPassword}
           required
         />
-        <Input
+        <TextField
           label={dict.auth.confirmPassword}
           type="password"
           value={confirmPassword}

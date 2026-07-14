@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Input } from '@/shared/ui/input';
+import { TextField } from '@/shared/ui/text-field';
 import { Button } from '@/shared/ui/button';
 import { AuthCard } from '@/shared/ui/auth-card';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
         </div>
       ) : (
         <form onSubmit={handleSubmit} className={styles.form}>
-          <Input
+          <TextField
             label={dict.auth.email}
             type="email"
             value={email}

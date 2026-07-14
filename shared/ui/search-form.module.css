@@ -15,7 +15,7 @@
   border: 1px solid var(--color-lila);
   border-radius: 6px;
   background: var(--color-white);
-  color: #222;
+  color: var(--color-green-dark);
 }
 
 .searchButton {

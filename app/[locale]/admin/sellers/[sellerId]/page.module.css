@@ -41,7 +41,7 @@
 .summaryValue {
   margin: 0;
   font-size: 1rem;
-  color: #222;
+  color: var(--color-green-dark);
 }
 
 .form {
