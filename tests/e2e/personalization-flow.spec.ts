@@ -112,7 +112,7 @@ test.describe('Personalization flow', () => {
     const secondCustomizationCreation =
       waitForCustomizationCreation(customerPage);
     await customerPage
-      .getByRole('button', { name: 'Añadir al carrito' })
+      .getByRole('button', { name: 'Añadir otra personalización' })
       .click();
     const secondCustomizationResponse = await secondCustomizationCreation;
     expect(
