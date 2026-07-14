@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import type { ZodIssue } from 'zod';
-import { Input } from '@/shared/ui/input';
+import { TextField } from '@/shared/ui/text-field';
 import { Button } from '@/shared/ui/button';
 import { ErrorMessage } from '@/shared/ui/error-message';
 import { EyeToggleWrapper } from '@/shared/ui/eye-toggle-wrapper';
@@ -219,21 +219,21 @@ export default function SignUpPage() {
       <form onSubmit={handleSubmit} className={styles.form}>
         {serverError && <ErrorMessage message={serverError} />}
 
-        <Input
+        <TextField
           label={dict.auth.firstName}
           value={form.firstName}
           onChange={(v) => updateField('firstName', v)}
           error={errors.firstName}
           required
         />
-        <Input
+        <TextField
           label={dict.auth.lastName}
           value={form.lastName}
           onChange={(v) => updateField('lastName', v)}
           error={errors.lastName}
           required
         />
-        <Input
+        <TextField
           label={dict.auth.email}
           type="email"
           value={form.email}
@@ -271,25 +271,25 @@ export default function SignUpPage() {
 
         {showAddress && (
           <div className={styles.addressFields}>
-            <Input
+            <TextField
               label={dict.auth.street}
               value={form.address.street}
               onChange={(v) => updateAddressField('street', v)}
               error={errors.address?.street}
             />
-            <Input
+            <TextField
               label={dict.auth.city}
               value={form.address.city}
               onChange={(v) => updateAddressField('city', v)}
               error={errors.address?.city}
             />
-            <Input
+            <TextField
               label={dict.auth.postalCode}
               value={form.address.postalCode}
               onChange={(v) => updateAddressField('postalCode', v)}
               error={errors.address?.postalCode}
             />
-            <Input
+            <TextField
               label={dict.auth.country}
               value={form.address.country}
               onChange={(v) => updateAddressField('country', v)}
