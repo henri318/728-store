@@ -250,7 +250,15 @@ export default function SignUpPage() {
           <div className={styles.addressFields}>
             <AddressAutocompleteFields
               value={form.address}
-              onChange={(address) => setForm((prev) => ({ ...prev, address }))}
+              onChange={(address) => {
+                setForm((prev) => ({ ...prev, address }));
+                if (errors.address)
+                  setErrors((prev) => {
+                    const next = { ...prev };
+                    delete next.address;
+                    return next;
+                  });
+              }}
               errors={errors.address}
               locale={locale === 'cat' ? 'cat' : 'es'}
               labels={{

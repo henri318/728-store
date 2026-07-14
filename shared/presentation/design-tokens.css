@@ -28,7 +28,7 @@
   --spacing-xl: 2rem;
 
   /* Link color */
-  --color-link: var(--color-coral);
+  --color-link: #0070f3;
 
   /* Success/error/warning */
   --color-success: #52c41a;

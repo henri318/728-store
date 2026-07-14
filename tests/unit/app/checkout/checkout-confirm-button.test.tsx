@@ -64,21 +64,6 @@ describe('CheckoutConfirmButton', () => {
   });
 
   it('shows an error and stops when the address is incomplete', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        preview: {
-          subtotal: 50,
-          discount: 0,
-          shipping: 3.99,
-          total: 53.99,
-          currency: 'EUR',
-          isFirstPurchase: false,
-        },
-        priceChanges: [],
-      }),
-    });
-
     render(<CheckoutConfirmButton locale="es" />);
 
     fireEvent.change(screen.getByLabelText(/calle/i), {
@@ -92,7 +77,7 @@ describe('CheckoutConfirmButton', () => {
       );
     });
 
-    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledTimes(0);
   });
 
   it('shows an error when saving the shipping address fails', async () => {

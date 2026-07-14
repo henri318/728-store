@@ -87,7 +87,7 @@ export function CheckoutConfirmButton({
   };
 
   const handleCheckout = async () => {
-    if (initialAddress !== undefined && !hasCompleteAddress) {
+    if (!hasCompleteAddress) {
       setError(dict.common.completeAddressToContinue);
       return;
     }

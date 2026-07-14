@@ -116,6 +116,7 @@ describe('SignUpPage', () => {
         postalCode: '28001',
         country: 'España',
         countryCode: 'ES',
+        formattedAddress: null,
       },
     });
   });

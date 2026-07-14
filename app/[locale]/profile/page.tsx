@@ -100,7 +100,16 @@ export default function ProfilePage() {
     setError(null);
     setSuccess(null);
 
-    const hasAddress = Object.values(form.address).some((v) => v?.trim());
+    const userFields = [
+      'street',
+      'houseNumber',
+      'postalCode',
+      'city',
+      'floor',
+      'door',
+      'instructions',
+    ] as const;
+    const hasAddress = userFields.some((f) => form.address[f]?.trim());
     const body: Record<string, unknown> = {};
     if (form.firstName) body.firstName = form.firstName;
     if (form.lastName) body.lastName = form.lastName;

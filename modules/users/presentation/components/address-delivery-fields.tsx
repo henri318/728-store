@@ -44,8 +44,19 @@ export function AddressDeliveryFields({
 }: AddressDeliveryFieldsProps) {
   const country = fixedCountry?.country ?? labels.countryLabel;
   const countryCode = fixedCountry?.countryCode ?? 'ES';
+  const resetFields = new Set<VisibleAddressField>([
+    'city',
+    'postalCode',
+    'houseNumber',
+  ]);
   const update = (field: VisibleAddressField, next: string) =>
-    onChange({ ...value, [field]: next, country, countryCode });
+    onChange({
+      ...value,
+      [field]: next,
+      ...(resetFields.has(field) && { formattedAddress: null }),
+      country,
+      countryCode,
+    });
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>

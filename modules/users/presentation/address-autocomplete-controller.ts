@@ -17,7 +17,13 @@ export class AddressAutocompleteController {
   ): void {
     const normalized = query.trim();
     if (this.timer) clearTimeout(this.timer);
-    if (normalized.length < 3 || normalized === this.lastQuery) return;
+    if (normalized.length < 3) {
+      this.request?.abort();
+      this.request = undefined;
+      this.lastQuery = '';
+      return;
+    }
+    if (normalized === this.lastQuery) return;
     this.lastQuery = normalized;
     this.request?.abort();
     this.timer = setTimeout(async () => {

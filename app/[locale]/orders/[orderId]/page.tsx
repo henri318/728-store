@@ -93,12 +93,12 @@ export default async function OrderDetailPage({
               </p>
               {order.deliveryAddress.floor && (
                 <p className={styles.addressLine}>
-                  {dict.auth.floor}: {order.deliveryAddress.floor}
+                  {dict.auth?.floor}: {order.deliveryAddress.floor}
                 </p>
               )}
               {order.deliveryAddress.door && (
                 <p className={styles.addressLine}>
-                  {dict.auth.door}: {order.deliveryAddress.door}
+                  {dict.auth?.door}: {order.deliveryAddress.door}
                 </p>
               )}
               <p className={styles.addressLine}>
