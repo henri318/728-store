@@ -19,6 +19,7 @@ import type { TransactionRunner } from '@/shared/kernel/transaction-runner';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import type { CartEntity } from '../domain/entities/cart';
 import type { CartItemEntity } from '../domain/entities/cart-item';
+import type { CompleteDeliveryAddress } from '../presentation/schemas/checkout-eligibility-schema';
 
 // --- Constants (spec REQ-CART-016) ---
 
@@ -225,6 +226,7 @@ export class CheckoutCart {
   async confirm(
     userId: string,
     shouldAcceptPriceChanges: boolean,
+    deliveryAddress?: CompleteDeliveryAddress,
   ): Promise<CheckoutResult> {
     const { cart, totals, priceChanges } = await this.buildTotals(
       userId,
@@ -274,6 +276,7 @@ export class CheckoutCart {
       currency: 'EUR',
       isFirstPurchase: totals.isFirstPurchase,
       occurredAt: new Date().toISOString(),
+      deliveryAddress: deliveryAddress ?? {},
     };
 
     // Mark the cart as CHECKED_OUT and emit CART_CHECKED_OUT in a single

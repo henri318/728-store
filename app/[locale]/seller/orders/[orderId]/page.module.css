@@ -38,17 +38,42 @@
   font-size: 0.95rem;
 }
 
+.sectionTitle {
+  margin: 0 0 var(--spacing-sm);
+  font-size: 1.05rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-green-dark);
+}
+
+.customerName {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: var(--font-weight-medium);
+}
+
+.addressBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.addressLine {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-black);
+}
+
+.addressNote {
+  margin: 0.3rem 0 0;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
 .itemsCard {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-}
-
-.itemsTitle {
-  margin: 0;
-  font-size: 1.05rem;
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-green-dark);
 }
 
 .itemsList {
@@ -114,50 +139,4 @@
   color: var(--color-text-secondary);
   font-size: 0.9rem;
   margin: 0;
-}
-
-.addressTitle {
-  margin: 0 0 var(--spacing-sm);
-  font-size: 1.05rem;
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-green-dark);
-}
-
-.addressBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.addressLine {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--color-black);
-}
-
-.addressNote {
-  margin: 0.3rem 0 0;
-  font-size: 0.85rem;
-  color: var(--color-text-secondary);
-  font-style: italic;
-}
-
-.retrySection {
-  margin: 0;
-}
-
-.retryButton {
-  width: 100%;
-  padding: 0.75rem;
-  background: var(--color-coral);
-  color: var(--color-white);
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: var(--font-weight-medium);
-}
-
-.retryButton:hover {
-  opacity: 0.85;
 }

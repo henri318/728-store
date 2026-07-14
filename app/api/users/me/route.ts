@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/consistent-conditional-object-spread */
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/shared/infrastructure/auth-options';
@@ -66,12 +67,33 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = updateProfileSchema.parse(await req.json());
+    const { address, ...profileFields } = body;
 
     const userRepository = container.getUserRepository();
     const outboxRepository = container.getOutboxRepository();
 
     const useCase = new UpdateUserUseCase(userRepository, outboxRepository);
-    const updated = await useCase.execute({ userId, ...body });
+    const legacyAddress =
+      address?.street && address.city && address.postalCode && address.country
+        ? {
+            street: address.street,
+            city: address.city,
+            postalCode: address.postalCode,
+            country: address.country,
+          }
+        : undefined;
+    const updated = await useCase.execute({
+      userId,
+      ...profileFields,
+      ...(legacyAddress ? { address: legacyAddress } : {}),
+    });
+    if (
+      address &&
+      'saveAddress' in userRepository &&
+      typeof userRepository.saveAddress === 'function'
+    ) {
+      await userRepository.saveAddress(userId, address);
+    }
 
     return NextResponse.json({
       id: updated.userId.value,

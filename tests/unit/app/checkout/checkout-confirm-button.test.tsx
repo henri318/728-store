@@ -48,9 +48,11 @@ describe('CheckoutConfirmButton', () => {
         locale="es"
         initialAddress={{
           street: 'Main St 1',
+          houseNumber: '1',
           city: 'Madrid',
           postalCode: '28001',
-          country: 'ES',
+          country: 'España',
+          countryCode: 'ES',
         }}
       />,
     );
@@ -58,25 +60,10 @@ describe('CheckoutConfirmButton', () => {
     expect(screen.getByLabelText(/calle/i)).toHaveValue('Main St 1');
     expect(screen.getByLabelText(/ciudad/i)).toHaveValue('Madrid');
     expect(screen.getByLabelText(/código postal/i)).toHaveValue('28001');
-    expect(screen.getByLabelText(/país/i)).toHaveValue('ES');
+    expect(screen.getByText('España')).toBeInTheDocument();
   });
 
   it('shows an error and stops when the address is incomplete', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        preview: {
-          subtotal: 50,
-          discount: 0,
-          shipping: 3.99,
-          total: 53.99,
-          currency: 'EUR',
-          isFirstPurchase: false,
-        },
-        priceChanges: [],
-      }),
-    });
-
     render(<CheckoutConfirmButton locale="es" />);
 
     fireEvent.change(screen.getByLabelText(/calle/i), {
@@ -90,7 +77,7 @@ describe('CheckoutConfirmButton', () => {
       );
     });
 
-    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledTimes(0);
   });
 
   it('shows an error when saving the shipping address fails', async () => {
@@ -115,9 +102,11 @@ describe('CheckoutConfirmButton', () => {
         locale="es"
         initialAddress={{
           street: 'Main St 1',
+          houseNumber: '1',
           city: 'Madrid',
           postalCode: '28001',
-          country: 'ES',
+          country: 'España',
+          countryCode: 'ES',
         }}
       />,
     );
@@ -137,9 +126,11 @@ describe('CheckoutConfirmButton', () => {
       body: JSON.stringify({
         address: {
           street: 'Main St 1',
+          houseNumber: '1',
           city: 'Madrid',
           postalCode: '28001',
-          country: 'ES',
+          country: 'España',
+          countryCode: 'ES',
         },
       }),
     });
@@ -175,6 +166,7 @@ describe('CheckoutConfirmButton', () => {
         locale="es"
         initialAddress={{
           street: 'Main St 1',
+          houseNumber: '1',
           city: 'Madrid',
           postalCode: '28001',
           country: 'ES',
@@ -191,9 +183,11 @@ describe('CheckoutConfirmButton', () => {
         body: JSON.stringify({
           address: {
             street: 'Main St 1',
+            houseNumber: '1',
             city: 'Madrid',
             postalCode: '28001',
-            country: 'ES',
+            country: 'España',
+            countryCode: 'ES',
           },
         }),
       });
@@ -236,6 +230,7 @@ describe('CheckoutConfirmButton', () => {
         locale="es"
         initialAddress={{
           street: 'Main St 1',
+          houseNumber: '1',
           city: 'Madrid',
           postalCode: '28001',
           country: 'ES',
@@ -248,7 +243,17 @@ describe('CheckoutConfirmButton', () => {
       expect(mockFetch).toHaveBeenCalledWith('/api/cart/checkout/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ acceptPriceChanges: false }),
+        body: JSON.stringify({
+          acceptPriceChanges: false,
+          address: {
+            street: 'Main St 1',
+            houseNumber: '1',
+            city: 'Madrid',
+            postalCode: '28001',
+            country: 'España',
+            countryCode: 'ES',
+          },
+        }),
       });
     });
 
@@ -272,6 +277,7 @@ describe('CheckoutConfirmButton', () => {
         locale="es"
         initialAddress={{
           street: 'Main St 1',
+          houseNumber: '1',
           city: 'Madrid',
           postalCode: '28001',
           country: 'ES',
@@ -312,6 +318,7 @@ describe('CheckoutConfirmButton', () => {
         locale="es"
         initialAddress={{
           street: 'Main St 1',
+          houseNumber: '1',
           city: 'Madrid',
           postalCode: '28001',
           country: 'ES',
@@ -330,7 +337,17 @@ describe('CheckoutConfirmButton', () => {
       expect(mockFetch).toHaveBeenCalledWith('/api/cart/checkout/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ acceptPriceChanges: true }),
+        body: JSON.stringify({
+          acceptPriceChanges: true,
+          address: {
+            street: 'Main St 1',
+            houseNumber: '1',
+            city: 'Madrid',
+            postalCode: '28001',
+            country: 'España',
+            countryCode: 'ES',
+          },
+        }),
       });
     });
   });
@@ -365,6 +382,7 @@ describe('CheckoutConfirmButton', () => {
         locale="es"
         initialAddress={{
           street: 'Main St 1',
+          houseNumber: '1',
           city: 'Madrid',
           postalCode: '28001',
           country: 'ES',

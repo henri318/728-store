@@ -5,6 +5,7 @@ import { CheckoutCart } from '@/modules/cart/application/checkout-cart';
 import { confirmCheckoutSchema } from '@/modules/cart/presentation/schemas/cart-schemas';
 import { handleApiError } from '@/shared/presentation/error-handler';
 import { PriceChangedError } from '@/modules/cart/domain/errors';
+import { checkoutEligibilitySchema } from '@/modules/cart/presentation/schemas/checkout-eligibility-schema';
 import {
   getAuthenticatedUserId,
   parseBody,
@@ -34,6 +35,16 @@ export const POST = requireRole('CUSTOMER')(async function POST(
 
   try {
     const validated = await parseBody(request, confirmCheckoutSchema);
+    const address = checkoutEligibilitySchema.safeParse(validated.address);
+    if (!address.success) {
+      return NextResponse.json(
+        {
+          error: 'A complete Spain delivery address is required',
+          fieldErrors: address.error.flatten().fieldErrors,
+        },
+        { status: 422 },
+      );
+    }
 
     const cartRepository = container.getCartRepository();
     const productRepository = container.getCartProductRepository();
@@ -54,6 +65,7 @@ export const POST = requireRole('CUSTOMER')(async function POST(
     const result = await checkoutCart.confirm(
       userId,
       validated.acceptPriceChanges,
+      address.data,
     );
 
     return NextResponse.json(

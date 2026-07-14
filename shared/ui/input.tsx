@@ -34,6 +34,11 @@ export interface InputProps {
   /** Elemento renderizado dentro del input row (ej: toggle password) */
   rightElement?: ReactNode;
   classNames?: InputClassNames;
+  'aria-controls'?: string;
+  'aria-expanded'?: boolean;
+  'aria-activedescendant'?: string;
+  'aria-haspopup'?: React.InputHTMLAttributes<HTMLInputElement>['aria-haspopup'];
+  role?: string;
 }
 
 export function Input({
@@ -49,6 +54,11 @@ export function Input({
   step,
   rightElement,
   classNames,
+  'aria-controls': ariaControls,
+  'aria-expanded': ariaExpanded,
+  'aria-activedescendant': ariaActiveDescendant,
+  'aria-haspopup': ariaHasPopup,
+  role,
 }: InputProps) {
   const id = useId();
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -83,6 +93,11 @@ export function Input({
           step={step}
           aria-invalid={error ? true : undefined}
           aria-describedby={errorId}
+          aria-controls={ariaControls}
+          aria-expanded={ariaExpanded}
+          aria-activedescendant={ariaActiveDescendant}
+          aria-haspopup={ariaHasPopup}
+          role={role}
           className={inputClassName}
         />
         {rightElement && <span className={s.suffix}>{rightElement}</span>}

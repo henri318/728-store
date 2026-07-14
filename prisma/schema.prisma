@@ -16,10 +16,6 @@ model User {
   role              String          @default("CUSTOMER") // ADMIN | SUPPORT | DESIGNER | CUSTOMER
   firstName         String
   lastName          String
-  addressStreet     String?
-  addressCity       String?
-  addressPostalCode String?
-  addressCountry    String?
   preferredLanguage String          @default("es") // es, cat
   deletedAt         DateTime?
   createdAt         DateTime        @default(now())
@@ -28,6 +24,31 @@ model User {
   checkoutGroups    CheckoutGroup[]
   carts             Cart[]
   seller            Seller?
+  address           UserAddress?
+}
+
+model UserAddress {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  street            String?
+  houseNumber       String?
+  addressLine1      String?
+  addressLine2      String?
+  postalCode        String?
+  city              String?
+  county            String?
+  state             String?
+  country           String?
+  countryCode       String?
+  formattedAddress  String?
+  floor             String?
+  door              String?
+  stairway          String?
+  block             String?
+  instructions      String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model Role {
@@ -133,6 +154,22 @@ model Order {
   // second set of orders. Null for orders not created from a cart.
   cartId          String?
   lineItems       OrderLineItem[]
+  deliveryStreet           String?
+  deliveryHouseNumber      String?
+  deliveryAddressLine1     String?
+  deliveryAddressLine2     String?
+  deliveryPostalCode       String?
+  deliveryCity             String?
+  deliveryCounty           String?
+  deliveryState            String?
+  deliveryCountry          String?
+  deliveryCountryCode      String?
+  deliveryFormattedAddress String?
+  deliveryFloor            String?
+  deliveryDoor             String?
+  deliveryStairway         String?
+  deliveryBlock            String?
+  deliveryInstructions     String?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 

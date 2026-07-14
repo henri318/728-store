@@ -38,7 +38,7 @@ describe('SignUpPage', () => {
     expect(screen.queryByLabelText('Name')).toBeNull();
   });
 
-  it('renders address fields (street, city, postalCode, country) when expanded', async () => {
+  it('renders the approved address fields and a read-only Spain label when expanded', async () => {
     const user = userEvent.setup();
     render(<SignUpPage />);
 
@@ -47,7 +47,13 @@ describe('SignUpPage', () => {
     expect(screen.getByLabelText('Calle')).toBeInTheDocument();
     expect(screen.getByLabelText('Ciudad')).toBeInTheDocument();
     expect(screen.getByLabelText('Código postal')).toBeInTheDocument();
-    expect(screen.getByLabelText('País')).toBeInTheDocument();
+    expect(screen.getByLabelText('Número')).toBeInTheDocument();
+    expect(screen.getByLabelText('Piso')).toBeInTheDocument();
+    expect(screen.getByLabelText('Puerta')).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Indicaciones de entrega'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('España')).toBeInTheDocument();
   });
 
   it('sends { firstName, lastName, email, password, address } to /api/auth/signup', async () => {
@@ -76,21 +82,26 @@ describe('SignUpPage', () => {
     await user.click(screen.getByText(/agregar dirección/i));
 
     await user.type(screen.getByLabelText('Calle'), '123 Main St');
+    await user.type(screen.getByLabelText('Número'), '1');
     await user.type(screen.getByLabelText('Ciudad'), 'Madrid');
     await user.type(screen.getByLabelText('Código postal'), '28001');
-    await user.type(screen.getByLabelText('País'), 'Spain');
 
     await user.click(screen.getByRole('button', { name: 'Crear cuenta' }));
 
     await vi.waitFor(
       () => {
-        expect(fetchMock).toHaveBeenCalled();
+        expect(fetchMock).toHaveBeenCalledWith(
+          '/api/auth/signup',
+          expect.anything(),
+        );
       },
       { timeout: 3000 },
     );
 
-    const [url, options] = fetchMock.mock.calls[0];
-    expect(url).toBe('/api/auth/signup');
+    const signupCall = fetchMock.mock.calls.find(
+      (call: unknown[]) => (call[0] as string) === '/api/auth/signup',
+    );
+    const [, options] = signupCall ?? [];
 
     const body = JSON.parse(options.body);
     expect(body).toEqual({
@@ -100,9 +111,12 @@ describe('SignUpPage', () => {
       password: 'Password123',
       address: {
         street: '123 Main St',
+        houseNumber: '1',
         city: 'Madrid',
         postalCode: '28001',
-        country: 'Spain',
+        country: 'España',
+        countryCode: 'ES',
+        formattedAddress: null,
       },
     });
   });

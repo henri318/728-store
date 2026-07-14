@@ -33,6 +33,7 @@ export interface CartCheckedOutPayload {
   currency: 'EUR';
   isFirstPurchase: boolean;
   occurredAt: string;
+  deliveryAddress?: Record<string, string | null>;
 }
 
 // --- Use Case ---
@@ -110,6 +111,7 @@ export class HandleCartCheckedOut {
           total,
           status: ORDER_LIFECYCLE_STATUSES.NEW,
           cartId: payload.cartId,
+          deliveryAddress: payload.deliveryAddress ?? null,
         };
 
         const saved = await this.orderRepository.save(order, tx);
