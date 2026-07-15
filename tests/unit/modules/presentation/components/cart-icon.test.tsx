@@ -192,6 +192,26 @@ describe('CartIcon', () => {
       });
     });
 
+    it.each(['ADMIN', 'DESIGNER'])(
+      'does not fetch or render a cart for the internal %s role',
+      async (role) => {
+        mockUseSession.mockReturnValue({
+          data: {
+            user: { id: 'user-1', name: 'Internal user', role },
+          } as never,
+          status: 'authenticated',
+          update: vi.fn(),
+        } as never);
+
+        renderWithProvider(<CartIcon alt="Cart" />);
+
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(mockFetch).not.toHaveBeenCalled();
+        expect(screen.queryByRole('button', { name: /cart/i })).toBeNull();
+      },
+    );
+
     it('refetches cart count after cart:updated', async () => {
       mockFetch
         .mockResolvedValueOnce({

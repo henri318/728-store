@@ -1,3 +1,4 @@
+import { Children, isValidElement } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('next-auth', () => ({
@@ -38,33 +39,25 @@ vi.mock('@/shared/i18n/get-dictionary', () => ({
   getDictionary: vi.fn().mockResolvedValue({ common: {} }),
 }));
 vi.mock('next/image', () => ({ default: () => null }));
+vi.mock('@/app/fonts', () => ({
+  poppins: { variable: 'poppins_variable' },
+  fallingButton: { variable: 'falling_button_variable' },
+}));
 
 import RootLayout from '@/app/[locale]/layout';
 
 describe('RootLayout', () => {
-  it('loads the supplied CDN font stylesheets once for localized public pages', async () => {
+  it('does not load external font stylesheets from the localized layout', async () => {
     const element = await RootLayout({
       children: <div>Content</div>,
       params: Promise.resolve({ locale: 'es' }),
     });
 
-    const head = element.props.children[0];
+    const children = Children.toArray(element.props.children);
 
-    expect(head.type).toBe('head');
-    expect(head.props.children).toEqual([
-      expect.objectContaining({
-        props: {
-          href: 'https://fonts.cdnfonts.com/css/poppins',
-          rel: 'stylesheet',
-        },
-      }),
-      expect.objectContaining({
-        props: {
-          href: 'https://fonts.cdnfonts.com/css/falling-button',
-          rel: 'stylesheet',
-        },
-      }),
-    ]);
+    expect(
+      children.some((child) => isValidElement(child) && child.type === 'head'),
+    ).toBe(false);
   });
 
   it('uses the BCP-47 Catalan language tag for the cat route locale', async () => {
@@ -74,5 +67,15 @@ describe('RootLayout', () => {
     });
 
     expect(element.props.lang).toBe('ca');
+  });
+
+  it('applies the local and Google font variables at the document root', async () => {
+    const element = await RootLayout({
+      children: <div>Content</div>,
+      params: Promise.resolve({ locale: 'es' }),
+    });
+
+    expect(element.props.className).toContain('poppins_variable');
+    expect(element.props.className).toContain('falling_button_variable');
   });
 });

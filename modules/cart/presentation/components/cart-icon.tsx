@@ -12,8 +12,11 @@ interface CartIconProps {
 }
 
 export function CartIcon({ alt }: CartIconProps) {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const isAuthenticated = status === 'authenticated';
+  const isInternal =
+    session?.user?.role === 'ADMIN' || session?.user?.role === 'DESIGNER';
+  const canUseCart = isAuthenticated && !isInternal;
   const { itemCount: guestCount } = useGuestCart();
   const { open } = useCartPopup();
   const [authCount, setAuthCount] = useState(0);
@@ -50,7 +53,7 @@ export function CartIcon({ alt }: CartIconProps) {
   }, [fetchCount]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!canUseCart) return;
     globalThis.addEventListener(CART_UPDATED_EVENT, handleCartUpdated);
     Promise.try(fetchCount);
 
@@ -58,7 +61,9 @@ export function CartIcon({ alt }: CartIconProps) {
       abortRef.current?.abort();
       globalThis.removeEventListener(CART_UPDATED_EVENT, handleCartUpdated);
     };
-  }, [isAuthenticated, fetchCount, handleCartUpdated]);
+  }, [canUseCart, fetchCount, handleCartUpdated]);
+
+  if (isInternal) return null;
 
   const count = isAuthenticated ? authCount : guestCount;
 
