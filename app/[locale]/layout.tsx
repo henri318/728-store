@@ -138,7 +138,8 @@ export default async function RootLayout({
                     width={130}
                     height={130}
                     className={styles.logoImg}
-                    priority
+                    loading="eager"
+                    fetchPriority="high"
                   />
                 </a>
                 <div className={styles.userIcons}>
