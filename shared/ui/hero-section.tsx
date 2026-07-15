@@ -14,6 +14,7 @@ export function HeroSection({ imageSrc, imageAlt }: HeroSectionProps) {
         alt={imageAlt}
         fill
         loading="eager"
+        fetchPriority="high"
         sizes="100vw"
         className={styles.heroImage}
       />

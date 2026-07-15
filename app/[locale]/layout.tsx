@@ -20,6 +20,7 @@ import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { DictionaryProvider } from '@/shared/i18n/dictionary-context';
 import { normalizeLocale } from '@/shared/i18n/normalize-locale';
 import { APP_BASE_URL } from '@/shared/kernel/config';
+import { fallingButton, poppins } from '@/app/fonts';
 import '../globals.css';
 import styles from './layout.module.css';
 
@@ -106,14 +107,10 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang={normalizeLocale(locale)}>
-      <head>
-        <link href="https://fonts.cdnfonts.com/css/poppins" rel="stylesheet" />
-        <link
-          href="https://fonts.cdnfonts.com/css/falling-button"
-          rel="stylesheet"
-        />
-      </head>
+    <html
+      lang={normalizeLocale(locale)}
+      className={`${poppins.variable} ${fallingButton.variable}`}
+    >
       <body className={styles.body}>
         <SessionProviderWrapper session={session}>
           <GuestCartProvider>
@@ -141,7 +138,8 @@ export default async function RootLayout({
                     width={130}
                     height={130}
                     className={styles.logoImg}
-                    priority
+                    loading="eager"
+                    fetchPriority="high"
                   />
                 </a>
                 <div className={styles.userIcons}>
