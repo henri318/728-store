@@ -55,7 +55,7 @@ describe('AboutPage', () => {
     expect(screen.getByText('Detalles que conectan.')).toBeInTheDocument();
     expect(
       screen.getByAltText('Taza personalizada de Sant Jordi'),
-    ).toHaveAttribute('src', '/img/decorations/Al-Taller.png');
+    ).toHaveAttribute('src', '/img/decorations/Al-Taller.webp');
   });
 
   it('generates a localized canonical and language alternates', async () => {

@@ -29,13 +29,13 @@ export async function generateMetadata({
       url: canonical,
       title: dict.common.aboutMetaTitle,
       description: dict.common.aboutMetaDescription,
-      images: ['/img/decorations/Al-Taller.png'],
+      images: ['/img/decorations/Al-Taller.webp'],
     },
     twitter: {
       card: 'summary_large_image',
       title: dict.common.aboutMetaTitle,
       description: dict.common.aboutMetaDescription,
-      images: ['/img/decorations/Al-Taller.png'],
+      images: ['/img/decorations/Al-Taller.webp'],
     },
   };
 }
@@ -62,7 +62,7 @@ export default async function AboutPage({
 
         <div className={styles.imageFrame}>
           <Image
-            src="/img/decorations/Al-Taller.png"
+            src="/img/decorations/Al-Taller.webp"
             alt={dict.common.aboutImageAlt}
             width={660}
             height={660}

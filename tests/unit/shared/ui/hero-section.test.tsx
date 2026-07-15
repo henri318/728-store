@@ -20,7 +20,7 @@ describe('HeroSection', () => {
   it('eagerly loads its above-the-fold image', () => {
     render(
       <HeroSection
-        imageSrc="/img/decorations/Portada.png"
+        imageSrc="/img/decorations/Portada.webp"
         imageAlt="Portada"
       />,
     );
