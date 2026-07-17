@@ -157,7 +157,6 @@ npm run test:e2e:debug
 │   ├── sellers/                # Gestión de vendedores
 │   ├── uploads/                # Subida de archivos
 │   ├── search-history/         # Historial de búsqueda
-│   └── presentation/           # Componentes de presentación
 │
 ├── shared/                     # Cortes transversales
 │   ├── authorization/          # Middleware de roles

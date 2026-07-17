@@ -83,7 +83,12 @@ describe('PrismaUploadRepository — Integration', () => {
     });
 
     it('should persist all upload types', async () => {
-      const types = [UploadType.product, UploadType.avatar, UploadType.general];
+      const types = [
+        UploadType.product,
+        UploadType.avatar,
+        UploadType.general,
+        UploadType.customization,
+      ];
 
       for (const type of types) {
         const entity = makeUpload({
