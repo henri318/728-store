@@ -9,7 +9,8 @@ import { StatusBadge } from '@/shared/ui/status-badge';
 import { Card } from '@/shared/ui/card';
 import { BackLink } from '@/shared/ui/back-link';
 import { normalizeLocale } from '@/shared/i18n/normalize-locale';
-import { prisma } from '@/shared/infrastructure/prisma';
+import { GetSellerOrderUseCase } from '@/modules/orders/application/get-seller-order-use-case';
+import { NotFoundError } from '@/shared/kernel/app-error';
 import Image from 'next/image';
 import styles from './page.module.css';
 
@@ -34,27 +35,25 @@ export default async function SellerOrderDetailPage({
   }
 
   const dict = await getDictionary(locale as 'es' | 'cat');
-  const orderRepository = container.getOrderRepository();
-  const order = await orderRepository.findById(orderId, locale);
 
-  if (!order) {
-    notFound();
+  const useCase = new GetSellerOrderUseCase(
+    container.getSellerLookup(),
+    container.getOrderRepository(),
+    container.getCustomerNameLookup(),
+  );
+
+  let order;
+  let customerName;
+  try {
+    const result = await useCase.execute(orderId, session.user.id, locale);
+    order = result.order;
+    customerName = result.customerName;
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      notFound();
+    }
+    throw error;
   }
-
-  const seller = await container
-    .getSellerLookup()
-    .findByUserId(session.user.id);
-  if (!seller || order.sellerId !== seller.sellerId) {
-    notFound();
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: order.userId },
-    select: { firstName: true, lastName: true },
-  });
-  const customerName = user
-    ? `${user.firstName} ${user.lastName}`.trim()
-    : null;
 
   const statusLabelKey = ORDER_STATUS_LABELS[order.status];
   const statusLabel = statusLabelKey
@@ -100,21 +99,15 @@ export default async function SellerOrderDetailPage({
           )}
         </Card>
 
-        {customerName && (
-          <Card padding="lg">
-            <h2 className={styles.sectionTitle}>
-              {dict.orders?.customerName ?? 'Cliente'}
-            </h2>
-            <p className={styles.customerName}>{customerName}</p>
-          </Card>
-        )}
-
         {order.deliveryAddress && (
           <Card padding="lg">
             <h2 className={styles.sectionTitle}>
               {dict.orders?.deliveryAddress ?? 'Dirección de entrega'}
             </h2>
             <div className={styles.addressBlock}>
+              {customerName && (
+                <p className={styles.addressLine}>{customerName}</p>
+              )}
               <p className={styles.addressLine}>
                 {[
                   order.deliveryAddress.street,
@@ -133,11 +126,16 @@ export default async function SellerOrderDetailPage({
                   {dict.auth.door}: {order.deliveryAddress.door}
                 </p>
               )}
-              <p className={styles.addressLine}>
-                {[order.deliveryAddress.postalCode, order.deliveryAddress.city]
-                  .filter(Boolean)
-                  .join(' ')}
-              </p>
+              {order.deliveryAddress.postalCode && (
+                <p className={styles.addressLine}>
+                  {dict.auth.postalCode}: {order.deliveryAddress.postalCode}
+                </p>
+              )}
+              {order.deliveryAddress.city && (
+                <p className={styles.addressLine}>
+                  {dict.auth.city}: {order.deliveryAddress.city}
+                </p>
+              )}
               <p className={styles.addressLine}>
                 {order.deliveryAddress.country}
               </p>
