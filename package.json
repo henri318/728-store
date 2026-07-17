@@ -1,5 +1,5 @@
 {
-  "name": "testproject",
+  "name": "728studio",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -57,15 +57,6 @@
       "prettier --write"
     ]
   },
-  "overrides": {
-    "@typescript-eslint/eslint-plugin": "8.61.0",
-    "@typescript-eslint/parser": "8.61.0",
-    "@typescript-eslint/scope-manager": "8.61.0",
-    "@typescript-eslint/type-utils": "8.61.0",
-    "@typescript-eslint/typescript-estree": "8.61.0",
-    "@typescript-eslint/utils": "8.61.0",
-    "@typescript-eslint/visitor-keys": "8.61.0"
-  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1085.0",
     "@aws-sdk/s3-request-presigner": "^3.1085.0",
@@ -99,9 +90,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.3",
-    "cross-env": "^10.1.0",
     "eslint": "^10.6.0",
-    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-i18next": "^6.1.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-sonarjs": "^4.1.0",
@@ -112,7 +101,6 @@
     "prettier": "^3.9.4",
     "prisma": "^7.8.0",
     "svgo": "^4.0.1",
-    "ts-node": "^10.9.2",
     "tsx": "^4.23.0",
     "typescript": "^6",
     "typescript-eslint": "^8.62.1",

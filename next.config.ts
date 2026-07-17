@@ -21,9 +21,6 @@ const contentSecurityPolicy = [
 ].join('; ');
 
 const nextConfig: NextConfig = {
-  // Enable gzip compression for static assets
-  compress: true,
-
   // Optimize images
   images: {
     formats: ['image/avif', 'image/webp'],
@@ -45,14 +42,6 @@ const nextConfig: NextConfig = {
         hostname: '**',
       },
     ],
-  },
-
-  // Enable React strict mode
-  reactStrictMode: true,
-
-  // Optimize bundle size
-  experimental: {
-    optimizePackageImports: ['lucide-react'],
   },
 
   async headers() {
