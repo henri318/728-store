@@ -1,4 +1,4 @@
-import { Children, isValidElement } from 'react';
+import { isValidElement, type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('next-auth', () => ({
@@ -53,7 +53,9 @@ describe('RootLayout', () => {
       params: Promise.resolve({ locale: 'es' }),
     });
 
-    const children = Children.toArray(element.props.children);
+    const children: ReactNode[] = Array.isArray(element.props.children)
+      ? element.props.children
+      : [element.props.children];
 
     expect(
       children.some((child) => isValidElement(child) && child.type === 'head'),
