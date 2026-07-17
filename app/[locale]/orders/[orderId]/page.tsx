@@ -9,6 +9,8 @@ import { StatusBadge } from '@/shared/ui/status-badge';
 import { Card } from '@/shared/ui/card';
 import { BackLink } from '@/shared/ui/back-link';
 import { normalizeLocale } from '@/shared/i18n/normalize-locale';
+import { GetCustomerOrderUseCase } from '@/modules/orders/application/get-customer-order-use-case';
+import { NotFoundError } from '@/shared/kernel/app-error';
 import Image from 'next/image';
 import styles from './page.module.css';
 
@@ -31,11 +33,18 @@ export default async function OrderDetailPage({
   }
 
   const dict = await getDictionary(locale as 'es' | 'cat');
-  const orderRepository = container.getOrderRepository();
-  const order = await orderRepository.findById(orderId, locale);
+  const customerName = session.user?.name ?? null;
 
-  if (!order || order.userId !== session.user.id) {
-    notFound();
+  const useCase = new GetCustomerOrderUseCase(container.getOrderRepository());
+
+  let order;
+  try {
+    order = await useCase.execute(orderId, session.user.id, locale);
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      notFound();
+    }
+    throw error;
   }
 
   const statusLabelKey = ORDER_STATUS_LABELS[order.status];
@@ -83,6 +92,9 @@ export default async function OrderDetailPage({
               {dict.orders?.deliveryAddress ?? 'Dirección de entrega'}
             </h2>
             <div className={styles.addressBlock}>
+              {customerName && (
+                <p className={styles.addressLine}>{customerName}</p>
+              )}
               <p className={styles.addressLine}>
                 {[
                   order.deliveryAddress.street,
@@ -101,11 +113,16 @@ export default async function OrderDetailPage({
                   {dict.auth?.door}: {order.deliveryAddress.door}
                 </p>
               )}
-              <p className={styles.addressLine}>
-                {[order.deliveryAddress.postalCode, order.deliveryAddress.city]
-                  .filter(Boolean)
-                  .join(' ')}
-              </p>
+              {order.deliveryAddress.postalCode && (
+                <p className={styles.addressLine}>
+                  {dict.auth?.postalCode}: {order.deliveryAddress.postalCode}
+                </p>
+              )}
+              {order.deliveryAddress.city && (
+                <p className={styles.addressLine}>
+                  {dict.auth?.city}: {order.deliveryAddress.city}
+                </p>
+              )}
               <p className={styles.addressLine}>
                 {order.deliveryAddress.country}
               </p>

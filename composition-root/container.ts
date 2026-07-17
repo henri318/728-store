@@ -43,6 +43,7 @@ import type { EmailQueueRepository } from '@/shared/contracts/email/email-queue-
 import type { UserLookupPort } from '@/modules/auth/domain/user-lookup';
 import type { UsedResetTokenStorePort } from '@/shared/contracts/security/used-reset-token-store-port';
 import type { SellerLookupPort } from '@/modules/orders/domain/seller-lookup-port';
+import type { CustomerNameLookupPort } from '@/modules/orders/domain/customer-name-lookup-port';
 import type { SellerRepository } from '@/modules/sellers/domain/seller-repository';
 import type { TransactionRunner } from '@/shared/kernel/transaction-runner';
 import type { UserVerificationPort } from '@/modules/auth/domain/ports/user-verification-port';
@@ -93,6 +94,7 @@ import { CartProductRepositoryAdapter } from '@/modules/cart/infrastructure/cart
 import { CustomizationLookupAdapter } from '@/modules/cart/infrastructure/customization-lookup-adapter';
 import { PrismaPaidOrderCountAdapter } from '@/modules/orders/infrastructure/prisma-paid-order-count-adapter';
 import { SellerLookupAdapter } from '@/modules/orders/infrastructure/seller-lookup-adapter';
+import { CustomerNameLookupAdapter } from '@/modules/orders/infrastructure/customer-name-lookup-adapter';
 import { HandleCartCheckedOut } from '@/modules/orders/application/handle-cart-checked-out';
 import { MarkAsPaidUseCase } from '@/modules/orders/application/mark-as-paid-use-case';
 import { TransactionalOrderService } from '@/modules/orders/infrastructure/transactional-order-service';
@@ -169,6 +171,7 @@ export function initContainer(): void {
   getSearchHistoryRepository();
   getCategoryRepository();
   getResetTokenCodec();
+  getCustomerNameLookup();
 
   // --- Cart event subscriptions (idempotent for HMR) ---
   if (!state.isCartEventsSubscribed) {
@@ -306,6 +309,13 @@ export function getRoleRepository(): RoleRepository {
 export function getOrderRepository(): OrderRepository {
   state.orderRepository ??= new PrismaOrderRepository();
   return state.orderRepository as OrderRepository;
+}
+
+export function getCustomerNameLookup(): CustomerNameLookupPort {
+  state.customerNameLookup ??= new CustomerNameLookupAdapter(
+    getUserRepository(),
+  );
+  return state.customerNameLookup as CustomerNameLookupPort;
 }
 
 export function getCheckoutGroupLookup(): CheckoutGroupLookupPort {
@@ -486,6 +496,7 @@ export const container = {
   getRoleRepository,
   getOrderRepository,
   getCheckoutGroupLookup,
+  getCustomerNameLookup,
   getCheckoutGroupPaymentPort,
   getProductRepository,
   getEmailQueueRepository,
