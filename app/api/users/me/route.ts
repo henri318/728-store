@@ -85,6 +85,7 @@ export async function PATCH(req: NextRequest) {
     const updated = await useCase.execute({
       userId,
       ...profileFields,
+      ...(address === null ? { address: null } : {}),
       ...(legacyAddress ? { address: legacyAddress } : {}),
     });
     if (
@@ -93,6 +94,13 @@ export async function PATCH(req: NextRequest) {
       typeof userRepository.saveAddress === 'function'
     ) {
       await userRepository.saveAddress(userId, address);
+    }
+    if (
+      address === null &&
+      'clearAddress' in userRepository &&
+      typeof userRepository.clearAddress === 'function'
+    ) {
+      await userRepository.clearAddress(userId);
     }
 
     return NextResponse.json({

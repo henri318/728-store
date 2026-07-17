@@ -42,20 +42,23 @@ export function ProfileForm({ locale, profile, role }: ProfileFormProps) {
     setError(null);
     setSuccess(null);
 
-    const userFields = [
-      'street',
-      'houseNumber',
-      'postalCode',
-      'city',
-      'floor',
-      'door',
-      'instructions',
-    ] as const;
-    const hasAddress = userFields.some((f) => form.address[f]?.trim());
+    const hasAddress = [
+      form.address.street,
+      form.address.houseNumber,
+      form.address.postalCode,
+      form.address.city,
+      form.address.floor,
+      form.address.door,
+      form.address.instructions,
+    ].some((value) => value?.trim());
+    const hasAddressChanged =
+      JSON.stringify(form.address) !== JSON.stringify(profile.address);
     const body: Record<string, unknown> = {};
     if (form.firstName) body.firstName = form.firstName;
     if (form.lastName) body.lastName = form.lastName;
-    if (isShowAddress && hasAddress) body.address = form.address;
+    if (isShowAddress && hasAddressChanged) {
+      body.address = hasAddress ? form.address : null;
+    }
 
     try {
       const res = await fetch('/api/users/me', {

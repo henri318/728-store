@@ -53,6 +53,23 @@ describe('ProfileForm', () => {
     });
   });
 
+  it('sends an explicit address deletion after clearing an existing address', async () => {
+    const user = userEvent.setup();
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    render(<ProfileForm locale="es" profile={profile} role="CUSTOMER" />);
+
+    await user.clear(screen.getByLabelText('Calle'));
+    await user.clear(screen.getByLabelText('Código postal'));
+    await user.clear(screen.getByLabelText('Ciudad'));
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+
+    expect(mockFetch).toHaveBeenCalledWith('/api/users/me', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: expect.stringContaining('"address":null'),
+    });
+  });
+
   it('preserves profile DELETE mutations', async () => {
     const user = userEvent.setup();
     mockFetch.mockResolvedValueOnce({

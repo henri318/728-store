@@ -17,7 +17,7 @@ export default async function ProfilePage({
     return redirect(`/${locale}/auth/signin`);
   }
 
-  const user = await container.getUserRepository().findById(userId);
+  const user = await container.getUserProfileUseCase().execute(userId);
   if (!user || user.deletedAt) {
     return redirect(`/${locale}/auth/signin`);
   }

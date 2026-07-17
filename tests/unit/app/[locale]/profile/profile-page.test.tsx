@@ -3,13 +3,13 @@ import { render, screen } from '@testing-library/react';
 
 const mocks = vi.hoisted(() => {
   const getSessionMock = vi.fn();
-  const findUserByIdMock = vi.fn();
+  const getProfileMock = vi.fn();
   const redirectMock = vi.fn();
   const profileFormMock = vi.fn();
 
   return {
     getSessionMock,
-    findUserByIdMock,
+    getProfileMock,
     redirectMock,
     profileFormMock,
   };
@@ -31,7 +31,7 @@ vi.mock('@/shared/infrastructure/auth-options', () => ({
 
 vi.mock('@/composition-root/container', () => ({
   container: {
-    getUserRepository: () => ({ findById: mocks.findUserByIdMock }),
+    getUserProfileUseCase: () => ({ execute: mocks.getProfileMock }),
   },
 }));
 
@@ -50,7 +50,7 @@ describe('ProfilePage', () => {
     mocks.getSessionMock.mockResolvedValue({
       user: { id: 'user-1', role: 'CUSTOMER' },
     });
-    mocks.findUserByIdMock.mockResolvedValue({
+    mocks.getProfileMock.mockResolvedValue({
       email: { value: 'test@example.com' },
       firstName: 'John',
       lastName: 'Doe',
@@ -63,14 +63,14 @@ describe('ProfilePage', () => {
     });
   });
 
-  it('loads the authenticated user from the repository and passes it to the client form', async () => {
+  it('loads the authenticated user through the profile use case and passes it to the client form', async () => {
     const element = await ProfilePage({
       params: Promise.resolve({ locale: 'es' }),
     });
 
     render(element as never);
 
-    expect(mocks.findUserByIdMock).toHaveBeenCalledWith('user-1');
+    expect(mocks.getProfileMock).toHaveBeenCalledWith('user-1');
     expect(mocks.profileFormMock).toHaveBeenCalledWith({
       locale: 'es',
       profile: {
@@ -95,11 +95,11 @@ describe('ProfilePage', () => {
     await ProfilePage({ params: Promise.resolve({ locale: 'es' }) });
 
     expect(mocks.redirectMock).toHaveBeenCalledWith('/es/auth/signin');
-    expect(mocks.findUserByIdMock).not.toHaveBeenCalled();
+    expect(mocks.getProfileMock).not.toHaveBeenCalled();
   });
 
   it('redirects when the authenticated user no longer exists', async () => {
-    mocks.findUserByIdMock.mockResolvedValue(null);
+    mocks.getProfileMock.mockResolvedValue(null);
 
     await ProfilePage({ params: Promise.resolve({ locale: 'cat' }) });
 
@@ -107,7 +107,7 @@ describe('ProfilePage', () => {
   });
 
   it('redirects when the authenticated account is deleted', async () => {
-    mocks.findUserByIdMock.mockResolvedValue({ deletedAt: new Date() });
+    mocks.getProfileMock.mockResolvedValue({ deletedAt: new Date() });
 
     await ProfilePage({ params: Promise.resolve({ locale: 'es' }) });
 
