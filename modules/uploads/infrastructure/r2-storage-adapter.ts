@@ -11,7 +11,7 @@ import type { StoragePort } from '../domain/storage-port';
  * R2StorageAdapter — Cloudflare R2 implementation of the StoragePort.
  *
  * Routes uploads to TWO buckets: public (product images, avatars) and
- * private (customization, ticket, general). The public bucket has a
+ * private (customization, general). The public bucket has a
  * custom domain for permanent URLs; the private bucket is only
  * accessible via presigned URLs.
  *

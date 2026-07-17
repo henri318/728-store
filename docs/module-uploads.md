@@ -47,14 +47,14 @@ None currently. Other modules can subscribe to `file.uploaded` / `file.deleted` 
 Uses Cloudflare R2 (S3-compatible API) via `@aws-sdk/client-s3`. Environment variables:
 
 - `R2_PUBLIC_BUCKET` — R2 bucket for public assets (product images). Falls back to `R2_BUCKET`.
-- `R2_PRIVATE_BUCKET` — R2 bucket for private assets (customization, ticket, general). Falls back to `R2_BUCKET`.
+- `R2_PRIVATE_BUCKET` — R2 bucket for private assets (customization, general). Falls back to `R2_BUCKET`.
 - `R2_BUCKET` — Legacy fallback if the two above are not set.
 - `R2_ACCOUNT_ID` — Cloudflare account ID
 - `R2_ACCESS_KEY_ID` — R2 API token access key
 - `R2_SECRET_ACCESS_KEY` — R2 API token secret key
 - `R2_PUBLIC_DOMAIN` — Public domain for permanent URLs (e.g., `https://cdn.example.com`). Only applies to the public bucket.
 
-The adapter routes `product/` and `avatar/` keys to the public bucket, and all other types (`customization/`, `ticket/`, `general/`) to the private bucket. The `CreateUploadUseCase` generates a long-lived presigned read URL (7 days) for private items instead of a permanent public URL.
+The adapter routes `product/` and `avatar/` keys to the public bucket, and all other types (`customization/`, `general/`) to the private bucket. The `CreateUploadUseCase` generates a long-lived presigned read URL (7 days) for private items instead of a permanent public URL.
 
 # Cron Job
 

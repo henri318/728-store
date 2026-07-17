@@ -86,8 +86,8 @@ describe('PrismaUploadRepository — Integration', () => {
       const types = [
         UploadType.product,
         UploadType.avatar,
-        UploadType.ticket,
         UploadType.general,
+        UploadType.customization,
       ];
 
       for (const type of types) {

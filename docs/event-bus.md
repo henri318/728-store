@@ -23,8 +23,6 @@ on(eventName, handler);
 
 - OrderCreated
 - PaymentCompleted
-- TicketCreated
-- MessageAdded
 - AISuggestionGenerated
 - ProductCustomizationCreated
 - CartCreated

@@ -1,4 +1,4 @@
-# 728-store
+# 728Studio
 
 E-commerce de artículos personalizados (camisetas, sudaderas, tazas...) con soporte multi-vendedor.
 
@@ -8,20 +8,20 @@ Arquitectura de módulo monolítico: cada dominio (usuarios, pedidos, productos.
 
 ## Stack tecnológico
 
-| Capa                 | Tecnología                                         |
-| -------------------- | -------------------------------------------------- |
-| Framework            | Next.js 16 (App Router, Turbopack)                 |
-| UI                   | React 19, lucide-react                             |
-| Lenguaje             | TypeScript 6                                       |
-| Base de datos        | PostgreSQL 15 (Alpine)                             |
-| ORM                  | Prisma 7                                           |
-| Autenticación        | NextAuth.js 4 (JWT + credentials + Google)         |
-| Validación           | Zod 4                                              |
-| Email transaccional  | Brevo (ex-Sendinblue)                              |
-| Hashing de passwords | bcrypt (cost 12)                                   |
-| Testing              | Vitest 4 + Testing Library + jest-axe + Playwright |
-| Linting              | ESLint 10 + typescript-eslint                      |
-| Infra local          | Docker (solo PostgreSQL)                           |
+| Capa                 | Tecnología                                 |
+| -------------------- | ------------------------------------------ |
+| Framework            | Next.js 16 (App Router, Turbopack)         |
+| UI                   | React 19, lucide-react                     |
+| Lenguaje             | TypeScript 6                               |
+| Base de datos        | PostgreSQL 18                              |
+| ORM                  | Prisma 7                                   |
+| Autenticación        | NextAuth.js 4 (JWT + credentials + Google) |
+| Validación           | Zod 4                                      |
+| Email transaccional  | Brevo (ex-Sendinblue)                      |
+| Hashing de passwords | bcrypt (cost 12)                           |
+| Testing              | Vitest 4 + Testing Library + Playwright    |
+| Linting              | ESLint 10 + typescript-eslint              |
+| Infra local          | Docker (PostgreSQL + nginx para assets)    |
 
 **No usamos Redis** — todas las colas (email, outbox, rate limiting) son Prisma-based.
 
@@ -31,7 +31,7 @@ Arquitectura de módulo monolítico: cada dominio (usuarios, pedidos, productos.
 
 ### Requisitos previos
 
-- [Node.js](https://nodejs.org/) >= 18
+- [Node.js](https://nodejs.org/) >= 24
 - [Docker](https://www.docker.com/) (solo para PostgreSQL)
 - npm o pnpm
 
@@ -84,7 +84,7 @@ npm run test:e2e:docker  # Tests E2E en Docker (app + DB, todo autocontenido)
 ### Requisitos
 
 - Docker corriendo
-- Node.js >= 18
+- Node.js >= 24
 
 ### Opción 1: Docker completo (recomendado para CI)
 
@@ -132,7 +132,7 @@ npm run test:e2e:debug
 ## Estructura del proyecto
 
 ```
-728-store/
+728Studio/
 ├── app/                        # Next.js App Router (rutas y API)
 │   ├── [locale]/               # i18n: /es/..., /cat/...
 │   │   ├── page.tsx            # Home — grid de productos
@@ -152,7 +152,11 @@ npm run test:e2e:debug
 │   ├── roles/                  # RBAC (ADMIN, SUPPORT, DESIGNER, CUSTOMER)
 │   ├── email/                  # Cola de email transaccional
 │   ├── events/                 # Bus de eventos interno
-│   └── tickets/                # Tickets de soporte (parcial)
+│   ├── cart/                   # Carrito de compra
+│   ├── customizations/         # Personalización de productos
+│   ├── sellers/                # Gestión de vendedores
+│   ├── uploads/                # Subida de archivos
+│   ├── search-history/         # Historial de búsqueda
 │
 ├── shared/                     # Cortes transversales
 │   ├── authorization/          # Middleware de roles
@@ -214,7 +218,6 @@ El sistema usa eventos para comunicación entre módulos:
 - **Productos**: `ProductCustomizationCreated`
 - **Pedidos**: `OrderCreated`, `OrderPaid`, `OrderReadyForProduction`
 - **Pagos**: `PaymentInitialized`, `PaymentVerified`, `PaymentCompleted`
-- **Tickets**: `TicketCreated`, `MessageAdded`, `TicketUpdated`, `TicketClosed`
 - **Usuarios**: `UserRegistered`, `RoleAssigned`
 
 ---
@@ -240,6 +243,19 @@ El sistema usa eventos para comunicación entre módulos:
 
 ---
 
+## Infraestructura
+
+| Recurso                           | Servicio / Detalle                                                |
+| --------------------------------- | ----------------------------------------------------------------- |
+| **Hosting**                       | [Vercel](https://728studio.vercel.app/) (App Router + Serverless) |
+| **Base de datos**                 | [Neon](https://neon.tech/) — PostgreSQL serverless                |
+| **Assets públicos** (productos)   | Cloudflare R2 — bucket público                                    |
+| **Assets privados** (clientes)    | Cloudflare R2 — bucket privado                                    |
+| **Autocompletado de direcciones** | Geoapify API                                                      |
+| **Autenticación social**          | Google OAuth (via NextAuth.js)                                    |
+
+---
+
 ## Más información
 
 - [Arquitectura](docs/architecture.md) — Reglas y principios del módulo
@@ -247,6 +263,3 @@ El sistema usa eventos para comunicación entre módulos:
 - [Modelo de entidades](docs/entities.md) — Entidades, relaciones y value objects
 - [Bus de eventos](docs/event-bus.md) — Diseño del sistema de eventos
 - [Eventos](docs/event.md) — Catálogo completo de eventos
-- [Seguridad](docs/security-gaps.md) — Auditoría de seguridad
-- [Accesibilidad](docs/accessibility-aa.md) — Auditoría WCAG 2.2
-- [SEO](docs/seo-analytics.md) — Estrategia SEO

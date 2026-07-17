@@ -13,7 +13,7 @@ This document defines the mandatory rules and constraints for the AI agent worki
 1. **Modular Monolith**: Maintain strict separation between modules.
 2. **Event-Driven**: All cross-module communication must use the internal event bus.
 3. **Domain-First**: Business logic stays in the domain layer.
-4. **Multi-vendor Ready**: Seller-scoped entities (Product, Order) must include `sellerId`. Cross-cutting entities (Upload, Ticket) use the appropriate owner field instead.
+4. **Multi-vendor Ready**: Seller-scoped entities (Product, Order) must include `sellerId`. Cross-cutting entities (Upload) use the appropriate owner field instead.
 5. **Neutral Locale**: The `es` locale is considered neutral.
 
 ---
@@ -33,7 +33,7 @@ This document defines the mandatory rules and constraints for the AI agent worki
 
 - DO NOT import logic directly between modules.
 - DO NOT share domain logic across modules.
-- DO NOT couple payments, AI, or tickets directly to orders.
+- DO NOT couple payments or AI directly to orders.
 - DO NOT execute business logic in the infrastructure layer.
 - DO NOT modify, delete, or rewrite existing Prisma migration files on `main`; create a new migration for schema changes instead.
 - AI MUST NOT take autonomous business decisions (suggestions only).
@@ -55,7 +55,6 @@ This document defines the mandatory rules and constraints for the AI agent worki
 - Communication between modules ONLY via:
   - Domain Events.
   - Interfaces (Ports/Adapters).
-- Tickets must be created manually by users.
 - Chat system uses polling (No WebSockets).
 - Payments must be decoupled via the Adapter pattern.
 

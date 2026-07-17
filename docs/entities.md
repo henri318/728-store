@@ -8,7 +8,7 @@ Designed for:
 - Modular monolith (DDD-lite)
 - Event-driven communication
 - Multi-vendor ready (mandatory seller)
-- Decoupled AI and tickets
+- Decoupled AI
 - Independent payments
 
 ---
@@ -33,7 +33,6 @@ Represents a system user.
 
 - role
 - orders
-- tickets
 - uploads
 
 ---
@@ -135,7 +134,6 @@ User's order.
 - seller
 - items
 - payment
-- ticket
 
 ---
 
@@ -181,46 +179,6 @@ Order payment.
 
 ---
 
-# Ticket
-
-Support system.
-
-## Fields
-
-- id
-- subject
-- status (open | in_progress | closed)
-- userId
-- orderId (optional)
-- createdAt
-
-## Relations
-
-- user
-- order
-- messages
-
----
-
-# TicketMessage
-
-Messages within a ticket.
-
-## Fields
-
-- id
-- message
-- role (user | support | designer | ai)
-- isAI
-- ticketId
-- createdAt
-
-## Relations
-
-- ticket
-
----
-
 # AIInteraction
 
 AI interaction history.
@@ -230,12 +188,10 @@ AI interaction history.
 - id
 - prompt
 - response
-- ticketId (optional)
+- userId (optional)
 - createdAt
 
 ## Relations
-
-- ticket (optional)
 
 ---
 
@@ -247,7 +203,7 @@ User uploaded files.
 
 - id
 - url
-- type (product | ticket | avatar)
+- type (product | avatar | customization | general)
 - userId
 - createdAt
 
@@ -305,10 +261,8 @@ A single line item inside a Cart. Each unique customization variant is a separat
 
 ```plaintext
 User -> Orders -> OrderItems -> Products -> Seller
-User -> Tickets -> TicketMessages -> AIInteraction
 User -> Cart -> CartItems -> Products -> Seller
 Order -> Payment
-Order -> Ticket
 Product -> OrderItem
 User -> Uploads
 Role -> User

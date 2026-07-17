@@ -22,13 +22,6 @@ Complete list of domain events used for cross-module communication.
 - **PaymentVerified**: Triggered after provider webhook verification.
 - **PaymentCompleted**: Triggered when the payment flow finishes successfully.
 
-# Tickets
-
-- **TicketCreated**: Triggered when a user opens a support ticket.
-- **MessageAdded**: Triggered when a new message is sent in a ticket.
-- **TicketUpdated**: Triggered when status or details change.
-- **TicketClosed**: Triggered when a ticket is resolved.
-
 # AI
 
 - **AISuggestionRequested**: Triggered when the system needs an AI response.
