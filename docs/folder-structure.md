@@ -14,7 +14,6 @@
   /products       -- domain, application, infrastructure, presentation (components + schemas)
   /roles          -- domain, application, infrastructure
   /sellers        -- domain, application, infrastructure, presentation (components + schemas)
-  /tickets        -- domain
   /uploads        -- domain, application, infrastructure, presentation (schemas)
   /users          -- domain, application, infrastructure
 

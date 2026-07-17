@@ -261,7 +261,6 @@ const MODULES = [
   'products',
   'roles',
   'sellers',
-  'tickets',
   'users',
 ];
 
@@ -374,7 +373,6 @@ const MODULES = [
   'products',
   'roles',
   'sellers',
-  'tickets',
   'users',
 ];
 
@@ -460,7 +458,6 @@ const MODULES = [
   'products',
   'roles',
   'sellers',
-  'tickets',
   'users',
 ];
 
@@ -635,7 +632,6 @@ export { PasswordHash } from './password-hash';
 export { PaymentId } from './payment-id';
 export { ProductId } from './product-id';
 export { SellerId } from './seller-id';
-export { TicketId } from './ticket-id';
 export { UserId } from './user-id';
 ```
 

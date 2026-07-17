@@ -106,18 +106,6 @@ describe('CreateUploadUseCase', () => {
     expect(result.publicUrl).toContain(result.storageKey);
   });
 
-  it('should use long-lived presigned URL for ticket type (private bucket)', async () => {
-    const result = await useCase.execute({
-      userId: 'user-1',
-      type: UploadType.ticket,
-      fileName: 'screenshot.jpg',
-      mimeType: 'image/jpeg',
-      size: 102_400,
-    });
-
-    expect(result.publicUrl).toContain('mock-r2.read');
-  });
-
   it('should use long-lived presigned URL for general type (private bucket)', async () => {
     const result = await useCase.execute({
       userId: 'user-1',
@@ -312,13 +300,13 @@ describe('CreateUploadUseCase', () => {
   it('should use correct type prefix in storageKey', async () => {
     const result = await useCase.execute({
       userId: 'user-1',
-      type: UploadType.ticket,
+      type: UploadType.general,
       fileName: 'screenshot.jpg',
       mimeType: 'image/jpeg',
       size: 2048,
     });
 
-    expect(result.storageKey).toMatch(/^ticket\//);
+    expect(result.storageKey).toMatch(/^general\//);
   });
 
   // ── Edge Cases: fileName ────────────────────────────────────

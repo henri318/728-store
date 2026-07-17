@@ -2,7 +2,7 @@
 
 # Responsibility
 
-AI assistant for tickets and customization.
+AI assistant for customization.
 
 # Emitted Events
 
@@ -10,11 +10,10 @@ AI assistant for tickets and customization.
 
 # Listened Events
 
-- MessageAdded
 - AISuggestionRequested
 
 # Rules
 
 - Suggestions only.
 - No direct actions on business logic.
-- Limited context (ticket + user + order).
+- Limited context (customization + user + order).

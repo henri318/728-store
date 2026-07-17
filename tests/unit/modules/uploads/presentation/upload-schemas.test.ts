@@ -17,7 +17,7 @@ describe('Upload Schemas', () => {
         }).success,
       ).toBe(true);
 
-      for (const type of ['product', 'avatar', 'ticket', 'general'] as const) {
+      for (const type of ['product', 'avatar', 'general'] as const) {
         expect(
           presignedUrlSchema.safeParse({
             type,

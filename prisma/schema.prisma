@@ -299,7 +299,6 @@ enum ProductImagePurpose {
 enum UploadType {
   product
   avatar
-  ticket
   general
   customization
 }

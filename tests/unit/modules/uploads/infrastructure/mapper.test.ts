@@ -77,9 +77,6 @@ describe('mapper.toDomainUpload', () => {
     const avatar = toDomainUpload(makePrismaUploadRow({ type: 'avatar' }));
     expect(avatar.type).toBe(UploadType.avatar);
 
-    const ticket = toDomainUpload(makePrismaUploadRow({ type: 'ticket' }));
-    expect(ticket.type).toBe(UploadType.ticket);
-
     const general = toDomainUpload(makePrismaUploadRow({ type: 'general' }));
     expect(general.type).toBe(UploadType.general);
   });

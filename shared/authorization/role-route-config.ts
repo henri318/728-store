@@ -10,7 +10,7 @@ import type { Role } from '@/modules/roles/domain/roles';
  */
 export const ROLE_ROUTES: Record<Role, string[]> = {
   ADMIN: ['/api/admin/*', '/api/orders/*'],
-  SUPPORT: ['/api/tickets/*'],
+  SUPPORT: [],
   DESIGNER: ['/api/products/customize/*'],
   CUSTOMER: [],
 };
