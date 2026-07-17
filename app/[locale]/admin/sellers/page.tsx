@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { container } from '@/composition-root/container';
 import { ListSellersUseCase } from '@/modules/sellers/application/use-cases/list-sellers-use-case';
 import { listSellersQuerySchema } from '@/modules/sellers/presentation/schemas/seller-schemas';
@@ -123,18 +124,18 @@ export default async function AdminSellersPage({
       header: dict.admin.actions,
       render: (seller) => (
         <div className={styles.actionsCell}>
-          <a
+          <Link
             href={`/${locale}/admin/sellers/${seller.sellerId.value}/products`}
             className={styles.viewProducts}
           >
             {dict.admin.viewProducts}
-          </a>
-          <a
+          </Link>
+          <Link
             href={`/${locale}/admin/sellers/${seller.sellerId.value}`}
             className={styles.editLink}
           >
             {dict.admin.edit}
-          </a>
+          </Link>
           <SellerActions
             sellerId={seller.sellerId.value}
             currentStatus={seller.status}
@@ -153,12 +154,12 @@ export default async function AdminSellersPage({
       <div className={styles.header}>
         <h2 className={styles.title}>{dict.admin.sellersTitle}</h2>
         <div className={styles.headerActions}>
-          <a
+          <Link
             href={`/${locale}/admin/sellers/create`}
             className={styles.createButton}
           >
             + {dict.admin.createSeller}
-          </a>
+          </Link>
           <SearchForm
             placeholder={dict.admin.searchSellersPlaceholder}
             ariaLabel={dict.admin.searchSellers}

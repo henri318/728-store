@@ -3,6 +3,7 @@ import {
   ProductRepository,
 } from '../domain/product-repository';
 import { resolveDisplay } from '../domain/entities/product-translation';
+import { NotFoundError } from '@/shared/kernel/app-error';
 
 export class GetProductByIdUseCase {
   constructor(private productRepository: ProductRepository) {}
@@ -11,7 +12,7 @@ export class GetProductByIdUseCase {
     const product = await this.productRepository.findById(id, locale, audience);
 
     if (!product) {
-      throw new Error('Product not found');
+      throw new NotFoundError('Product not found');
     }
 
     const translation = resolveDisplay(product.translations, locale);

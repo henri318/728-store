@@ -135,6 +135,54 @@ describe('SignInPage', () => {
     });
   });
 
+  it('shows the authentication error and clears loading when credentials fail', async () => {
+    vi.mocked(signIn).mockResolvedValue({
+      ok: false,
+      error: 'CredentialsSignin',
+      status: 401,
+      url: null,
+    });
+
+    render(<SignInPage />);
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), {
+      target: { value: 'user@test.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Contraseña'), {
+      target: { value: 'pass123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Iniciar sesión' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Credenciales incorrectas')).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Iniciar sesión' }),
+      ).toBeEnabled();
+    });
+  });
+
+  it('clears loading without exposing an unexpected sign-in error', async () => {
+    vi.mocked(signIn).mockRejectedValue(
+      new Error('Authentication unavailable'),
+    );
+
+    render(<SignInPage />);
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), {
+      target: { value: 'user@test.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Contraseña'), {
+      target: { value: 'pass123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Iniciar sesión' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Credenciales incorrectas')).toBeInTheDocument();
+      expect(screen.queryByText('Authentication unavailable')).toBeNull();
+      expect(
+        screen.getByRole('button', { name: 'Iniciar sesión' }),
+      ).toBeEnabled();
+    });
+  });
+
   it('renders link to signup page', () => {
     render(<SignInPage />);
 

@@ -27,10 +27,17 @@ vi.mock('@/modules/cart/presentation/components/add-to-cart-button', () => ({
     addToCartButtonMock(props),
 }));
 
-vi.mock('@/app/[locale]/products/[id]/mockup-canvas-control', () => ({
-  MockupCanvasControl: ({ productImageUrl }: { productImageUrl: string }) => (
+const mockupCanvasControlMock = vi.fn(
+  ({ productImageUrl }: { productImageUrl: string; onUpload?: unknown }) => (
     <div data-testid="mockup-image">{productImageUrl}</div>
   ),
+);
+
+vi.mock('@/app/[locale]/products/[id]/mockup-canvas-control', () => ({
+  MockupCanvasControl: (props: {
+    productImageUrl: string;
+    onUpload?: unknown;
+  }) => mockupCanvasControlMock(props),
 }));
 
 vi.mock('@/app/[locale]/products/[id]/similar-products', () => ({
@@ -386,5 +393,41 @@ describe('CustomizationExperience', () => {
     );
 
     expect(screen.getByTestId('mock-add-to-cart')).toBeTruthy();
+  });
+
+  it('does not persist a design when storage rejects the upload', async () => {
+    const config = ProductCustomizationConfig.fromJson({ mode: 'text_photo' });
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          id: 'upload-1',
+          uploadUrl: 'https://storage.example/upload-1',
+          storageKey: 'upload-1',
+          publicUrl: '/uploads/upload-1.png',
+        }),
+      })
+      .mockResolvedValueOnce({ ok: false });
+    vi.stubGlobal('fetch', mockFetch);
+
+    render(
+      <CustomizationExperience
+        {...commonProps}
+        customizationConfig={config.toJson()}
+        labels={labels}
+      />,
+    );
+
+    const canvasProps = mockupCanvasControlMock.mock.calls.at(-1)?.[0];
+    if (!canvasProps?.onUpload || typeof canvasProps.onUpload !== 'function') {
+      throw new Error('Expected the mockup canvas upload callback');
+    }
+    await expect(
+      canvasProps.onUpload(
+        new File(['image'], 'design.png', { type: 'image/png' }),
+      ),
+    ).rejects.toThrow('File storage failed');
+    expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 });

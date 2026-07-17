@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/shared/infrastructure/auth-options';
 import { container } from '@/composition-root/container';
 import { redirect, notFound } from 'next/navigation';
+import Link from 'next/link';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { orderListQuerySchema } from '@/modules/orders/presentation/schemas/order-schemas';
 import { ListSellerOrdersUseCase } from '@/modules/orders/application/list-seller-orders-use-case';
@@ -97,12 +98,12 @@ export default async function SellerOrdersPage({
       header: dict.sellerDashboard?.actions ?? 'Actions',
       render: (order) => (
         <div className={styles.actionCell}>
-          <a
+          <Link
             href={`/${locale}/seller/orders/${order.id}`}
             className={styles.viewLink}
           >
             {dict.orders?.viewOrder ?? 'Ver pedido'}
-          </a>
+          </Link>
           {order.status === 'new' && (
             <form
               method="post"

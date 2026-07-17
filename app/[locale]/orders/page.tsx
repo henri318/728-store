@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/shared/infrastructure/auth-options';
 import { container } from '@/composition-root/container';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { orderListQuerySchema } from '@/modules/orders/presentation/schemas/order-schemas';
 import { ListCustomerOrdersUseCase } from '@/modules/orders/application/list-customer-orders-use-case';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
@@ -77,12 +78,12 @@ export default async function CustomerOrdersPage({
       header: dict.orders?.actions ?? 'Actions',
       render: (order) => (
         <div className={styles.actionCell}>
-          <a
+          <Link
             href={`/${locale}/orders/${order.id}`}
             className={styles.viewButton}
           >
             {dict.orders?.viewOrder ?? 'View order'}
-          </a>
+          </Link>
           {order.checkoutGroupId &&
             order.checkoutGroupPaymentStatus === 'failed' && (
               <form

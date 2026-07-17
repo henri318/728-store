@@ -84,6 +84,29 @@ describe('LoginModal component', () => {
     });
   });
 
+  it('does not expose an unexpected sign-in error', async () => {
+    vi.mocked(signIn).mockRejectedValue(
+      new Error('Authentication unavailable'),
+    );
+
+    render(<LoginModal isOpen={true} onClose={mockOnClose} />);
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), {
+      target: { value: 'test@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Contraseña'), {
+      target: { value: 'password123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Iniciar sesión' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Credenciales incorrectas')).toBeInTheDocument();
+      expect(screen.queryByText('Authentication unavailable')).toBeNull();
+      expect(
+        screen.getByRole('button', { name: 'Iniciar sesión' }),
+      ).toBeEnabled();
+    });
+  });
+
   it('calls onClose when close button is clicked', () => {
     render(<LoginModal isOpen={true} onClose={mockOnClose} />);
 

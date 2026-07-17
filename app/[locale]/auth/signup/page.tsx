@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import Link from 'next/link';
 import { signIn, useSession } from 'next-auth/react';
 import type { ZodIssue } from 'zod';
 import { TextField } from '@/shared/ui/text-field';
@@ -287,9 +288,9 @@ export default function SignUpPage() {
       </form>
       <p className={styles.footer}>
         {dict.auth.alreadyHaveAccount}{' '}
-        <a href={`/${locale}/auth/signin`} className={styles.footerLink}>
+        <Link href={`/${locale}/auth/signin`} className={styles.footerLink}>
           {dict.auth.loginButton}
-        </a>
+        </Link>
       </p>
     </AuthCard>
   );

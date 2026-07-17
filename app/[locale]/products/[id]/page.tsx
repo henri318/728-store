@@ -8,6 +8,7 @@ import { APP_BASE_URL } from '@/shared/kernel/config';
 import { BackLink } from '@/shared/ui/back-link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { NotFoundError } from '@/shared/kernel/app-error';
 import {
   CustomizationExperience,
   type CustomizationExperienceLabels,
@@ -34,8 +35,9 @@ export async function generateMetadata({
 
   try {
     product = await getPublicProduct(id, locale);
-  } catch {
-    notFound();
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
   }
 
   const canonical = `${APP_BASE_URL}/${locale}/products/${id}`;
@@ -89,8 +91,9 @@ export default async function ProductDetailPage({
 
   try {
     product = await getPublicProduct(id, locale);
-  } catch {
-    notFound();
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
   }
 
   const viewerContext = await resolveProductViewerContext(

@@ -4,8 +4,18 @@ import { MemoryProductRepository } from '@/tests/doubles/memory-product-reposito
 import { ProductPrice } from '@/modules/products/domain/value-objects/product-price';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import { ProductStatus } from '@/modules/products/domain/value-objects/product-status';
+import { NotFoundError } from '@/shared/kernel/app-error';
 
 describe('GetProductByIdUseCase', () => {
+  it('throws NotFoundError when the product is absent', async () => {
+    const repository = new MemoryProductRepository();
+    const useCase = new GetProductByIdUseCase(repository);
+
+    await expect(useCase.execute('missing', 'es')).rejects.toBeInstanceOf(
+      NotFoundError,
+    );
+  });
+
   it('returns the resolved translation with fallback sizes and metadata', async () => {
     const repository = new MemoryProductRepository();
     repository.seed([

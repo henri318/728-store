@@ -1,6 +1,7 @@
 'use client';
 
 import { useReducer, useCallback, useEffect } from 'react';
+import Link from 'next/link';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
 import { DesignPreview } from '@/modules/presentation/components/design-preview';
 import { Money } from '@/shared/kernel/domain/value-objects/money';
@@ -206,11 +207,12 @@ export function CartView({
       });
 
       try {
-        await fetch(`/api/cart/items/${item.id}`, {
+        const response = await fetch(`/api/cart/items/${item.id}`, {
           method: 'DELETE',
         });
+        if (!response.ok) throw new Error('Failed to remove cart item');
       } catch {
-        // Network error — item already removed from UI.
+        dispatchLocalItems({ type: 'replace', items: localItems });
       }
     },
     [isAuthenticated, guestCart, localItems],
@@ -227,9 +229,9 @@ export function CartView({
       <div className={styles.empty}>
         <h2>{labels.emptyTitle}</h2>
         <p>{labels.emptyDescription}</p>
-        <a href={`/${locale}/`} className={styles.ctaButton}>
+        <Link href={`/${locale}/`} className={styles.ctaButton}>
           {labels.browseProducts}
-        </a>
+        </Link>
       </div>
     );
   }
@@ -309,7 +311,7 @@ export function CartView({
                     item.customization,
                     item.id,
                   ) && (
-                    <a
+                    <Link
                       href={
                         buildCustomizationHref(
                           locale,
@@ -321,7 +323,7 @@ export function CartView({
                       className={styles.editLink}
                     >
                       {labels.customizationEditFromCart}
-                    </a>
+                    </Link>
                   )}
               </div>
 
@@ -382,9 +384,9 @@ export function CartView({
         </div>
 
         {isAuthenticated && (
-          <a href={`/${locale}/checkout`} className={styles.checkoutButton}>
+          <Link href={`/${locale}/checkout`} className={styles.checkoutButton}>
             {labels.checkout}
-          </a>
+          </Link>
         )}
       </div>
     </div>
