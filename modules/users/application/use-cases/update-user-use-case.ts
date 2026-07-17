@@ -6,6 +6,29 @@ import { Address } from '@/shared/kernel/domain/value-objects/address';
 import type { UpdateUserDTO } from '../dto/update-user.dto';
 import { validateName } from '@/shared/validation/name-validator';
 
+function resolveAddressChange(
+  existingAddress: Address | null,
+  incomingAddress: UpdateUserDTO['address'],
+) {
+  if (incomingAddress === undefined) {
+    return { address: existingAddress, changed: false };
+  }
+  if (incomingAddress === null) {
+    return { address: null, changed: existingAddress !== null };
+  }
+
+  const address = Address.create(
+    incomingAddress.street,
+    incomingAddress.city,
+    incomingAddress.postalCode,
+    incomingAddress.country,
+  );
+  return {
+    address,
+    changed: !existingAddress || !existingAddress.equals(address),
+  };
+}
+
 export class UpdateUserUseCase {
   constructor(
     private readonly userRepository: UserRepository,
@@ -47,19 +70,9 @@ export class UpdateUserUseCase {
     }
 
     // 4. Apply address if provided and different
-    let address = existing.address;
-    if (dto.address !== undefined) {
-      const newAddress = Address.create(
-        dto.address.street,
-        dto.address.city,
-        dto.address.postalCode,
-        dto.address.country,
-      );
-      if (!existing.address || !existing.address.equals(newAddress)) {
-        address = newAddress;
-        changedFields.push('address');
-      }
-    }
+    const addressChange = resolveAddressChange(existing.address, dto.address);
+    const address = addressChange.address;
+    if (addressChange.changed) changedFields.push('address');
 
     // 5. Persist updated user
     const now = new Date();

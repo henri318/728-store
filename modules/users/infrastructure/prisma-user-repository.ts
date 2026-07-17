@@ -67,6 +67,10 @@ export class PrismaUserRepository implements UserRepository {
       create: { userId, ...address },
     });
   }
+
+  async clearAddress(userId: string): Promise<void> {
+    await prisma.userAddress.deleteMany({ where: { userId } });
+  }
   async save(user: UserEntity, tx: PrismaClient = prisma): Promise<UserEntity> {
     const savedUser = await tx.user.upsert({
       where: { id: user.userId.value },

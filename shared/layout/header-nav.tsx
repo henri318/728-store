@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { LoginModal } from '@/shared/layout/login-modal';
 import { UserMenuDropdown } from '@/shared/layout/user-menu-dropdown';
@@ -23,9 +24,9 @@ export function HeaderNav({ loginLabel, cartAlt, aboutLabel }: HeaderNavProps) {
   const isAuthPage = pathname.includes('/auth/');
   const locale = pathname.split('/', 2)[1] ?? 'es';
   const aboutLink = (
-    <a href={`/${locale}/quienes-somos`} className={styles.aboutLink}>
+    <Link href={`/${locale}/quienes-somos`} className={styles.aboutLink}>
       {aboutLabel}
-    </a>
+    </Link>
   );
 
   if (status === 'authenticated' && session?.user) {

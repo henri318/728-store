@@ -50,13 +50,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           globalThis.location.assign(`/${locale}/seller/products`);
         }
       }
-    } catch (error_: unknown) {
-      const message = error_ instanceof Error ? error_.message : '';
-      if (message.includes('CredentialsSignin')) {
-        setError(dict.auth.invalidCredentials);
-      } else {
-        setError(message || dict.auth.invalidCredentials);
-      }
+    } catch {
+      setError(dict.auth.invalidCredentials);
     } finally {
       setLoading(false);
     }

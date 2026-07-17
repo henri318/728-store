@@ -34,6 +34,7 @@ import type { ResetTokenCodec } from '@/shared/contracts/security/reset-token-co
 import type { SecretsPort } from '@/modules/auth/domain/secrets';
 import type { SessionPort } from '@/modules/auth/domain/session';
 import type { UserRepository } from '@/modules/users/domain/user-repository';
+import { GetUserProfileUseCase } from '@/modules/users/application/use-cases/get-user-profile-use-case';
 import type { RoleRepository } from '@/modules/roles/domain/role-repository';
 import type { OrderRepository } from '@/modules/orders/domain/order-repository';
 import type { ProductRepository } from '@/modules/products/domain/product-repository';
@@ -70,6 +71,7 @@ import { ProcessEnvSecrets } from '@/modules/auth/infrastructure/process-env-sec
 import { NextAuthSessionAdapter } from '@/modules/auth/infrastructure/nextauth-session';
 import { JwtResetTokenCodec } from '@/modules/auth/infrastructure/jwt-reset-token-codec';
 import { PrismaUserRepository } from '@/modules/users/infrastructure/prisma-user-repository';
+import { UserProfileAdapter } from '@/modules/users/infrastructure/user-profile-adapter';
 import { PrismaSellerRepository } from '@/modules/sellers/infrastructure/prisma-seller-repository';
 import { PrismaRoleRepository } from '@/modules/roles/infrastructure/prisma-role-repository';
 import { PrismaOrderRepository } from '@/modules/orders/infrastructure/prisma-order-repository';
@@ -145,6 +147,7 @@ export function initContainer(): void {
   getSecrets();
   getSession();
   getUserRepository();
+  getUserProfileUseCase();
   getRoleRepository();
   getOrderRepository();
   getCheckoutGroupLookup();
@@ -287,6 +290,13 @@ export function getSession(): SessionPort {
 export function getUserRepository(): UserRepository {
   state.userRepository ??= new PrismaUserRepository();
   return state.userRepository as UserRepository;
+}
+
+export function getUserProfileUseCase(): GetUserProfileUseCase {
+  state.userProfileUseCase ??= new GetUserProfileUseCase(
+    new UserProfileAdapter(getUserRepository()),
+  );
+  return state.userProfileUseCase as GetUserProfileUseCase;
 }
 
 export function getRoleRepository(): RoleRepository {
@@ -493,6 +503,7 @@ export const container = {
   getSecrets,
   getSession,
   getUserRepository,
+  getUserProfileUseCase,
   getRoleRepository,
   getOrderRepository,
   getCheckoutGroupLookup,
@@ -545,6 +556,7 @@ export const container = {
   },
   setUserRepository(repo: UserRepository): void {
     state.userRepository = repo;
+    state.userProfileUseCase = undefined;
   },
   setRoleRepository(repo: RoleRepository): void {
     state.roleRepository = repo;

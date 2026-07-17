@@ -6,6 +6,7 @@ import { UserId } from '@/shared/kernel/domain/value-objects/user-id';
 import { Email } from '@/shared/kernel/domain/value-objects/email';
 import { RoleId } from '@/shared/kernel/domain/identifiers/role-id';
 import { PasswordHash } from '@/shared/kernel/domain/value-objects/password-hash';
+import { Address } from '@/shared/kernel/domain/value-objects/address';
 
 describe('UpdateUserUseCase', () => {
   let userRepository: MemoryUserRepository;
@@ -135,6 +136,34 @@ describe('UpdateUserUseCase', () => {
       changedFields: string[];
     };
     expect(payload3.changedFields).toContain('address');
+  });
+
+  it('should remove address when explicitly set to null', async () => {
+    const userId = UserId.create('user-remove-address');
+    await userRepository.save({
+      userId,
+      email: Email.create('remove-address@example.com'),
+      firstName: 'Address',
+      lastName: 'Owner',
+      address: Address.create('Calle 1', 'Madrid', '28001', 'ES'),
+      roleId: RoleId.create('CUSTOMER'),
+      passwordHash: PasswordHash.create('hashedpassword123'),
+      emailVerified: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const { UpdateUserUseCase } =
+      await import('@/modules/users/application/use-cases/update-user-use-case');
+    const result = await new UpdateUserUseCase(
+      userRepository,
+      outboxRepository,
+    ).execute({ userId: 'user-remove-address', address: null });
+
+    expect(result.address).toBeNull();
+    expect(outboxRepository.events[0].payload).toMatchObject({
+      changedFields: ['address'],
+    });
   });
 
   // ── Error Cases ─────────────────────────────────────────────

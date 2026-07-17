@@ -119,7 +119,7 @@ describe('CartView', () => {
 
     expect(screen.getByText(labels.emptyTitle)).toBeTruthy();
     const link = screen.getByRole('link');
-    expect(link.getAttribute('href')).toBe('/es/');
+    expect(link.getAttribute('href')).toBe('/es');
   });
 
   it('renders subtotal', () => {
@@ -273,6 +273,26 @@ describe('CartView', () => {
         method: 'DELETE',
       });
       expect(screen.queryByText('Test Product')).toBeNull();
+      expect(screen.getByText('Another Product')).toBeTruthy();
+    });
+  });
+
+  it('restores the item when DELETE fails', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false });
+
+    render(
+      <CartView
+        items={baseItems}
+        locale="es"
+        isAuthenticated={true}
+        labels={labels}
+      />,
+    );
+
+    fireEvent.click(screen.getAllByRole('button', { name: labels.remove })[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Product')).toBeTruthy();
       expect(screen.getByText('Another Product')).toBeTruthy();
     });
   });

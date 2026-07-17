@@ -1,4 +1,5 @@
 import { container } from '@/composition-root/container';
+import Link from 'next/link';
 import { NotFoundError } from '@/shared/kernel/app-error';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { ProductListQueryUseCase } from '@/modules/products/application/product-list-query-use-case';
@@ -89,12 +90,12 @@ export default async function SellerProductsPage({
         <div className={styles.headerLead}>
           <h2 className={styles.title}>{dict.sellerDashboard.title}</h2>
           <div className={styles.headerActions}>
-            <a
+            <Link
               href={`/${locale}/seller/products/new`}
               className={styles.createButton}
             >
               + {dict.sellerDashboard.createProduct}
-            </a>
+            </Link>
             <SearchForm
               placeholder={dict.sellerDashboard.searchPlaceholder}
               ariaLabel={dict.sellerDashboard.searchProducts}

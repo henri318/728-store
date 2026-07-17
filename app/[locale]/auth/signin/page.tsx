@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import Link from 'next/link';
 import { TextField } from '@/shared/ui/text-field';
 import { Button } from '@/shared/ui/button';
 import { EyeToggleWrapper } from '@/shared/ui/eye-toggle-wrapper';
 import { AuthCard } from '@/shared/ui/auth-card';
+import { ErrorMessage } from '@/shared/ui/error-message';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 import styles from './page.module.css';
 
@@ -16,6 +18,7 @@ export default function SignInPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const dict = useDictionary();
 
   const redirectByRole = (role: string) => {
@@ -30,26 +33,37 @@ export default function SignInPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setLoading(true);
-    const result = await signIn('credentials', {
-      email,
-      password,
-      redirect: false,
-    });
+    try {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
 
-    if (result?.ok) {
-      const res = await fetch('/api/auth/session');
-      const session = await res.json();
-      const role = session?.user?.role ?? 'CUSTOMER';
-      redirectByRole(role);
+      if (result?.error) {
+        setError(dict.auth.invalidCredentials);
+        return;
+      }
+
+      if (result?.ok) {
+        const res = await fetch('/api/auth/session');
+        const session = await res.json();
+        const role = session?.user?.role ?? 'CUSTOMER';
+        redirectByRole(role);
+      }
+    } catch {
+      setError(dict.auth.invalidCredentials);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
     <AuthCard className={styles.card}>
       <h2>{dict.auth.signInTitle}</h2>
+      {error && <ErrorMessage message={error} />}
 
       <button
         type="button"
@@ -98,9 +112,9 @@ export default function SignInPage() {
 
       <p className={styles.footer}>
         {dict.auth.dontHaveAccount}{' '}
-        <a href={`/${locale}/auth/signup`} className={styles.footerLink}>
+        <Link href={`/${locale}/auth/signup`} className={styles.footerLink}>
           {dict.auth.signUpButton}
-        </a>
+        </Link>
       </p>
     </AuthCard>
   );

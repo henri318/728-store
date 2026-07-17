@@ -498,10 +498,7 @@ describe('ProductDetailPage', () => {
     expect(mocks.notFoundMock).toHaveBeenCalledOnce();
   });
 
-  it('calls notFound when loading the public product fails', async () => {
-    mocks.notFoundMock.mockImplementation(() => {
-      throw new Error('NEXT_NOT_FOUND');
-    });
+  it('propagates infrastructure errors while loading the public product', async () => {
     mocks.getProductRepositoryMock.mockReturnValue({
       findById: vi.fn().mockRejectedValue(new Error('Database unavailable')),
     });
@@ -510,8 +507,8 @@ describe('ProductDetailPage', () => {
       ProductDetailPage({
         params: Promise.resolve({ locale: 'es', id: 'unavailable-product' }),
       }),
-    ).rejects.toThrow('NEXT_NOT_FOUND');
+    ).rejects.toThrow('Database unavailable');
 
-    expect(mocks.notFoundMock).toHaveBeenCalledOnce();
+    expect(mocks.notFoundMock).not.toHaveBeenCalled();
   });
 });

@@ -7,5 +7,5 @@ export interface UpdateUserDTO {
     city: string;
     postalCode: string;
     country: string;
-  };
+  } | null;
 }

@@ -304,11 +304,15 @@ function CustomizationExperienceInner({
       publicUrl: string;
     };
 
-    await fetch(result.uploadUrl, {
+    const uploadResponse = await fetch(result.uploadUrl, {
       method: 'PUT',
       headers: { 'content-type': file.type },
       body: file,
     });
+
+    if (!uploadResponse.ok) {
+      throw new Error('File storage failed');
+    }
 
     const imageUrl = toAbsoluteUrl(result.publicUrl);
     setImage({ imageUploadId: result.id, imageUrl });

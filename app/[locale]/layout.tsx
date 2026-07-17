@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth';
 import type { Metadata, Viewport } from 'next';
 import Image from 'next/image';
+import Link from 'next/link';
 import { authOptions } from '@/shared/infrastructure/auth-options';
 import { prisma } from '@/shared/infrastructure/prisma';
 import LanguageSelector from '@/shared/layout/language-selector';
@@ -131,7 +132,7 @@ export default async function RootLayout({
               )}
               <header className={styles.header}>
                 <div className={styles.spacer} />
-                <a href={`/${locale}`} className={styles.logo}>
+                <Link href={`/${locale}`} className={styles.logo}>
                   <Image
                     src="/img/logo/logo.svg"
                     alt="Siete 28 Logo"
@@ -140,7 +141,7 @@ export default async function RootLayout({
                     className={styles.logoImg}
                     loading="eager"
                   />
-                </a>
+                </Link>
                 <div className={styles.userIcons}>
                   <HeaderNav
                     loginLabel={dict.common.login}

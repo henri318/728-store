@@ -1,4 +1,5 @@
 import styles from './pagination.module.css';
+import Link from 'next/link';
 
 interface PaginationProps {
   currentPage: number;
@@ -29,9 +30,12 @@ export function Pagination({
           {prevLabel}
         </span>
       ) : (
-        <a href={buildPageUrl(currentPage - 1)} className={styles.pageButton}>
+        <Link
+          href={buildPageUrl(currentPage - 1)}
+          className={styles.pageButton}
+        >
           {prevLabel}
-        </a>
+        </Link>
       )}
       {pageInfo && <span className={styles.pageInfo}>{pageInfo}</span>}
       {currentPage >= totalPages ? (
@@ -39,9 +43,12 @@ export function Pagination({
           {nextLabel}
         </span>
       ) : (
-        <a href={buildPageUrl(currentPage + 1)} className={styles.pageButton}>
+        <Link
+          href={buildPageUrl(currentPage + 1)}
+          className={styles.pageButton}
+        >
           {nextLabel}
-        </a>
+        </Link>
       )}
     </Wrapper>
   );
