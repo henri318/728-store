@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
 import { useCartPopup } from './cart-popup-context';
 import { CART_UPDATED_EVENT } from '@/modules/cart/presentation/cart-events';
+import { canUseAuthenticatedCart } from '@/modules/cart/presentation/cart-capability';
 import styles from '@/shared/layout/header-nav.module.css';
 
 interface CartIconProps {
@@ -14,9 +15,8 @@ interface CartIconProps {
 export function CartIcon({ alt }: CartIconProps) {
   const { data: session, status } = useSession();
   const isAuthenticated = status === 'authenticated';
-  const isInternal =
-    session?.user?.role === 'ADMIN' || session?.user?.role === 'DESIGNER';
-  const canUseCart = isAuthenticated && !isInternal;
+  const canUseCart =
+    isAuthenticated && canUseAuthenticatedCart(session?.user?.role);
   const { itemCount: guestCount } = useGuestCart();
   const { open } = useCartPopup();
   const [authCount, setAuthCount] = useState(0);
@@ -63,7 +63,7 @@ export function CartIcon({ alt }: CartIconProps) {
     };
   }, [canUseCart, fetchCount, handleCartUpdated]);
 
-  if (isInternal) return null;
+  if (isAuthenticated && !canUseCart) return null;
 
   const count = isAuthenticated ? authCount : guestCount;
 

@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { dispatchCartUpdated } from '@/modules/cart/presentation/cart-events';
+import { canUseAuthenticatedCart } from '@/modules/cart/presentation/cart-capability';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
 import {
   customizationDraftSchema,
@@ -18,9 +19,12 @@ import { useGuestCartActions } from './use-guest-cart-actions';
 const MAX_QUANTITY = 99;
 
 export function useAddToCartButton(props: AddToCartButtonProps) {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const guestCart = useGuestCart();
   const isAuthenticated = status === 'authenticated';
+  const usesAuthenticatedCart =
+    isAuthenticated && canUseAuthenticatedCart(session?.user?.role);
+  const canUseCart = !isAuthenticated || usesAuthenticatedCart;
   const [state, setState] = useState<ButtonState>('idle');
   const [showCustomizationChoice, setShowCustomizationChoice] = useState(false);
   const [savingDesign, setSavingDesign] = useState(false);
@@ -30,7 +34,7 @@ export function useAddToCartButton(props: AddToCartButtonProps) {
   );
   const hasCustomization = hasCustomizationContent(normalizedCustomization);
   const authenticatedCart = useAuthenticatedCart({
-    isAuthenticated,
+    isAuthenticated: usesAuthenticatedCart,
     productId: props.productId,
     editCartItemId: props.editCartItemId,
     customization: normalizedCustomization,
@@ -80,7 +84,7 @@ export function useAddToCartButton(props: AddToCartButtonProps) {
         const normalized = draft ?? normalizeCustomizationDraft(null);
         if (!customizationDraftSchema.safeParse(normalized).success)
           return fail();
-        const added = isAuthenticated
+        const added = usesAuthenticatedCart
           ? await authenticatedActions.addItem(normalized)
           : (guestActions.addItem(normalized), true);
         if (!added) return fail();
@@ -97,7 +101,7 @@ export function useAddToCartButton(props: AddToCartButtonProps) {
       authenticatedCart,
       fail,
       guestActions,
-      isAuthenticated,
+      usesAuthenticatedCart,
     ],
   );
 
@@ -105,11 +109,11 @@ export function useAddToCartButton(props: AddToCartButtonProps) {
     async (nextQuantity: number) => {
       if (savingDesign || nextQuantity < 1 || nextQuantity > MAX_QUANTITY)
         return;
-      if (isAuthenticated)
+      if (usesAuthenticatedCart)
         await authenticatedActions.updateQuantity(nextQuantity);
       else guestActions.updateQuantity(nextQuantity);
     },
-    [authenticatedActions, guestActions, isAuthenticated, savingDesign],
+    [authenticatedActions, guestActions, savingDesign, usesAuthenticatedCart],
   );
 
   const onSaveDesign = useCallback(async () => {
@@ -117,7 +121,7 @@ export function useAddToCartButton(props: AddToCartButtonProps) {
       return;
     setSavingDesign(true);
     try {
-      if (isAuthenticated)
+      if (usesAuthenticatedCart)
         await authenticatedActions.saveDesign(normalizedCustomization);
       else guestActions.saveDesign(normalizedCustomization);
     } finally {
@@ -126,15 +130,15 @@ export function useAddToCartButton(props: AddToCartButtonProps) {
   }, [
     authenticatedActions,
     guestActions,
-    isAuthenticated,
     normalizedCustomization,
+    usesAuthenticatedCart,
   ]);
 
   const onRemove = useCallback(async () => {
     if (savingDesign) return;
-    if (isAuthenticated) await authenticatedActions.removeItem();
+    if (usesAuthenticatedCart) await authenticatedActions.removeItem();
     else guestActions.removeItem();
-  }, [authenticatedActions, guestActions, isAuthenticated, savingDesign]);
+  }, [authenticatedActions, guestActions, savingDesign, usesAuthenticatedCart]);
 
   return {
     state,
@@ -142,6 +146,7 @@ export function useAddToCartButton(props: AddToCartButtonProps) {
     isInCart: quantity > 0,
     productInCart: authenticatedCart.productInCart,
     isAuthenticated,
+    canUseCart,
     hasCustomization,
     showCustomizationChoice,
     savingDesign,

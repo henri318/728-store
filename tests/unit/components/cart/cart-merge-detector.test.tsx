@@ -47,7 +47,10 @@ describe('CartMergeDetector', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', mockFetch);
-    mockUseSession.mockReturnValue({ status: 'authenticated', data: null });
+    mockUseSession.mockReturnValue({
+      status: 'authenticated',
+      data: { user: { role: 'CUSTOMER' } },
+    });
   });
 
   afterEach(() => {
@@ -144,7 +147,7 @@ describe('CartMergeDetector', () => {
     vi.useRealTimers();
   });
 
-  it.each(['ADMIN', 'DESIGNER'])(
+  it.each(['ADMIN', 'DESIGNER', 'SUPPORT'])(
     'does not check carts for %s users',
     (role) => {
       mockUseSession.mockReturnValue({

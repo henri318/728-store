@@ -68,7 +68,7 @@ describe('CartPopup', () => {
     guestCartState.items = [];
     vi.stubGlobal('fetch', mockFetch);
     mockUseSession.mockReturnValue({
-      data: { user: { id: 'user-1' } },
+      data: { user: { id: 'user-1', role: 'CUSTOMER' } },
       status: 'authenticated',
       update: vi.fn(),
     });
@@ -179,16 +179,19 @@ describe('CartPopup', () => {
     });
   });
 
-  it.each(['ADMIN', 'DESIGNER'])('does not load carts for %s users', (role) => {
-    mockUseSession.mockReturnValue({
-      data: { user: { role } },
-      status: 'authenticated',
-    });
+  it.each(['ADMIN', 'DESIGNER', 'SUPPORT'])(
+    'does not load carts for %s users',
+    (role) => {
+      mockUseSession.mockReturnValue({
+        data: { user: { role } },
+        status: 'authenticated',
+      });
 
-    renderPopup();
+      renderPopup();
 
-    expect(mockFetch).not.toHaveBeenCalled();
-  });
+      expect(mockFetch).not.toHaveBeenCalled();
+    },
+  );
 
   it('dispatches cart:updated after removing an authenticated item', async () => {
     const dispatchSpy = vi.spyOn(globalThis, 'dispatchEvent');

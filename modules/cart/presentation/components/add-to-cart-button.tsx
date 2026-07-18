@@ -8,6 +8,7 @@ export type { CartButtonLabels } from './add-to-cart-types';
 
 export function AddToCartButton(props: AddToCartButtonProps) {
   const button = useAddToCartButton(props);
+  if (!button.canUseCart) return null;
 
   return (
     <AddToCartButtonView {...button} customizeHref={props.customizeHref} />

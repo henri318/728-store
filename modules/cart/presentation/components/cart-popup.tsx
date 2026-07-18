@@ -24,6 +24,7 @@ import {
   CART_UPDATED_EVENT,
   dispatchCartUpdated,
 } from '@/modules/cart/presentation/cart-events';
+import { canUseAuthenticatedCart } from '@/modules/cart/presentation/cart-capability';
 import {
   guestItemToDTO,
   type CartItemDTO,
@@ -58,9 +59,8 @@ export function CartPopup({ labels }: CartPopupProps) {
   const pathname = usePathname();
   const locale = pathname?.split('/', 2)[1] ?? 'es';
   const isAuthenticated = status === 'authenticated';
-  const isInternal =
-    session?.user?.role === 'ADMIN' || session?.user?.role === 'DESIGNER';
-  const canUseCart = isAuthenticated && !isInternal;
+  const canUseCart =
+    isAuthenticated && canUseAuthenticatedCart(session?.user?.role);
   const userId = session?.user?.id;
   const guestCart = useGuestCart();
 
@@ -232,7 +232,7 @@ export function CartPopup({ labels }: CartPopupProps) {
   /* eslint-disable react-hooks/set-state-in-effect, @eslint-react/set-state-in-effect */
   useEffect(() => setMounted(true), []);
   /* eslint-enable react-hooks/set-state-in-effect, @eslint-react/set-state-in-effect */
-  if (!mounted || !isOpen) return null;
+  if (!mounted || !isOpen || (isAuthenticated && !canUseCart)) return null;
 
   function renderThumbnail(item: CartItemDTO) {
     if (
