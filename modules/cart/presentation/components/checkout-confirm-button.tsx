@@ -136,7 +136,11 @@ export function CheckoutConfirmButton({
         const data = await confirmRes.json();
         clearCart();
         const firstOrderId = data.orderIds?.[0] ?? '';
-        router.push(`/${locale}/orders/${firstOrderId}`);
+        router.push(
+          firstOrderId
+            ? `/${locale}/orders/${firstOrderId}`
+            : `/${locale}/orders`,
+        );
       } else {
         let payload: { error?: string } = {};
         try {
