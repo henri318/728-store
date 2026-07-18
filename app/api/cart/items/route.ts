@@ -34,12 +34,16 @@ export const POST = requireRole('CUSTOMER')(async function POST(
     const productRepository = container.getCartProductRepository();
     const outboxRepository = container.getOutboxRepository();
     const customizationLookup = container.getCustomizationLookup();
+    const transactionRunner = container.getTransactionRunner();
+    const customizationCreator = container.getCustomerCustomizationCreator();
 
     const addItemToCart = new AddItemToCart(
       cartRepository,
       productRepository,
       outboxRepository,
       customizationLookup,
+      transactionRunner,
+      customizationCreator,
     );
 
     const item = await addItemToCart.execute({
@@ -47,6 +51,7 @@ export const POST = requireRole('CUSTOMER')(async function POST(
       productId: validated.productId,
       quantity: validated.quantity,
       customizationIdList: validated.customizationIdList,
+      customization: validated.customization,
     });
 
     // Enrich the item with product display data + resolved customizations.

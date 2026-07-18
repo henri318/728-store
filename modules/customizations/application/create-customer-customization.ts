@@ -63,6 +63,7 @@ export class CreateCustomerCustomization {
   async execute(
     dto: CreateCustomerCustomizationDTO,
     ownerUserId: string,
+    tx?: unknown,
   ): Promise<CustomizationEntity> {
     if (!ownerUserId) {
       throw new ValidationError('Owner user id is required', 'Invalid user');
@@ -86,6 +87,6 @@ export class CreateCustomerCustomization {
       createdAt: new Date(),
     };
 
-    return this.repo.save(entity);
+    return this.repo.save(entity, tx);
   }
 }

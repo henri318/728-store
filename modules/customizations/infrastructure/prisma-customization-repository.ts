@@ -1,3 +1,4 @@
+import { PrismaClient } from '@prisma/client';
 import { prisma } from '@/shared/infrastructure/prisma';
 import type { CustomizationRepository } from '../domain/customization-repository';
 import { coerceDesignPosition } from '@/shared/kernel/domain/value-objects/design-position';
@@ -35,8 +36,12 @@ export class PrismaCustomizationRepository implements CustomizationRepository {
     };
   }
 
-  async save(entity: CustomizationEntity): Promise<CustomizationEntity> {
-    const result = await prisma.customization.upsert({
+  async save(
+    entity: CustomizationEntity,
+    tx?: unknown,
+  ): Promise<CustomizationEntity> {
+    const client = (tx ?? prisma) as PrismaClient;
+    const result = await client.customization.upsert({
       where: { id: entity.id },
       create: {
         id: entity.id,

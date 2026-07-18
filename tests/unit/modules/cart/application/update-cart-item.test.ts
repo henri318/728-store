@@ -16,6 +16,48 @@ import {
 } from '@/modules/cart/domain/errors';
 import type { CartEntity } from '@/modules/cart/domain/entities/cart';
 import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
+import type {
+  CustomerCustomizationCreatePort,
+  CustomerCustomizationInput,
+} from '@/modules/cart/domain/customer-customization-create-port';
+import type { TransactionRunner } from '@/shared/kernel/transaction-runner';
+
+class TransactionalCustomizationCreator implements CustomerCustomizationCreatePort {
+  readonly committed: CustomerCustomizationInput[] = [];
+
+  async create(
+    input: CustomerCustomizationInput & { productId: string },
+    _userId: string,
+    tx?: unknown,
+  ): Promise<{ id: string; productId: string }> {
+    (
+      tx as { customizations: CustomerCustomizationInput[] }
+    ).customizations.push(input);
+    return { id: 'created-customization', productId: input.productId };
+  }
+}
+
+class RecordingTransactionRunner implements TransactionRunner {
+  constructor(private readonly creator: TransactionalCustomizationCreator) {}
+
+  async run<T>(work: (tx: unknown) => Promise<T>): Promise<T> {
+    const tx = { customizations: [] as CustomerCustomizationInput[] };
+    const result = await work(tx);
+    this.creator.committed.push(...tx.customizations);
+    return result;
+  }
+}
+
+class FailingCartRepository extends MemoryCartRepository {
+  failNextSave = false;
+
+  override async save(cart: CartEntity, _tx?: unknown): Promise<CartEntity> {
+    if (this.failNextSave) {
+      throw new Error('Cart save failed');
+    }
+    return super.save(cart);
+  }
+}
 
 const makeItem = (overrides: Partial<CartItemEntity> = {}): CartItemEntity => ({
   id: 'i-default',
@@ -95,6 +137,36 @@ describe('UpdateCartItemQuantity', () => {
     expect(payload.cartId).toBe('c1');
     expect(payload.itemId).toBe('i1');
     expect(payload.quantity).toBe(5);
+  });
+
+  it('rolls back a newly created customization when saving the cart item fails', async () => {
+    const failingCartRepo = new FailingCartRepository();
+    await failingCartRepo.save(
+      makeCart({
+        items: [makeItem({ id: 'i1', cartId: 'c1', quantity: 2 })],
+      }),
+    );
+    failingCartRepo.failNextSave = true;
+    const creator = new TransactionalCustomizationCreator();
+    const transactionalUseCase = new UpdateCartItemQuantity(
+      failingCartRepo,
+      outboxRepo,
+      new RecordingTransactionRunner(creator),
+      creator,
+    );
+
+    await expect(
+      transactionalUseCase.execute({
+        userId: 'u1',
+        itemId: 'i1',
+        quantity: 2,
+        customization: { text: 'Atomic design' },
+      }),
+    ).rejects.toThrow('Cart save failed');
+
+    expect(creator.committed).toEqual([]);
+    const cart = await failingCartRepo.findActiveByUserId('u1');
+    expect(cart?.items[0]).toMatchObject({ customizationIdList: [] });
   });
 
   it('decreases quantity', async () => {

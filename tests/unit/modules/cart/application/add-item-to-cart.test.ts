@@ -16,6 +16,48 @@ import {
   InvalidCustomizationError,
 } from '@/modules/cart/domain/errors';
 import type { CartEntity } from '@/modules/cart/domain/entities/cart';
+import type {
+  CustomerCustomizationCreatePort,
+  CustomerCustomizationInput,
+} from '@/modules/cart/domain/customer-customization-create-port';
+import type { TransactionRunner } from '@/shared/kernel/transaction-runner';
+
+class TransactionalCustomizationCreator implements CustomerCustomizationCreatePort {
+  readonly committed: CustomerCustomizationInput[] = [];
+
+  async create(
+    input: CustomerCustomizationInput & { productId: string },
+    _userId: string,
+    tx?: unknown,
+  ): Promise<{ id: string; productId: string }> {
+    (
+      tx as { customizations: CustomerCustomizationInput[] }
+    ).customizations.push(input);
+    return { id: 'created-customization', productId: input.productId };
+  }
+}
+
+class RecordingTransactionRunner implements TransactionRunner {
+  constructor(private readonly creator: TransactionalCustomizationCreator) {}
+
+  async run<T>(work: (tx: unknown) => Promise<T>): Promise<T> {
+    const tx = { customizations: [] as CustomerCustomizationInput[] };
+    const result = await work(tx);
+    this.creator.committed.push(...tx.customizations);
+    return result;
+  }
+}
+
+class FailingCartRepository extends MemoryCartRepository {
+  failNextSave = false;
+
+  override async save(cart: CartEntity, _tx?: unknown): Promise<CartEntity> {
+    if (this.failNextSave) {
+      throw new Error('Cart save failed');
+    }
+    return super.save(cart);
+  }
+}
 
 /**
  * Tests for AddItemToCart use case (spec REQ-CART-011 / REQ-CART-001 / REQ-CART-002).
@@ -98,6 +140,32 @@ describe('AddItemToCart', () => {
     expect(eventTypes.indexOf(GlobalEvents.CART_CREATED)).toBeLessThan(
       eventTypes.indexOf(GlobalEvents.CART_ITEM_ADDED),
     );
+  });
+
+  it('rolls back a newly created customization when saving the cart fails', async () => {
+    const failingCartRepo = new FailingCartRepository();
+    failingCartRepo.failNextSave = true;
+    const creator = new TransactionalCustomizationCreator();
+    const transactionalUseCase = new AddItemToCart(
+      failingCartRepo,
+      productRepo,
+      outboxRepo,
+      customizationLookup,
+      new RecordingTransactionRunner(creator),
+      creator,
+    );
+
+    await expect(
+      transactionalUseCase.execute({
+        userId: 'u1',
+        productId: 'p1',
+        quantity: 1,
+        customization: { text: 'Atomic design' },
+      }),
+    ).rejects.toThrow('Cart save failed');
+
+    expect(creator.committed).toEqual([]);
+    expect(await failingCartRepo.findActiveByUserId('u1')).toBeNull();
   });
 
   it('reuses the existing ACTIVE cart on subsequent adds (no second CartCreated)', async () => {

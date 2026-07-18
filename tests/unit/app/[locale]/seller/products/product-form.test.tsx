@@ -438,6 +438,50 @@ describe('ProductForm', () => {
     ).toBeGreaterThan(0);
   });
 
+  it('warns before leaving after reordering product images in edit mode', () => {
+    render(
+      <ProductForm
+        locale="es"
+        mode="edit"
+        productId="p-1"
+        initialValues={{
+          price: 19.99,
+          translations: [
+            {
+              locale: 'es',
+              name: 'Taza',
+              description: 'Base',
+              tags: [],
+              sizes: [],
+              designChangeDescription: null,
+            },
+          ],
+          customizationConfig: ProductCustomizationConfig.default().toJson(),
+          images: [
+            {
+              id: 'showcase-1',
+              url: 'http://localhost:8081/products/taza-1.png',
+              alt: 'Taza uno',
+            },
+            {
+              id: 'showcase-2',
+              url: 'http://localhost:8081/products/taza-2.png',
+              alt: 'Taza dos',
+            },
+          ],
+        }}
+        labels={labels}
+      />,
+    );
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Bajar' })[0]);
+
+    const event = new Event('beforeunload', { cancelable: true });
+    globalThis.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+  });
+
   it('includes translated tags and sizes in the edit-mode PATCH payload', async () => {
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);

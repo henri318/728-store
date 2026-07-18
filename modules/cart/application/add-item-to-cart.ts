@@ -2,6 +2,10 @@ import type { CartRepository } from '../domain/cart-repository';
 import type { CartItemEntity } from '../domain/entities/cart-item';
 import type { ProductRepository } from '../domain/product-repository';
 import type { CustomizationLookupPort } from '../domain/customization-lookup-port';
+import type {
+  CustomerCustomizationCreatePort,
+  CustomerCustomizationInput,
+} from '../domain/customer-customization-create-port';
 import { CartStatus } from '../domain/value-objects/cart-status';
 import { Quantity } from '../domain/value-objects/quantity';
 import { ProductId } from '@/shared/kernel/domain/value-objects/product-id';
@@ -21,6 +25,7 @@ export interface AddItemToCartDTO {
   productId: string;
   quantity: number;
   customizationIdList?: string[];
+  customization?: CustomerCustomizationInput;
 }
 
 // --- Use Case ---
@@ -54,6 +59,7 @@ export class AddItemToCart {
     private outboxRepository: OutboxRepository,
     private customizationLookup: CustomizationLookupPort,
     private txRunner?: TransactionRunner,
+    private customizationCreator?: CustomerCustomizationCreatePort,
   ) {}
 
   /**
@@ -122,6 +128,24 @@ export class AddItemToCart {
           dto.productId,
           product.sellerId.value,
         );
+      }
+
+      if (dto.customization) {
+        if (!this.customizationCreator) {
+          throw new Error('Customer customization creator is not configured');
+        }
+        const customization = await this.customizationCreator.create(
+          { productId: dto.productId, ...dto.customization },
+          dto.userId,
+          tx,
+        );
+        if (customization.productId !== dto.productId) {
+          throw new InvalidCustomizationError(
+            `Customization ${customization.id} does not belong to product ${dto.productId}`,
+            'Customization is not available for this product',
+          );
+        }
+        customizationIdList.push(customization.id);
       }
 
       // 4. Find or create the ACTIVE cart for the user. Spec REQ-CART-001

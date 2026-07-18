@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { checkoutEligibilitySchema } from './checkout-eligibility-schema';
+import { designPositionSchema } from '@/shared/validation/design-position-schema';
 
 /**
  * Zod schemas for cart API request validation.
@@ -11,6 +12,32 @@ import { checkoutEligibilitySchema } from './checkout-eligibility-schema';
 
 // --- addItem ---
 
+const customerCustomizationSchema = z.object({
+  text: z.string().max(500).nullable().optional(),
+  color: z
+    .string()
+    .max(50)
+    .refine((value) => value.trim().length > 0, {
+      message: 'Customization color cannot be empty if provided',
+    })
+    .nullable()
+    .optional(),
+  size: z
+    .string()
+    .max(50)
+    .refine((value) => value.trim().length > 0, {
+      message: 'Customization size cannot be empty if provided',
+    })
+    .nullable()
+    .optional(),
+  imageUrl: z
+    .string()
+    .regex(/^https?:\/\/.+/, 'Image URL must start with http:// or https://')
+    .nullable()
+    .optional(),
+  designPosition: designPositionSchema.nullable().optional(),
+});
+
 export const addItemSchema = z.object({
   productId: z.string().min(1, 'Product ID is required'),
   quantity: z.coerce
@@ -19,6 +46,7 @@ export const addItemSchema = z.object({
     .min(1, 'Quantity must be at least 1')
     .max(99, 'Quantity must be at most 99'),
   customizationIdList: z.array(z.string().min(1)).optional().default([]),
+  customization: customerCustomizationSchema.optional(),
 });
 
 export type AddItemInput = z.infer<typeof addItemSchema>;
@@ -32,6 +60,7 @@ export const updateQuantitySchema = z.object({
     .min(1, 'Quantity must be at least 1')
     .max(99, 'Quantity must be at most 99'),
   customizationIdList: z.array(z.string()).optional(),
+  customization: customerCustomizationSchema.optional(),
 });
 
 export type UpdateQuantityInput = z.infer<typeof updateQuantitySchema>;

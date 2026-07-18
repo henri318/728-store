@@ -38,10 +38,14 @@ export const PATCH = requireRole('CUSTOMER')(async function PATCH(
     const cartRepository = container.getCartRepository();
     const outboxRepository = container.getOutboxRepository();
     const customizationLookup = container.getCustomizationLookup();
+    const transactionRunner = container.getTransactionRunner();
+    const customizationCreator = container.getCustomerCustomizationCreator();
 
     const updateCartItem = new UpdateCartItemQuantity(
       cartRepository,
       outboxRepository,
+      transactionRunner,
+      customizationCreator,
     );
 
     const item = await updateCartItem.execute({
@@ -49,6 +53,7 @@ export const PATCH = requireRole('CUSTOMER')(async function PATCH(
       itemId,
       quantity: validated.quantity,
       customizationIdList: validated.customizationIdList,
+      customization: validated.customization,
     });
 
     // Enrich the item with product display data + resolved customizations.
