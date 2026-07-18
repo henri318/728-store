@@ -124,6 +124,7 @@ import { ListSellerOrdersUseCase } from '@/modules/orders/application/list-selle
 import { GetSellerOrderUseCase } from '@/modules/orders/application/get-seller-order-use-case';
 import { ProductListQueryUseCase } from '@/modules/products/application/product-list-query-use-case';
 import { GetProductByIdUseCase } from '@/modules/products/application/get-product-by-id-use-case';
+import { GetCartProductViewsUseCase } from '@/modules/products/application/get-cart-product-views-use-case';
 import { ListSellerProductsUseCase } from '@/modules/sellers/application/use-cases/list-seller-products-use-case';
 import { GetSellerUseCase } from '@/modules/sellers/application/use-cases/get-seller-use-case';
 import { ListSellersUseCase } from '@/modules/sellers/application/use-cases/list-sellers-use-case';
@@ -513,7 +514,7 @@ export function getCheckoutViewUseCase(): GetCheckoutViewUseCase {
 export function getCartProductRepository(): CartProductRepository {
   if (!state.cartProductRepository) {
     state.cartProductRepository = new CartProductRepositoryAdapter(
-      getProductRepository(),
+      new GetCartProductViewsUseCase(getProductRepository()),
     );
   }
   return state.cartProductRepository as CartProductRepository;

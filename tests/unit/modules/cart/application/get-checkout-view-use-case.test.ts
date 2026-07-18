@@ -10,8 +10,84 @@ import { ProductId } from '@/shared/kernel/domain/value-objects/product-id';
 import { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
 import { Money } from '@/shared/kernel/domain/value-objects/money';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
+import { ValidationError } from '@/shared/kernel/app-error';
 
 describe('GetCheckoutViewUseCase', () => {
+  it('returns zero shipping and total for an empty cart', async () => {
+    const cartRepository = new MemoryCartRepository();
+    await cartRepository.save({
+      id: 'cart-1',
+      userId: 'user-1',
+      status: CartStatus.Active,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      items: [],
+    });
+    const cartView = new GetCartViewUseCase(
+      cartRepository,
+      new MemoryCartProductRepository(),
+      new MemoryCustomizationLookup(),
+    );
+
+    await expect(
+      new GetCheckoutViewUseCase(cartView, new MemoryPaidOrderCount()).execute({
+        userId: 'user-1',
+        locale: 'es',
+        unknownProductName: 'Unknown Product',
+        unknownSellerName: 'Unknown Seller',
+      }),
+    ).resolves.toMatchObject({
+      items: [],
+      shipping: 0,
+      total: 0,
+    });
+  });
+
+  it('rejects carts with mixed currencies', async () => {
+    const cartRepository = new MemoryCartRepository();
+    await cartRepository.save({
+      id: 'cart-1',
+      userId: 'user-1',
+      status: CartStatus.Active,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      items: [
+        {
+          id: 'item-1',
+          cartId: 'cart-1',
+          productId: ProductId.create('product-1'),
+          sellerId: SellerId.create('seller-1'),
+          quantity: 1,
+          unitPriceSnapshot: Money.create(10, Currency.EUR),
+          customizationIdList: [],
+        },
+        {
+          id: 'item-2',
+          cartId: 'cart-1',
+          productId: ProductId.create('product-2'),
+          sellerId: SellerId.create('seller-1'),
+          quantity: 1,
+          unitPriceSnapshot: Money.create(10, Currency.USD),
+          customizationIdList: [],
+        },
+      ],
+    });
+    const cartView = new GetCartViewUseCase(
+      cartRepository,
+      new MemoryCartProductRepository(),
+      new MemoryCustomizationLookup(),
+    );
+
+    await expect(
+      new GetCheckoutViewUseCase(cartView, new MemoryPaidOrderCount()).execute({
+        userId: 'user-1',
+        locale: 'es',
+        unknownProductName: 'Unknown Product',
+        unknownSellerName: 'Unknown Seller',
+      }),
+    ).rejects.toBeInstanceOf(ValidationError);
+  });
+
   it('groups the cart by seller and applies the first-purchase discount', async () => {
     const cartRepository = new MemoryCartRepository();
     const productRepository = new MemoryCartProductRepository();
@@ -71,6 +147,49 @@ describe('GetCheckoutViewUseCase', () => {
       sellerGroups: [
         expect.objectContaining({ sellerId: 'seller-1', subtotal: 20 }),
       ],
+    });
+  });
+
+  it('does not discount repeat buyers', async () => {
+    const cartRepository = new MemoryCartRepository();
+    await cartRepository.save({
+      id: 'cart-1',
+      userId: 'user-1',
+      status: CartStatus.Active,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      items: [
+        {
+          id: 'item-1',
+          cartId: 'cart-1',
+          productId: ProductId.create('product-1'),
+          sellerId: SellerId.create('seller-1'),
+          quantity: 2,
+          unitPriceSnapshot: Money.create(10, Currency.EUR),
+          customizationIdList: [],
+        },
+      ],
+    });
+    const paidOrderCount = new MemoryPaidOrderCount();
+    paidOrderCount.setCount(1);
+    const cartView = new GetCartViewUseCase(
+      cartRepository,
+      new MemoryCartProductRepository(),
+      new MemoryCustomizationLookup(),
+    );
+
+    await expect(
+      new GetCheckoutViewUseCase(cartView, paidOrderCount).execute({
+        userId: 'user-1',
+        locale: 'es',
+        unknownProductName: 'Unknown Product',
+        unknownSellerName: 'Unknown Seller',
+      }),
+    ).resolves.toMatchObject({
+      subtotal: 20,
+      discount: 0,
+      total: 23.99,
+      isFirstPurchase: false,
     });
   });
 });

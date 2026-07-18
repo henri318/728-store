@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { GetCartViewUseCase } from '@/modules/cart/application/get-cart-view-use-case';
 import { MemoryCartRepository } from '@/tests/doubles/memory-cart-repository';
 import { MemoryCartProductRepository } from '@/tests/doubles/memory-cart-product-repository';
@@ -10,6 +10,37 @@ import { Money } from '@/shared/kernel/domain/value-objects/money';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 
 describe('GetCartViewUseCase', () => {
+  it('returns an empty view without querying products or customizations', async () => {
+    const cartRepository = new MemoryCartRepository();
+    const productRepository = new MemoryCartProductRepository();
+    const customizationLookup = new MemoryCustomizationLookup();
+    const productLookup = vi.spyOn(productRepository, 'findByIds');
+    const customizationLookupSpy = vi.spyOn(customizationLookup, 'findByIds');
+    await cartRepository.save({
+      id: 'cart-1',
+      userId: 'user-1',
+      status: CartStatus.Active,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      items: [],
+    });
+
+    await expect(
+      new GetCartViewUseCase(
+        cartRepository,
+        productRepository,
+        customizationLookup,
+      ).execute({
+        userId: 'user-1',
+        locale: 'es',
+        unknownProductName: 'Unknown Product',
+        unknownSellerName: 'Unknown Seller',
+      }),
+    ).resolves.toEqual({ items: [] });
+    expect(productLookup).not.toHaveBeenCalled();
+    expect(customizationLookupSpy).not.toHaveBeenCalled();
+  });
+
   it('loads cart items with localized product data and customizations', async () => {
     const cartRepository = new MemoryCartRepository();
     const productRepository = new MemoryCartProductRepository();
