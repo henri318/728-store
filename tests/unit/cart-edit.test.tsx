@@ -89,7 +89,10 @@ describe('cart edit flows', () => {
   });
 
   it('updates the authenticated cart line with a customization PATCH', async () => {
-    mockSession.mockReturnValue({ status: 'authenticated', data: {} } as never);
+    mockSession.mockReturnValue({
+      status: 'authenticated',
+      data: { user: { role: 'CUSTOMER' } },
+    } as never);
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ items: [{ id: 'cart-item-1', quantity: 2 }] }),

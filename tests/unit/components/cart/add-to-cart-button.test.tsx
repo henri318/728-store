@@ -104,6 +104,28 @@ describe('AddToCartButton', () => {
         screen.getByRole('button', { name: /add to cart/i }),
       ).toBeDisabled();
     });
+
+    it.each(['ADMIN', 'DESIGNER', 'SUPPORT'])(
+      'does not render or load a cart for the non-customer %s role',
+      async (role) => {
+        mockUseSession.mockReturnValue({
+          data: {
+            user: { id: 'user-1', name: 'Internal user', role },
+          } as never,
+          status: 'authenticated',
+          update: vi.fn(),
+        } as never);
+
+        render(<AddToCartButton {...defaultProps} />);
+
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(mockFetch).not.toHaveBeenCalled();
+        expect(
+          screen.queryByRole('button', { name: /add to cart/i }),
+        ).toBeNull();
+      },
+    );
   });
 
   describe('guest user (unauthenticated)', () => {
@@ -316,7 +338,9 @@ describe('AddToCartButton', () => {
 
     it('sends one coordinated request when adding an authenticated customization', async () => {
       mockUseSession.mockReturnValue({
-        data: { user: { id: 'user-1', name: 'Test' } } as never,
+        data: {
+          user: { id: 'user-1', name: 'Test', role: 'CUSTOMER' },
+        } as never,
         status: 'authenticated',
         update: vi.fn(),
       } as never);
@@ -388,7 +412,9 @@ describe('AddToCartButton', () => {
 
     it('locks conflicting cart actions and reports a failed authenticated save', async () => {
       mockUseSession.mockReturnValue({
-        data: { user: { id: 'user-1', name: 'Test' } } as never,
+        data: {
+          user: { id: 'user-1', name: 'Test', role: 'CUSTOMER' },
+        } as never,
         status: 'authenticated',
         update: vi.fn(),
       } as never);
@@ -455,7 +481,9 @@ describe('AddToCartButton', () => {
 
     it('reports an error when creating the authenticated customization fails', async () => {
       mockUseSession.mockReturnValue({
-        data: { user: { id: 'user-1', name: 'Test' } } as never,
+        data: {
+          user: { id: 'user-1', name: 'Test', role: 'CUSTOMER' },
+        } as never,
         status: 'authenticated',
         update: vi.fn(),
       } as never);
@@ -501,7 +529,9 @@ describe('AddToCartButton', () => {
   describe('authenticated user', () => {
     beforeEach(() => {
       mockUseSession.mockReturnValue({
-        data: { user: { id: 'user-1', name: 'Test' } } as never,
+        data: {
+          user: { id: 'user-1', name: 'Test', role: 'CUSTOMER' },
+        } as never,
         status: 'authenticated',
         update: vi.fn(),
       } as never);
@@ -920,7 +950,9 @@ describe('AddToCartButton', () => {
   describe('quantity controls — authenticated user', () => {
     beforeEach(() => {
       mockUseSession.mockReturnValue({
-        data: { user: { id: 'user-1', name: 'Test' } } as never,
+        data: {
+          user: { id: 'user-1', name: 'Test', role: 'CUSTOMER' },
+        } as never,
         status: 'authenticated',
         update: vi.fn(),
       } as never);

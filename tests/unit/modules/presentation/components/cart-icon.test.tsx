@@ -170,7 +170,9 @@ describe('CartIcon', () => {
   describe('authenticated user', () => {
     beforeEach(() => {
       mockUseSession.mockReturnValue({
-        data: { user: { id: 'user-1', name: 'Test' } } as never,
+        data: {
+          user: { id: 'user-1', name: 'Test', role: 'CUSTOMER' },
+        } as never,
         status: 'authenticated',
         update: vi.fn(),
       } as never);
@@ -192,7 +194,7 @@ describe('CartIcon', () => {
       });
     });
 
-    it.each(['ADMIN', 'DESIGNER'])(
+    it.each(['ADMIN', 'DESIGNER', 'SUPPORT'])(
       'does not fetch or render a cart for the internal %s role',
       async (role) => {
         mockUseSession.mockReturnValue({

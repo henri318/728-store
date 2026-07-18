@@ -27,6 +27,7 @@ import styles from './layout.module.css';
 
 const ADMIN_ROLE: Role = 'ADMIN';
 const DESIGNER_ROLE: Role = 'DESIGNER';
+const CUSTOMER_ROLE: Role = 'CUSTOMER';
 
 if (
   process.env.NODE_ENV !== 'production' ||
@@ -99,6 +100,7 @@ export default async function RootLayout({
   // ADMIN/DESIGNER and have no orders
   const role = (session?.user as { role?: string } | undefined)?.role;
   const isInternal = role === ADMIN_ROLE || role === DESIGNER_ROLE;
+  const canRenderCart = !session?.user || role === CUSTOMER_ROLE;
   let isShowBanner = !isInternal;
   if (isShowBanner && session?.user?.id) {
     const orderCount = await prisma.order.count({
@@ -116,7 +118,7 @@ export default async function RootLayout({
         <SessionProviderWrapper session={session}>
           <GuestCartProvider>
             <CartPopupProvider>
-              {!isInternal && (
+              {canRenderCart && (
                 <CartMergeDetector
                   labels={{
                     mergeTitle: dict.common.cartMergeTitle,
@@ -163,7 +165,7 @@ export default async function RootLayout({
               </main>
 
               <SocialFooter />
-              {!isInternal && (
+              {canRenderCart && (
                 <CartPopup
                   labels={{
                     title: dict.common.cartIcon,

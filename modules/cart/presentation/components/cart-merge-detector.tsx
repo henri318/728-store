@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
 import { MergeDialog } from './merge-dialog';
 import { dispatchCartUpdated } from '@/modules/cart/presentation/cart-events';
+import { canUseAuthenticatedCart } from '@/modules/cart/presentation/cart-capability';
 
 interface CartMergeDetectorLabels {
   mergeTitle: string;
@@ -39,11 +40,10 @@ export function CartMergeDetector({
   const [showMerge, setShowMerge] = useState(false);
   const hasCheckedRef = useRef(false);
   const [retryCount, setRetryCount] = useState(0);
-  const isInternal =
-    session?.user?.role === 'ADMIN' || session?.user?.role === 'DESIGNER';
+  const canUseCart = canUseAuthenticatedCart(session?.user?.role);
 
   useEffect(() => {
-    if (status !== 'authenticated' || isInternal || hasCheckedRef.current)
+    if (status !== 'authenticated' || !canUseCart || hasCheckedRef.current)
       return;
     if (guestItems.length === 0) return;
 
@@ -113,7 +113,7 @@ export function CartMergeDetector({
       if (retryTimeout) clearTimeout(retryTimeout);
       if (!isComplete) hasCheckedRef.current = false;
     };
-  }, [status, isInternal, guestItems, guestCart, router, retryCount]);
+  }, [status, canUseCart, guestItems, guestCart, router, retryCount]);
 
   return (
     <MergeDialog
