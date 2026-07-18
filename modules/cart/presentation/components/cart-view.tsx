@@ -25,13 +25,19 @@ import {
 export type { CartItemDTO } from '@/modules/cart/presentation/cart-dto';
 export { guestItemToDTO } from '@/modules/cart/presentation/cart-dto';
 
-type LocalItemsAction = { type: 'replace'; items: CartItemDTO[] };
+type LocalItemsAction =
+  { type: 'upsert'; item: CartItemDTO } | { type: 'remove'; itemId: string };
 
 function localItemsReducer(
   _state: CartItemDTO[],
   action: LocalItemsAction,
 ): CartItemDTO[] {
-  return action.items;
+  if (action.type === 'remove')
+    return _state.filter((item) => item.id !== action.itemId);
+  const hasItem = _state.some((item) => item.id === action.item.id);
+  return hasItem
+    ? _state.map((item) => (item.id === action.item.id ? action.item : item))
+    : [..._state, action.item];
 }
 
 interface CartViewProps {
@@ -156,19 +162,14 @@ export function CartView({
       }
       if (pendingItemIdsRef.current.has(item.id)) return;
 
-      const previousItems = localItems;
-      const nextItems = localItems.map((i) =>
-        i.id === item.id
-          ? {
-              ...i,
-              quantity: newQty,
-              lineTotal: +(i.unitPrice * newQty).toFixed(2),
-            }
-          : i,
-      );
+      const nextItem = {
+        ...item,
+        quantity: newQty,
+        lineTotal: +(item.unitPrice * newQty).toFixed(2),
+      };
       pendingItemIdsRef.current.add(item.id);
       startTransition(async () => {
-        dispatchLocalItems({ type: 'replace', items: nextItems });
+        dispatchLocalItems({ type: 'upsert', item: nextItem });
         try {
           const res = await fetch(`/api/cart/items/${item.id}`, {
             method: 'PATCH',
@@ -176,19 +177,18 @@ export function CartView({
             body: JSON.stringify({ quantity: newQty }),
           });
           if (!res.ok) throw new Error('Failed to update cart item');
-          setBaseItems(nextItems);
+          setBaseItems((current) =>
+            localItemsReducer(current, { type: 'upsert', item: nextItem }),
+          );
           router.refresh();
         } catch {
-          dispatchLocalItems({
-            type: 'replace',
-            items: previousItems,
-          });
+          dispatchLocalItems({ type: 'upsert', item });
         } finally {
           pendingItemIdsRef.current.delete(item.id);
         }
       });
     },
-    [dispatchLocalItems, isAuthenticated, guestCart, localItems, router],
+    [dispatchLocalItems, isAuthenticated, guestCart, router],
   );
 
   const handleRemove = useCallback(
@@ -200,26 +200,26 @@ export function CartView({
       }
       if (pendingItemIdsRef.current.has(item.id)) return;
 
-      const previousItems = localItems;
-      const nextItems = localItems.filter((i) => i.id !== item.id);
       pendingItemIdsRef.current.add(item.id);
       startTransition(async () => {
-        dispatchLocalItems({ type: 'replace', items: nextItems });
+        dispatchLocalItems({ type: 'remove', itemId: item.id });
         try {
           const response = await fetch(`/api/cart/items/${item.id}`, {
             method: 'DELETE',
           });
           if (!response.ok) throw new Error('Failed to remove cart item');
-          setBaseItems(nextItems);
+          setBaseItems((current) =>
+            localItemsReducer(current, { type: 'remove', itemId: item.id }),
+          );
           router.refresh();
         } catch {
-          dispatchLocalItems({ type: 'replace', items: previousItems });
+          dispatchLocalItems({ type: 'upsert', item });
         } finally {
           pendingItemIdsRef.current.delete(item.id);
         }
       });
     },
-    [dispatchLocalItems, isAuthenticated, guestCart, localItems, router],
+    [dispatchLocalItems, isAuthenticated, guestCart, router],
   );
 
   // For guest users, wait until localStorage has been hydrated before

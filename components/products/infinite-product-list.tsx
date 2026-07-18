@@ -181,7 +181,7 @@ export function InfiniteProductList({
     () => () => {
       requestControllerRef.current?.abort();
     },
-    [],
+    [q, category, locale, pageSize],
   );
 
   useEffect(() => {

@@ -18,6 +18,10 @@ interface CartMergeDetectorLabels {
   keepGuestHint: string;
 }
 
+function shouldRetry(status: number): boolean {
+  return status === 408 || status === 429 || status >= 500;
+}
+
 /**
  * Detects when a guest with items logs in.
  * If the server also has items, shows the MergeDialog to let the user choose.
@@ -61,7 +65,7 @@ export function CartMergeDetector({
     async function checkAndMerge() {
       try {
         const res = await fetch('/api/cart', { signal: controller.signal });
-        if (!res.ok) {
+        if (!res.ok && shouldRetry(res.status)) {
           scheduleRetry();
           return;
         }
@@ -84,7 +88,7 @@ export function CartMergeDetector({
                 strategy: 'merge',
               }),
             });
-            if (!res.ok) {
+            if (!res.ok && shouldRetry(res.status)) {
               scheduleRetry();
               return;
             }

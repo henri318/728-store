@@ -406,6 +406,38 @@ describe('InfiniteProductList', () => {
     expect(signal?.aborted).toBe(true);
   });
 
+  it('aborts an obsolete request when search parameters change', async () => {
+    let signal: AbortSignal | undefined;
+    mockFetch.mockImplementationOnce((_url: string, options?: RequestInit) => {
+      signal = options?.signal ?? undefined;
+      return new Promise(() => {});
+    });
+    const initial = Array.from({ length: 10 }, (_, i) =>
+      makeProduct(`p${i}`, `Item ${i}`),
+    );
+    const { rerender } = render(
+      <InfiniteProductList
+        initialItems={initial}
+        pageSize={10}
+        q="one"
+        locale="es"
+        labels={baseLabels}
+      />,
+    );
+    triggerIntersection();
+    await waitFor(() => expect(signal).toBeDefined());
+    rerender(
+      <InfiniteProductList
+        initialItems={initial}
+        pageSize={10}
+        q="two"
+        locale="es"
+        labels={baseLabels}
+      />,
+    );
+    expect(signal?.aborted).toBe(true);
+  });
+
   it('renders an aria-live polite region for screen-reader announcements', () => {
     render(
       <InfiniteProductList

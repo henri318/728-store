@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { StrictMode } from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { CartMergeDetector } from '@/modules/cart/presentation/components/cart-merge-detector';
 
 const mockRefresh = vi.fn();
@@ -120,6 +120,28 @@ describe('CartMergeDetector', () => {
     );
 
     await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2));
+  });
+
+  it('retries transient HTTP failures but not permanent ones', async () => {
+    vi.useFakeTimers();
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
+    const { unmount } = render(<CartMergeDetector labels={labels} />);
+    await act(async () => {
+      await Promise.resolve();
+      await vi.advanceTimersByTimeAsync(1000);
+    });
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+
+    unmount();
+    vi.clearAllTimers();
+    vi.clearAllMocks();
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 400 });
+    render(<CartMergeDetector labels={labels} />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
   });
 
   it.each(['ADMIN', 'DESIGNER'])(

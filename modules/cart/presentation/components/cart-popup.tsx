@@ -61,9 +61,11 @@ export function CartPopup({ labels }: CartPopupProps) {
   const isInternal =
     session?.user?.role === 'ADMIN' || session?.user?.role === 'DESIGNER';
   const canUseCart = isAuthenticated && !isInternal;
+  const userId = session?.user?.id;
   const guestCart = useGuestCart();
 
   const [authItems, setAuthItems] = useState<CartItemDTO[]>([]);
+  const [authItemsOwnerId, setAuthItemsOwnerId] = useState<string | null>(null);
   const [loading, setLoading] = useReducer(
     (_isLoading: boolean, shouldLoad: boolean) => shouldLoad,
     false,
@@ -74,7 +76,7 @@ export function CartPopup({ labels }: CartPopupProps) {
   const requestControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (!isOpen || !canUseCart) return;
+    if (!isOpen || !canUseCart || !userId) return;
     const doFetch = async () => {
       requestControllerRef.current?.abort();
       const ctrl = new AbortController();
@@ -131,6 +133,7 @@ export function CartPopup({ labels }: CartPopupProps) {
             } as CartItemDTO;
           }),
         );
+        setAuthItemsOwnerId(userId);
       } catch {
         // The next request owns the loading state after an abort.
       } finally {
@@ -145,16 +148,17 @@ export function CartPopup({ labels }: CartPopupProps) {
       requestControllerRef.current?.abort();
       globalThis.removeEventListener(CART_UPDATED_EVENT, handleCartUpdated);
     };
-  }, [isOpen, canUseCart]);
+  }, [isOpen, canUseCart, userId]);
 
-  const items = canUseCart
-    ? authItems
-    : guestCart.items.map((item) =>
-        guestItemToDTO(item, {
-          productName: unknownProduct,
-          sellerName: unknownSeller,
-        }),
-      );
+  const items =
+    canUseCart && authItemsOwnerId === userId
+      ? authItems
+      : guestCart.items.map((item) =>
+          guestItemToDTO(item, {
+            productName: unknownProduct,
+            sellerName: unknownSeller,
+          }),
+        );
   const subtotal = items.reduce((s, i) => s + i.lineTotal, 0);
 
   const handleUpdate = useCallback(
