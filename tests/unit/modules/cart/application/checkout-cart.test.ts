@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CheckoutCart } from '@/modules/cart/application/checkout-cart';
+import { HandleCartCheckedOut } from '@/modules/orders/application/handle-cart-checked-out';
+import { MemoryOrderRepository } from '@/tests/doubles/memory-order-repository';
 import { MemoryCartRepository } from '@/tests/doubles/memory-cart-repository';
 import { MemoryCartProductRepository } from '@/tests/doubles/memory-cart-product-repository';
 import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
@@ -91,6 +93,27 @@ describe('CheckoutCart', () => {
       txRunner,
       customizationLookup,
     );
+  });
+
+  it('creates orders when its checkout event is consumed', async () => {
+    productRepo.seed([{ id: 'p1', basePrice: 10, sellerId: 's1' }]);
+    paidOrderPort.setCount(1);
+    const productId = ProductId.create('p1');
+    const item = makeItem({ productId });
+    const cart = makeCart({ items: [item] });
+    await cartRepo.save(cart);
+    const orderRepo = new MemoryOrderRepository();
+    const handler = new HandleCartCheckedOut(
+      orderRepo,
+      outboxRepo,
+      txRunner,
+      customizationLookup,
+    );
+
+    const result = await useCase.confirm('u1', false);
+    await handler.execute(result.eventPayload as never);
+
+    expect(await orderRepo.findIdsByCartId('c1')).toHaveLength(1);
   });
 
   // -------------------------------------------------------------------------

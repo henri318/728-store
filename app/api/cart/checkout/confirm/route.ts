@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireRole } from '@/shared/authorization/authorization';
 import { container } from '@/composition-root/container';
 import { CheckoutCart } from '@/modules/cart/application/checkout-cart';
+import { HandleCartCheckedOut } from '@/modules/orders/application/handle-cart-checked-out';
+import type { CartCheckedOutPayload } from '@/modules/orders/application/handle-cart-checked-out';
 import { confirmCheckoutSchema } from '@/modules/cart/presentation/schemas/cart-schemas';
 import { handleApiError } from '@/shared/presentation/error-handler';
 import { PriceChangedError } from '@/modules/cart/domain/errors';
@@ -68,9 +70,24 @@ export const POST = requireRole('CUSTOMER')(async function POST(
       address.data,
     );
 
+    // Serverless deployments do not keep the in-process outbox worker alive.
+    // Consume this checkout's durable event before responding so the order
+    // exists when the client navigates to its detail page.
+    const orderRepository = container.getOrderRepository();
+    const orderHandler = new HandleCartCheckedOut(
+      orderRepository,
+      outboxRepository,
+      transactionRunner,
+      customizationLookup,
+    );
+    await orderHandler.execute(
+      result.eventPayload as unknown as CartCheckedOutPayload,
+    );
+    const orderIds = await orderRepository.findIdsByCartId(result.cart.id);
+
     return NextResponse.json(
       {
-        orderIds: result.orderIds,
+        orderIds,
         total: result.totals.total,
         currency: result.totals.currency,
       },
