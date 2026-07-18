@@ -94,10 +94,6 @@ describe('cart edit flows', () => {
       ok: true,
       json: async () => ({ items: [{ id: 'cart-item-1', quantity: 2 }] }),
     });
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ id: 'customization-2' }),
-    });
     mockFetch.mockResolvedValueOnce({ ok: true });
 
     render(<AddToCartButton {...props} />);
@@ -113,7 +109,14 @@ describe('cart edit flows', () => {
           method: 'PATCH',
           body: JSON.stringify({
             quantity: 2,
-            customizationIdList: ['customization-2'],
+            customization: {
+              text: 'Updated text',
+              color: 'Blue',
+              size: null,
+              imageUrl: null,
+              imageUploadId: null,
+              designPosition: null,
+            },
           }),
         }),
       ),
