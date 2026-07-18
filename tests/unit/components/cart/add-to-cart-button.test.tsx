@@ -314,14 +314,12 @@ describe('AddToCartButton', () => {
       );
     });
 
-    it('locks add-another while an authenticated customization and cart POST are pending', async () => {
+    it('sends one coordinated request when adding an authenticated customization', async () => {
       mockUseSession.mockReturnValue({
         data: { user: { id: 'user-1', name: 'Test' } } as never,
         status: 'authenticated',
         update: vi.fn(),
       } as never);
-      const { promise: customizationResponse, resolve: resolveCustomization } =
-        Promise.withResolvers<Response>();
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -335,7 +333,7 @@ describe('AddToCartButton', () => {
           ],
         }),
       });
-      mockFetch.mockReturnValueOnce(customizationResponse);
+      mockFetch.mockResolvedValueOnce({ ok: true });
 
       render(
         <AddToCartButton
@@ -356,13 +354,6 @@ describe('AddToCartButton', () => {
       fireEvent.click(addAnother);
 
       expect(addAnother).toBeDisabled();
-      expect(mockFetch).toHaveBeenCalledTimes(2);
-
-      resolveCustomization({
-        ok: true,
-        json: async () => ({ id: 'customization-2' }),
-      } as Response);
-      mockFetch.mockResolvedValueOnce({ ok: true });
       await waitFor(() =>
         expect(mockFetch).toHaveBeenCalledWith(
           '/api/cart/items',
@@ -376,13 +367,23 @@ describe('AddToCartButton', () => {
           body: JSON.stringify({
             productId: 'prod-1',
             quantity: 1,
-            customizationIdList: ['customization-2'],
+            customizationIdList: [],
+            customization: {
+              text: 'Edited design',
+              color: null,
+              size: null,
+              imageUrl: null,
+              imageUploadId: null,
+              designPosition: null,
+            },
           }),
         }),
       );
-      expect(mockFetch.mock.invocationCallOrder[1]).toBeLessThan(
-        mockFetch.mock.invocationCallOrder[2],
-      );
+      expect(
+        mockFetch.mock.calls.filter(
+          ([url]) => url === '/api/customizations/customer',
+        ),
+      ).toHaveLength(0);
     });
 
     it('locks conflicting cart actions and reports a failed authenticated save', async () => {
@@ -392,8 +393,6 @@ describe('AddToCartButton', () => {
         update: vi.fn(),
       } as never);
       const dispatchSpy = vi.spyOn(globalThis, 'dispatchEvent');
-      const { promise: patchResponse, resolve: resolvePatch } =
-        Promise.withResolvers<Response>();
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -407,11 +406,7 @@ describe('AddToCartButton', () => {
           ],
         }),
       });
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ id: 'customization-2' }),
-      });
-      mockFetch.mockReturnValueOnce(patchResponse);
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 409 });
 
       render(
         <AddToCartButton
@@ -428,16 +423,72 @@ describe('AddToCartButton', () => {
       fireEvent.click(screen.getByRole('button', { name: /save design/i }));
 
       await waitFor(() =>
+        expect(screen.getByText('Error')).toBeInTheDocument(),
+      );
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(mockFetch).toHaveBeenLastCalledWith(
+        '/api/cart/items/cart-item-1',
+        expect.objectContaining({
+          method: 'PATCH',
+          body: JSON.stringify({
+            quantity: 2,
+            customization: {
+              text: 'Updated design',
+              color: null,
+              size: null,
+              imageUrl: null,
+              imageUploadId: null,
+              designPosition: null,
+            },
+          }),
+        }),
+      );
+      expect(
+        mockFetch.mock.calls.filter(
+          ([url]) => url === '/api/customizations/customer',
+        ),
+      ).toHaveLength(0);
+      expect(dispatchSpy).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'cart:updated' }),
+      );
+    });
+
+    it('reports an error when creating the authenticated customization fails', async () => {
+      mockUseSession.mockReturnValue({
+        data: { user: { id: 'user-1', name: 'Test' } } as never,
+        status: 'authenticated',
+        update: vi.fn(),
+      } as never);
+      const dispatchSpy = vi.spyOn(globalThis, 'dispatchEvent');
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          items: [
+            {
+              id: 'cart-item-1',
+              productId: 'prod-1',
+              quantity: 1,
+              customizations: [{ text: 'Updated design' }],
+            },
+          ],
+        }),
+      });
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
+
+      render(
+        <AddToCartButton
+          {...defaultProps}
+          customization={{ text: 'Updated design' }}
+        />,
+      );
+
+      await waitFor(() =>
         expect(
           screen.getByRole('button', { name: /save design/i }),
-        ).toBeDisabled(),
+        ).toBeEnabled(),
       );
-      expect(screen.getByRole('button', { name: /remove/i })).toBeDisabled();
-      expect(
-        screen.getByRole('button', { name: /increase quantity/i }),
-      ).toBeDisabled();
+      fireEvent.click(screen.getByRole('button', { name: /save design/i }));
 
-      resolvePatch({ ok: false, status: 409 } as Response);
       await waitFor(() =>
         expect(screen.getByText('Error')).toBeInTheDocument(),
       );
@@ -578,6 +629,52 @@ describe('AddToCartButton', () => {
       await waitFor(() => {
         expect(screen.getByText(/error|try again/i)).toBeTruthy();
       });
+    });
+
+    it('reports a failed customized add without a follow-up customization request', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ items: [] }),
+      });
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
+
+      render(
+        <AddToCartButton
+          {...defaultProps}
+          customization={{ text: 'Atomic design' }}
+        />,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /add to cart/i }));
+
+      await waitFor(() =>
+        expect(screen.getByText('Error')).toBeInTheDocument(),
+      );
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(mockFetch).toHaveBeenLastCalledWith(
+        '/api/cart/items',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            productId: 'prod-1',
+            quantity: 1,
+            customizationIdList: [],
+            customization: {
+              text: 'Atomic design',
+              color: null,
+              size: null,
+              imageUrl: null,
+              imageUploadId: null,
+              designPosition: null,
+            },
+          }),
+        }),
+      );
+      expect(
+        mockFetch.mock.calls.filter(
+          ([url]) => url === '/api/customizations/customer',
+        ),
+      ).toHaveLength(0);
     });
 
     it('shows error feedback on network failure', async () => {
@@ -739,6 +836,84 @@ describe('AddToCartButton', () => {
         name: /increase quantity/i,
       });
       expect(plusBtn).toBeDisabled();
+    });
+
+    it('prioritizes editCartItemId over customization matching for a guest line', () => {
+      mockUseGuestCart.mockReturnValue({
+        items: [
+          {
+            id: 'guest-item-being-edited',
+            productId: 'prod-1',
+            sellerId: 'seller-1',
+            quantity: 4,
+            unitPriceSnapshot: 29.99,
+            customizationText: 'Original design',
+          },
+        ],
+        itemCount: 4,
+        addItem: mockAddItem,
+        updateQuantity: mockUpdateQuantity,
+        removeItem: mockRemoveItem,
+        updateItemQuantity: mockUpdateQuantity,
+        removeItemById: mockRemoveItem,
+        updateCustomization: vi.fn(),
+        updateItemCustomization: vi.fn(),
+        clearCart: vi.fn(),
+        hydrated: true,
+      });
+
+      render(
+        <AddToCartButton
+          {...defaultProps}
+          editCartItemId="guest-item-being-edited"
+          customization={{ text: 'Changed design' }}
+        />,
+      );
+
+      expect(screen.getByText('4')).toBeInTheDocument();
+    });
+
+    it('disables every cart action when the button is disabled', () => {
+      mockUseGuestCart.mockReturnValue({
+        items: [
+          {
+            id: 'guest-item-1',
+            productId: 'prod-1',
+            sellerId: 'seller-1',
+            quantity: 3,
+            unitPriceSnapshot: 29.99,
+            customizationText: 'Design',
+          },
+        ],
+        itemCount: 3,
+        addItem: mockAddItem,
+        updateQuantity: mockUpdateQuantity,
+        removeItem: mockRemoveItem,
+        updateItemQuantity: mockUpdateQuantity,
+        removeItemById: mockRemoveItem,
+        updateCustomization: vi.fn(),
+        updateItemCustomization: vi.fn(),
+        clearCart: vi.fn(),
+        hydrated: true,
+      });
+      render(
+        <AddToCartButton
+          {...defaultProps}
+          disabled
+          customization={{ text: 'Design' }}
+        />,
+      );
+
+      expect(
+        screen.getByRole('button', { name: /decrease quantity/i }),
+      ).toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: /increase quantity/i }),
+      ).toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: /save design/i }),
+      ).toBeDisabled();
+      expect(screen.getByRole('button', { name: /remove/i })).toBeDisabled();
     });
   });
 
@@ -908,6 +1083,127 @@ describe('AddToCartButton', () => {
           screen.getByRole('button', { name: /add to cart/i }),
         ).toBeTruthy();
       });
+    });
+
+    it('does not render the authenticated add-another action without a localized label', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          items: [
+            {
+              id: 'cart-item-1',
+              productId: 'prod-1',
+              quantity: 1,
+              customizations: [{ text: 'Existing design' }],
+            },
+          ],
+        }),
+      });
+
+      render(
+        <AddToCartButton
+          {...defaultProps}
+          customization={{ text: 'New design' }}
+          labels={{
+            ...defaultProps.labels,
+            addAnotherPersonalization: undefined,
+          }}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.queryByRole('button', { name: /add another/i }),
+        ).not.toBeInTheDocument();
+      });
+    });
+
+    it('derives a new match from the loaded cart without another GET request', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          items: [
+            {
+              id: 'cart-item-a',
+              productId: 'prod-1',
+              quantity: 1,
+              customizations: [{ text: 'First design' }],
+            },
+            {
+              id: 'cart-item-b',
+              productId: 'prod-1',
+              quantity: 2,
+              customizations: [{ text: 'Second design' }],
+            },
+          ],
+        }),
+      });
+
+      const { rerender } = render(
+        <AddToCartButton
+          {...defaultProps}
+          customization={{ text: 'First design' }}
+        />,
+      );
+
+      await waitFor(() => expect(screen.getByText('1')).toBeInTheDocument());
+      rerender(
+        <AddToCartButton
+          {...defaultProps}
+          customization={{ text: 'Second design' }}
+        />,
+      );
+
+      expect(screen.getByText('2')).toBeInTheDocument();
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps a later optimistic quantity when an earlier request fails', async () => {
+      const { promise: firstUpdate, reject: rejectFirstUpdate } =
+        Promise.withResolvers<never>();
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          items: [{ id: 'cart-item-1', productId: 'prod-1', quantity: 2 }],
+        }),
+      });
+      mockFetch.mockImplementationOnce(() => firstUpdate);
+      mockFetch.mockResolvedValueOnce({ ok: true });
+
+      render(<AddToCartButton {...defaultProps} />);
+
+      await waitFor(() => expect(screen.getByText('2')).toBeInTheDocument());
+      fireEvent.click(
+        screen.getByRole('button', { name: /increase quantity/i }),
+      );
+      fireEvent.click(
+        screen.getByRole('button', { name: /increase quantity/i }),
+      );
+      await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(3));
+
+      rejectFirstUpdate(new Error('Network error'));
+
+      await waitFor(() => expect(screen.getByText('4')).toBeInTheDocument());
+      expect(screen.getByText('Error')).toBeInTheDocument();
+    });
+
+    it('reports failures after optimistic quantity and removal mutations', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          items: [{ id: 'cart-item-1', productId: 'prod-1', quantity: 1 }],
+        }),
+      });
+      mockFetch.mockResolvedValueOnce({ ok: false });
+
+      render(<AddToCartButton {...defaultProps} />);
+
+      await waitFor(() => expect(screen.getByText('1')).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: /remove/i }));
+
+      await waitFor(() =>
+        expect(screen.getByText('Error')).toBeInTheDocument(),
+      );
     });
   });
 });

@@ -2,6 +2,10 @@ import type { CartRepository } from '../domain/cart-repository';
 import type { CartItemEntity } from '../domain/entities/cart-item';
 import type { ProductRepository } from '../domain/product-repository';
 import type { CustomizationLookupPort } from '../domain/customization-lookup-port';
+import type {
+  CustomerCustomizationCreatePort,
+  CustomerCustomizationInput,
+} from '../domain/customer-customization-create-port';
 import { CartStatus } from '../domain/value-objects/cart-status';
 import { Quantity } from '../domain/value-objects/quantity';
 import { ProductId } from '@/shared/kernel/domain/value-objects/product-id';
@@ -21,6 +25,7 @@ export interface AddItemToCartDTO {
   productId: string;
   quantity: number;
   customizationIdList?: string[];
+  customization?: CustomerCustomizationInput;
 }
 
 // --- Use Case ---
@@ -54,6 +59,7 @@ export class AddItemToCart {
     private outboxRepository: OutboxRepository,
     private customizationLookup: CustomizationLookupPort,
     private txRunner?: TransactionRunner,
+    private customizationCreator?: CustomerCustomizationCreatePort,
   ) {}
 
   /**
@@ -95,6 +101,15 @@ export class AddItemToCart {
   }
 
   async execute(dto: AddItemToCartDTO): Promise<CartItemEntity> {
+    if (dto.customization && !this.customizationCreator) {
+      throw new Error('Customer customization creator is not configured');
+    }
+    if (dto.customization && !this.txRunner) {
+      throw new Error(
+        'Transaction runner is required for customer customization',
+      );
+    }
+
     const run = <T>(fn: (tx: unknown) => Promise<T>) =>
       this.txRunner ? this.txRunner.run(fn) : fn(undefined);
 
@@ -115,13 +130,33 @@ export class AddItemToCart {
       // 3. Validate customizations (if any). Deduplicate first — duplicate
       //    IDs would cause the length check in validateCustomizations to
       //    falsely reject a valid list.
-      const customizationIdList = [...new Set(dto.customizationIdList)];
+      let customizationIdList = [...new Set(dto.customizationIdList)];
       if (customizationIdList.length > 0) {
         await this.validateCustomizations(
           customizationIdList,
           dto.productId,
           product.sellerId.value,
         );
+      }
+
+      if (dto.customization) {
+        if (!tx || typeof tx !== 'object') {
+          throw new Error('Transaction runner did not provide a transaction');
+        }
+        const customization = await this.customizationCreator!.create(
+          { productId: dto.productId, ...dto.customization },
+          dto.userId,
+          tx,
+        );
+        if (customization.productId !== dto.productId) {
+          throw new InvalidCustomizationError(
+            `Customization ${customization.id} does not belong to product ${dto.productId}`,
+            'Customization is not available for this product',
+          );
+        }
+        customizationIdList = [
+          ...new Set([...customizationIdList, customization.id]),
+        ];
       }
 
       // 4. Find or create the ACTIVE cart for the user. Spec REQ-CART-001

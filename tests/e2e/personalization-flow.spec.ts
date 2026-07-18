@@ -29,12 +29,20 @@ function waitForCartSync(page: Page) {
   );
 }
 
-function waitForCustomizationCreation(page: Page) {
-  return page.waitForResponse(
-    (response) =>
-      response.url().endsWith('/api/customizations/customer') &&
-      response.request().method() === 'POST',
-  );
+function waitForCustomizedCartAdd(page: Page, text: string) {
+  return page.waitForResponse((response) => {
+    if (
+      !response.url().endsWith('/api/cart/items') ||
+      response.request().method() !== 'POST'
+    ) {
+      return false;
+    }
+
+    const body = response.request().postDataJSON() as {
+      customization?: { text?: string | null };
+    };
+    return body.customization?.text === text;
+  });
 }
 
 test.describe('Personalization flow', () => {
@@ -91,15 +99,14 @@ test.describe('Personalization flow', () => {
     const firstCartSync = waitForCartSync(customerPage);
     await designField.fill('First design');
     await firstCartSync;
-    const firstCustomizationCreation =
-      waitForCustomizationCreation(customerPage);
+    const firstCartAdd = waitForCustomizedCartAdd(customerPage, 'First design');
     await customerPage
       .getByRole('button', { name: 'Añadir al carrito' })
       .click();
-    const firstCustomizationResponse = await firstCustomizationCreation;
+    const firstCartAddResponse = await firstCartAdd;
     expect(
-      firstCustomizationResponse.status(),
-      await firstCustomizationResponse.text(),
+      firstCartAddResponse.status(),
+      await firstCartAddResponse.text(),
     ).toBe(201);
 
     await expect(
@@ -109,15 +116,17 @@ test.describe('Personalization flow', () => {
     const secondCartSync = waitForCartSync(customerPage);
     await designField.fill('Second design');
     await secondCartSync;
-    const secondCustomizationCreation =
-      waitForCustomizationCreation(customerPage);
+    const secondCartAdd = waitForCustomizedCartAdd(
+      customerPage,
+      'Second design',
+    );
     await customerPage
       .getByRole('button', { name: 'Añadir otra personalización' })
       .click();
-    const secondCustomizationResponse = await secondCustomizationCreation;
+    const secondCartAddResponse = await secondCartAdd;
     expect(
-      secondCustomizationResponse.status(),
-      await secondCustomizationResponse.text(),
+      secondCartAddResponse.status(),
+      await secondCartAddResponse.text(),
     ).toBe(201);
     await expect(
       customerPage.getByRole('button', { name: 'Añadido' }),

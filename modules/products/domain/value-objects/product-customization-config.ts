@@ -155,6 +155,17 @@ export class ProductCustomizationConfig {
     return this.mode === 'photo' || this.mode === 'text_photo';
   }
 
+  withCustomizableBase(
+    hasCustomizableBase: boolean,
+  ): ProductCustomizationConfig {
+    if (!hasCustomizableBase || this.mode !== 'description') return this;
+
+    return new ProductCustomizationConfig({
+      ...this.toJson(),
+      mode: 'text_photo',
+    });
+  }
+
   allowsStyleOptions(): boolean {
     return this.mode === 'text' || this.mode === 'text_photo';
   }

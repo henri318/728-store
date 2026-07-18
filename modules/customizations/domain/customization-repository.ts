@@ -7,7 +7,7 @@ import type { CustomizationEntity } from './entities/customization';
  * lives in the adapter.
  */
 export interface CustomizationRepository {
-  save(entity: CustomizationEntity): Promise<CustomizationEntity>;
+  save(entity: CustomizationEntity, tx?: unknown): Promise<CustomizationEntity>;
   findById(id: string): Promise<CustomizationEntity | null>;
   /**
    * Returns only the IDs that exist. Missing IDs are silently absent

@@ -55,7 +55,9 @@ import type { CartRepository } from '@/modules/cart/domain/cart-repository';
 import type { ProductRepository as CartProductRepository } from '@/modules/cart/domain/product-repository';
 import type { PaidOrderCountPort } from '@/modules/cart/domain/paid-order-count-port';
 import type { CustomizationLookupPort as CartCustomizationLookupPort } from '@/modules/cart/domain/customization-lookup-port';
+import type { CustomerCustomizationCreatePort } from '@/modules/cart/domain/customer-customization-create-port';
 import type { CustomizationRepository } from '@/modules/customizations/domain/customization-repository';
+import type { ProductCapabilityPort } from '@/modules/products/domain/product-capability-port';
 import type { SearchHistoryRepository } from '@/modules/search-history/domain/search-history-repository';
 import type { EmailUserLookupPort } from '@/modules/email/domain/ports/email-user-lookup-port';
 import type { EmailOrderLookupPort } from '@/modules/email/domain/ports/email-order-lookup-port';
@@ -101,6 +103,7 @@ import { HandleCartCheckedOut } from '@/modules/orders/application/handle-cart-c
 import { MarkAsPaidUseCase } from '@/modules/orders/application/mark-as-paid-use-case';
 import { TransactionalOrderService } from '@/modules/orders/infrastructure/transactional-order-service';
 import { PrismaCustomizationRepository } from '@/modules/customizations/infrastructure/prisma-customization-repository';
+import { CartCustomerCustomizationCreator } from '@/modules/customizations/infrastructure/cart-customer-customization-creator';
 import { PrismaSearchHistoryRepository } from '@/modules/search-history/infrastructure/prisma-search-history-repository';
 import { HandleProductSearchExecuted } from '@/modules/search-history/application/handle-product-search-executed';
 import { RecordSearchUseCase } from '@/modules/search-history/application/record-search-use-case';
@@ -171,6 +174,7 @@ export function initContainer(): void {
   getPaidOrderCountPort();
   getCustomizationRepository();
   getCustomizationLookup();
+  getCustomerCustomizationCreator();
   getSearchHistoryRepository();
   getCategoryRepository();
   getResetTokenCodec();
@@ -472,6 +476,22 @@ export function getCustomizationLookup(): CartCustomizationLookupPort {
   return state.customizationLookup as CartCustomizationLookupPort;
 }
 
+export function getCustomerCustomizationCreator(): CustomerCustomizationCreatePort {
+  if (!state.customerCustomizationCreator) {
+    const productCapability: ProductCapabilityPort = {
+      async getConfig(productId) {
+        const product = await getProductRepository().findById(productId, 'es');
+        return product?.customizationConfig ?? null;
+      },
+    };
+    state.customerCustomizationCreator = new CartCustomerCustomizationCreator(
+      getCustomizationRepository(),
+      productCapability,
+    );
+  }
+  return state.customerCustomizationCreator as CustomerCustomizationCreatePort;
+}
+
 export function getSearchHistoryRepository(): SearchHistoryRepository {
   state.searchHistoryRepository ??= new PrismaSearchHistoryRepository();
   return state.searchHistoryRepository as SearchHistoryRepository;
@@ -527,6 +547,7 @@ export const container = {
   getCartProductRepository,
   getPaidOrderCountPort,
   getCustomizationLookup,
+  getCustomerCustomizationCreator,
   getCustomizationRepository,
   getSearchHistoryRepository,
   getCategoryRepository,

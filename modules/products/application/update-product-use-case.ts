@@ -197,13 +197,23 @@ export class UpdateProductUseCase {
         throw new ValidationError('At least one field must be provided');
       }
 
+      const now = new Date();
+      const images =
+        dto.images === undefined
+          ? product.images
+          : buildProductImages(dto.images, {
+              productId: product.id,
+              createdAt: now,
+              existingImages: product.images,
+            });
       const translations = buildTranslations(dto, product);
-      const nextCustomizationConfig =
+      const nextCustomizationConfig = (
         dto.customizationConfig === undefined
           ? product.customizationConfig
-          : ProductCustomizationConfig.fromJson(dto.customizationConfig);
-
-      const now = new Date();
+          : ProductCustomizationConfig.fromJson(dto.customizationConfig)
+      )?.withCustomizableBase(
+        images.some((image) => image.purpose === 'CUSTOMIZABLE_BASE'),
+      );
 
       const updated: ProductEntity = {
         ...product,
@@ -214,14 +224,7 @@ export class UpdateProductUseCase {
             ? product.categoryId
             : (nextCustomizationConfig?.categoryId ?? null),
         customizationConfig: nextCustomizationConfig,
-        images:
-          dto.images === undefined
-            ? product.images
-            : buildProductImages(dto.images, {
-                productId: product.id,
-                createdAt: now,
-                existingImages: product.images,
-              }),
+        images,
         updatedAt: now,
         translations,
       };

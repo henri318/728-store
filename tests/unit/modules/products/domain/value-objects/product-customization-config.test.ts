@@ -90,4 +90,11 @@ describe('ProductCustomizationConfig', () => {
     expect(config.toJson()).not.toHaveProperty('designChangeDescription');
     expect(config.toJson()).not.toHaveProperty('tagNames');
   });
+
+  it('enables text and photo customization when a customizable base is present', () => {
+    const config =
+      ProductCustomizationConfig.default().withCustomizableBase(true);
+
+    expect(config.mode).toBe('text_photo');
+  });
 });
