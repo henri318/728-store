@@ -38,14 +38,8 @@ export async function POST(req: NextRequest) {
       email,
       password,
       address: legacyAddress,
+      fullAddress: address ?? undefined,
     });
-    if (
-      address &&
-      'saveAddress' in userRepository &&
-      typeof userRepository.saveAddress === 'function'
-    ) {
-      await userRepository.saveAddress(user.userId.value, address);
-    }
 
     // Delegate email verification to the application use case
     const sendVerificationEmail = new SendVerificationEmailUseCase(

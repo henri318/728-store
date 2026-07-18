@@ -221,6 +221,7 @@
   "profile": {
     "title": "El meu perfil",
     "updateSuccess": "Perfil actualitzat correctament",
+    "save": "Desar",
     "deleteAccount": "Eliminar compte",
     "deleteConfirmTitle": "Eliminar compte",
     "deleteConfirmMessage": "Estàs segur d'eliminar el teu compte? Aquesta acció no es pot desfer.",

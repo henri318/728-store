@@ -70,6 +70,14 @@ export class RegisterUserUseCase {
         tx,
       );
 
+      // 5b. Save full address details if provided
+      if (dto.fullAddress) {
+        await this.userRepository.saveAddress(
+          user.userId.value,
+          dto.fullAddress,
+        );
+      }
+
       // 6. Record event in Outbox with roleId
       await this.outboxRepository.saveEvent(
         GlobalEvents.USER_REGISTERED,

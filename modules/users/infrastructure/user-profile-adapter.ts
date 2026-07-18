@@ -7,4 +7,8 @@ export class UserProfileAdapter implements UserProfilePort {
   findById(userId: string) {
     return this.userRepository.findById(userId);
   }
+
+  findAddressByUserId(userId: string) {
+    return this.userRepository.findAddressByUserId(userId);
+  }
 }

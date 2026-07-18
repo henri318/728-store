@@ -1,3 +1,5 @@
+import type { UserAddressInput } from '../../domain/user-address';
+
 export interface UpdateUserDTO {
   userId: string;
   firstName?: string;
@@ -8,4 +10,5 @@ export interface UpdateUserDTO {
     postalCode: string;
     country: string;
   } | null;
+  fullAddress?: UserAddressInput | null;
 }

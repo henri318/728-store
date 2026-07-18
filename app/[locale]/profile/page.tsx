@@ -30,7 +30,7 @@ export default async function ProfilePage({
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email.value,
-        address: user.address ?? {},
+        address: user.deliveryAddress ?? {},
       }}
     />
   );

@@ -60,6 +60,30 @@ export function toDomain(user: {
 }
 
 export class PrismaUserRepository implements UserRepository {
+  async findAddressByUserId(userId: string): Promise<UserAddressInput | null> {
+    return prisma.userAddress.findUnique({
+      where: { userId },
+      select: {
+        street: true,
+        houseNumber: true,
+        addressLine1: true,
+        addressLine2: true,
+        postalCode: true,
+        city: true,
+        county: true,
+        state: true,
+        country: true,
+        countryCode: true,
+        formattedAddress: true,
+        floor: true,
+        door: true,
+        stairway: true,
+        block: true,
+        instructions: true,
+      },
+    });
+  }
+
   async saveAddress(userId: string, address: UserAddressInput): Promise<void> {
     await prisma.userAddress.upsert({
       where: { userId },

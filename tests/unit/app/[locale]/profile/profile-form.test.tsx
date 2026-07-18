@@ -44,13 +44,40 @@ describe('ProfileForm', () => {
 
     await user.clear(screen.getByLabelText('Nombre'));
     await user.type(screen.getByLabelText('Nombre'), 'Jane');
-    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+    await user.click(screen.getByRole('button', { name: 'Guardar' }));
 
     expect(mockFetch).toHaveBeenCalledWith('/api/users/me', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: expect.stringContaining('"firstName":"Jane"'),
     });
+  });
+
+  it('sends the complete delivery address when saving it', async () => {
+    const user = userEvent.setup();
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    render(<ProfileForm locale="es" profile={profile} role="CUSTOMER" />);
+
+    await user.type(screen.getByLabelText('Número'), '12');
+    await user.type(screen.getByLabelText('Piso'), '3');
+    await user.type(screen.getByLabelText('Puerta'), 'B');
+    await user.type(
+      screen.getByLabelText('Indicaciones de entrega'),
+      'Llamar al timbre',
+    );
+    await user.click(screen.getByRole('button', { name: 'Guardar' }));
+
+    const request = mockFetch.mock.calls[0][1] as { body: string };
+    expect(JSON.parse(request.body)).toEqual(
+      expect.objectContaining({
+        address: expect.objectContaining({
+          houseNumber: '12',
+          floor: '3',
+          door: 'B',
+          instructions: 'Llamar al timbre',
+        }),
+      }),
+    );
   });
 
   it('sends an explicit address deletion after clearing an existing address', async () => {
@@ -61,7 +88,7 @@ describe('ProfileForm', () => {
     await user.clear(screen.getByLabelText('Calle'));
     await user.clear(screen.getByLabelText('Código postal'));
     await user.clear(screen.getByLabelText('Ciudad'));
-    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+    await user.click(screen.getByRole('button', { name: 'Guardar' }));
 
     expect(mockFetch).toHaveBeenCalledWith('/api/users/me', {
       method: 'PATCH',

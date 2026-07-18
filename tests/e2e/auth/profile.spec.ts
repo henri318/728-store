@@ -34,7 +34,7 @@ test.describe('Profile', () => {
 
     // Update name
     await page.getByLabel('Nombre').fill('Updated');
-    await page.getByRole('button', { name: /enviar/i }).click();
+    await page.getByRole('button', { name: /guardar/i }).click();
 
     // Should show success message
     await expect(page.getByRole('alert')).toBeVisible();

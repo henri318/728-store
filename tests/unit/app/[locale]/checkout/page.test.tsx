@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => {
   const findActiveByUserIdMock = vi.fn();
   const findByIdsMock = vi.fn();
   const countPaidOrdersByUserIdMock = vi.fn();
-  const findUserByIdMock = vi.fn();
+  const getUserProfileMock = vi.fn();
   const checkoutConfirmButtonMock = vi.fn();
 
   return {
@@ -16,7 +16,7 @@ const mocks = vi.hoisted(() => {
     findActiveByUserIdMock,
     findByIdsMock,
     countPaidOrdersByUserIdMock,
-    findUserByIdMock,
+    getUserProfileMock,
     checkoutConfirmButtonMock,
   };
 });
@@ -59,9 +59,7 @@ vi.mock('@/composition-root/container', () => ({
     getPaidOrderCountPort: () => ({
       countPaidOrdersByUserId: mocks.countPaidOrdersByUserIdMock,
     }),
-    getUserRepository: () => ({
-      findById: mocks.findUserByIdMock,
-    }),
+    getUserProfileUseCase: () => ({ execute: mocks.getUserProfileMock }),
   },
 }));
 
@@ -95,12 +93,17 @@ describe('CheckoutPage', () => {
   });
 
   it('passes the saved customer address into the checkout button', async () => {
-    mocks.findUserByIdMock.mockResolvedValue({
-      address: {
+    mocks.getUserProfileMock.mockResolvedValue({
+      deliveryAddress: {
         street: 'Main St 1',
+        houseNumber: '12',
         city: 'Madrid',
         postalCode: '28001',
-        country: 'ES',
+        country: 'Espana',
+        countryCode: 'ES',
+        floor: '3',
+        door: 'B',
+        instructions: 'Llamar al timbre',
       },
     });
 
@@ -114,16 +117,21 @@ describe('CheckoutPage', () => {
         locale: 'es',
         initialAddress: {
           street: 'Main St 1',
+          houseNumber: '12',
           city: 'Madrid',
           postalCode: '28001',
-          country: 'ES',
+          country: 'Espana',
+          countryCode: 'ES',
+          floor: '3',
+          door: 'B',
+          instructions: 'Llamar al timbre',
         },
       }),
     );
   });
 
   it('keeps checkout button usable when the profile has no address', async () => {
-    mocks.findUserByIdMock.mockResolvedValue({ address: null });
+    mocks.getUserProfileMock.mockResolvedValue({ deliveryAddress: null });
 
     const element = await CheckoutPage({
       params: Promise.resolve({ locale: 'cat' }),

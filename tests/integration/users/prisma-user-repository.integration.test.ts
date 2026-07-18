@@ -156,6 +156,37 @@ describe('PrismaUserRepository — Integration', () => {
   });
 
   describe('address mapping', () => {
+    it('should persist and retrieve complete delivery address fields', async () => {
+      const user = makeUser({
+        userId: UserId.create('user-delivery-address'),
+        email: Email.create('delivery-address@example.com'),
+      });
+      await repo.save(user);
+
+      await repo.saveAddress('user-delivery-address', {
+        street: 'Calle Mayor',
+        houseNumber: '12',
+        city: 'Madrid',
+        postalCode: '28013',
+        country: 'Espana',
+        countryCode: 'ES',
+        floor: '3',
+        door: 'B',
+        instructions: 'Llamar al timbre',
+      });
+
+      await expect(
+        repo.findAddressByUserId('user-delivery-address'),
+      ).resolves.toEqual(
+        expect.objectContaining({
+          houseNumber: '12',
+          floor: '3',
+          door: 'B',
+          instructions: 'Llamar al timbre',
+        }),
+      );
+    });
+
     it('should persist and retrieve address fields', async () => {
       const user = makeUser({
         userId: UserId.create('user-addr'),

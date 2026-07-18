@@ -60,6 +60,17 @@ describe('ProfilePage', () => {
         postalCode: '08001',
         country: 'Spain',
       },
+      deliveryAddress: {
+        street: '123 Main St',
+        houseNumber: '12',
+        city: 'Barcelona',
+        postalCode: '08001',
+        country: 'Spain',
+        countryCode: 'ES',
+        floor: '3',
+        door: 'B',
+        instructions: 'Llamar al timbre',
+      },
     });
   });
 
@@ -79,9 +90,14 @@ describe('ProfilePage', () => {
         lastName: 'Doe',
         address: {
           street: '123 Main St',
+          houseNumber: '12',
           city: 'Barcelona',
           postalCode: '08001',
           country: 'Spain',
+          countryCode: 'ES',
+          floor: '3',
+          door: 'B',
+          instructions: 'Llamar al timbre',
         },
       },
       role: 'CUSTOMER',

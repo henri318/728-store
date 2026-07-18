@@ -29,52 +29,88 @@ function resolveAddressChange(
   };
 }
 
+function toCoreAddressInput(
+  fullAddress: UpdateUserDTO['fullAddress'],
+  fallback: UpdateUserDTO['address'],
+): UpdateUserDTO['address'] {
+  if (fullAddress === undefined) return fallback;
+  if (fullAddress === null) return null;
+  return {
+    street: fullAddress.street ?? '',
+    city: fullAddress.city ?? '',
+    postalCode: fullAddress.postalCode ?? '',
+    country: fullAddress.country ?? '',
+  };
+}
+
+async function persistFullAddress(
+  repo: UserRepository,
+  userId: string,
+  fullAddress: UpdateUserDTO['fullAddress'],
+): Promise<void> {
+  if (fullAddress === undefined) return;
+  if (fullAddress) {
+    await repo.saveAddress(userId, fullAddress);
+  } else {
+    await repo.clearAddress(userId);
+  }
+}
+
 export class UpdateUserUseCase {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly outboxRepository: OutboxRepository,
   ) {}
 
-  async execute(dto: UpdateUserDTO) {
-    // 1. Find user
-    const existing = await this.userRepository.findById(dto.userId);
+  private async getExistingUser(userId: string) {
+    const existing = await this.userRepository.findById(userId);
     if (!existing) {
       throw new NotFoundError('User not found');
     }
-
-    // Reject if account is deactivated (soft-deleted)
     if (existing.deletedAt) {
       throw new UnauthorizedError('Account is deactivated');
     }
+    return existing;
+  }
+
+  private resolveName(
+    current: string,
+    incoming: string | undefined,
+    field: string,
+    changedFields: string[],
+  ): string {
+    if (incoming === undefined) return current;
+    const label = field === 'firstName' ? 'First name' : 'Last name';
+    const validated = validateName(incoming, label);
+    if (validated !== current) {
+      changedFields.push(field);
+    }
+    return validated;
+  }
+
+  async execute(dto: UpdateUserDTO) {
+    const existing = await this.getExistingUser(dto.userId);
 
     const changedFields: string[] = [];
 
-    // 2. Apply firstName if provided and different
-    let firstName = existing.firstName;
-    if (dto.firstName !== undefined) {
-      const validated = validateName(dto.firstName, 'First name');
-      if (validated !== existing.firstName) {
-        firstName = validated;
-        changedFields.push('firstName');
-      }
-    }
+    const firstName = this.resolveName(
+      existing.firstName,
+      dto.firstName,
+      'firstName',
+      changedFields,
+    );
+    const lastName = this.resolveName(
+      existing.lastName,
+      dto.lastName,
+      'lastName',
+      changedFields,
+    );
 
-    // 3. Apply lastName if provided and different
-    let lastName = existing.lastName;
-    if (dto.lastName !== undefined) {
-      const validated = validateName(dto.lastName, 'Last name');
-      if (validated !== existing.lastName) {
-        lastName = validated;
-        changedFields.push('lastName');
-      }
-    }
-
-    // 4. Apply address if provided and different
-    const addressChange = resolveAddressChange(existing.address, dto.address);
+    const coreAddress = toCoreAddressInput(dto.fullAddress, dto.address);
+    const addressChange = resolveAddressChange(existing.address, coreAddress);
     const address = addressChange.address;
     if (addressChange.changed) changedFields.push('address');
 
-    // 5. Persist updated user
     const now = new Date();
     const updated = await this.userRepository.update({
       ...existing,
@@ -84,7 +120,11 @@ export class UpdateUserUseCase {
       updatedAt: now,
     });
 
-    // 6. Emit event if anything changed
+    await persistFullAddress(this.userRepository, dto.userId, dto.fullAddress);
+    if (dto.fullAddress !== undefined && !addressChange.changed) {
+      changedFields.push('address');
+    }
+
     if (changedFields.length > 0) {
       await this.outboxRepository.saveEvent(GlobalEvents.USER_UPDATED, {
         userId: updated.userId.value,
