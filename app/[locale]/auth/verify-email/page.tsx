@@ -7,13 +7,16 @@ import { useDictionary } from '@/shared/i18n/dictionary-context';
 import { AuthCard } from '@/shared/ui/auth-card';
 import styles from './page.module.css';
 
-export default function VerifyEmailPage() {
-  const searchParams = useSearchParams();
-  const token = searchParams.get('token');
+function VerifyEmailContent({
+  token,
+  dict,
+}: {
+  token: string | null;
+  dict: ReturnType<typeof useDictionary>;
+}) {
   const [status, setStatus] = useState<
     'loading' | 'success' | 'expired' | 'invalid'
   >(() => (token ? 'loading' : 'invalid'));
-  const dict = useDictionary();
 
   useEffect(() => {
     if (!token) {
@@ -21,6 +24,7 @@ export default function VerifyEmailPage() {
     }
 
     const controller = new AbortController();
+    let isActive = true;
 
     (async () => {
       try {
@@ -31,6 +35,7 @@ export default function VerifyEmailPage() {
           },
         );
         const data = await res.json();
+        if (!isActive || controller.signal.aborted) return;
         if (data.success) {
           setStatus('success');
         } else if (data.error?.includes('expired')) {
@@ -39,11 +44,15 @@ export default function VerifyEmailPage() {
           setStatus('invalid');
         }
       } catch {
+        if (!isActive || controller.signal.aborted) return;
         setStatus('invalid');
       }
     })();
 
-    return () => controller.abort();
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
   }, [token]);
 
   return (
@@ -79,5 +88,15 @@ export default function VerifyEmailPage() {
         </div>
       )}
     </AuthCard>
+  );
+}
+
+export default function VerifyEmailPage() {
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token');
+  const dict = useDictionary();
+
+  return (
+    <VerifyEmailContent key={token ?? 'missing'} token={token} dict={dict} />
   );
 }

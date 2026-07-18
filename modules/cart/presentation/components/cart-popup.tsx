@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
   useReducer,
   type ReactNode,
@@ -52,35 +53,52 @@ interface CartPopupProps {
 
 export function CartPopup({ labels }: CartPopupProps) {
   const { isOpen, close } = useCartPopup();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
   const locale = pathname?.split('/', 2)[1] ?? 'es';
   const isAuthenticated = status === 'authenticated';
+  const isInternal =
+    session?.user?.role === 'ADMIN' || session?.user?.role === 'DESIGNER';
+  const canUseCart = isAuthenticated && !isInternal;
+  const userId = session?.user?.id;
   const guestCart = useGuestCart();
 
   const [authItems, setAuthItems] = useState<CartItemDTO[]>([]);
+  const [authItemsOwnerId, setAuthItemsOwnerId] = useState<string | null>(null);
   const [loading, setLoading] = useReducer(
     (_isLoading: boolean, shouldLoad: boolean) => shouldLoad,
     false,
   );
   const unknownProduct = labels.unknownProduct;
   const unknownSeller = labels.unknownSeller;
+  const requestSequenceRef = useRef(0);
+  const requestControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (!isOpen || !isAuthenticated) return;
-    const ctrl = new AbortController();
+    if (!isOpen || !canUseCart || !userId) return;
     const doFetch = async () => {
+      requestControllerRef.current?.abort();
+      const ctrl = new AbortController();
+      requestControllerRef.current = ctrl;
+      const requestSequence = ++requestSequenceRef.current;
       setLoading(true);
       try {
         const res = await fetch('/api/cart', { signal: ctrl.signal });
-        if (ctrl.signal.aborted) return;
+        if (
+          ctrl.signal.aborted ||
+          requestSequence !== requestSequenceRef.current
+        )
+          return;
         if (!res.ok) {
-          setLoading(false);
           return;
         }
         const data = await res.json();
-        if (ctrl.signal.aborted) return;
+        if (
+          ctrl.signal.aborted ||
+          requestSequence !== requestSequenceRef.current
+        )
+          return;
         setAuthItems(
           (data.items ?? []).map((i: Record<string, unknown>) => {
             const customizations =
@@ -115,35 +133,39 @@ export function CartPopup({ labels }: CartPopupProps) {
             } as CartItemDTO;
           }),
         );
-        setLoading(false);
+        setAuthItemsOwnerId(userId);
       } catch {
-        if (!ctrl.signal.aborted) setLoading(false);
+        // The next request owns the loading state after an abort.
+      } finally {
+        if (requestSequence === requestSequenceRef.current) setLoading(false);
       }
     };
     doFetch();
     const handleCartUpdated = () => doFetch();
     globalThis.addEventListener(CART_UPDATED_EVENT, handleCartUpdated);
     return () => {
-      ctrl.abort();
+      requestSequenceRef.current += 1;
+      requestControllerRef.current?.abort();
       globalThis.removeEventListener(CART_UPDATED_EVENT, handleCartUpdated);
     };
-  }, [isOpen, isAuthenticated]);
+  }, [isOpen, canUseCart, userId]);
 
-  const items = isAuthenticated
-    ? authItems
-    : guestCart.items.map((item) =>
-        guestItemToDTO(item, {
-          productName: unknownProduct,
-          sellerName: unknownSeller,
-        }),
-      );
+  const items =
+    canUseCart && authItemsOwnerId === userId
+      ? authItems
+      : guestCart.items.map((item) =>
+          guestItemToDTO(item, {
+            productName: unknownProduct,
+            sellerName: unknownSeller,
+          }),
+        );
   const subtotal = items.reduce((s, i) => s + i.lineTotal, 0);
 
   const handleUpdate = useCallback(
     async (item: CartItemDTO, delta: number) => {
       const nq = Math.max(1, Math.min(99, item.quantity + delta));
       if (nq === item.quantity) return;
-      if (!isAuthenticated) {
+      if (!canUseCart) {
         guestCart.updateItemQuantity(item.id, nq);
         return;
       }
@@ -179,12 +201,12 @@ export function CartPopup({ labels }: CartPopupProps) {
         );
       }
     },
-    [isAuthenticated, guestCart],
+    [canUseCart, guestCart],
   );
 
   const handleRemove = useCallback(
     async (item: CartItemDTO) => {
-      if (!isAuthenticated) {
+      if (!canUseCart) {
         guestCart.removeItemById(item.id);
         return;
       }
@@ -198,7 +220,7 @@ export function CartPopup({ labels }: CartPopupProps) {
         /* removed */
       }
     },
-    [isAuthenticated, guestCart],
+    [canUseCart, guestCart],
   );
 
   const go = (path: string) => {
@@ -244,7 +266,7 @@ export function CartPopup({ labels }: CartPopupProps) {
   }
 
   let content: ReactNode;
-  if (loading) {
+  if (canUseCart && loading) {
     content = <p className={styles.status}>{labels.loading}</p>;
   } else if (items.length === 0) {
     content = (

@@ -251,6 +251,27 @@ describe('CartView', () => {
     });
   });
 
+  it('ignores a second quantity mutation while the first is pending', async () => {
+    mockFetch.mockImplementationOnce(() => new Promise(() => {}));
+    render(
+      <CartView
+        items={baseItems}
+        locale="es"
+        isAuthenticated={true}
+        labels={labels}
+      />,
+    );
+
+    const increase = screen.getAllByRole('button', {
+      name: labels.increaseQuantity,
+    })[0];
+    fireEvent.click(increase);
+    fireEvent.click(increase);
+
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(1));
+    expect(screen.getByText('3')).toBeTruthy();
+  });
+
   it('clicking remove sends DELETE and removes the row', async () => {
     mockFetch.mockResolvedValueOnce({ ok: true });
 

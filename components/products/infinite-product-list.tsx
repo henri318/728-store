@@ -114,9 +114,19 @@ export function InfiniteProductList({
   const [error, setError] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState('');
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const inFlightRef = useRef(false);
+  const requestControllerRef = useRef<AbortController | null>(null);
+  const retryAfterRef = useRef(0);
 
+  // Stable refs prevent observer churn and concurrent requests.
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   const loadMore = useCallback(async () => {
-    if (isLoading || !hasMore) return;
+    if (inFlightRef.current || !hasMore || Date.now() < retryAfterRef.current)
+      return;
+
+    const controller = new AbortController();
+    inFlightRef.current = true;
+    requestControllerRef.current = controller;
     setIsLoading(true);
     setError(null);
     try {
@@ -130,13 +140,16 @@ export function InfiniteProductList({
       if (category && category.trim().length > 0)
         params.set('category', category);
 
-      const res = await fetch(`/api/products?${params.toString()}`);
+      const res = await fetch(`/api/products?${params.toString()}`, {
+        signal: controller.signal,
+      });
       if (!res.ok) throw new Error(`Failed to load (${res.status})`);
       const body = (await res.json()) as {
         items: ClientProductCard[];
         total: number;
         totalPages: number;
       };
+      if (controller.signal.aborted) return;
       const next = body.items;
       setItems((prev) => [...prev, ...next]);
       setPage((p) => p + 1);
@@ -152,11 +165,24 @@ export function InfiniteProductList({
         setAnnouncement('');
       }
     } catch (error_: unknown) {
+      if (controller.signal.aborted) return;
+      retryAfterRef.current = Date.now() + 1000;
       setError(error_ instanceof Error ? error_.message : 'Unknown error');
     } finally {
-      setIsLoading(false);
+      if (requestControllerRef.current === controller) {
+        requestControllerRef.current = null;
+        inFlightRef.current = false;
+        if (!controller.signal.aborted) setIsLoading(false);
+      }
     }
-  }, [isLoading, hasMore, page, pageSize, q, category, locale, labels]);
+  }, [hasMore, page, pageSize, q, category, locale, labels]);
+
+  useEffect(
+    () => () => {
+      requestControllerRef.current?.abort();
+    },
+    [q, category, locale, pageSize],
+  );
 
   useEffect(() => {
     const node = sentinelRef.current;
