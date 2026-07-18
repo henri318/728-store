@@ -73,7 +73,6 @@ export default async function CheckoutPage({
   }
 
   const cartRepository = container.getCartRepository();
-  const userRepository = container.getUserRepository();
   const customizationLookup = container.getCustomizationLookup();
   const getCart = new GetCart(cartRepository);
   const cart = await getCart.execute(session.user.id);
@@ -99,15 +98,10 @@ export default async function CheckoutPage({
     throw new Error(dict.common.genericError);
   }
 
-  const customer = await userRepository.findById(session.user.id);
-  const initialAddress = customer?.address
-    ? {
-        street: customer.address.street,
-        city: customer.address.city,
-        postalCode: customer.address.postalCode,
-        country: customer.address.country,
-      }
-    : null;
+  const customer = await container
+    .getUserProfileUseCase()
+    .execute(session.user.id);
+  const initialAddress = customer?.deliveryAddress ?? null;
 
   // Resolve all customizations in a single batch.
   const allCustomizationIds = [
