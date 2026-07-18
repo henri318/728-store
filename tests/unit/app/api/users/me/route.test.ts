@@ -4,8 +4,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   getServerSession: vi.fn(),
   executeUpdate: vi.fn(),
-  saveAddress: vi.fn(),
-  clearAddress: vi.fn(),
   findAddressByUserId: vi.fn(),
 }));
 
@@ -26,8 +24,6 @@ vi.mock('@/modules/users/application/use-cases/update-user-use-case', () => ({
 vi.mock('@/composition-root/container', () => ({
   container: {
     getUserRepository: () => ({
-      saveAddress: mocks.saveAddress,
-      clearAddress: mocks.clearAddress,
       findAddressByUserId: mocks.findAddressByUserId,
     }),
     getOutboxRepository: () => ({}),
@@ -57,7 +53,7 @@ describe('PATCH /api/users/me', () => {
     });
   });
 
-  it('persists and reads back the complete delivery address', async () => {
+  it('delegates address persistence to the use case via fullAddress', async () => {
     const address = {
       street: 'Calle Mayor',
       houseNumber: '12',
@@ -76,7 +72,14 @@ describe('PATCH /api/users/me', () => {
     );
 
     expect(response.status).toBe(200);
-    expect(mocks.saveAddress).toHaveBeenCalledWith('user-1', address);
+
+    expect(mocks.executeUpdate).toHaveBeenCalledWith({
+      userId: 'user-1',
+      firstName: 'Test',
+      lastName: 'User',
+      fullAddress: address,
+    });
+
     expect(mocks.findAddressByUserId).toHaveBeenCalledWith('user-1');
     await expect(response.json()).resolves.toEqual(
       expect.objectContaining({ address }),

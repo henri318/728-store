@@ -1,3 +1,5 @@
+import type { UserAddressInput } from '../../domain/user-address';
+
 export interface RegisterUserDTO {
   email: string;
   password: string;
@@ -9,4 +11,5 @@ export interface RegisterUserDTO {
     postalCode: string;
     country: string;
   };
+  fullAddress?: UserAddressInput;
 }
