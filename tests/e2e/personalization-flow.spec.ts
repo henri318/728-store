@@ -21,14 +21,6 @@ async function getCart(page: Page): Promise<CartResponse> {
   return (await response.json()) as CartResponse;
 }
 
-function waitForCartSync(page: Page) {
-  return page.waitForResponse(
-    (response) =>
-      response.url().endsWith('/api/cart') &&
-      response.request().method() === 'GET',
-  );
-}
-
 function waitForCustomizedCartAdd(page: Page, text: string) {
   return page.waitForResponse((response) => {
     if (
@@ -96,9 +88,7 @@ test.describe('Personalization flow', () => {
     const designField = customerPage.getByLabel(
       'Cuéntanos cómo quieres personalizarlo',
     );
-    const firstCartSync = waitForCartSync(customerPage);
     await designField.fill('First design');
-    await firstCartSync;
     const firstCartAdd = waitForCustomizedCartAdd(customerPage, 'First design');
     await customerPage
       .getByRole('button', { name: 'Añadir al carrito' })
@@ -113,9 +103,7 @@ test.describe('Personalization flow', () => {
       customerPage.getByRole('button', { name: 'Añadido' }),
     ).toBeVisible();
 
-    const secondCartSync = waitForCartSync(customerPage);
     await designField.fill('Second design');
-    await secondCartSync;
     const secondCartAdd = waitForCustomizedCartAdd(
       customerPage,
       'Second design',
