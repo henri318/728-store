@@ -9,7 +9,6 @@ import { StatusBadge } from '@/shared/ui/status-badge';
 import { Card } from '@/shared/ui/card';
 import { BackLink } from '@/shared/ui/back-link';
 import { normalizeLocale } from '@/shared/i18n/normalize-locale';
-import { GetSellerOrderUseCase } from '@/modules/orders/application/get-seller-order-use-case';
 import { NotFoundError } from '@/shared/kernel/app-error';
 import Image from 'next/image';
 import styles from './page.module.css';
@@ -36,11 +35,7 @@ export default async function SellerOrderDetailPage({
 
   const dict = await getDictionary(locale as 'es' | 'cat');
 
-  const useCase = new GetSellerOrderUseCase(
-    container.getSellerLookup(),
-    container.getOrderRepository(),
-    container.getCustomerNameLookup(),
-  );
+  const useCase = container.getSellerOrderUseCase();
 
   let order;
   let customerName;

@@ -235,23 +235,29 @@ export function InfiniteProductList({
               className={styles.productCard}
               data-product-id={product.id}
             >
-              <div className={styles.productCoverFrame}>
-                {product.cover ? (
-                  <Image
-                    src={product.cover.url}
-                    alt={product.cover.alt ?? translation.name}
-                    width={640}
-                    height={640}
-                    unoptimized
-                    className={styles.productCoverImage}
-                    crossOrigin="anonymous"
-                  />
-                ) : (
-                  <div className={styles.productCoverPlaceholder}>
-                    <span>{labels.noImageAvailable}</span>
-                  </div>
-                )}
-              </div>
+              <Link
+                href={`/${locale}/products/${product.id}`}
+                className={styles.productCoverLink}
+                aria-label={`${labels.viewDetails}: ${translation.name}`}
+              >
+                <div className={styles.productCoverFrame}>
+                  {product.cover ? (
+                    <Image
+                      src={product.cover.url}
+                      alt={product.cover.alt ?? translation.name}
+                      width={640}
+                      height={640}
+                      unoptimized
+                      className={styles.productCoverImage}
+                      crossOrigin="anonymous"
+                    />
+                  ) : (
+                    <div className={styles.productCoverPlaceholder}>
+                      <span>{labels.noImageAvailable}</span>
+                    </div>
+                  )}
+                </div>
+              </Link>
               <h3 className={styles.productName}>{translation.name}</h3>
               <ProductDescription
                 description={translation.description}

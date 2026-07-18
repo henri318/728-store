@@ -14,4 +14,8 @@ export interface ProductSnapshot {
   basePrice: number;
   currency: Currency;
   sellerId: SellerId;
+  displayName?: string;
+  sellerName?: string;
+  imageUrl?: string | null;
+  images?: Array<{ alt: string | null; url: string }>;
 }

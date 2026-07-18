@@ -9,7 +9,6 @@ import { StatusBadge } from '@/shared/ui/status-badge';
 import { Card } from '@/shared/ui/card';
 import { BackLink } from '@/shared/ui/back-link';
 import { normalizeLocale } from '@/shared/i18n/normalize-locale';
-import { GetCustomerOrderUseCase } from '@/modules/orders/application/get-customer-order-use-case';
 import { NotFoundError } from '@/shared/kernel/app-error';
 import Image from 'next/image';
 import styles from './page.module.css';
@@ -35,7 +34,7 @@ export default async function OrderDetailPage({
   const dict = await getDictionary(locale as 'es' | 'cat');
   const customerName = session.user?.name ?? null;
 
-  const useCase = new GetCustomerOrderUseCase(container.getOrderRepository());
+  const useCase = container.getCustomerOrderUseCase();
 
   let order;
   try {

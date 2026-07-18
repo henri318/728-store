@@ -112,6 +112,22 @@ import { PrismaEmailOrderLookup } from '@/modules/email/infrastructure/prisma-em
 import { EmailEventSubscribers } from '@/modules/email/application/email-event-subscribers';
 import { EmailQueueDrainService } from '@/modules/email/application/email-queue-drain-service';
 import { PrismaCategoryRepository } from '@/modules/products/infrastructure/prisma-category-repository';
+import { ListCategoriesUseCase } from '@/modules/products/application/list-categories-use-case';
+import { GetSellerProductFormUseCase } from '@/modules/products/application/get-seller-product-form-use-case';
+import type { SellerOwnershipLookupPort } from '@/modules/products/domain/seller-ownership-lookup-port';
+import { SellerOwnershipLookupAdapter } from '@/modules/products/infrastructure/seller-ownership-lookup-adapter';
+import { GetCartViewUseCase } from '@/modules/cart/application/get-cart-view-use-case';
+import { GetCheckoutViewUseCase } from '@/modules/cart/application/get-checkout-view-use-case';
+import { ListCustomerOrdersUseCase } from '@/modules/orders/application/list-customer-orders-use-case';
+import { GetCustomerOrderUseCase } from '@/modules/orders/application/get-customer-order-use-case';
+import { ListSellerOrdersUseCase } from '@/modules/orders/application/list-seller-orders-use-case';
+import { GetSellerOrderUseCase } from '@/modules/orders/application/get-seller-order-use-case';
+import { ProductListQueryUseCase } from '@/modules/products/application/product-list-query-use-case';
+import { GetProductByIdUseCase } from '@/modules/products/application/get-product-by-id-use-case';
+import { ListSellerProductsUseCase } from '@/modules/sellers/application/use-cases/list-seller-products-use-case';
+import { GetSellerUseCase } from '@/modules/sellers/application/use-cases/get-seller-use-case';
+import { ListSellersUseCase } from '@/modules/sellers/application/use-cases/list-sellers-use-case';
+import { GetRecentSearchesUseCase } from '@/modules/search-history/application/get-recent-searches-use-case';
 
 // ---------------------------------------------------------------------------
 // State
@@ -358,6 +374,21 @@ export function getProductRepository(): ProductRepository {
   return state.productRepository as ProductRepository;
 }
 
+export function getProductListQueryUseCase(): ProductListQueryUseCase {
+  state.productListQueryUseCase ??= new ProductListQueryUseCase(
+    getProductRepository(),
+    getOutboxRepository(),
+  );
+  return state.productListQueryUseCase as ProductListQueryUseCase;
+}
+
+export function getProductByIdUseCase(): GetProductByIdUseCase {
+  state.productByIdUseCase ??= new GetProductByIdUseCase(
+    getProductRepository(),
+  );
+  return state.productByIdUseCase as GetProductByIdUseCase;
+}
+
 export function getEmailQueueRepository(): EmailQueueRepository {
   state.emailQueueRepository ??= new PrismaEmailQueueRepository();
   return state.emailQueueRepository as EmailQueueRepository;
@@ -397,6 +428,24 @@ export function getUsedResetTokenStore(): UsedResetTokenStorePort {
 export function getSellerRepository(): SellerRepository {
   state.sellerRepository ??= new PrismaSellerRepository();
   return state.sellerRepository as SellerRepository;
+}
+
+export function getSellerUseCase(): GetSellerUseCase {
+  state.sellerUseCase ??= new GetSellerUseCase(getSellerRepository());
+  return state.sellerUseCase as GetSellerUseCase;
+}
+
+export function getListSellersUseCase(): ListSellersUseCase {
+  state.listSellersUseCase ??= new ListSellersUseCase(getSellerRepository());
+  return state.listSellersUseCase as ListSellersUseCase;
+}
+
+export function getListSellerProductsUseCase(): ListSellerProductsUseCase {
+  state.listSellerProductsUseCase ??= new ListSellerProductsUseCase(
+    getSellerRepository(),
+    getProductListQueryUseCase(),
+  );
+  return state.listSellerProductsUseCase as ListSellerProductsUseCase;
 }
 
 export function getSellerLookup(): SellerLookupPort {
@@ -442,6 +491,23 @@ export function getUploadRepository(): UploadRepository {
 export function getCartRepository(): CartRepository {
   state.cartRepository ??= new PrismaCartRepository();
   return state.cartRepository as CartRepository;
+}
+
+export function getCartViewUseCase(): GetCartViewUseCase {
+  state.cartViewUseCase ??= new GetCartViewUseCase(
+    getCartRepository(),
+    getCartProductRepository(),
+    getCustomizationLookup(),
+  );
+  return state.cartViewUseCase as GetCartViewUseCase;
+}
+
+export function getCheckoutViewUseCase(): GetCheckoutViewUseCase {
+  state.checkoutViewUseCase ??= new GetCheckoutViewUseCase(
+    getCartViewUseCase(),
+    getPaidOrderCountPort(),
+  );
+  return state.checkoutViewUseCase as GetCheckoutViewUseCase;
 }
 
 export function getCartProductRepository(): CartProductRepository {
@@ -497,9 +563,75 @@ export function getSearchHistoryRepository(): SearchHistoryRepository {
   return state.searchHistoryRepository as SearchHistoryRepository;
 }
 
+export function getRecentSearchesUseCase(): GetRecentSearchesUseCase {
+  state.recentSearchesUseCase ??= new GetRecentSearchesUseCase(
+    getSearchHistoryRepository(),
+  );
+  return state.recentSearchesUseCase as GetRecentSearchesUseCase;
+}
+
 export function getCategoryRepository(): CategoryRepository {
   state.categoryRepository ??= new PrismaCategoryRepository();
   return state.categoryRepository as CategoryRepository;
+}
+
+export function getListCategoriesUseCase(): ListCategoriesUseCase {
+  state.listCategoriesUseCase ??= new ListCategoriesUseCase(
+    getCategoryRepository(),
+  );
+  return state.listCategoriesUseCase as ListCategoriesUseCase;
+}
+
+function getSellerOwnershipLookup(): SellerOwnershipLookupPort {
+  state.sellerOwnershipLookup ??= new SellerOwnershipLookupAdapter(
+    getSellerRepository(),
+  );
+  return state.sellerOwnershipLookup as SellerOwnershipLookupPort;
+}
+
+export function getSellerProductFormUseCase(): GetSellerProductFormUseCase {
+  state.sellerProductFormUseCase ??= new GetSellerProductFormUseCase(
+    getProductRepository(),
+    getListCategoriesUseCase(),
+    getSellerOwnershipLookup(),
+  );
+  return state.sellerProductFormUseCase as GetSellerProductFormUseCase;
+}
+
+export function getListCustomerOrdersUseCase(): ListCustomerOrdersUseCase {
+  state.listCustomerOrdersUseCase ??= new ListCustomerOrdersUseCase(
+    getOrderRepository(),
+  );
+  return state.listCustomerOrdersUseCase as ListCustomerOrdersUseCase;
+}
+
+export function getCustomerOrderUseCase(): GetCustomerOrderUseCase {
+  state.customerOrderUseCase ??= new GetCustomerOrderUseCase(
+    getOrderRepository(),
+  );
+  return state.customerOrderUseCase as GetCustomerOrderUseCase;
+}
+
+export function getListSellerOrdersUseCase(): ListSellerOrdersUseCase {
+  state.listSellerOrdersUseCase ??= new ListSellerOrdersUseCase(
+    getSellerLookup(),
+    getOrderRepository(),
+  );
+  return state.listSellerOrdersUseCase as ListSellerOrdersUseCase;
+}
+
+export function getSellerOrderUseCase(): GetSellerOrderUseCase {
+  state.sellerOrderUseCase ??= new GetSellerOrderUseCase(
+    getSellerLookup(),
+    getOrderRepository(),
+    getCustomerNameLookup(),
+  );
+  return state.sellerOrderUseCase as GetSellerOrderUseCase;
+}
+
+function resetCartViewUseCases(): void {
+  state.cartViewUseCase = undefined;
+  state.checkoutViewUseCase = undefined;
 }
 
 // ---------------------------------------------------------------------------
@@ -530,6 +662,8 @@ export const container = {
   getCustomerNameLookup,
   getCheckoutGroupPaymentPort,
   getProductRepository,
+  getProductListQueryUseCase,
+  getProductByIdUseCase,
   getEmailQueueRepository,
   getUserLookup,
   getEmailUserLookup,
@@ -537,6 +671,9 @@ export const container = {
   getEmailQueueDrainService,
   getUsedResetTokenStore,
   getSellerRepository,
+  getSellerUseCase,
+  getListSellersUseCase,
+  getListSellerProductsUseCase,
   getSellerLookup,
   getTransactionRunner,
   getUserVerification,
@@ -545,17 +682,27 @@ export const container = {
   getUploadRepository,
   getCartRepository,
   getCartProductRepository,
+  getCartViewUseCase,
+  getCheckoutViewUseCase,
   getPaidOrderCountPort,
   getCustomizationLookup,
   getCustomerCustomizationCreator,
   getCustomizationRepository,
   getSearchHistoryRepository,
+  getRecentSearchesUseCase,
   getCategoryRepository,
+  getListCategoriesUseCase,
+  getSellerProductFormUseCase,
+  getListCustomerOrdersUseCase,
+  getCustomerOrderUseCase,
+  getListSellerOrdersUseCase,
+  getSellerOrderUseCase,
   setEmailSender(sender: EmailSender): void {
     state.emailSender = sender;
   },
   setOutboxRepository(repo: OutboxRepository): void {
     state.outboxRepository = repo;
+    state.productListQueryUseCase = undefined;
   },
   setPasswordHasher(hasher: PasswordHasher): void {
     state.passwordHasher = hasher;
@@ -578,12 +725,20 @@ export const container = {
   setUserRepository(repo: UserRepository): void {
     state.userRepository = repo;
     state.userProfileUseCase = undefined;
+    state.customerNameLookup = undefined;
+    state.sellerOrderUseCase = undefined;
   },
   setRoleRepository(repo: RoleRepository): void {
     state.roleRepository = repo;
   },
   setOrderRepository(repo: OrderRepository): void {
     state.orderRepository = repo;
+    state.paidOrderCountPort = undefined;
+    state.listCustomerOrdersUseCase = undefined;
+    state.customerOrderUseCase = undefined;
+    state.listSellerOrdersUseCase = undefined;
+    state.sellerOrderUseCase = undefined;
+    resetCartViewUseCases();
   },
   setCheckoutGroupLookup(port: CheckoutGroupLookupPort): void {
     state.checkoutGroupLookup = port;
@@ -593,6 +748,12 @@ export const container = {
   },
   setProductRepository(repo: ProductRepository): void {
     state.productRepository = repo;
+    state.productListQueryUseCase = undefined;
+    state.productByIdUseCase = undefined;
+    state.cartProductRepository = undefined;
+    state.listSellerProductsUseCase = undefined;
+    state.sellerProductFormUseCase = undefined;
+    resetCartViewUseCases();
   },
   setEmailQueueRepository(repo: EmailQueueRepository): void {
     state.emailQueueRepository = repo;
@@ -608,9 +769,19 @@ export const container = {
   },
   setSellerRepository(repo: SellerRepository): void {
     state.sellerRepository = repo;
+    state.sellerLookup = undefined;
+    state.sellerOwnershipLookup = undefined;
+    state.sellerUseCase = undefined;
+    state.listSellersUseCase = undefined;
+    state.listSellerProductsUseCase = undefined;
+    state.sellerProductFormUseCase = undefined;
+    state.listSellerOrdersUseCase = undefined;
+    state.sellerOrderUseCase = undefined;
   },
   setSellerLookup(port: SellerLookupPort): void {
     state.sellerLookup = port;
+    state.listSellerOrdersUseCase = undefined;
+    state.sellerOrderUseCase = undefined;
   },
   setTransactionRunner(runner: TransactionRunner): void {
     state.transactionRunner = runner;
@@ -629,24 +800,34 @@ export const container = {
   },
   setCartRepository(repo: CartRepository): void {
     state.cartRepository = repo;
+    resetCartViewUseCases();
   },
   setCartProductRepository(repo: CartProductRepository): void {
     state.cartProductRepository = repo;
+    resetCartViewUseCases();
   },
   setPaidOrderCountPort(port: PaidOrderCountPort): void {
     state.paidOrderCountPort = port;
+    state.checkoutViewUseCase = undefined;
   },
   setCustomizationLookup(port: CartCustomizationLookupPort): void {
     state.customizationLookup = port;
+    resetCartViewUseCases();
   },
   setCustomizationRepository(repo: CustomizationRepository): void {
     state.customizationRepository = repo;
+    state.customizationLookup = undefined;
+    state.customerCustomizationCreator = undefined;
+    resetCartViewUseCases();
   },
   setSearchHistoryRepository(repo: SearchHistoryRepository): void {
     state.searchHistoryRepository = repo;
+    state.recentSearchesUseCase = undefined;
   },
   setCategoryRepository(repo: CategoryRepository): void {
     state.categoryRepository = repo;
+    state.listCategoriesUseCase = undefined;
+    state.sellerProductFormUseCase = undefined;
   },
   resetSearchHistoryEventSubscriptions(): void {
     state.isSearchHistoryEventsSubscribed = false;

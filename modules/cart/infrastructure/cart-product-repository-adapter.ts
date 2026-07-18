@@ -3,6 +3,7 @@ import type { ProductRepository } from '../domain/product-repository';
 import type { ProductSnapshot } from '../domain/product-snapshot';
 import { ProductId } from '@/shared/kernel/domain/value-objects/product-id';
 import { SellerId } from '@/shared/kernel/domain/value-objects/seller-id';
+import { resolveDisplay } from '@/modules/products/domain/entities/product-translation';
 
 /**
  * Adapter — bridges cart's ProductRepository port to the real products
@@ -26,31 +27,36 @@ export class CartProductRepositoryAdapter implements ProductRepository {
   ): Promise<ProductSnapshot | null> {
     const product = await this.delegate.findById(id.value, locale ?? 'es');
     if (!product) return null;
-    return {
-      id: ProductId.create(product.id),
-      basePrice: product.basePrice.amount,
-      currency: product.basePrice.currency,
-      sellerId: SellerId.create(product.sellerId),
-    };
+    return toSnapshot(product, locale ?? 'es');
   }
 
   async findByIds(
     ids: ProductId[],
-    locale?: string,
+    locale: string = 'es',
   ): Promise<Map<string, ProductSnapshot>> {
-    const products = await this.delegate.findAll(locale ?? 'es');
-    const wanted = new Set(ids.map((i) => i.value));
-    const map = new Map<string, ProductSnapshot>();
-    for (const p of products) {
-      if (wanted.has(p.id)) {
-        map.set(p.id, {
-          id: ProductId.create(p.id),
-          basePrice: p.basePrice.amount,
-          currency: p.basePrice.currency,
-          sellerId: SellerId.create(p.sellerId),
-        });
-      }
-    }
-    return map;
+    const products = await this.delegate.findByIds(
+      ids.map((id) => id.value),
+      locale,
+    );
+    return new Map(
+      products.map((product) => [product.id, toSnapshot(product, locale)]),
+    );
   }
+}
+
+function toSnapshot(
+  product: Awaited<ReturnType<ProductsModuleRepository['findById']>> & {},
+  locale: string,
+): ProductSnapshot {
+  const translation = resolveDisplay(product.translations, locale);
+  return {
+    id: ProductId.create(product.id),
+    basePrice: product.basePrice.amount,
+    currency: product.basePrice.currency,
+    sellerId: SellerId.create(product.sellerId),
+    displayName: translation?.name ?? '',
+    sellerName: product.sellerName,
+    imageUrl: product.images[0]?.url ?? null,
+    images: product.images.map(({ alt, url }) => ({ alt, url })),
+  };
 }

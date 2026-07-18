@@ -1,50 +1,13 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/shared/infrastructure/auth-options';
 import { container } from '@/composition-root/container';
-import { GetCart } from '@/modules/cart/application/get-cart';
 import { redirect } from 'next/navigation';
 import { CheckoutConfirmButton } from '@/modules/cart/presentation/components/checkout-confirm-button';
-import type { ProductEntity } from '@/modules/products/domain/product-repository';
 import { Money } from '@/shared/kernel/domain/value-objects/money';
-import { Currency } from '@/shared/kernel/domain/value-objects/currency';
-import type { CustomizationSnapshot } from '@/modules/cart/domain/customization-lookup-port';
-import { resolveDisplay } from '@/modules/products/domain/entities/product-translation';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { Card } from '@/shared/ui/card';
 import Image from 'next/image';
 import styles from './page.module.css';
-
-const FIRST_PURCHASE_DISCOUNT_RATE = 0.1;
-const SHIPPING_COST = 3.99;
-
-interface CheckoutItem {
-  id: string;
-  productId: string;
-  productName: string;
-  productImageUrl: string | null;
-  sellerId: string;
-  sellerName: string;
-  quantity: number;
-  unitPrice: number;
-  lineTotal: number;
-  currency: Currency;
-  customizationIdList: string[];
-  customizations: Array<{
-    id: string;
-    text: string | null;
-    color: string | null;
-    size: string | null;
-    imageUrl: string | null;
-    designPosition: CustomizationSnapshot['designPosition'];
-  }>;
-}
-
-interface SellerGroup {
-  sellerId: string;
-  sellerName: string;
-  items: CheckoutItem[];
-  subtotal: number;
-}
 
 /**
  * Checkout page — redesigned for the cart module.
@@ -72,30 +35,15 @@ export default async function CheckoutPage({
     redirect(`/${locale}/auth/signin?callbackUrl=/${locale}/checkout`);
   }
 
-  const cartRepository = container.getCartRepository();
-  const customizationLookup = container.getCustomizationLookup();
-  const getCart = new GetCart(cartRepository);
-  const cart = await getCart.execute(session.user.id);
+  const checkout = await container.getCheckoutViewUseCase().execute({
+    userId: session.user.id,
+    locale,
+    unknownProductName: dict.common.unknownProduct,
+    unknownSellerName: dict.common.unknownSeller,
+  });
 
-  if (cart.items.length === 0) {
+  if (checkout.items.length === 0) {
     redirect(`/${locale}/cart`);
-  }
-
-  // Enrich items with product display data.
-  const productRepository = container.getProductRepository();
-  const productIds = [...new Set(cart.items.map((i) => i.productId.value))];
-  const productMap = new Map<string, ProductEntity>();
-  for (const id of productIds) {
-    const product = await productRepository.findById(id, locale);
-    if (product) productMap.set(product.id, product);
-  }
-
-  const currency = cart.items[0].unitPriceSnapshot.currency;
-  const hasMixedCurrencies = cart.items.some(
-    (item) => item.unitPriceSnapshot.currency !== currency,
-  );
-  if (hasMixedCurrencies) {
-    throw new Error(dict.common.genericError);
   }
 
   const customer = await container
@@ -103,85 +51,17 @@ export default async function CheckoutPage({
     .execute(session.user.id);
   const initialAddress = customer?.deliveryAddress ?? null;
 
-  // Resolve all customizations in a single batch.
-  const allCustomizationIds = [
-    ...new Set(cart.items.flatMap((i) => i.customizationIdList)),
-  ];
-  const allCustomizations =
-    allCustomizationIds.length > 0
-      ? await customizationLookup.findByIds(allCustomizationIds)
-      : [];
-  const customizationMap = new Map(allCustomizations.map((c) => [c.id, c]));
-
-  const items: CheckoutItem[] = cart.items.map((item) => {
-    const product = productMap.get(item.productId.value);
-    const resolvedCustomizations = item.customizationIdList
-      .map((id) => customizationMap.get(id))
-      .filter((c): c is CustomizationSnapshot => c != null)
-      .map((c) => ({
-        id: c.id,
-        text: c.text,
-        color: c.color,
-        size: c.size,
-        imageUrl: c.imageUrl,
-        designPosition: c.designPosition,
-      }));
-
-    return {
-      id: item.id,
-      productId: item.productId.value,
-      productName:
-        resolveDisplay(product?.translations ?? [], locale)?.name ??
-        dict.common.unknownProduct,
-      productImageUrl: product?.images?.[0]?.url ?? null,
-      sellerId: item.sellerId.value,
-      sellerName: product?.sellerName ?? dict.common.unknownSeller,
-      quantity: item.quantity,
-      unitPrice: item.unitPriceSnapshot.amount,
-      lineTotal: +(item.unitPriceSnapshot.amount * item.quantity).toFixed(2),
-      currency: item.unitPriceSnapshot.currency,
-      customizationIdList: item.customizationIdList,
-      customizations: resolvedCustomizations,
-    };
-  });
-
-  // Detect missing customizations (deleted after being added to cart).
-  const hasMissingCustomizations = items.some(
-    (item) => item.customizationIdList.length > item.customizations.length,
-  );
-
-  // Group by sellerId.
-  const sellerMap = new Map<string, SellerGroup>();
-  for (const item of items) {
-    let group = sellerMap.get(item.sellerId);
-    if (!group) {
-      group = {
-        sellerId: item.sellerId,
-        sellerName: item.sellerName,
-        items: [],
-        subtotal: 0,
-      };
-      sellerMap.set(item.sellerId, group);
-    }
-    group.items.push(item);
-    group.subtotal = +(group.subtotal + item.lineTotal).toFixed(2);
-  }
-  const sellerGroups = sellerMap.values().toArray();
-
-  // Totals.
-  const subtotal = +items.reduce((acc, i) => acc + i.lineTotal, 0).toFixed(2);
-
-  // Determine first-purchase discount.
-  const paidOrderCountPort = container.getPaidOrderCountPort();
-  const paidCount = await paidOrderCountPort.countPaidOrdersByUserId(
-    session.user.id,
-  );
-  const isFirstPurchase = paidCount === 0;
-  const discount = isFirstPurchase
-    ? +(subtotal * FIRST_PURCHASE_DISCOUNT_RATE).toFixed(2)
-    : 0;
-  const shipping = SHIPPING_COST;
-  const total = +(subtotal - discount + shipping).toFixed(2);
+  const {
+    currency,
+    sellerGroups,
+    subtotal,
+    discount,
+    shipping,
+    total,
+    isFirstPurchase,
+    discountRate,
+    hasMissingCustomizations,
+  } = checkout;
 
   return (
     <div className={styles.container}>
@@ -258,7 +138,7 @@ export default async function CheckoutPage({
               <span>
                 {dict.common.firstPurchaseDiscount
                   .split('{rate}')
-                  .join((FIRST_PURCHASE_DISCOUNT_RATE * 100).toString())}
+                  .join((discountRate * 100).toString())}
               </span>
               <span className={styles.discount}>
                 −{Money.format(discount, currency)}

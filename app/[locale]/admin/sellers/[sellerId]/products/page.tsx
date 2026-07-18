@@ -1,8 +1,6 @@
 import { BackLink } from '@/shared/ui/back-link';
 import { container } from '@/composition-root/container';
-import { ProductListQueryUseCase } from '@/modules/products/application/product-list-query-use-case';
 import { productListQuerySchema } from '@/modules/products/presentation/schemas/product-list-query-schema';
-import { GetSellerUseCase } from '@/modules/sellers/application/use-cases/get-seller-use-case';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { PaginationDefaults } from '@/shared/kernel/domain/value-objects/pagination';
 import { SearchForm } from '@/shared/ui/search-form';
@@ -40,14 +38,12 @@ export default async function AdminSellerProductsPage({
 
   const dict = await getDictionary(locale as 'es' | 'cat');
 
-  const sellerRepository = container.getSellerRepository();
-  const getSeller = new GetSellerUseCase(sellerRepository);
-  const seller = await getSeller.execute({ sellerId });
+  const seller = await container.getSellerUseCase().execute({ sellerId });
   const sellerName = seller.name;
 
-  const productRepository = container.getProductRepository();
-  const useCase = new ProductListQueryUseCase(productRepository);
-  const result = await useCase.execute({ ...filter, audience: 'admin' });
+  const result = await container
+    .getProductListQueryUseCase()
+    .execute({ ...filter, audience: 'admin' });
   const { items: products, totalPages } = result;
   let page = result.page;
 

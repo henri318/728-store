@@ -44,6 +44,10 @@ export class MemoryCartProductRepository implements ProductRepository {
       basePrice: number;
       sellerId: string;
       currency?: Currency;
+      displayName?: string;
+      sellerName?: string;
+      imageUrl?: string | null;
+      images?: Array<{ alt: string | null; url: string }>;
     }>,
   ): void {
     for (const p of products) {
@@ -52,6 +56,10 @@ export class MemoryCartProductRepository implements ProductRepository {
         basePrice: p.basePrice,
         currency: p.currency ?? Currency.EUR,
         sellerId: SellerId.create(p.sellerId),
+        displayName: p.displayName,
+        sellerName: p.sellerName,
+        imageUrl: p.imageUrl,
+        images: p.images,
       });
     }
   }

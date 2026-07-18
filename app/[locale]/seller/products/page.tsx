@@ -2,8 +2,6 @@ import { container } from '@/composition-root/container';
 import Link from 'next/link';
 import { NotFoundError } from '@/shared/kernel/app-error';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
-import { ProductListQueryUseCase } from '@/modules/products/application/product-list-query-use-case';
-import { ListSellerProductsUseCase } from '@/modules/sellers/application/use-cases/list-seller-products-use-case';
 import { productListQuerySchema } from '@/modules/products/presentation/schemas/product-list-query-schema';
 import type { ProductEntity } from '@/modules/products/domain/product-repository';
 import { PaginationDefaults } from '@/shared/kernel/domain/value-objects/pagination';
@@ -40,12 +38,7 @@ export default async function SellerProductsPage({
     lang: locale,
   });
 
-  const sellerRepository = container.getSellerRepository();
-  const productRepository = container.getProductRepository();
-  const useCase = new ListSellerProductsUseCase(
-    sellerRepository,
-    new ProductListQueryUseCase(productRepository),
-  );
+  const useCase = container.getListSellerProductsUseCase();
 
   const fallbackResult: PaginatedResult<ProductEntity> = {
     items: [],

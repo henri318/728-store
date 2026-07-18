@@ -4,7 +4,6 @@ import { container } from '@/composition-root/container';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { orderListQuerySchema } from '@/modules/orders/presentation/schemas/order-schemas';
-import { ListCustomerOrdersUseCase } from '@/modules/orders/application/list-customer-orders-use-case';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
 import { Pagination } from '@/shared/ui/pagination';
@@ -50,7 +49,7 @@ export default async function CustomerOrdersPage({
         pageSize: DEFAULT_ORDER_PAGE_SIZE,
         sortDir: 'desc' as const,
       };
-  const useCase = new ListCustomerOrdersUseCase(container.getOrderRepository());
+  const useCase = container.getListCustomerOrdersUseCase();
 
   const result = await useCase.execute(
     {

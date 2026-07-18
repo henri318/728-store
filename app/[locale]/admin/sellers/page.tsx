@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { container } from '@/composition-root/container';
-import { ListSellersUseCase } from '@/modules/sellers/application/use-cases/list-sellers-use-case';
 import { listSellersQuerySchema } from '@/modules/sellers/presentation/schemas/seller-schemas';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { LocalizedDate } from '@/shared/kernel/domain/value-objects/localized-date';
@@ -56,9 +55,7 @@ export default async function AdminSellersPage({
   });
 
   const dict = await getDictionary(locale as 'es' | 'cat');
-  const sellerRepository = container.getSellerRepository();
-  const useCase = new ListSellersUseCase(sellerRepository);
-  const result = await useCase.execute(filter);
+  const result = await container.getListSellersUseCase().execute(filter);
   const { items: sellers, page: currentPage, pageSize, totalPages } = result;
 
   // Redirect to valid page if current page is out of range
