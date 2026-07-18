@@ -108,11 +108,6 @@ export function ProfileForm({ locale, profile, role }: ProfileFormProps) {
         <h2 className={styles.title}>{dict.profile.title}</h2>
 
         {error && <ErrorMessage message={error} />}
-        {success && (
-          <div role="alert" className={styles.successMessage}>
-            {success}
-          </div>
-        )}
 
         <form onSubmit={handleSave} className={styles.form}>
           <TextField
@@ -166,9 +161,14 @@ export function ProfileForm({ locale, profile, role }: ProfileFormProps) {
             </div>
           )}
 
+          {success && (
+            <div role="alert" className={styles.successMessage}>
+              {success}
+            </div>
+          )}
           <div className={styles.buttonRow}>
             <Button type="submit" loading={saving}>
-              {dict.common.submit}
+              {dict.profile.save}
             </Button>
           </div>
         </form>

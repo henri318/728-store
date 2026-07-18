@@ -221,6 +221,7 @@
   "profile": {
     "title": "Mi perfil",
     "updateSuccess": "Perfil actualizado correctamente",
+    "save": "Guardar",
     "deleteAccount": "Eliminar cuenta",
     "deleteConfirmTitle": "Eliminar cuenta",
     "deleteConfirmMessage": "¿Estás seguro de eliminar tu cuenta? Esta acción no se puede deshacer.",

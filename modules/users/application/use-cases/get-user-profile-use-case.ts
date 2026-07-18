@@ -3,7 +3,11 @@ import type { UserProfilePort } from '../../domain/user-profile-port';
 export class GetUserProfileUseCase {
   constructor(private readonly profilePort: UserProfilePort) {}
 
-  execute(userId: string) {
-    return this.profilePort.findById(userId);
+  async execute(userId: string) {
+    const user = await this.profilePort.findById(userId);
+    if (!user) return null;
+
+    const deliveryAddress = await this.profilePort.findAddressByUserId(userId);
+    return { ...user, deliveryAddress };
   }
 }

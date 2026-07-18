@@ -2,9 +2,11 @@ import {
   UserEntity,
   UserRepository,
 } from '@/modules/users/domain/user-repository';
+import type { UserAddressInput } from '@/modules/users/domain/user-address';
 
 export class MemoryUserRepository implements UserRepository {
   private users: UserEntity[] = [];
+  private addresses = new Map<string, UserAddressInput>();
 
   async save(user: UserEntity, _tx?: unknown): Promise<UserEntity> {
     const existingIndex = this.users.findIndex((u) =>
@@ -25,6 +27,19 @@ export class MemoryUserRepository implements UserRepository {
 
   async findById(id: string): Promise<UserEntity | null> {
     return this.users.find((u) => u.userId.value === id) ?? null;
+  }
+
+  async findAddressByUserId(userId: string): Promise<UserAddressInput | null> {
+    const address = this.addresses.get(userId);
+    return address ? { ...address } : null;
+  }
+
+  async saveAddress(userId: string, address: UserAddressInput): Promise<void> {
+    this.addresses.set(userId, { ...address });
+  }
+
+  async clearAddress(userId: string): Promise<void> {
+    this.addresses.delete(userId);
   }
 
   async markEmailVerified(userId: string): Promise<void> {

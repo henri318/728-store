@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/consistent-conditional-object-spread */
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/shared/infrastructure/auth-options';
@@ -33,19 +32,14 @@ export async function GET() {
       );
     }
 
+    const address = await userRepository.findAddressByUserId(userId);
+
     return NextResponse.json({
       id: user.userId.value,
       email: user.email.value,
       firstName: user.firstName,
       lastName: user.lastName,
-      address: user.address
-        ? {
-            street: user.address.street,
-            city: user.address.city,
-            postalCode: user.address.postalCode,
-            country: user.address.country,
-          }
-        : null,
+      address,
       emailVerified: user.emailVerified?.toISOString() ?? null,
       createdAt: user.createdAt.toISOString(),
     });
@@ -73,49 +67,28 @@ export async function PATCH(req: NextRequest) {
     const outboxRepository = container.getOutboxRepository();
 
     const useCase = new UpdateUserUseCase(userRepository, outboxRepository);
-    const legacyAddress =
-      address?.street && address.city && address.postalCode && address.country
-        ? {
-            street: address.street,
-            city: address.city,
-            postalCode: address.postalCode,
-            country: address.country,
-          }
-        : undefined;
     const updated = await useCase.execute({
       userId,
       ...profileFields,
-      ...(address === null ? { address: null } : {}),
-      ...(legacyAddress ? { address: legacyAddress } : {}),
     });
-    if (
-      address &&
-      'saveAddress' in userRepository &&
-      typeof userRepository.saveAddress === 'function'
-    ) {
-      await userRepository.saveAddress(userId, address);
+
+    if (address !== undefined) {
+      if (address) {
+        await userRepository.saveAddress(userId, address);
+      }
+      if (address === null) {
+        await userRepository.clearAddress(userId);
+      }
     }
-    if (
-      address === null &&
-      'clearAddress' in userRepository &&
-      typeof userRepository.clearAddress === 'function'
-    ) {
-      await userRepository.clearAddress(userId);
-    }
+
+    const persistedAddress = await userRepository.findAddressByUserId(userId);
 
     return NextResponse.json({
       id: updated.userId.value,
       email: updated.email.value,
       firstName: updated.firstName,
       lastName: updated.lastName,
-      address: updated.address
-        ? {
-            street: updated.address.street,
-            city: updated.address.city,
-            postalCode: updated.address.postalCode,
-            country: updated.address.country,
-          }
-        : null,
+      address: persistedAddress,
     });
   } catch (error: unknown) {
     return handleApiError(error);

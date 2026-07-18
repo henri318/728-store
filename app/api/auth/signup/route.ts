@@ -39,11 +39,7 @@ export async function POST(req: NextRequest) {
       password,
       address: legacyAddress,
     });
-    if (
-      address &&
-      'saveAddress' in userRepository &&
-      typeof userRepository.saveAddress === 'function'
-    ) {
+    if (address) {
       await userRepository.saveAddress(user.userId.value, address);
     }
 
