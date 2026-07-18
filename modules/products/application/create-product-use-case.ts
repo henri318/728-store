@@ -108,8 +108,14 @@ export class CreateProductUseCase {
       const price = ProductPrice.create(dto.price, 'EUR' as Currency);
       const now = new Date();
       const productId = randomUUID();
+      const images = buildProductImages(dto.images ?? [], {
+        productId,
+        createdAt: now,
+      });
       const customizationConfig = ProductCustomizationConfig.fromJson(
         dto.customizationConfig ?? null,
+      ).withCustomizableBase(
+        images.some((image) => image.purpose === 'CUSTOMIZABLE_BASE'),
       );
       const product: ProductEntity = {
         id: productId,
@@ -123,10 +129,7 @@ export class CreateProductUseCase {
         createdAt: now,
         updatedAt: now,
         translations,
-        images: buildProductImages(dto.images ?? [], {
-          productId,
-          createdAt: now,
-        }),
+        images,
         tags: [],
       };
 

@@ -34,7 +34,7 @@ export function useProductFormPhotos({
       try {
         const existingCount =
           bucket === 'cover' ? 0 : form.images[bucket].length;
-        const uploads = await Promise.all(
+        const results = await Promise.allSettled(
           files.map((file, index) =>
             uploadProductPhoto(
               file,
@@ -42,6 +42,19 @@ export function useProductFormPhotos({
               purposeForBucket(bucket),
             ),
           ),
+        );
+        const uploads = results
+          .filter(
+            (
+              result,
+            ): result is PromiseFulfilledResult<
+              Awaited<ReturnType<typeof uploadProductPhoto>>
+            > => result.status === 'fulfilled',
+          )
+          .map((result) => result.value);
+        const failures = results.filter(
+          (result): result is PromiseRejectedResult =>
+            result.status === 'rejected',
         );
         setForm((current) => {
           const images =
@@ -67,10 +80,17 @@ export function useProductFormPhotos({
                 : (current.selectedPhotoId ?? uploads[0]?.id ?? null),
           };
         });
-      } catch (error) {
-        setPhotoError(
-          error instanceof Error ? error.message : labels.gallery.uploadError,
-        );
+        if (failures.length > 0) {
+          setPhotoError(
+            failures
+              .map((failure) =>
+                failure.reason instanceof Error
+                  ? failure.reason.message
+                  : labels.gallery.uploadError,
+              )
+              .join(' '),
+          );
+        }
       } finally {
         setUploading(false);
       }

@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 import { findCartItemById, findCartItemInfo } from './cart-item-matching';
 import { fetchAuthenticatedCart, type CartApiItem } from './cart-api';
 import type { CartItemInfo } from './add-to-cart-types';
@@ -17,22 +24,51 @@ export function useAuthenticatedCart({
   editCartItemId,
   customization,
 }: AuthenticatedCartOptions) {
-  const [cartItemInfo, setCartItemInfo] = useState<CartItemInfo | null>(null);
-  const [productInCart, setProductInCart] = useState(false);
+  const [items, setItems] = useState<CartApiItem[]>([]);
+  const [optimisticItem, setOptimisticItem] = useState<{
+    key: string;
+    item: CartItemInfo | null;
+  } | null>(null);
+  const matchKey = JSON.stringify({
+    isAuthenticated,
+    productId,
+    editCartItemId,
+    customization,
+  });
+  const matchedItem = useMemo(() => {
+    if (!isAuthenticated) return null;
+    return editCartItemId
+      ? findCartItemById(items, editCartItemId)
+      : findCartItemInfo(items, productId, customization);
+  }, [customization, editCartItemId, isAuthenticated, items, productId]);
+  const cartItemInfo =
+    optimisticItem?.key === matchKey ? optimisticItem.item : matchedItem;
+  const productInCart =
+    !editCartItemId &&
+    cartItemInfo === null &&
+    isAuthenticated &&
+    items.some((item) => item.productId === productId);
 
-  const updateCart = useCallback(
-    (items: CartApiItem[]) => {
-      const found = editCartItemId
-        ? findCartItemById(items, editCartItemId)
-        : findCartItemInfo(items, productId, customization);
-      setCartItemInfo(found);
-      setProductInCart(
-        !editCartItemId &&
-          found === null &&
-          items.some((item) => item.productId === productId),
-      );
+  const updateCart = useCallback((nextItems: CartApiItem[]) => {
+    setItems(nextItems);
+    setOptimisticItem(null);
+  }, []);
+
+  const setCartItemInfo = useCallback<
+    Dispatch<SetStateAction<CartItemInfo | null>>
+  >(
+    (nextItem) => {
+      setOptimisticItem((current) => {
+        const currentItem =
+          current?.key === matchKey ? current.item : matchedItem;
+        return {
+          key: matchKey,
+          item:
+            typeof nextItem === 'function' ? nextItem(currentItem) : nextItem,
+        };
+      });
     },
-    [customization, editCartItemId, productId],
+    [matchKey, matchedItem],
   );
 
   const refreshCart = useCallback(async () => {

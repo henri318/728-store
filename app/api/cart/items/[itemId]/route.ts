@@ -44,6 +44,7 @@ export const PATCH = requireRole('CUSTOMER')(async function PATCH(
     const updateCartItem = new UpdateCartItemQuantity(
       cartRepository,
       outboxRepository,
+      customizationLookup,
       transactionRunner,
       customizationCreator,
     );

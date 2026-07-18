@@ -44,7 +44,7 @@ function createPhotoDraft(
     url: seed.url,
     alt: normalizePhotoName(seed.alt ?? '', fallbackName),
     size: null,
-    purpose: seed.purpose ?? purpose,
+    purpose,
     mimeType: seed.mimeType ?? 'image/jpeg',
     posterUrl: seed.posterUrl ?? null,
   };

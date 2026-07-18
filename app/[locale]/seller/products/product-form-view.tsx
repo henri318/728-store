@@ -45,6 +45,11 @@ export function ProductFormView({
               {controller.serverError}
             </p>
           ) : null}
+          {errors.general ? (
+            <p className={styles.alert} role="alert">
+              {errors.general}
+            </p>
+          ) : null}
           {controller.saved ? (
             <p className={styles.success} role="status">
               {controller.saved}
@@ -91,6 +96,11 @@ export function ProductFormView({
                 }))}
                 placeholder={labels.customization.editor.categoryPlaceholder}
               />
+              {errors.customizationConfig ? (
+                <p className={styles.alert} role="alert">
+                  {errors.customizationConfig}
+                </p>
+              ) : null}
               {errors.images ? (
                 <p className={styles.alert} role="alert">
                   {errors.images}

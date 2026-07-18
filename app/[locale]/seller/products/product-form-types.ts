@@ -40,10 +40,11 @@ interface ProductFormImageBucketsSeed {
 export type ProductFormImageSeeds =
   ProductFormImageSeed[] | ProductFormImageBucketsSeed;
 
-export interface ProductFormProps {
+export type ProductFormModeProps =
+  { mode: 'create'; productId?: never } | { mode: 'edit'; productId: string };
+
+export interface ProductFormBaseProps {
   locale: string;
-  mode: ProductFormMode;
-  productId?: string;
   initialValues: {
     price: number;
     name?: string;
@@ -56,6 +57,8 @@ export interface ProductFormProps {
   labels: ProductFormLabels;
   categories?: CategoryOption[];
 }
+
+export type ProductFormProps = ProductFormBaseProps & ProductFormModeProps;
 
 export interface ProductPhotoBucketsState {
   cover: ProductPhotoDraft | null;
@@ -75,6 +78,7 @@ export interface FormState {
 }
 
 export interface FormErrors {
+  general?: string;
   name?: string;
   description?: string;
   price?: string;

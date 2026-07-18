@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useUnsavedChangesGuard } from '@/shared/hooks/use-unsaved-changes-guard';
+import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
 import {
   cleanPhotoLabels,
   buildTranslationMap,
@@ -78,7 +79,11 @@ export function useProductForm(props: ProductFormProps): ProductFormController {
       price: String(initialValues.price),
       activeLocale: initialLocale,
       translations,
-      customizationConfig: initialValues.customizationConfig,
+      customizationConfig: ProductCustomizationConfig.fromJson(
+        initialValues.customizationConfig,
+      )
+        .withCustomizableBase(images.customizableBase.length > 0)
+        .toJson(),
       images,
       selectedPhotoId:
         images.cover?.id ??
@@ -93,24 +98,9 @@ export function useProductForm(props: ProductFormProps): ProductFormController {
   const [saved, setSaved] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
-  const initialFormSnapshot = useMemo(
-    () =>
-      JSON.stringify({
-        price: String(initialValues.price),
-        translations: buildTranslationMap(initialLocale, initialValues),
-        customizationConfig: initialValues.customizationConfig,
-        images: normalizeInitialImages(labels, initialValues.images),
-      }),
-    [initialLocale, initialValues, labels],
-  );
+  const [initialFormSnapshot] = useState(() => snapshotForm(form));
   const unsavedGuard = useUnsavedChangesGuard(
-    mode === 'edit' &&
-      JSON.stringify({
-        price: form.price,
-        translations: form.translations,
-        customizationConfig: form.customizationConfig,
-        images: form.images,
-      }) !== initialFormSnapshot,
+    mode === 'edit' && snapshotForm(form) !== initialFormSnapshot,
     labels.unsavedChanges ?? {
       title: 'Unsaved changes',
       message: 'You have unsaved changes. Leave this page?',
@@ -152,4 +142,13 @@ export function useProductForm(props: ProductFormProps): ProductFormController {
     handleUpload,
     handleSubmit,
   };
+}
+
+function snapshotForm(form: FormState) {
+  return JSON.stringify({
+    price: form.price,
+    translations: form.translations,
+    customizationConfig: form.customizationConfig,
+    images: form.images,
+  });
 }

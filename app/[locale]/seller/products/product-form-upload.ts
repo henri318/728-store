@@ -40,7 +40,14 @@ export async function uploadProductPhoto(
     headers: { 'content-type': file.type },
     body: file,
   });
-  if (!uploadResponse.ok) throw new Error('File storage failed');
+  if (!uploadResponse.ok) {
+    try {
+      await fetch(`/api/uploads/${result.id}`, { method: 'DELETE' });
+    } catch {
+      // A failed cleanup remains eligible for the pending-upload cleanup job.
+    }
+    throw new Error('File storage failed');
+  }
 
   return {
     id: result.id,

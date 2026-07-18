@@ -136,6 +136,7 @@ describe('ProductForm', () => {
       <ProductForm
         locale="es"
         mode="edit"
+        productId="p-1"
         initialValues={{
           price: 1,
           translations: [
@@ -482,6 +483,42 @@ describe('ProductForm', () => {
     expect(event.defaultPrevented).toBe(true);
   });
 
+  it('does not mark normalized initial images dirty before they change', () => {
+    render(
+      <ProductForm
+        locale="es"
+        mode="edit"
+        productId="p-1"
+        initialValues={{
+          price: 19.99,
+          translations: [
+            {
+              locale: 'es',
+              name: 'Taza',
+              description: 'Base',
+              tags: [],
+              sizes: [],
+              designChangeDescription: null,
+            },
+          ],
+          customizationConfig: ProductCustomizationConfig.default().toJson(),
+          images: [
+            {
+              url: 'http://localhost:8081/products/taza.png',
+              alt: 'Taza',
+            },
+          ],
+        }}
+        labels={labels}
+      />,
+    );
+
+    const event = new Event('beforeunload', { cancelable: true });
+    globalThis.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
+  });
+
   it('includes translated tags and sizes in the edit-mode PATCH payload', async () => {
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
@@ -794,6 +831,75 @@ describe('ProductForm', () => {
       const img = screen.getByRole('img', { name: /mug blue/i });
       expect(img).toBeTruthy();
       expect(img.getAttribute('src')).toContain('/products/photo.png');
+    });
+  });
+
+  it('keeps successfully uploaded photos when another upload fails', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL, init) => {
+      const url = String(input);
+
+      if (url.includes('/api/uploads/presigned-url')) {
+        const body = JSON.parse(String(init?.body ?? '{}')) as {
+          fileName?: string;
+        };
+        if (body.fileName === 'failed.png') {
+          return Response.json({ error: 'Upload rejected' }, { status: 400 });
+        }
+        return Response.json(
+          {
+            id: 'successful-upload',
+            uploadUrl: 'https://uploads.example.com/successful.png',
+            publicUrl: 'http://localhost:8081/products/successful.png',
+          },
+          { status: 201 },
+        );
+      }
+
+      if (url === 'https://uploads.example.com/successful.png') {
+        return new Response(null, { status: 200 });
+      }
+
+      return new Response(null, { status: 200 });
+    });
+
+    render(
+      <ProductForm
+        locale="es"
+        mode="create"
+        initialValues={{
+          price: 19.99,
+          translations: [
+            {
+              locale: 'es',
+              name: 'Taza',
+              description: 'Base',
+              tags: [],
+              sizes: [],
+              designChangeDescription: null,
+            },
+          ],
+          customizationConfig: ProductCustomizationConfig.default().toJson(),
+          images: [],
+        }}
+        labels={labels}
+      />,
+    );
+
+    fireEvent.change(
+      screen.getByLabelText(labels.gallery.buckets.showcase.addPhotoLabel),
+      {
+        target: {
+          files: [
+            new File(['ok'], 'successful.png', { type: 'image/png' }),
+            new File(['no'], 'failed.png', { type: 'image/png' }),
+          ],
+        },
+      },
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('img', { name: /successful/i })).toBeTruthy();
+      expect(screen.getByText('Upload rejected')).toBeInTheDocument();
     });
   });
 });

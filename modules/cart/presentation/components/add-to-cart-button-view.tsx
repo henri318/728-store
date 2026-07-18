@@ -36,6 +36,7 @@ function feedbackFor(state: ButtonState, labels: CartButtonLabels) {
 
 function QuantityControls({ props }: { props: AddToCartButtonViewProps }) {
   const { labels, quantity, savingDesign, state } = props;
+  const controlsDisabled = props.disabled || savingDesign || state === 'adding';
   return (
     <div className={styles.quantityRow}>
       <div className={styles.quantityControls}>
@@ -43,7 +44,7 @@ function QuantityControls({ props }: { props: AddToCartButtonViewProps }) {
           type="button"
           className={styles.quantityButton}
           onClick={props.onDecrement}
-          disabled={savingDesign || quantity <= 1}
+          disabled={controlsDisabled || quantity <= 1}
           aria-label={labels.decreaseQuantity ?? 'Decrease quantity'}
         >
           −
@@ -55,7 +56,7 @@ function QuantityControls({ props }: { props: AddToCartButtonViewProps }) {
           type="button"
           className={styles.quantityButton}
           onClick={props.onIncrement}
-          disabled={savingDesign || quantity >= MAX_QUANTITY}
+          disabled={controlsDisabled || quantity >= MAX_QUANTITY}
           aria-label={labels.increaseQuantity ?? 'Increase quantity'}
         >
           +
@@ -66,7 +67,7 @@ function QuantityControls({ props }: { props: AddToCartButtonViewProps }) {
           type="button"
           className={styles.saveButton}
           onClick={props.onSaveDesign}
-          disabled={savingDesign || state === 'adding'}
+          disabled={controlsDisabled}
         >
           {savingDesign
             ? (labels.savingDesign ?? labels.saveDesign)
@@ -78,7 +79,7 @@ function QuantityControls({ props }: { props: AddToCartButtonViewProps }) {
           type="button"
           className={styles.saveButton}
           onClick={props.onAddAnother}
-          disabled={props.disabled || savingDesign || state === 'adding'}
+          disabled={controlsDisabled}
         >
           {state === 'adding'
             ? labels.adding
@@ -89,7 +90,7 @@ function QuantityControls({ props }: { props: AddToCartButtonViewProps }) {
         type="button"
         className={styles.iconButton}
         onClick={props.onRemove}
-        disabled={savingDesign}
+        disabled={controlsDisabled}
         aria-label={labels.removeFromCart}
       >
         <svg aria-hidden="true" width="36" height="36">
@@ -153,7 +154,12 @@ export function AddToCartButtonView(props: AddToCartButtonViewProps) {
     );
   }
   if (props.isInCart) return <QuantityControls props={props} />;
-  if (props.productInCart && props.hasCustomization && props.isAuthenticated) {
+  if (
+    props.productInCart &&
+    props.hasCustomization &&
+    props.isAuthenticated &&
+    props.labels.addAnotherPersonalization
+  ) {
     return (
       <div className={styles.quantityRow}>
         <button

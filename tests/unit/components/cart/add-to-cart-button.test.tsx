@@ -837,6 +837,84 @@ describe('AddToCartButton', () => {
       });
       expect(plusBtn).toBeDisabled();
     });
+
+    it('prioritizes editCartItemId over customization matching for a guest line', () => {
+      mockUseGuestCart.mockReturnValue({
+        items: [
+          {
+            id: 'guest-item-being-edited',
+            productId: 'prod-1',
+            sellerId: 'seller-1',
+            quantity: 4,
+            unitPriceSnapshot: 29.99,
+            customizationText: 'Original design',
+          },
+        ],
+        itemCount: 4,
+        addItem: mockAddItem,
+        updateQuantity: mockUpdateQuantity,
+        removeItem: mockRemoveItem,
+        updateItemQuantity: mockUpdateQuantity,
+        removeItemById: mockRemoveItem,
+        updateCustomization: vi.fn(),
+        updateItemCustomization: vi.fn(),
+        clearCart: vi.fn(),
+        hydrated: true,
+      });
+
+      render(
+        <AddToCartButton
+          {...defaultProps}
+          editCartItemId="guest-item-being-edited"
+          customization={{ text: 'Changed design' }}
+        />,
+      );
+
+      expect(screen.getByText('4')).toBeInTheDocument();
+    });
+
+    it('disables every cart action when the button is disabled', () => {
+      mockUseGuestCart.mockReturnValue({
+        items: [
+          {
+            id: 'guest-item-1',
+            productId: 'prod-1',
+            sellerId: 'seller-1',
+            quantity: 3,
+            unitPriceSnapshot: 29.99,
+            customizationText: 'Design',
+          },
+        ],
+        itemCount: 3,
+        addItem: mockAddItem,
+        updateQuantity: mockUpdateQuantity,
+        removeItem: mockRemoveItem,
+        updateItemQuantity: mockUpdateQuantity,
+        removeItemById: mockRemoveItem,
+        updateCustomization: vi.fn(),
+        updateItemCustomization: vi.fn(),
+        clearCart: vi.fn(),
+        hydrated: true,
+      });
+      render(
+        <AddToCartButton
+          {...defaultProps}
+          disabled
+          customization={{ text: 'Design' }}
+        />,
+      );
+
+      expect(
+        screen.getByRole('button', { name: /decrease quantity/i }),
+      ).toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: /increase quantity/i }),
+      ).toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: /save design/i }),
+      ).toBeDisabled();
+      expect(screen.getByRole('button', { name: /remove/i })).toBeDisabled();
+    });
   });
 
   describe('quantity controls — authenticated user', () => {
@@ -1005,6 +1083,127 @@ describe('AddToCartButton', () => {
           screen.getByRole('button', { name: /add to cart/i }),
         ).toBeTruthy();
       });
+    });
+
+    it('does not render the authenticated add-another action without a localized label', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          items: [
+            {
+              id: 'cart-item-1',
+              productId: 'prod-1',
+              quantity: 1,
+              customizations: [{ text: 'Existing design' }],
+            },
+          ],
+        }),
+      });
+
+      render(
+        <AddToCartButton
+          {...defaultProps}
+          customization={{ text: 'New design' }}
+          labels={{
+            ...defaultProps.labels,
+            addAnotherPersonalization: undefined,
+          }}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.queryByRole('button', { name: /add another/i }),
+        ).not.toBeInTheDocument();
+      });
+    });
+
+    it('derives a new match from the loaded cart without another GET request', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          items: [
+            {
+              id: 'cart-item-a',
+              productId: 'prod-1',
+              quantity: 1,
+              customizations: [{ text: 'First design' }],
+            },
+            {
+              id: 'cart-item-b',
+              productId: 'prod-1',
+              quantity: 2,
+              customizations: [{ text: 'Second design' }],
+            },
+          ],
+        }),
+      });
+
+      const { rerender } = render(
+        <AddToCartButton
+          {...defaultProps}
+          customization={{ text: 'First design' }}
+        />,
+      );
+
+      await waitFor(() => expect(screen.getByText('1')).toBeInTheDocument());
+      rerender(
+        <AddToCartButton
+          {...defaultProps}
+          customization={{ text: 'Second design' }}
+        />,
+      );
+
+      expect(screen.getByText('2')).toBeInTheDocument();
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps a later optimistic quantity when an earlier request fails', async () => {
+      const { promise: firstUpdate, reject: rejectFirstUpdate } =
+        Promise.withResolvers<never>();
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          items: [{ id: 'cart-item-1', productId: 'prod-1', quantity: 2 }],
+        }),
+      });
+      mockFetch.mockImplementationOnce(() => firstUpdate);
+      mockFetch.mockResolvedValueOnce({ ok: true });
+
+      render(<AddToCartButton {...defaultProps} />);
+
+      await waitFor(() => expect(screen.getByText('2')).toBeInTheDocument());
+      fireEvent.click(
+        screen.getByRole('button', { name: /increase quantity/i }),
+      );
+      fireEvent.click(
+        screen.getByRole('button', { name: /increase quantity/i }),
+      );
+      await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(3));
+
+      rejectFirstUpdate(new Error('Network error'));
+
+      await waitFor(() => expect(screen.getByText('4')).toBeInTheDocument());
+      expect(screen.getByText('Error')).toBeInTheDocument();
+    });
+
+    it('reports failures after optimistic quantity and removal mutations', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          items: [{ id: 'cart-item-1', productId: 'prod-1', quantity: 1 }],
+        }),
+      });
+      mockFetch.mockResolvedValueOnce({ ok: false });
+
+      render(<AddToCartButton {...defaultProps} />);
+
+      await waitFor(() => expect(screen.getByText('1')).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: /remove/i }));
+
+      await waitFor(() =>
+        expect(screen.getByText('Error')).toBeInTheDocument(),
+      );
     });
   });
 });

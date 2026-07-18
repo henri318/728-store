@@ -49,9 +49,15 @@ export function useAuthenticatedCartActions({
       } catch {
         // Restore the optimistic quantity below.
       }
-      setCartItemInfo(previous);
+      setCartItemInfo((current) =>
+        current?.cartItemId === previous.cartItemId &&
+        current.quantity === nextQuantity
+          ? previous
+          : current,
+      );
+      onFailure();
     },
-    [cartItemInfo, setCartItemInfo],
+    [cartItemInfo, onFailure, setCartItemInfo],
   );
 
   const saveDesign = useCallback(
@@ -86,8 +92,9 @@ export function useAuthenticatedCartActions({
     } catch {
       // Restore the optimistic removal below.
     }
-    setCartItemInfo(previous);
-  }, [cartItemInfo, setCartItemInfo]);
+    setCartItemInfo((current) => (current === null ? previous : current));
+    onFailure();
+  }, [cartItemInfo, onFailure, setCartItemInfo]);
 
   return { addItem, updateQuantity, saveDesign, removeItem };
 }

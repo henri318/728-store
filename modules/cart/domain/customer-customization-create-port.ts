@@ -16,6 +16,6 @@ export interface CustomerCustomizationCreatePort {
   create(
     input: CustomerCustomizationInput & { productId: string },
     userId: string,
-    tx?: unknown,
+    tx: object,
   ): Promise<{ id: string; productId: string }>;
 }

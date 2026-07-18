@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { UpdateCartItemQuantity } from '@/modules/cart/application/update-cart-item';
 import { MemoryCartRepository } from '@/tests/doubles/memory-cart-repository';
 import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
+import { MemoryCustomizationLookup } from '@/tests/doubles/memory-customization-lookup';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
 import { CartStatus } from '@/modules/cart/domain/value-objects/cart-status';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
@@ -13,6 +14,7 @@ import {
   InvalidQuantityError,
   ForbiddenError,
   CartImmutableError,
+  InvalidCustomizationError,
 } from '@/modules/cart/domain/errors';
 import type { CartEntity } from '@/modules/cart/domain/entities/cart';
 import type { CartItemEntity } from '@/modules/cart/domain/entities/cart-item';
@@ -24,12 +26,14 @@ import type { TransactionRunner } from '@/shared/kernel/transaction-runner';
 
 class TransactionalCustomizationCreator implements CustomerCustomizationCreatePort {
   readonly committed: CustomerCustomizationInput[] = [];
+  readonly createCalls: CustomerCustomizationInput[] = [];
 
   async create(
     input: CustomerCustomizationInput & { productId: string },
     _userId: string,
-    tx?: unknown,
+    tx: object,
   ): Promise<{ id: string; productId: string }> {
+    this.createCalls.push(input);
     (
       tx as { customizations: CustomerCustomizationInput[] }
     ).customizations.push(input);
@@ -94,12 +98,23 @@ const makeCart = (overrides: Partial<CartEntity> = {}): CartEntity => ({
 describe('UpdateCartItemQuantity', () => {
   let cartRepo: MemoryCartRepository;
   let outboxRepo: MemoryOutboxRepository;
+  let customizationLookup: MemoryCustomizationLookup;
   let useCase: UpdateCartItemQuantity;
 
   beforeEach(async () => {
     cartRepo = new MemoryCartRepository();
     outboxRepo = new MemoryOutboxRepository();
-    useCase = new UpdateCartItemQuantity(cartRepo, outboxRepo);
+    customizationLookup = new MemoryCustomizationLookup();
+    useCase = new UpdateCartItemQuantity(
+      cartRepo,
+      outboxRepo,
+      customizationLookup,
+    );
+    customizationLookup.seed([
+      { id: 'c1', productId: 'p1' },
+      { id: 'c2', productId: 'p2' },
+      { id: 'created-customization', productId: 'p1' },
+    ]);
 
     // Seed a basic active cart with one item.
     await cartRepo.save(
@@ -151,6 +166,7 @@ describe('UpdateCartItemQuantity', () => {
     const transactionalUseCase = new UpdateCartItemQuantity(
       failingCartRepo,
       outboxRepo,
+      customizationLookup,
       new RecordingTransactionRunner(creator),
       creator,
     );
@@ -165,8 +181,55 @@ describe('UpdateCartItemQuantity', () => {
     ).rejects.toThrow('Cart save failed');
 
     expect(creator.committed).toEqual([]);
+    expect(creator.createCalls).toEqual([
+      { productId: 'p1', text: 'Atomic design' },
+    ]);
     const cart = await failingCartRepo.findActiveByUserId('u1');
     expect(cart?.items[0]).toMatchObject({ customizationIdList: [] });
+  });
+
+  it('validates and deduplicates supplied customization IDs for the item product', async () => {
+    const item = await useCase.execute({
+      userId: 'u1',
+      itemId: 'i1',
+      quantity: 2,
+      customizationIdList: ['c1', 'c1'],
+    });
+
+    expect(item.customizationIdList).toEqual(['c1']);
+  });
+
+  it('rejects supplied customizations from another product', async () => {
+    await expect(
+      useCase.execute({
+        userId: 'u1',
+        itemId: 'i1',
+        quantity: 2,
+        customizationIdList: ['c2'],
+      }),
+    ).rejects.toBeInstanceOf(InvalidCustomizationError);
+  });
+
+  it('rejects a configured customization creator without a transaction runner', async () => {
+    const creator = new TransactionalCustomizationCreator();
+    const nonTransactionalUseCase = new UpdateCartItemQuantity(
+      cartRepo,
+      outboxRepo,
+      customizationLookup,
+      undefined,
+      creator,
+    );
+
+    await expect(
+      nonTransactionalUseCase.execute({
+        userId: 'u1',
+        itemId: 'i1',
+        quantity: 2,
+        customization: { text: 'Atomic design' },
+      }),
+    ).rejects.toThrow('Transaction runner is required');
+
+    expect(creator.createCalls).toEqual([]);
   });
 
   it('decreases quantity', async () => {

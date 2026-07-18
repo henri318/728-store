@@ -35,21 +35,25 @@ export function useAddToCartButton(props: AddToCartButtonProps) {
     editCartItemId: props.editCartItemId,
     customization: normalizedCustomization,
   });
-  const guestMatch = isAuthenticated
-    ? undefined
-    : guestCart.items.find(
-        (item) =>
-          item.productId === props.productId &&
-          isCustomizationMatching(
-            {
-              text: item.customizationText,
-              color: item.customizationColor,
-              size: item.customizationSize,
-              imageUrl: item.customizationImageUrl,
-            },
-            normalizedCustomization,
-          ),
-      );
+  let guestMatch: (typeof guestCart.items)[number] | undefined;
+  if (!isAuthenticated) {
+    guestMatch = props.editCartItemId
+      ? guestCart.items.find((item) => item.id === props.editCartItemId)
+      : guestCart.items.find(
+          (item) =>
+            item.productId === props.productId &&
+            isCustomizationMatching(
+              {
+                text: item.customizationText,
+                color: item.customizationColor,
+                size: item.customizationSize,
+                imageUrl: item.customizationImageUrl,
+                designPosition: item.customizationDesignPosition,
+              },
+              normalizedCustomization,
+            ),
+        );
+  }
   const fail = useCallback(() => {
     setState('error');
     setTimeout(() => setState('idle'), 3000);

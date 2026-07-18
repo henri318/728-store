@@ -13,7 +13,7 @@ export class CartCustomerCustomizationCreator implements CustomerCustomizationCr
   async create(
     input: Parameters<CustomerCustomizationCreatePort['create']>[0],
     userId: string,
-    tx?: unknown,
+    tx: object,
   ) {
     return new CreateCustomerCustomization(
       this.repository,

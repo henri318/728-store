@@ -1,4 +1,5 @@
 import type { ZodError } from 'zod';
+import { ProductCustomizationConfig } from '@/modules/products/domain/value-objects/product-customization-config';
 import { productFormSchema } from '@/modules/products/presentation/schemas/product-form-schema';
 import { photoIdsFor } from './product-form-image-helpers';
 import { cleanPhotoLabels } from './product-form-translation-helpers';
@@ -11,12 +12,10 @@ import type {
 export function buildPayload(locale: SupportedLocale, form: FormState) {
   const current = form.translations[locale];
   const hasCustomizableBase = form.images.customizableBase.length > 0;
-  const effectiveMode =
-    hasCustomizableBase && form.customizationConfig?.mode === 'description'
-      ? 'text_photo'
-      : form.customizationConfig?.mode;
   const customizationConfig = form.customizationConfig
-    ? { ...form.customizationConfig, mode: effectiveMode }
+    ? ProductCustomizationConfig.fromJson(form.customizationConfig)
+        .withCustomizableBase(hasCustomizableBase)
+        .toJson()
     : undefined;
   const photoIds = photoIdsFor(form.images);
   const translations = Object.values(form.translations)
@@ -89,8 +88,20 @@ export function mapErrors(error: ZodError): FormErrors {
   const errors: FormErrors = {};
   for (const issue of error.issues) {
     const path = issue.path[0] as keyof FormErrors | undefined;
-    if (path !== undefined && !Object.hasOwn(errors, path)) {
+    if (
+      path !== undefined &&
+      [
+        'name',
+        'description',
+        'price',
+        'images',
+        'customizationConfig',
+      ].includes(path) &&
+      !Object.hasOwn(errors, path)
+    ) {
       errors[path] = issue.message;
+    } else if (!errors.general) {
+      errors.general = issue.message;
     }
   }
   return errors;

@@ -1,4 +1,7 @@
-import type { CustomizationDraftPayload } from './customization-draft-schema';
+import type {
+  CustomizationDraftPayload,
+  DesignPositionPayload,
+} from './customization-draft-schema';
 
 export interface CartApiItem {
   id: string;
@@ -9,6 +12,7 @@ export interface CartApiItem {
     color?: string | null;
     size?: string | null;
     imageUrl?: string | null;
+    designPosition?: DesignPositionPayload | null;
   }>;
 }
 

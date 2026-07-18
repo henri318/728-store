@@ -11,6 +11,7 @@ interface CustomizationFields {
   color?: string | null;
   size?: string | null;
   imageUrl?: string | null;
+  designPosition?: Record<string, unknown> | null;
 }
 
 interface CartItem extends CustomizationFields {
@@ -41,8 +42,24 @@ export function isCustomizationMatching(
     (fields.text ?? null) === (normalized.text ?? null) &&
     (fields.color ?? null) === (normalized.color ?? null) &&
     (fields.size ?? null) === (normalized.size ?? null) &&
-    (fields.imageUrl ?? null) === (normalized.imageUrl ?? null)
+    (fields.imageUrl ?? null) === (normalized.imageUrl ?? null) &&
+    stableSerialize(fields.designPosition ?? null) ===
+      stableSerialize(normalized.designPosition ?? null)
   );
+}
+
+function stableSerialize(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map((entry) => stableSerialize(entry)).join(',')}]`;
+  }
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    return `{${Object.keys(record)
+      .toSorted((left, right) => left.localeCompare(right))
+      .map((key) => `${JSON.stringify(key)}:${stableSerialize(record[key])}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value);
 }
 
 export function findCartItemInfo(

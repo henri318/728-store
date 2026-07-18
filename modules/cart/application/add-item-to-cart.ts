@@ -101,6 +101,15 @@ export class AddItemToCart {
   }
 
   async execute(dto: AddItemToCartDTO): Promise<CartItemEntity> {
+    if (dto.customization && !this.customizationCreator) {
+      throw new Error('Customer customization creator is not configured');
+    }
+    if (dto.customization && !this.txRunner) {
+      throw new Error(
+        'Transaction runner is required for customer customization',
+      );
+    }
+
     const run = <T>(fn: (tx: unknown) => Promise<T>) =>
       this.txRunner ? this.txRunner.run(fn) : fn(undefined);
 
@@ -121,7 +130,7 @@ export class AddItemToCart {
       // 3. Validate customizations (if any). Deduplicate first — duplicate
       //    IDs would cause the length check in validateCustomizations to
       //    falsely reject a valid list.
-      const customizationIdList = [...new Set(dto.customizationIdList)];
+      let customizationIdList = [...new Set(dto.customizationIdList)];
       if (customizationIdList.length > 0) {
         await this.validateCustomizations(
           customizationIdList,
@@ -131,10 +140,10 @@ export class AddItemToCart {
       }
 
       if (dto.customization) {
-        if (!this.customizationCreator) {
-          throw new Error('Customer customization creator is not configured');
+        if (!tx || typeof tx !== 'object') {
+          throw new Error('Transaction runner did not provide a transaction');
         }
-        const customization = await this.customizationCreator.create(
+        const customization = await this.customizationCreator!.create(
           { productId: dto.productId, ...dto.customization },
           dto.userId,
           tx,
@@ -145,7 +154,9 @@ export class AddItemToCart {
             'Customization is not available for this product',
           );
         }
-        customizationIdList.push(customization.id);
+        customizationIdList = [
+          ...new Set([...customizationIdList, customization.id]),
+        ];
       }
 
       // 4. Find or create the ACTIVE cart for the user. Spec REQ-CART-001

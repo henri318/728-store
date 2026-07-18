@@ -34,15 +34,16 @@ export function useProductFormSubmission({
   setServerError,
 }: ProductFormSubmissionOptions) {
   const router = useRouter();
-  const endpoint =
-    mode === 'create' ? '/api/products' : `/api/products/${productId}`;
-
   const handleSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       setServerError(null);
       setSaved(null);
       setErrors({});
+      if (mode === 'edit' && !productId) {
+        setServerError(labels.error);
+        return;
+      }
       const missingLocale = findTranslationWithMissingName(form);
       if (missingLocale) {
         setForm((current) => ({ ...current, activeLocale: missingLocale }));
@@ -60,6 +61,8 @@ export function useProductFormSubmission({
       }
       setLoading(true);
       try {
+        const endpoint =
+          mode === 'create' ? '/api/products' : `/api/products/${productId}`;
         const response = await fetch(endpoint, {
           method: mode === 'create' ? 'POST' : 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -84,11 +87,11 @@ export function useProductFormSubmission({
       }
     },
     [
-      endpoint,
       form,
       labels,
       locale,
       mode,
+      productId,
       router,
       setErrors,
       setForm,

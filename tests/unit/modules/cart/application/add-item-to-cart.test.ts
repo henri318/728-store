@@ -24,12 +24,14 @@ import type { TransactionRunner } from '@/shared/kernel/transaction-runner';
 
 class TransactionalCustomizationCreator implements CustomerCustomizationCreatePort {
   readonly committed: CustomerCustomizationInput[] = [];
+  readonly createCalls: CustomerCustomizationInput[] = [];
 
   async create(
     input: CustomerCustomizationInput & { productId: string },
     _userId: string,
-    tx?: unknown,
+    tx: object,
   ): Promise<{ id: string; productId: string }> {
+    this.createCalls.push(input);
     (
       tx as { customizations: CustomerCustomizationInput[] }
     ).customizations.push(input);
@@ -103,6 +105,7 @@ describe('AddItemToCart', () => {
       { id: 'c2', productId: 'p1', text: 'World', color: 'blue', size: 'L' },
       { id: 'c3', productId: 'p2', text: 'Foo', color: 'green', size: 'S' },
       { id: 'c4', productId: 'p3', text: 'Bar', color: 'black', size: 'XL' },
+      { id: 'created-customization', productId: 'p1' },
     ]);
   });
 
@@ -165,7 +168,33 @@ describe('AddItemToCart', () => {
     ).rejects.toThrow('Cart save failed');
 
     expect(creator.committed).toEqual([]);
+    expect(creator.createCalls).toEqual([
+      { productId: 'p1', text: 'Atomic design' },
+    ]);
     expect(await failingCartRepo.findActiveByUserId('u1')).toBeNull();
+  });
+
+  it('rejects a configured customization creator without a transaction runner', async () => {
+    const creator = new TransactionalCustomizationCreator();
+    const nonTransactionalUseCase = new AddItemToCart(
+      cartRepo,
+      productRepo,
+      outboxRepo,
+      customizationLookup,
+      undefined,
+      creator,
+    );
+
+    await expect(
+      nonTransactionalUseCase.execute({
+        userId: 'u1',
+        productId: 'p1',
+        quantity: 1,
+        customization: { text: 'Atomic design' },
+      }),
+    ).rejects.toThrow('Transaction runner is required');
+
+    expect(creator.createCalls).toEqual([]);
   });
 
   it('reuses the existing ACTIVE cart on subsequent adds (no second CartCreated)', async () => {
