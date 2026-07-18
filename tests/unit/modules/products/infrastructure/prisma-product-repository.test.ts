@@ -184,6 +184,25 @@ describe('PrismaProductRepository', () => {
     });
   });
 
+  it('loads only the requested product IDs', async () => {
+    mocks.prismaMock.product.findMany.mockResolvedValue([]);
+
+    await repo.findByIds(['product-1', 'product-2'], 'es');
+
+    expect(mocks.prismaMock.product.findMany).toHaveBeenCalledWith({
+      where: { id: { in: ['product-1', 'product-2'] } },
+      include: {
+        seller: true,
+        category: { include: { translations: true } },
+        translations: true,
+        images: {
+          orderBy: [{ purpose: 'asc' }, { position: 'asc' }],
+        },
+        tags: true,
+      },
+    });
+  });
+
   it('finds only active products with Spanish and Catalan translations for the sitemap', async () => {
     const sitemapProducts = [
       { id: 'product-1', updatedAt: new Date('2025-01-02T00:00:00.000Z') },

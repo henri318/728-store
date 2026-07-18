@@ -5,7 +5,6 @@ import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { orderListQuerySchema } from '@/modules/orders/presentation/schemas/order-schemas';
-import { ListSellerOrdersUseCase } from '@/modules/orders/application/list-seller-orders-use-case';
 import { NotFoundError } from '@/shared/kernel/app-error';
 
 import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
@@ -50,10 +49,7 @@ export default async function SellerOrdersPage({
         pageSize: DEFAULT_ORDER_PAGE_SIZE,
         sortDir: 'desc' as const,
       };
-  const useCase = new ListSellerOrdersUseCase(
-    container.getSellerLookup(),
-    container.getOrderRepository(),
-  );
+  const useCase = container.getListSellerOrdersUseCase();
 
   let result;
   try {

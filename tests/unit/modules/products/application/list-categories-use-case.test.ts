@@ -54,4 +54,20 @@ describe('ListCategoriesUseCase', () => {
     const result = await new ListCategoriesUseCase(repo).execute('es');
     expect(result.map((item) => item.id)).toEqual(['a', 'ropa']);
   });
+
+  it('returns localized category options for presentation', async () => {
+    const repo: CategoryRepository = {
+      findAll: vi.fn(async () => [category('ropa', 'Ropa', 'Roba')]),
+      findById: vi.fn(),
+      findBySlug: vi.fn(),
+      save: vi.fn(),
+      delete: vi.fn(),
+      countProducts: vi.fn(),
+      update: vi.fn(),
+    };
+
+    await expect(
+      new ListCategoriesUseCase(repo).executeOptions('cat'),
+    ).resolves.toEqual([{ id: 'ropa', name: 'Roba' }]);
+  });
 });

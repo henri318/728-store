@@ -179,6 +179,25 @@ export class PrismaProductRepository implements ProductRepository {
     return toDomainProduct(product);
   }
 
+  async findByIds(ids: string[], _locale: string): Promise<ProductEntity[]> {
+    if (ids.length === 0) return [];
+
+    const products = await prisma.product.findMany({
+      where: { id: { in: ids } },
+      include: {
+        seller: true,
+        category: { include: { translations: true } },
+        translations: true,
+        images: {
+          orderBy: [{ purpose: 'asc' }, { position: 'asc' }],
+        },
+        tags: true,
+      },
+    });
+
+    return products.map((product) => toDomainProduct(product));
+  }
+
   async findBySellerId(
     sellerId: string,
     _locale: string,

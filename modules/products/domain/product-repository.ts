@@ -46,6 +46,7 @@ export interface ProductRepository {
     locale: string,
     audience?: ProductAudience,
   ): Promise<ProductEntity | null>;
+  findByIds(ids: string[], locale: string): Promise<ProductEntity[]>;
   findBySellerId(sellerId: string, locale: string): Promise<ProductEntity[]>;
   findPaginated(
     filter: ProductsListFilter,

@@ -1,6 +1,5 @@
 import type { ProductRepository as ProductsModuleRepository } from '@/modules/products/domain/product-repository';
 import type { ProductRepository } from '../domain/product-repository';
-import type { ProductEntity } from '../../products/domain/entities/product';
 import type { ProductSnapshot } from '../domain/product-snapshot';
 
 /**
@@ -32,16 +31,11 @@ export class OrderProductRepositoryAdapter implements ProductRepository {
   }
 
   async findByIds(ids: string[], locale?: string): Promise<ProductSnapshot[]> {
-    const products: Array<ProductEntity | null> = [];
-    for (const id of ids) {
-      products.push(await this.delegate.findById(id, locale ?? 'es'));
-    }
-    return products
-      .filter((p): p is NonNullable<typeof p> => p !== null)
-      .map((p) => ({
-        id: p.id,
-        basePrice: p.basePrice.amount,
-        sellerId: p.sellerId,
-      }));
+    const products = await this.delegate.findByIds(ids, locale ?? 'es');
+    return products.map((product) => ({
+      id: product.id,
+      basePrice: product.basePrice.amount,
+      sellerId: product.sellerId,
+    }));
   }
 }

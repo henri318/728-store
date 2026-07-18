@@ -1,6 +1,7 @@
 .productGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  align-items: start;
   gap: var(--spacing-lg);
   padding: 0 5%;
   position: relative;
@@ -36,6 +37,12 @@
   border-radius: 16px;
   overflow: hidden;
   aspect-ratio: 1 / 1;
+}
+
+.productCoverLink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
 }
 
 .productCoverImage {
@@ -308,6 +315,11 @@
   .productGrid {
     grid-template-columns: repeat(2, 1fr);
     padding: 0 var(--spacing-md);
+  }
+
+  .productDescription,
+  .descriptionToggle {
+    display: none;
   }
 }
 

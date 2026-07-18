@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 import { container } from '@/composition-root/container';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { NotFoundError } from '@/shared/kernel/app-error';
-import { GetSellerUseCase } from '@/modules/sellers/application/use-cases/get-seller-use-case';
 import { requireAdmin } from '@/shared/authorization/require-admin';
 import { BackLink } from '@/shared/ui/back-link';
 import { Card } from '@/shared/ui/card';
@@ -19,8 +18,7 @@ export default async function AdminSellerDetailPage({
   await requireAdmin(locale);
 
   const dict = await getDictionary(locale as 'es' | 'cat');
-  const sellerRepository = container.getSellerRepository();
-  const getSeller = new GetSellerUseCase(sellerRepository);
+  const getSeller = container.getSellerUseCase();
 
   let seller;
   try {

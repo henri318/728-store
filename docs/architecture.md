@@ -42,6 +42,19 @@ Each module is independent and contains:
 
 # Presentation Layer
 
+## Page Boundary
+
+Next.js pages are presentation adapters. They may obtain the session, locale,
+dictionary, and application use cases from the composition root, then map their
+results to UI props.
+
+- Pages MUST NOT import or access Prisma.
+- Pages MUST NOT obtain or query repositories, ports, or infrastructure adapters.
+- Pages MUST NOT construct use cases with repository dependencies.
+- Pages MUST delegate data loading, authorization, ownership checks, and DTO
+  construction to an application use case.
+- The composition root owns use-case construction and infrastructure wiring.
+
 Each module's `presentation/` layer contains:
 
 - **`schemas/`** -- Zod validation schemas for the module's data.

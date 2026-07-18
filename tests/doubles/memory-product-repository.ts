@@ -63,6 +63,17 @@ export class MemoryProductRepository implements ProductRepository {
     };
   }
 
+  async findByIds(ids: string[], _locale: string): Promise<ProductEntity[]> {
+    const wanted = new Set(ids);
+    return this.products
+      .filter((product) => wanted.has(product.id))
+      .map((product) => ({
+        ...product,
+        category: this.deriveCategory(product.categoryId),
+        translations: product.translations,
+      }));
+  }
+
   async findBySellerId(
     sellerId: string,
     _locale: string,

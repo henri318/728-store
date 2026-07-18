@@ -1,5 +1,4 @@
 import { container } from '@/composition-root/container';
-import { GetProductByIdUseCase } from '@/modules/products/application/get-product-by-id-use-case';
 import { serializeProduct } from '@/modules/products/presentation/product-response';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { resolveProductViewerContext } from '@/shared/authorization/product-viewer-context';
@@ -17,8 +16,7 @@ import styles from './page.module.css';
 import type { ProductShowcaseMedia } from './product-showcase-gallery';
 
 async function getPublicProduct(id: string, locale: string) {
-  const repository = container.getProductRepository();
-  return new GetProductByIdUseCase(repository).execute(id, locale, 'public');
+  return container.getProductByIdUseCase().execute(id, locale, 'public');
 }
 
 function firstQueryValue(value: string | string[] | undefined) {

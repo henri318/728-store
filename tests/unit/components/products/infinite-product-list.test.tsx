@@ -177,6 +177,35 @@ describe('InfiniteProductList', () => {
     );
   });
 
+  it('keeps description expansion scoped to the selected product card', () => {
+    const description = 'A '.repeat(120).trim();
+    render(
+      <InfiniteProductList
+        initialItems={[
+          {
+            ...makeProduct('p1', 'Mug'),
+            translations: [{ locale: 'es', name: 'Mug', description }],
+          },
+          {
+            ...makeProduct('p2', 'Lamp'),
+            translations: [{ locale: 'es', name: 'Lamp', description }],
+          },
+        ]}
+        pageSize={10}
+        q=""
+        locale="es"
+        labels={baseLabels}
+      />,
+    );
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Ver más' })[0]);
+
+    expect(screen.getAllByRole('button', { name: 'Ver menos' })).toHaveLength(
+      1,
+    );
+    expect(screen.getAllByRole('button', { name: 'Ver más' })).toHaveLength(1);
+  });
+
   it('does not show a description toggle for short descriptions', () => {
     render(
       <InfiniteProductList
@@ -213,6 +242,27 @@ describe('InfiniteProductList', () => {
       'crossorigin',
       'anonymous',
     );
+  });
+
+  it('links the cover image to the localized product detail page', () => {
+    render(
+      <InfiniteProductList
+        initialItems={[
+          {
+            ...makeProduct('abc', 'Mug'),
+            cover: { url: '/cover.jpg', alt: 'Mug cover' },
+          },
+        ]}
+        pageSize={10}
+        q=""
+        locale="cat"
+        labels={baseLabels}
+      />,
+    );
+
+    expect(
+      screen.getByRole('link', { name: 'Ver Detalles: Mug' }),
+    ).toHaveAttribute('href', '/cat/products/abc');
   });
 
   it('shows a placeholder when a cover is missing', () => {

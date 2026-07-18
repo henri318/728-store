@@ -7,8 +7,6 @@ import {
   SearchInputWithSuggestions,
   type RecentSearchSuggestion,
 } from '@/components/products/search-input-with-suggestions';
-import { GetRecentSearchesUseCase } from '@/modules/search-history/application/get-recent-searches-use-case';
-import { ProductListQueryUseCase } from '@/modules/products/application/product-list-query-use-case';
 import { serializeProduct } from '@/modules/products/presentation/product-response';
 
 const PUBLIC_PAGE_SIZE = 12;
@@ -31,10 +29,7 @@ export default async function HomePage({
   // emit PRODUCT_SEARCH_EXECUTED and the search-history module records
   // the term for authenticated users.
   const session = await container.getSession().getSession();
-  const useCase = new ProductListQueryUseCase(
-    container.getProductRepository(),
-    container.getOutboxRepository(), // needed for the event emission
-  );
+  const useCase = container.getProductListQueryUseCase();
   const initial = await useCase.execute({
     audience: 'public',
     pageSize: PUBLIC_PAGE_SIZE,
@@ -50,9 +45,9 @@ export default async function HomePage({
   // are ever written by the search feature.
   let recent: RecentSearchSuggestion[] | null = null;
   if (session) {
-    const entries = await new GetRecentSearchesUseCase(
-      container.getSearchHistoryRepository(),
-    ).execute({ userId: session.id, locale });
+    const entries = await container
+      .getRecentSearchesUseCase()
+      .execute({ userId: session.id, locale });
     recent = entries.map((e) => ({
       term: e.term,
       searchedAt: e.searchedAt.toISOString(),
