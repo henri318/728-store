@@ -348,6 +348,7 @@ describe('InfiniteProductList', () => {
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('q=ceramic'),
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
       );
     });
   });
@@ -377,6 +378,32 @@ describe('InfiniteProductList', () => {
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent(/Failed to load/);
     });
+  });
+
+  it('aborts an in-flight page request when unmounted', async () => {
+    let signal: AbortSignal | undefined;
+    mockFetch.mockImplementationOnce((_url: string, options?: RequestInit) => {
+      signal = options?.signal ?? undefined;
+      return new Promise(() => {});
+    });
+    const initial = Array.from({ length: 10 }, (_, i) =>
+      makeProduct(`p${i}`, `Item ${i}`),
+    );
+    const { unmount } = render(
+      <InfiniteProductList
+        initialItems={initial}
+        pageSize={10}
+        q=""
+        locale="es"
+        labels={baseLabels}
+      />,
+    );
+
+    triggerIntersection();
+    await waitFor(() => expect(signal).toBeDefined());
+    unmount();
+
+    expect(signal?.aborted).toBe(true);
   });
 
   it('renders an aria-live polite region for screen-reader announcements', () => {

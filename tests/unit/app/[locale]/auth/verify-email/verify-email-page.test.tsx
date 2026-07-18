@@ -71,4 +71,38 @@ describe('VerifyEmailPage', () => {
       ).toBeInTheDocument();
     });
   });
+
+  it('aborts an obsolete token request when the token changes', async () => {
+    let firstSignal: AbortSignal | undefined;
+    vi.mocked(useSearchParams).mockReturnValue(
+      new URLSearchParams('token=first') as unknown as ReturnType<
+        typeof useSearchParams
+      >,
+    );
+    mockFetch
+      .mockImplementationOnce((_url: string, options?: RequestInit) => {
+        firstSignal = options?.signal ?? undefined;
+        return new Promise(() => {});
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true }),
+      });
+
+    const { rerender } = render(<VerifyEmailPage />);
+    await waitFor(() => expect(firstSignal).toBeDefined());
+    vi.mocked(useSearchParams).mockReturnValue(
+      new URLSearchParams('token=second') as unknown as ReturnType<
+        typeof useSearchParams
+      >,
+    );
+    rerender(<VerifyEmailPage />);
+
+    await waitFor(() => {
+      expect(firstSignal?.aborted).toBe(true);
+      expect(
+        screen.getByText('Correo electrónico verificado correctamente'),
+      ).toBeInTheDocument();
+    });
+  });
 });

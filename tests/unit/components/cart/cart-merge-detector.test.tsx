@@ -1,17 +1,19 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { StrictMode } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { CartMergeDetector } from '@/modules/cart/presentation/components/cart-merge-detector';
 
 const mockRefresh = vi.fn();
 const mockFetch = vi.fn();
 const mockClearCart = vi.fn();
+const mockUseSession = vi.fn();
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: mockRefresh }),
 }));
 
 vi.mock('next-auth/react', () => ({
-  useSession: () => ({ status: 'authenticated' }),
+  useSession: () => mockUseSession(),
 }));
 
 vi.mock('@/modules/cart/presentation/guest-cart-context', () => ({
@@ -45,6 +47,7 @@ describe('CartMergeDetector', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', mockFetch);
+    mockUseSession.mockReturnValue({ status: 'authenticated', data: null });
   });
 
   afterEach(() => {
@@ -61,7 +64,10 @@ describe('CartMergeDetector', () => {
     render(<CartMergeDetector labels={labels} />);
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith('/api/cart');
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/cart',
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      );
       expect(mockFetch).toHaveBeenCalledWith(
         '/api/cart/migrate',
         expect.objectContaining({ method: 'POST' }),
@@ -88,4 +94,45 @@ describe('CartMergeDetector', () => {
       expect.any(Object),
     );
   });
+
+  it('aborts the cart check when unmounted', async () => {
+    let signal: AbortSignal | undefined;
+    mockFetch.mockImplementationOnce((_url: string, options?: RequestInit) => {
+      signal = options?.signal ?? undefined;
+      return new Promise(() => {});
+    });
+
+    const { unmount } = render(<CartMergeDetector labels={labels} />);
+
+    await waitFor(() => expect(signal).toBeDefined());
+    unmount();
+
+    expect(signal?.aborted).toBe(true);
+  });
+
+  it('restarts the cart check after Strict Mode recreates the effect', async () => {
+    mockFetch.mockImplementation(() => new Promise(() => {}));
+
+    render(
+      <StrictMode>
+        <CartMergeDetector labels={labels} />
+      </StrictMode>,
+    );
+
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2));
+  });
+
+  it.each(['ADMIN', 'DESIGNER'])(
+    'does not check carts for %s users',
+    (role) => {
+      mockUseSession.mockReturnValue({
+        status: 'authenticated',
+        data: { user: { role } },
+      });
+
+      render(<CartMergeDetector labels={labels} />);
+
+      expect(mockFetch).not.toHaveBeenCalled();
+    },
+  );
 });

@@ -28,27 +28,49 @@ export function CartMergeDetector({
 }: {
   labels: CartMergeDetectorLabels;
 }) {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const guestCart = useGuestCart();
   const guestItems = guestCart.items;
   const [showMerge, setShowMerge] = useState(false);
   const hasCheckedRef = useRef(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const isInternal =
+    session?.user?.role === 'ADMIN' || session?.user?.role === 'DESIGNER';
 
   useEffect(() => {
-    if (status !== 'authenticated' || hasCheckedRef.current) return;
+    if (status !== 'authenticated' || isInternal || hasCheckedRef.current)
+      return;
     if (guestItems.length === 0) return;
 
     hasCheckedRef.current = true;
+    const controller = new AbortController();
+    let isComplete = false;
+    let retryTimeout: ReturnType<typeof setTimeout> | undefined;
+
+    const scheduleRetry = () => {
+      if (controller.signal.aborted) return;
+      hasCheckedRef.current = false;
+      retryTimeout = setTimeout(
+        // eslint-disable-next-line sonarjs/no-nested-functions
+        () => setRetryCount((current) => current + 1),
+        Math.min(1000 * 2 ** retryCount, 30_000),
+      );
+    };
 
     async function checkAndMerge() {
       try {
-        const res = await fetch('/api/cart');
-        if (!res.ok) return;
+        const res = await fetch('/api/cart', { signal: controller.signal });
+        if (!res.ok) {
+          scheduleRetry();
+          return;
+        }
         const data = await res.json();
+        if (controller.signal.aborted) return;
 
         if (data.items && data.items.length > 0) {
           // Server has items too - show merge dialog
+          isComplete = true;
           setShowMerge(true);
         } else {
           // Server is empty - auto-merge silently
@@ -56,30 +78,38 @@ export function CartMergeDetector({
             const res = await fetch('/api/cart/migrate', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
+              signal: controller.signal,
               body: JSON.stringify({
                 guestItems: guestItems,
                 strategy: 'merge',
               }),
             });
             if (!res.ok) {
-              hasCheckedRef.current = false;
+              scheduleRetry();
               return;
             }
+            if (controller.signal.aborted) return;
             // Clear guest cart after successful migration
+            isComplete = true;
             guestCart.clearCart();
             dispatchCartUpdated();
             router.refresh();
           } catch {
-            hasCheckedRef.current = false;
+            scheduleRetry();
           }
         }
       } catch {
-        // Ignore — don't show dialog on network error
+        scheduleRetry();
       }
     }
 
     checkAndMerge();
-  }, [status, guestItems, guestCart, router]);
+    return () => {
+      controller.abort();
+      if (retryTimeout) clearTimeout(retryTimeout);
+      if (!isComplete) hasCheckedRef.current = false;
+    };
+  }, [status, isInternal, guestItems, guestCart, router, retryCount]);
 
   return (
     <MergeDialog

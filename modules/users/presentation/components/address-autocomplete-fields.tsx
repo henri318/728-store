@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import { AddressAutocompleteSelect } from './address-autocomplete-select';
 import { AddressDeliveryFields } from './address-delivery-fields';
 import type { UserAddressInput } from '../../domain/user-address';
@@ -67,10 +66,6 @@ export function AddressAutocompleteFields({
 }: AddressAutocompleteFieldsProps) {
   const country = fixedCountry?.country ?? labels.countryLabel;
   const normalizedValue = { ...value, country, countryCode: 'ES' as const };
-  useEffect(() => {
-    if (value.country !== country || value.countryCode !== 'ES')
-      onChange({ ...value, country, countryCode: 'ES' as const });
-  }, [country, onChange, value, value.country, value.countryCode]);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
       <p

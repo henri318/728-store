@@ -1,7 +1,14 @@
 'use client';
 
-import { useReducer, useCallback, useEffect } from 'react';
+import {
+  startTransition,
+  useCallback,
+  useOptimistic,
+  useRef,
+  useState,
+} from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
 import { DesignPreview } from '@/modules/presentation/components/design-preview';
 import { Money } from '@/shared/kernel/domain/value-objects/money';
@@ -18,9 +25,7 @@ import {
 export type { CartItemDTO } from '@/modules/cart/presentation/cart-dto';
 export { guestItemToDTO } from '@/modules/cart/presentation/cart-dto';
 
-type LocalItemsAction =
-  | { type: 'reset'; items: CartItemDTO[] }
-  | { type: 'replace'; items: CartItemDTO[] };
+type LocalItemsAction = { type: 'replace'; items: CartItemDTO[] };
 
 function localItemsReducer(
   _state: CartItemDTO[],
@@ -114,16 +119,18 @@ export function CartView({
 }: CartViewProps) {
   // Hooks must be called unconditionally (Rules of Hooks).
   const guestCart = useGuestCart();
-  const [localItems, dispatchLocalItems] = useReducer(
+  const router = useRouter();
+  const [baseItems, setBaseItems] = useState(serverItems);
+  const [previousServerItems, setPreviousServerItems] = useState(serverItems);
+  if (serverItems !== previousServerItems) {
+    setPreviousServerItems(serverItems);
+    setBaseItems(serverItems);
+  }
+  const [localItems, dispatchLocalItems] = useOptimistic(
+    baseItems,
     localItemsReducer,
-    serverItems,
   );
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      dispatchLocalItems({ type: 'reset', items: serverItems });
-    }
-  }, [isAuthenticated, serverItems]);
+  const pendingItemIdsRef = useRef(new Set<string>());
 
   // Derive display items: server cart for authenticated, guest cart for guests.
   const items: CartItemDTO[] = isAuthenticated
@@ -138,7 +145,7 @@ export function CartView({
   const subtotal = items.reduce((acc, i) => acc + i.lineTotal, 0);
 
   const handleUpdateQuantity = useCallback(
-    async (item: CartItemDTO, delta: number) => {
+    (item: CartItemDTO, delta: number) => {
       const newQty = Math.max(1, Math.min(99, item.quantity + delta));
       if (newQty === item.quantity) return;
 
@@ -147,75 +154,72 @@ export function CartView({
         guestCart.updateQuantity(item.productId, newQty);
         return;
       }
+      if (pendingItemIdsRef.current.has(item.id)) return;
 
-      // Authenticated: optimistic update + API call
-      dispatchLocalItems({
-        type: 'replace',
-        items: localItems.map((i) =>
-          i.id === item.id
-            ? {
-                ...i,
-                quantity: newQty,
-                lineTotal: +(i.unitPrice * newQty).toFixed(2),
-              }
-            : i,
-        ),
-      });
-
-      try {
-        const res = await fetch(`/api/cart/items/${item.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ quantity: newQty }),
-        });
-        if (!res.ok) {
+      const previousItems = localItems;
+      const nextItems = localItems.map((i) =>
+        i.id === item.id
+          ? {
+              ...i,
+              quantity: newQty,
+              lineTotal: +(i.unitPrice * newQty).toFixed(2),
+            }
+          : i,
+      );
+      pendingItemIdsRef.current.add(item.id);
+      startTransition(async () => {
+        dispatchLocalItems({ type: 'replace', items: nextItems });
+        try {
+          const res = await fetch(`/api/cart/items/${item.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ quantity: newQty }),
+          });
+          if (!res.ok) throw new Error('Failed to update cart item');
+          setBaseItems(nextItems);
+          router.refresh();
+        } catch {
           dispatchLocalItems({
             type: 'replace',
-            items: localItems.map((i) =>
-              i.id === item.id
-                ? { ...i, quantity: item.quantity, lineTotal: item.lineTotal }
-                : i,
-            ),
+            items: previousItems,
           });
+        } finally {
+          pendingItemIdsRef.current.delete(item.id);
         }
-      } catch {
-        dispatchLocalItems({
-          type: 'replace',
-          items: localItems.map((i) =>
-            i.id === item.id
-              ? { ...i, quantity: item.quantity, lineTotal: item.lineTotal }
-              : i,
-          ),
-        });
-      }
+      });
     },
-    [isAuthenticated, guestCart, localItems],
+    [dispatchLocalItems, isAuthenticated, guestCart, localItems, router],
   );
 
   const handleRemove = useCallback(
-    async (item: CartItemDTO) => {
+    (item: CartItemDTO) => {
       // Guest: remove via context
       if (!isAuthenticated) {
         guestCart.removeItem(item.productId);
         return;
       }
+      if (pendingItemIdsRef.current.has(item.id)) return;
 
-      // Authenticated: optimistic removal + API call
-      dispatchLocalItems({
-        type: 'replace',
-        items: localItems.filter((i) => i.id !== item.id),
+      const previousItems = localItems;
+      const nextItems = localItems.filter((i) => i.id !== item.id);
+      pendingItemIdsRef.current.add(item.id);
+      startTransition(async () => {
+        dispatchLocalItems({ type: 'replace', items: nextItems });
+        try {
+          const response = await fetch(`/api/cart/items/${item.id}`, {
+            method: 'DELETE',
+          });
+          if (!response.ok) throw new Error('Failed to remove cart item');
+          setBaseItems(nextItems);
+          router.refresh();
+        } catch {
+          dispatchLocalItems({ type: 'replace', items: previousItems });
+        } finally {
+          pendingItemIdsRef.current.delete(item.id);
+        }
       });
-
-      try {
-        const response = await fetch(`/api/cart/items/${item.id}`, {
-          method: 'DELETE',
-        });
-        if (!response.ok) throw new Error('Failed to remove cart item');
-      } catch {
-        dispatchLocalItems({ type: 'replace', items: localItems });
-      }
     },
-    [isAuthenticated, guestCart, localItems],
+    [dispatchLocalItems, isAuthenticated, guestCart, localItems, router],
   );
 
   // For guest users, wait until localStorage has been hydrated before

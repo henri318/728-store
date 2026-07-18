@@ -125,7 +125,7 @@ describe('AddressAutocompleteFields', () => {
     vi.restoreAllMocks();
   });
 
-  it('normalizes a legacy country value without dropping delivery data', () => {
+  it('renders a normalized country without mutating parent state', () => {
     const onChange = vi.fn();
     render(
       <AddressAutocompleteFields
@@ -141,13 +141,6 @@ describe('AddressAutocompleteFields', () => {
       />,
     );
     expect(screen.getByText('Spain')).toBeInTheDocument();
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        street: 'Carrer Major',
-        city: 'Barcelona',
-        countryCode: 'ES',
-        country: 'Spain',
-      }),
-    );
+    expect(onChange).not.toHaveBeenCalled();
   });
 });

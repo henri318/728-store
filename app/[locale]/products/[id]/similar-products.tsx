@@ -30,7 +30,7 @@ interface SimilarProductsProps {
   };
 }
 
-export function SimilarProducts({
+function SimilarProductsContent({
   productId,
   locale,
   labels,
@@ -39,29 +39,51 @@ export function SimilarProducts({
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const isLoadingRef = useRef(false);
+  const hasLoadedRef = useRef(false);
+  const requestControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const node = sentinelRef.current;
-    if (!node || hasLoaded) return;
+    if (!node) return;
 
     const observer = new IntersectionObserver(
+      // eslint-disable-next-line sonarjs/cognitive-complexity
       async (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting && !hasLoaded && !isLoading) {
+          if (
+            entry.isIntersecting &&
+            !hasLoadedRef.current &&
+            !isLoadingRef.current
+          ) {
+            const controller = new AbortController();
+            requestControllerRef.current = controller;
+            isLoadingRef.current = true;
             setIsLoading(true);
             try {
-              const res = await fetch(`/api/products/${productId}/similar`);
+              const res = await fetch(`/api/products/${productId}/similar`, {
+                signal: controller.signal,
+              });
+              if (controller.signal.aborted) return;
               if (!res.ok) {
+                hasLoadedRef.current = true;
                 setHasLoaded(true);
                 return;
               }
               const data: { items?: unknown } = await res.json();
+              if (controller.signal.aborted) return;
               setItems(Array.isArray(data.items) ? data.items : []);
+              hasLoadedRef.current = true;
               setHasLoaded(true);
             } catch {
+              if (controller.signal.aborted) return;
+              hasLoadedRef.current = true;
               setHasLoaded(true);
             } finally {
-              setIsLoading(false);
+              if (!controller.signal.aborted) {
+                isLoadingRef.current = false;
+                setIsLoading(false);
+              }
             }
             break;
           }
@@ -71,8 +93,11 @@ export function SimilarProducts({
     );
 
     observer.observe(node);
-    return () => observer.disconnect();
-  }, [productId, hasLoaded, isLoading]);
+    return () => {
+      observer.disconnect();
+      requestControllerRef.current?.abort();
+    };
+  }, [productId]);
 
   if (hasLoaded && items.length === 0) return null;
 
@@ -134,4 +159,8 @@ export function SimilarProducts({
       )}
     </section>
   );
+}
+
+export function SimilarProducts(props: SimilarProductsProps) {
+  return <SimilarProductsContent key={props.productId} {...props} />;
 }
