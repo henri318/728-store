@@ -45,9 +45,13 @@ test.describe('Personalization flow', () => {
     const detailsLinks = customerPage.getByRole('link', {
       name: 'Ver Detalles',
     });
-    const detailsHrefs = await detailsLinks.evaluateAll((links) =>
-      links.map((link) => link.getAttribute('href')).filter(Boolean),
-    );
+    const detailsHrefs = [
+      ...new Set(
+        await detailsLinks.evaluateAll((links) =>
+          links.map((link) => link.getAttribute('href')).filter(Boolean),
+        ),
+      ),
+    ];
     expect(detailsHrefs.length).toBeGreaterThanOrEqual(2);
     const detailsHref = detailsHrefs[0];
     const unrelatedProductHref = detailsHrefs[1];
