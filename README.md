@@ -2,18 +2,18 @@
 
 E-commerce de artículos personalizados (camisetas, sudaderas, tazas...) con soporte multi-vendedor.
 
-Arquitectura de módulo monolítico: cada dominio (usuarios, pedidos, productos...) vive aislado en sus capas internas, pero todo comparte una base de datos y un bus de eventos interno. Sin atajos entre módulos — la comunicación pasa por eventos de dominio o interfaces compartidas.
+Arquitectura de módulo monolítico: cada dominio (usuarios, pedidos, productos...) vive aislado en sus capas internas, pero todo comparte una base de datos y un bus de eventos interno. La comunicación pasa por eventos de dominio o interfaces compartidas.
 
 ---
 
 ## Demo y entrega
 
-| Recurso               | Acceso                                                                 |
-| --------------------- | ---------------------------------------------------------------------- |
-| Aplicación desplegada | [https://728studio.vercel.app/](https://728studio.vercel.app/)         |
-| Repositorio           | [github.com/henri318/728-store](https://github.com/henri318/728-store) |
-| Presentación          | Pendiente de publicación                                               |
-| Vídeo de presentación | Pendiente de publicación                                               |
+| Recurso               | Acceso                                                                                                                                |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Aplicación desplegada | [https://728studio.vercel.app/](https://728studio.vercel.app/)                                                                        |
+| Repositorio           | [github.com/henri318/728-store](https://github.com/henri318/728-store)                                                                |
+| Presentación          | [slides](https://new.express.adobe.com/publishedV2/urn:aaid:sc:US:b961d0a7-e4be-5ef5-a33f-5fc0a7b8a47e?sdid=C4SZ2FYJ&category=search) |     |
+| Vídeo de presentación | [video]()                                                                                                                             |
 
 ---
 
@@ -33,8 +33,6 @@ Arquitectura de módulo monolítico: cada dominio (usuarios, pedidos, productos.
 | Testing              | Vitest 4 + Testing Library + Playwright    |
 | Linting              | ESLint 10 + typescript-eslint              |
 | Infra local          | Docker (PostgreSQL + nginx para assets)    |
-
-**No usamos Redis** — todas las colas (email, outbox, rate limiting) son Prisma-based.
 
 ---
 
@@ -314,7 +312,7 @@ El sistema usa eventos para comunicación entre módulos:
 | Recurso                           | Servicio / Detalle                                                |
 | --------------------------------- | ----------------------------------------------------------------- |
 | **Hosting**                       | [Vercel](https://728studio.vercel.app/) (App Router + Serverless) |
-| **Base de datos**                 | [Neon](https://neon.tech/) — PostgreSQL serverless                |
+| **Base de datos**                 | [Neon](https://neon.tech/) — PostgreSQL                           |
 | **Assets públicos** (productos)   | Cloudflare R2 — bucket público                                    |
 | **Assets privados** (clientes)    | Cloudflare R2 — bucket privado                                    |
 | **Autocompletado de direcciones** | Geoapify API                                                      |

@@ -25,11 +25,28 @@ const r2ConnectSources = isR2AccountId
       )
   : [];
 const connectSources = ["'self'", ...r2ConnectSources].join(' ');
+const getHttpsOrigin = (value: string | undefined) => {
+  if (!value) return;
+
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' ? url.origin : undefined;
+  } catch {
+    return;
+  }
+};
+const r2PublicOrigin = getHttpsOrigin(process.env.R2_PUBLIC_DOMAIN);
+const mediaSources = [
+  "'self'",
+  'blob:',
+  ...(r2PublicOrigin ? [r2PublicOrigin] : []),
+].join(' ');
 const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
+  `media-src ${mediaSources}`,
   "font-src 'self' data:",
   `connect-src ${connectSources}`,
   "object-src 'none'",
