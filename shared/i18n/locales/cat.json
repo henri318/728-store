@@ -357,6 +357,8 @@
     "markCompleted": "Marcar completat",
     "searchItems": "Cercar per producte",
     "searchItemsPlaceholder": "Cercar a les meves comandes...",
+    "customer": "Client",
+    "download": "Descarregar",
     "items": "Productes",
     "qty": "Quant.",
     "noItems": "Aquesta comanda no té productes",

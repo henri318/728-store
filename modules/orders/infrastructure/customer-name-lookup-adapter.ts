@@ -6,9 +6,13 @@ export class CustomerNameLookupAdapter implements CustomerNameLookupPort {
 
   async findById(
     userId: string,
-  ): Promise<{ firstName: string; lastName: string } | null> {
+  ): Promise<{ firstName: string; lastName: string; email: string } | null> {
     const user = await this.delegate.findById(userId);
     if (!user) return null;
-    return { firstName: user.firstName, lastName: user.lastName };
+    return {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email.value,
+    };
   }
 }

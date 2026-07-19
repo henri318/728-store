@@ -13,6 +13,7 @@ import {
   type CustomizationExperienceLabels,
 } from './customization-experience';
 import styles from './page.module.css';
+import type { DesignPosition } from '@/modules/products/domain/value-objects/product-customization-config';
 import type { ProductShowcaseMedia } from './product-showcase-gallery';
 
 async function getPublicProduct(id: string, locale: string) {
@@ -21,6 +22,50 @@ async function getPublicProduct(id: string, locale: string) {
 
 function firstQueryValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
+}
+
+const DESIGN_BLEND_MODES = new Set<DesignPosition['blend_mode']>([
+  'source-over',
+  'multiply',
+  'overlay',
+  'soft-light',
+]);
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function isDesignPosition(value: unknown): value is DesignPosition {
+  if (!value || typeof value !== 'object') return false;
+
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.imageUrl === 'string' &&
+    candidate.imageUrl.length > 0 &&
+    typeof candidate.blend_mode === 'string' &&
+    DESIGN_BLEND_MODES.has(
+      candidate.blend_mode as DesignPosition['blend_mode'],
+    ) &&
+    isFiniteNumber(candidate.x) &&
+    isFiniteNumber(candidate.y) &&
+    isFiniteNumber(candidate.scale) &&
+    isFiniteNumber(candidate.rotation_deg) &&
+    isFiniteNumber(candidate.opacity)
+  );
+}
+
+export function parseDesignPosition(
+  value: string | undefined,
+): DesignPosition | null {
+  if (!value) return null;
+
+  try {
+    const parsed = JSON.parse(value);
+    return isDesignPosition(parsed) ? parsed : null;
+  } catch {
+    // Malformed JSON in query param — silently ignore.
+    return null;
+  }
 }
 
 export async function generateMetadata({
@@ -80,8 +125,19 @@ export default async function ProductDetailPage({
   const query = (await searchParams) ?? {};
   const customizationText = firstQueryValue(query.customizationText);
   const customizationColor = firstQueryValue(query.customizationColor);
+  const customizationSize = firstQueryValue(query.customizationSize);
+  const customizationImageUrl = firstQueryValue(query.customizationImageUrl);
+  const customizationImageUploadId = firstQueryValue(
+    query.customizationImageUploadId,
+  );
   const customizationCartItemId = firstQueryValue(
     query.customizationCartItemId,
+  );
+  const customizationDesignPositionRaw = firstQueryValue(
+    query.customizationDesignPosition,
+  );
+  const customizationDesignPosition = parseDesignPosition(
+    customizationDesignPositionRaw,
   );
   const dict = await getDictionary(locale as 'es' | 'cat');
 
@@ -237,6 +293,10 @@ export default async function ProductDetailPage({
           initialDraft={{
             text: customizationText,
             color: initialColor,
+            size: customizationSize,
+            imageUrl: customizationImageUrl,
+            imageUploadId: customizationImageUploadId,
+            designPosition: customizationDesignPosition,
           }}
           editCartItemId={customizationCartItemId}
           viewerContext={viewerContext}

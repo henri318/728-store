@@ -2,6 +2,7 @@ import { PrismaClient, type Prisma } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import bcrypt from 'bcrypt';
 import { existsSync } from 'node:fs';
+import { clearExistingData } from './seed-cleanup';
 
 if (existsSync('.env')) {
   process.loadEnvFile();
@@ -16,19 +17,7 @@ async function main() {
   console.log('🌱 Seeding dev data...');
 
   // 1. Clear existing data
-  await prisma.productTranslation.deleteMany();
-  await prisma.customization.deleteMany();
-  await prisma.signupAttempt.deleteMany();
-  await prisma.loginAttempt.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.orderLineItem.deleteMany();
-  await prisma.outboxEvent.deleteMany();
-  await prisma.emailQueue.deleteMany();
-  await prisma.product.deleteMany();
-  await prisma.category.deleteMany();
-  await prisma.seller.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.role.deleteMany();
+  await clearExistingData(prisma);
 
   // 2. Seed roles (ADMIN, SUPPORT, DESIGNER, CUSTOMER)
   const roles: Array<{ name: string }> = [];
