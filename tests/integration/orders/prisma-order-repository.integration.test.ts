@@ -238,6 +238,7 @@ describe('PrismaOrderRepository — Integration', () => {
           color: 'green',
           size: 'L',
           imageUrl: null,
+          imageUploadId: null,
           designPosition: null,
         },
       ]);
@@ -382,6 +383,7 @@ describe('PrismaOrderRepository — Integration', () => {
           color: 'red',
           size: null,
           imageUrl: null,
+          imageUploadId: null,
           designPosition: null,
         },
       ]);
@@ -396,6 +398,7 @@ describe('PrismaOrderRepository — Integration', () => {
           color: null,
           size: 'XL',
           imageUrl: null,
+          imageUploadId: null,
           designPosition: null,
         },
       ]);
@@ -462,6 +465,7 @@ describe('PrismaOrderRepository — Integration', () => {
           color: 'blue',
           size: null,
           imageUrl: null,
+          imageUploadId: null,
           designPosition: null,
         },
       ]);

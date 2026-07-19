@@ -35,6 +35,7 @@ const customerCustomizationSchema = z.object({
     .regex(/^https?:\/\/.+/, 'Image URL must start with http:// or https://')
     .nullable()
     .optional(),
+  imageUploadId: z.string().min(1).nullable().optional(),
   designPosition: designPositionSchema.nullable().optional(),
 });
 

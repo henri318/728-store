@@ -128,6 +128,7 @@ model Customization {
   color          String?
   size           String?
   imageUrl       String?
+  imageUploadId  String?
   /// Buyer-side design position captured by the mockup canvas.
   /// Stored as JSONB so we can preserve the full shape (x, y, scale,
   /// rotation_deg, opacity, blend_mode, imageUrl) without a wide row.

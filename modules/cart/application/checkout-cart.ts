@@ -348,6 +348,7 @@ function buildCustomizationSnapshot(
   color: string | null;
   size: string | null;
   imageUrl: string | null;
+  imageUploadId: string | null;
   designPosition: CustomizationDesignPositionSnapshot | null;
 }> | null {
   if (customizationIdList.length === 0) return null;
@@ -360,6 +361,7 @@ function buildCustomizationSnapshot(
       color: s.color,
       size: s.size,
       imageUrl: s.imageUrl,
+      imageUploadId: s.imageUploadId ?? null,
       designPosition: s.designPosition,
     }));
 }

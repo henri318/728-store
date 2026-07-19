@@ -14,6 +14,7 @@ export interface CreateCustomerCustomizationDTO {
   color?: string | null;
   size?: string | null;
   imageUrl?: string | null;
+  imageUploadId?: string | null;
   designPosition?: CustomizationDesignPosition | null;
 }
 
@@ -83,6 +84,7 @@ export class CreateCustomerCustomization {
       color: dto.color ?? null,
       size: dto.size ?? null,
       imageUrl: dto.imageUrl ?? null,
+      imageUploadId: dto.imageUploadId ?? null,
       designPosition: dto.designPosition ?? null,
       createdAt: new Date(),
     };

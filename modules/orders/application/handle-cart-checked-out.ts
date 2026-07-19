@@ -192,6 +192,7 @@ function toFrozenCustomizationSnapshot(
     color: customization.color,
     size: customization.size,
     imageUrl: customization.imageUrl,
+    imageUploadId: customization.imageUploadId,
     designPosition: customization.designPosition,
   };
 }
