@@ -6,6 +6,17 @@ Arquitectura de módulo monolítico: cada dominio (usuarios, pedidos, productos.
 
 ---
 
+## Demo y entrega
+
+| Recurso               | Acceso                                                                 |
+| --------------------- | ---------------------------------------------------------------------- |
+| Aplicación desplegada | [https://728studio.vercel.app/](https://728studio.vercel.app/)         |
+| Repositorio           | [github.com/henri318/728-store](https://github.com/henri318/728-store) |
+| Presentación          | Pendiente de publicación                                               |
+| Vídeo de presentación | Pendiente de publicación                                               |
+
+---
+
 ## Stack tecnológico
 
 | Capa                 | Tecnología                                 |
@@ -42,12 +53,19 @@ Arquitectura de módulo monolítico: cada dominio (usuarios, pedidos, productos.
 git clone https://github.com/henri318/728-store.git
 cd 728-store
 
-# 2. Setup completo (instala deps, levanta DB, crea tablas, puebla datos)
+# 2. Crear la configuración local
+cp .env.example .env
+
+# 3. Setup completo (instala deps, levanta DB, crea tablas, puebla datos)
 npm run setup
 
-# 3. Arrancar el servidor de desarrollo
+# 4. Arrancar el servidor de desarrollo
 npm run dev
 ```
+
+En PowerShell, usa `Copy-Item .env.example .env` en lugar de `cp`. Antes de
+ejecutar el setup, revisa los valores del archivo `.env`; Prisma necesita que
+`DATABASE_URL` esté definida.
 
 Abre [http://localhost:3000](http://localhost:3000) — deberías ver la tienda.
 
@@ -150,14 +168,22 @@ npm run test:e2e:debug
 
 ### Tests disponibles
 
-| Archivo                     | Qué prueba                                      |
-| --------------------------- | ----------------------------------------------- |
-| `000-health-check.spec.ts`  | Health check del servidor                       |
-| `home/home.spec.ts`         | Página principal, grid de productos, navegación |
-| `auth/sign-up.spec.ts`      | Registro de usuario                             |
-| `auth/sign-in.spec.ts`      | Login y credenciales                            |
-| `auth/navigation.spec.ts`   | Links entre páginas de auth                     |
-| `products/products.spec.ts` | Listado de productos, precios, cambio de idioma |
+| Archivo                         | Qué prueba                                                   |
+| ------------------------------- | ------------------------------------------------------------ |
+| `000-health-check.spec.ts`      | Health check del servidor                                    |
+| `home/home.spec.ts`             | Página principal, catálogo y navegación                      |
+| `products/products.spec.ts`     | Listado de productos, precios y cambio de idioma             |
+| `personalization-flow.spec.ts`  | Personalización de productos                                 |
+| `checkout-orders.spec.ts`       | Carrito, checkout y creación de pedidos                      |
+| `auth/sign-up.spec.ts`          | Registro de usuario                                          |
+| `auth/sign-in.spec.ts`          | Login con credenciales                                       |
+| `auth/navigation.spec.ts`       | Navegación entre las páginas de autenticación                |
+| `auth/profile.spec.ts`          | Consulta y actualización del perfil                          |
+| `auth/change-password.spec.ts`  | Cambio de contraseña                                         |
+| `auth/delete-account.spec.ts`   | Eliminación de cuenta                                        |
+| `profile/address-guard.spec.ts` | Validación de la dirección necesaria para comprar            |
+| `admin/access.spec.ts`          | Acceso autorizado a las áreas de administración              |
+| `admin/denial.spec.ts`          | Denegación de acceso administrativo según el rol del usuario |
 
 ---
 
@@ -201,14 +227,16 @@ npm run test:e2e:debug
 ├── workers/                    # Workers background (email, outbox)
 ├── tests/                      # Suite de tests
 │   ├── doubles/                # Implementaciones in-memory para testing
-│   ├── unit/                   # Tests unitarios (~34 archivos)
+│   ├── unit/                   # Tests unitarios y de componentes
 │   ├── e2e/                    # Tests E2E con Playwright
-│   │   ├── health/             # Smoke tests
+│   │   ├── admin/              # Acceso y autorización administrativa
 │   │   ├── auth/               # Registro, login, navegación
 │   │   ├── home/               # Página principal
-│   │   └── products/           # Productos
+│   │   ├── products/           # Productos
+│   │   ├── profile/            # Perfil y dirección de entrega
+│   │   └── *.spec.ts           # Health, personalización y checkout
 ├── prisma/                     # Schema + seed
-├── docs/                       # Documentación de arquitectura (21 archivos)
+├── docs/                       # Documentación de arquitectura y módulos
 ├── docker-compose.yml          # PostgreSQL (desarrollo)
 ├── docker-compose.e2e.yml      # PostgreSQL + App (tests E2E)
 ├── playwright.config.ts        # Configuración de Playwright
@@ -233,15 +261,21 @@ modulo/
 
 ### Implementadas
 
-| Módulo        | Qué hace                                                                                                                       |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| **Auth**      | Login con credenciales + Google, registro, verificación de email, rate limiting (5 intentos/email/15min, 20 intentos/IP/15min) |
-| **Usuarios**  | CRUD completo, borrado suave (soft delete), asignación de roles                                                                |
-| **Productos** | Catálogo con traducciones (es/cat), personalización de productos, listado y detalle                                            |
-| **Pedidos**   | Crear pedido, marcar como pagado, asignar a producción, outbox transaccional                                                   |
-| **Roles**     | RBAC con 4 roles: ADMIN, SUPPORT, DESIGNER, CUSTOMER                                                                           |
-| **Email**     | Cola transaccional con Brevo, worker con retry exponencial, fallback a consola en desarrollo                                   |
-| **Eventos**   | Bus de eventos in-memory, patrón outbox para fiabilidad                                                                        |
+| Módulo              | Qué hace                                                                                                                       |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **Auth**            | Login con credenciales + Google, registro, verificación de email, rate limiting (5 intentos/email/15min, 20 intentos/IP/15min) |
+| **Usuarios**        | CRUD completo, borrado suave (soft delete), asignación de roles                                                                |
+| **Productos**       | Catálogo con traducciones (es/cat), personalización de productos, listado y detalle                                            |
+| **Pedidos**         | Crear pedido, marcar como pagado, asignar a producción, outbox transaccional                                                   |
+| **Roles**           | RBAC con 4 roles: ADMIN, SUPPORT, DESIGNER, CUSTOMER                                                                           |
+| **Email**           | Cola transaccional con Brevo, worker con retry exponencial, fallback a consola en desarrollo                                   |
+| **Eventos**         | Bus de eventos in-memory, patrón outbox para fiabilidad                                                                        |
+| **Carrito**         | Carrito persistente, migración al iniciar sesión, checkout multi-vendedor, envío y descuento de primera compra                 |
+| **Personalización** | Diseños con texto, color, talla, imágenes y posición visual que se conservan durante el checkout                               |
+| **Vendedores**      | Alta, consulta, edición, cambio de estado y catálogo de productos por vendedor                                                 |
+| **Uploads**         | Subidas públicas y privadas, URLs firmadas, confirmación, eliminación y limpieza de archivos pendientes                        |
+| **Búsquedas**       | Historial de búsquedas recientes por usuario e idioma, sin términos duplicados                                                 |
+| **Administración**  | Gestión protegida por roles de usuarios, vendedores, productos, categorías y pedidos                                           |
 
 ### Eventos de dominio definidos
 
