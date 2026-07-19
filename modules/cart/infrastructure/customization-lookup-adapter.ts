@@ -36,6 +36,7 @@ function toSnapshot(entity: {
   color: string | null;
   size: string | null;
   imageUrl: string | null;
+  imageUploadId?: string | null;
   designPosition: unknown;
 }): CustomizationSnapshot {
   return {
@@ -45,6 +46,7 @@ function toSnapshot(entity: {
     color: entity.color,
     size: entity.size,
     imageUrl: entity.imageUrl,
+    imageUploadId: entity.imageUploadId ?? null,
     designPosition: toDesignPositionSnapshot(entity.designPosition),
   };
 }

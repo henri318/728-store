@@ -182,10 +182,9 @@ export default async function OrderDetailPage({
                                 ]
                                   .filter(Boolean)
                                   .join(' · ')}
-                                {c.imageUrl && (
+                                {c.imageUploadId && (
                                   <a
-                                    href={c.imageUrl}
-                                    download
+                                    href={`/api/orders/${order.id}/customizations/${c.id}/download`}
                                     className={styles.downloadLink}
                                   >
                                     {dict.orders?.download ?? 'Descargar'}

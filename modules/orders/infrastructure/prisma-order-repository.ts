@@ -372,6 +372,7 @@ function coerceCustomizationSnapshotItem(
     color: normalizeNullableString(value.color),
     size: normalizeNullableString(value.size),
     imageUrl: normalizeNullableString(value.imageUrl),
+    imageUploadId: normalizeNullableString(value.imageUploadId),
     designPosition: coerceDesignPosition(value.designPosition),
   };
 }

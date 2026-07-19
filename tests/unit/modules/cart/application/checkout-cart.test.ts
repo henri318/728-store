@@ -373,6 +373,7 @@ describe('CheckoutCart', () => {
         color: 'red',
         size: 'M',
         imageUrl: null,
+        imageUploadId: null,
         designPosition: null,
       },
     ]);
@@ -437,6 +438,7 @@ describe('CheckoutCart', () => {
         color: 'red',
         size: 'M',
         imageUrl: null,
+        imageUploadId: null,
         designPosition: null,
       },
     ]);

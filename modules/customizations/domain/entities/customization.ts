@@ -17,6 +17,7 @@ export interface CustomizationEntity {
   color: string | null;
   size: string | null;
   imageUrl: string | null;
+  imageUploadId?: string | null;
   designPosition: DesignPositionValue | null;
   createdAt: Date;
 }

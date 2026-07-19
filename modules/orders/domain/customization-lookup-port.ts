@@ -26,6 +26,7 @@ export interface CustomizationLookupSnapshot {
   color: string | null;
   size: string | null;
   imageUrl: string | null;
+  imageUploadId?: string | null;
   designPosition: CustomizationDesignPositionSnapshot | null;
 }
 
@@ -38,6 +39,7 @@ export interface CustomizationSnapshot {
   color: string | null;
   size: string | null;
   imageUrl: string | null;
+  imageUploadId?: string | null;
   designPosition: CustomizationDesignPositionSnapshot | null;
 }
 

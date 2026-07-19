@@ -67,6 +67,30 @@ describe('CreateCustomerCustomization', () => {
     expect(repo.save).toHaveBeenCalledTimes(1);
   });
 
+  it('preserves the design upload id for later authorized downloads', async () => {
+    capability = {
+      async getConfig() {
+        return ProductCustomizationConfig.fromJson({
+          mode: 'photo',
+          previewEnabled: true,
+          previewTemplateUrl: 'https://cdn.example.com/base.png',
+        });
+      },
+    };
+    useCase = new CreateCustomerCustomization(repo, capability);
+
+    const result = await useCase.execute(
+      {
+        productId: 'p-1',
+        imageUrl: 'https://cdn.example.com/design.png',
+        imageUploadId: 'upload-1',
+      },
+      'user-1',
+    );
+
+    expect(result.imageUploadId).toBe('upload-1');
+  });
+
   it('rejects a photo upload when the product only allows text', async () => {
     capability = {
       async getConfig() {

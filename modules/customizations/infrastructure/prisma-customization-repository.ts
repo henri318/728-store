@@ -21,6 +21,7 @@ export class PrismaCustomizationRepository implements CustomizationRepository {
     color: string | null;
     size: string | null;
     imageUrl: string | null;
+    imageUploadId: string | null;
     designPosition: unknown;
     createdAt: Date;
   }): CustomizationEntity {
@@ -31,6 +32,7 @@ export class PrismaCustomizationRepository implements CustomizationRepository {
       color: row.color,
       size: row.size,
       imageUrl: row.imageUrl,
+      imageUploadId: row.imageUploadId,
       designPosition: coerceDesignPosition(row.designPosition),
       createdAt: row.createdAt,
     };
@@ -50,6 +52,7 @@ export class PrismaCustomizationRepository implements CustomizationRepository {
         color: entity.color,
         size: entity.size,
         imageUrl: entity.imageUrl,
+        imageUploadId: entity.imageUploadId ?? null,
         designPosition:
           (entity.designPosition as unknown as object | null) ?? undefined,
         createdAt: entity.createdAt,
@@ -59,6 +62,7 @@ export class PrismaCustomizationRepository implements CustomizationRepository {
         color: entity.color,
         size: entity.size,
         imageUrl: entity.imageUrl,
+        imageUploadId: entity.imageUploadId ?? null,
         designPosition:
           (entity.designPosition as unknown as object | null) ?? undefined,
       },
