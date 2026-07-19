@@ -40,6 +40,7 @@ export class MemoryCustomizationLookup implements CustomizationLookupPort {
       color?: string | null;
       size?: string | null;
       imageUrl?: string | null;
+      imageUploadId?: string | null;
       designPosition?: CustomizationDesignPositionSnapshot | null;
     }>,
   ): void {
@@ -51,6 +52,7 @@ export class MemoryCustomizationLookup implements CustomizationLookupPort {
         color: c.color ?? null,
         size: c.size ?? null,
         imageUrl: c.imageUrl ?? null,
+        imageUploadId: c.imageUploadId ?? null,
         designPosition: c.designPosition ?? null,
       });
     }

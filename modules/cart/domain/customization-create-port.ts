@@ -10,6 +10,7 @@ export interface CustomizationCreatePort {
     color?: string | null;
     size?: string | null;
     imageUrl?: string | null;
+    imageUploadId?: string | null;
     designPosition?: CustomizationDesignPositionSnapshot | null;
   }): Promise<CustomizationSnapshot>;
 }
