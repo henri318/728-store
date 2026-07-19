@@ -16,7 +16,4 @@ RUN npm ci
 # Copy source
 COPY . .
 
-# Build the app
-RUN npm run build
-
 EXPOSE 3000

@@ -9,7 +9,7 @@ services:
     ports:
       - '5434:5432'
     volumes:
-      - e2e_db_data:/var/lib/postgresql/data
+      - e2e_db_data:/var/lib/postgresql
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U testuser -d testdb']
       interval: 5s
@@ -29,14 +29,14 @@ services:
       context: .
       dockerfile: Dockerfile.e2e
       args:
-        NEXT_PUBLIC_APP_URL: http://localhost:3000
+        NEXT_PUBLIC_APP_URL: http://localhost:${E2E_PORT:-3100}
     ports:
-      - '3000:3000'
+      - '${E2E_PORT:-3100}:3000'
     environment:
       DATABASE_URL: postgresql://testuser:testpassword@db:5432/testdb
       NEXTAUTH_SECRET: e2e-test-secret-do-not-use-in-production
-      NEXTAUTH_URL: http://localhost:3000
-      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXTAUTH_URL: http://localhost:${E2E_PORT:-3100}
+      NEXT_PUBLIC_APP_URL: http://localhost:${E2E_PORT:-3100}
       SEED_PRODUCT_ASSET_BASE_URL: http://localhost:8081
       NODE_ENV: production
     depends_on:
@@ -44,10 +44,23 @@ services:
         condition: service_healthy
       product-assets:
         condition: service_started
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 2s
+      timeout: 2s
+      retries: 120
+      start_period: 30s
     command: >
       sh -c "
         npx prisma db push &&
         npx prisma db seed &&
+        npm run build &&
         npm run start
       "
 

@@ -32,8 +32,8 @@ Arquitectura de módulo monolítico: cada dominio (usuarios, pedidos, productos.
 ### Requisitos previos
 
 - [Node.js](https://nodejs.org/) >= 24
-- [Docker](https://www.docker.com/) (solo para PostgreSQL)
-- npm o pnpm
+- [Docker](https://www.docker.com/) (PostgreSQL, assets locales y E2E)
+- npm
 
 ### Primeros pasos
 
@@ -51,31 +51,57 @@ npm run dev
 
 Abre [http://localhost:3000](http://localhost:3000) — deberías ver la tienda.
 
-### Comandos útiles del día a día
+### Scripts npm
 
-```bash
-# Base de datos
-npm run db:studio        # Abrir Prisma Studio (GUI para ver/editar datos)
-npm run db:migrate       # Crear migración cuando cambias el schema
-npm run db:reset         # Reset completo: borra datos, re-migra, re-seed
-npm run db:down          # Parar PostgreSQL
+#### Desarrollo y despliegue
 
-# Desarrollo
-npm run dev              # Servidor de desarrollo con hot reload
+| Comando                 | Uso                                                                   |
+| ----------------------- | --------------------------------------------------------------------- |
+| `npm run setup`         | Instala dependencias, levanta servicios, sincroniza y puebla la DB.   |
+| `npm run dev`           | Inicia Next.js; presupone que los servicios locales ya están activos. |
+| `npm run dev:full`      | Levanta PostgreSQL y assets, y después inicia Next.js.                |
+| `npm run dev:env`       | Levanta únicamente PostgreSQL y el servidor local de assets.          |
+| `npm run dev:down`      | Detiene los servicios Docker de desarrollo.                           |
+| `npm run build`         | Genera el build de producción de Next.js.                             |
+| `npm run build:analyze` | Abre el analizador experimental de bundles de Next.js.                |
+| `npm run start`         | Sirve un build de producción; lo usan Playwright y Docker E2E.        |
+| `npm run deploy`        | Build Command de Vercel: aplica migraciones y genera el build.        |
 
-# Calidad
-npm run test             # Tests en modo watch
-npm run test:run         # Tests una vez (para CI)
-npm run lint             # Linting
-npm run typecheck        # Verificar tipos sin emitir archivos
-npm run build            # Build de producción (verifica que todo compila)
+#### Calidad
 
-# E2E Tests
-npm run test:e2e         # Tests E2E contra app local (requiere db:up + dev corriendo)
-npm run test:e2e:ui      # Abrir interfaz gráfica de Playwright
-npm run test:e2e:debug   # Ejecutar en modo debug (paso a paso)
-npm run test:e2e:docker  # Tests E2E en Docker (app + DB, todo autocontenido)
-```
+| Comando                | Uso                                               |
+| ---------------------- | ------------------------------------------------- |
+| `npm run lint`         | Comprueba ESLint en todo el repositorio.          |
+| `npm run lint:fix`     | Aplica correcciones automáticas de ESLint.        |
+| `npm run format`       | Formatea archivos con Prettier.                   |
+| `npm run format:check` | Comprueba formato sin modificar archivos; usa CI. |
+| `npm run typecheck`    | Comprueba TypeScript sin emitir archivos.         |
+
+#### Tests
+
+| Comando                    | Uso                                                       |
+| -------------------------- | --------------------------------------------------------- |
+| `npm test`                 | Ejecuta Vitest en modo watch.                             |
+| `npm run test:run`         | Ejecuta todos los tests unitarios una vez; usa CI.        |
+| `npm run test:unit:jsdom`  | Ejecuta únicamente los tests React en jsdom.              |
+| `npm run test:integration` | Ejecuta secuencialmente los tests contra PostgreSQL.      |
+| `npm run test:e2e`         | Ejecuta Playwright contra una aplicación existente.       |
+| `npm run test:e2e:ui`      | Abre la interfaz interactiva de Playwright.               |
+| `npm run test:e2e:debug`   | Ejecuta Playwright con el inspector paso a paso.          |
+| `npm run test:e2e:docker`  | Ejecuta el entorno E2E autocontenido y después lo limpia. |
+
+#### Base de datos
+
+| Comando              | Uso                                                                 |
+| -------------------- | ------------------------------------------------------------------- |
+| `npm run db:migrate` | Crea/aplica migraciones de desarrollo y regenera Prisma Client.     |
+| `npm run db:reset`   | Borra la DB, reaplica migraciones, regenera el cliente y la puebla. |
+| `npm run db:push`    | Sincroniza el schema sin migración y regenera Prisma Client.        |
+| `npm run db:seed`    | Ejecuta el seed configurado en `prisma.config.ts`.                  |
+| `npm run db:studio`  | Abre Prisma Studio.                                                 |
+
+`postinstall` regenera Prisma Client y `prepare` instala los hooks de Husky;
+ambos se ejecutan automáticamente durante la instalación.
 
 ---
 
@@ -86,18 +112,24 @@ npm run test:e2e:docker  # Tests E2E en Docker (app + DB, todo autocontenido)
 - Docker corriendo
 - Node.js >= 24
 
-### Opción 1: Docker completo (recomendado para CI)
+### Opción 1: Docker completo (entorno autocontenido)
 
 ```bash
 # Ejecuta PostgreSQL + App + Tests en un solo comando
 npm run test:e2e:docker
 ```
 
+Este comando valida localmente el stack completo. El workflow de CI ejecuta
+Playwright directamente, sin levantar la aplicación mediante Docker Compose.
+La aplicación Docker usa el puerto `3100` para no competir con el servidor local.
+Si Playwright falla fuera de CI, el reporte HTML se abre automáticamente después
+de limpiar los contenedores y volúmenes.
+
 ### Opción 2: Local (desarrollo)
 
 ```bash
-# Terminal 1: Levantar base de datos
-npm run db:up
+# Terminal 1: Levantar PostgreSQL y assets locales
+npm run dev:env
 
 # Terminal 2: Preparar DB y arrancar app
 npm run db:push && npm run db:seed && npm run dev
