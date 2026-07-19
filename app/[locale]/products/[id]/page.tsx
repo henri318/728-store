@@ -24,14 +24,44 @@ function firstQueryValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function parseDesignPosition(value: string | undefined): DesignPosition | null {
+const DESIGN_BLEND_MODES = new Set<DesignPosition['blend_mode']>([
+  'source-over',
+  'multiply',
+  'overlay',
+  'soft-light',
+]);
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function isDesignPosition(value: unknown): value is DesignPosition {
+  if (!value || typeof value !== 'object') return false;
+
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.imageUrl === 'string' &&
+    candidate.imageUrl.length > 0 &&
+    typeof candidate.blend_mode === 'string' &&
+    DESIGN_BLEND_MODES.has(
+      candidate.blend_mode as DesignPosition['blend_mode'],
+    ) &&
+    isFiniteNumber(candidate.x) &&
+    isFiniteNumber(candidate.y) &&
+    isFiniteNumber(candidate.scale) &&
+    isFiniteNumber(candidate.rotation_deg) &&
+    isFiniteNumber(candidate.opacity)
+  );
+}
+
+export function parseDesignPosition(
+  value: string | undefined,
+): DesignPosition | null {
   if (!value) return null;
 
   try {
     const parsed = JSON.parse(value);
-    return parsed && typeof parsed === 'object'
-      ? (parsed as DesignPosition)
-      : null;
+    return isDesignPosition(parsed) ? parsed : null;
   } catch {
     // Malformed JSON in query param — silently ignore.
     return null;
