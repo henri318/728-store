@@ -40,4 +40,35 @@ describe('Next security headers', () => {
     );
     expect(csp).not.toContain('https://*.r2.cloudflarestorage.com');
   });
+
+  it('allows product media only from the configured public R2 origin', async () => {
+    vi.stubEnv(
+      'R2_PUBLIC_DOMAIN',
+      'https://pub-0123456789abcdef.r2.dev/assets/',
+    );
+
+    const nextConfig = await loadNextConfig();
+    const rules = await nextConfig.headers?.();
+    const csp = rules?.[0]?.headers.find(
+      (header) => header.key === 'Content-Security-Policy',
+    )?.value;
+
+    expect(csp).toContain(
+      "media-src 'self' blob: https://pub-0123456789abcdef.r2.dev",
+    );
+    expect(csp).not.toContain('media-src https:');
+  });
+
+  it('does not add an invalid public domain to media sources', async () => {
+    vi.stubEnv('R2_PUBLIC_DOMAIN', 'javascript:alert(1)');
+
+    const nextConfig = await loadNextConfig();
+    const rules = await nextConfig.headers?.();
+    const csp = rules?.[0]?.headers.find(
+      (header) => header.key === 'Content-Security-Policy',
+    )?.value;
+
+    expect(csp).toContain("media-src 'self' blob:");
+    expect(csp).not.toContain('javascript:alert(1)');
+  });
 });
