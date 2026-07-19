@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ProductListQueryUseCase } from '@/modules/products/application/product-list-query-use-case';
 import { MemoryProductRepository } from '@/tests/doubles/memory-product-repository';
 import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
@@ -478,6 +478,33 @@ describe('ProductListQueryUseCase', () => {
   // ---------------------------------------------------------------------------
 
   describe('event emission', () => {
+    it('publishes an authenticated search before execute returns', async () => {
+      const emit = vi.fn().mockResolvedValue(undefined);
+      const eventBus = { on: vi.fn(), emit };
+      const immediateUseCase = new ProductListQueryUseCase(
+        repo,
+        outbox,
+        eventBus,
+      );
+
+      await immediateUseCase.execute({
+        audience: 'public',
+        q: 'ceramic',
+        lang: 'es',
+        userId: 'user-1',
+      });
+
+      expect(emit).toHaveBeenCalledOnce();
+      expect(emit).toHaveBeenCalledWith(
+        GlobalEvents.PRODUCT_SEARCH_EXECUTED,
+        expect.objectContaining({
+          userId: 'user-1',
+          term: 'ceramic',
+          locale: 'es',
+        }),
+      );
+    });
+
     it('emits PRODUCT_SEARCH_EXECUTED for public audience with non-empty q', async () => {
       repo.seed([makeProduct('p1')]);
 

@@ -144,6 +144,16 @@ function isLocalUploadStorage(): boolean {
 // Initialization
 // ---------------------------------------------------------------------------
 
+function ensureSearchHistoryEventSubscriptions(): void {
+  if (state.isSearchHistoryEventsSubscribed) return;
+
+  const subscriber = new HandleProductSearchExecuted(
+    new RecordSearchUseCase(getSearchHistoryRepository()),
+  );
+  HandleProductSearchExecuted.subscribe(getEventBus(), subscriber);
+  state.isSearchHistoryEventsSubscribed = true;
+}
+
 /**
  * Initialize all dependency bindings for the current environment.
  * Idempotent — calling it again is a no-op because every binding is
@@ -209,19 +219,7 @@ export function initContainer(): void {
     state.isCartEventsSubscribed = true;
   }
 
-  // --- Search-history event subscriptions (idempotent for HMR) ---
-  if (!state.isSearchHistoryEventsSubscribed) {
-    const subscriber = new HandleProductSearchExecuted(
-      new RecordSearchUseCase(
-        state.searchHistoryRepository as SearchHistoryRepository,
-      ),
-    );
-    HandleProductSearchExecuted.subscribe(
-      state.eventBus as EventBusPort,
-      subscriber,
-    );
-    state.isSearchHistoryEventsSubscribed = true;
-  }
+  ensureSearchHistoryEventSubscriptions();
 
   // --- Email event subscriptions (idempotent for HMR) ---
   if (!state.isEmailEventsSubscribed) {
@@ -376,9 +374,11 @@ export function getProductRepository(): ProductRepository {
 }
 
 export function getProductListQueryUseCase(): ProductListQueryUseCase {
+  ensureSearchHistoryEventSubscriptions();
   state.productListQueryUseCase ??= new ProductListQueryUseCase(
     getProductRepository(),
     getOutboxRepository(),
+    getEventBus(),
   );
   return state.productListQueryUseCase as ProductListQueryUseCase;
 }
@@ -716,6 +716,8 @@ export const container = {
   },
   setEventBus(bus: EventBusPort): void {
     state.eventBus = bus;
+    state.productListQueryUseCase = undefined;
+    state.isSearchHistoryEventsSubscribed = false;
   },
   setSecrets(secrets: SecretsPort): void {
     state.secrets = secrets;
@@ -824,6 +826,7 @@ export const container = {
   setSearchHistoryRepository(repo: SearchHistoryRepository): void {
     state.searchHistoryRepository = repo;
     state.recentSearchesUseCase = undefined;
+    state.isSearchHistoryEventsSubscribed = false;
   },
   setCategoryRepository(repo: CategoryRepository): void {
     state.categoryRepository = repo;

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireRole } from '@/shared/authorization/authorization';
 import { container } from '@/composition-root/container';
 import { handleApiError } from '@/shared/presentation/error-handler';
-import { ProductListQueryUseCase } from '@/modules/products/application/product-list-query-use-case';
 import { CreateProductUseCase } from '@/modules/products/application/create-product-use-case';
 import { productListQuerySchema } from '@/modules/products/presentation/schemas/product-list-query-schema';
 import { productFormSchema } from '@/modules/products/presentation/schemas/product-form-schema';
@@ -26,7 +25,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       audience: params.get('audience') ?? undefined,
     });
 
-    const productRepository = container.getProductRepository();
     const session = await container.getSession().getSession();
 
     // Derive audience from the authenticated user's role (SEC-01).
@@ -60,10 +58,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       audience = 'public';
     }
 
-    const useCase = new ProductListQueryUseCase(
-      productRepository,
-      container.getOutboxRepository(),
-    );
+    const useCase = container.getProductListQueryUseCase();
 
     const result = await useCase.execute({
       ...filter,
