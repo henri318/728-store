@@ -25,6 +25,7 @@ export interface GuestCartItem {
   customizationColor?: string | null;
   customizationSize?: string | null;
   customizationImageUrl?: string | null;
+  customizationImageUploadId?: string | null;
   /**
    * Buyer-side design position captured by the mockup canvas. Optional —
    * text-only and legacy guest items do not have one.
@@ -400,6 +401,7 @@ type CustomizationRecord = {
   color: string | null;
   size: string | null;
   imageUrl: string | null;
+  imageUploadId?: string | null;
   designPosition: unknown;
 };
 
@@ -415,6 +417,8 @@ async function resolveGuestCustomizationIds(
     (g.customizationSize !== undefined && g.customizationSize !== null) ||
     (g.customizationImageUrl !== undefined &&
       g.customizationImageUrl !== null) ||
+    (g.customizationImageUploadId !== undefined &&
+      g.customizationImageUploadId !== null) ||
     (g.customizationDesignPosition !== undefined &&
       g.customizationDesignPosition !== null);
 
@@ -425,7 +429,9 @@ async function resolveGuestCustomizationIds(
       customization.text === (g.customizationText ?? null) &&
       customization.color === (g.customizationColor ?? null) &&
       customization.size === (g.customizationSize ?? null) &&
-      customization.imageUrl === (g.customizationImageUrl ?? null),
+      customization.imageUrl === (g.customizationImageUrl ?? null) &&
+      (customization.imageUploadId ?? null) ===
+        (g.customizationImageUploadId ?? null),
   );
 
   if (matches.length === 1) return [matches[0].id];
@@ -442,6 +448,7 @@ async function resolveGuestCustomizationIds(
       color: g.customizationColor ?? null,
       size: g.customizationSize ?? null,
       imageUrl: g.customizationImageUrl ?? null,
+      imageUploadId: g.customizationImageUploadId ?? null,
       designPosition: g.customizationDesignPosition ?? null,
     });
 
@@ -459,6 +466,7 @@ function guestCustomizationKey(g: GuestCartItem): string {
     g.customizationColor ?? '',
     g.customizationSize ?? '',
     g.customizationImageUrl ?? '',
+    g.customizationImageUploadId ?? '',
     g.customizationDesignPosition
       ? JSON.stringify(g.customizationDesignPosition)
       : '',

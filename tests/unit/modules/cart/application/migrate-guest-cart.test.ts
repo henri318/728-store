@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MigrateGuestCart } from '@/modules/cart/application/migrate-guest-cart';
 import { MemoryCartRepository } from '@/tests/doubles/memory-cart-repository';
 import { MemoryCartProductRepository } from '@/tests/doubles/memory-cart-product-repository';
@@ -306,6 +306,47 @@ describe('MigrateGuestCart', () => {
     expect(result.cart.items[0].customizationIdList).toEqual([
       'created-p1-Unique note',
     ]);
+  });
+
+  it('preserves the image upload id when creating a guest customization', async () => {
+    productRepo.seed([{ id: 'p1', basePrice: 12, sellerId: 's1' }]);
+    capabilityPort = {
+      async getConfig() {
+        return ProductCustomizationConfig.fromJson({
+          mode: 'photo',
+          previewEnabled: true,
+          previewTemplateUrl: 'https://cdn.example.com/base.png',
+        });
+      },
+    };
+    const create = vi.fn(customizationCreator.create);
+    useCase = new MigrateGuestCart(
+      cartRepo,
+      productRepo,
+      outboxRepo,
+      customizationLookup,
+      capabilityPort,
+      { create },
+    );
+
+    await useCase.execute({
+      userId: 'u1',
+      guestItems: [
+        {
+          productId: 'p1',
+          sellerId: 's1',
+          quantity: 1,
+          unitPriceSnapshot: 12,
+          customizationImageUrl: 'https://cdn.example.com/photo.png',
+          customizationImageUploadId: 'upload-1',
+        },
+      ],
+      strategy: 'merge',
+    });
+
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({ imageUploadId: 'upload-1' }),
+    );
   });
 
   it('skips customization creation when the capability does not allow photo uploads', async () => {

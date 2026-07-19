@@ -200,10 +200,16 @@ describe('POST /api/cart/migrate', () => {
       'customization/guest/upload-1.png',
     );
     const migrateBody = mocks.migrateExecuteMock.mock.calls[0][0] as {
-      guestItems: Array<{ customizationImageUrl?: string }>;
+      guestItems: Array<{
+        customizationImageUrl?: string;
+        customizationImageUploadId?: string;
+      }>;
     };
     expect(migrateBody.guestItems[0].customizationImageUrl).toBe(
       'https://cdn.example.com/image.png',
+    );
+    expect(migrateBody.guestItems[0].customizationImageUploadId).toBe(
+      'upload-1',
     );
   });
 });
