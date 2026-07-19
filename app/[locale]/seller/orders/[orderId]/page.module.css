@@ -45,6 +45,25 @@
   color: var(--color-green-dark);
 }
 
+.customerBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.customerName {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-green-dark);
+}
+
+.customerEmail {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
 .addressBlock {
   display: flex;
   flex-direction: column;
@@ -86,6 +105,12 @@
   border-top: 1px solid var(--color-border);
 }
 
+.itemPreview {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+}
+
 .itemImage {
   border-radius: var(--radius-sm);
   object-fit: cover;
@@ -106,8 +131,29 @@
 }
 
 .itemCustomization {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
   font-size: 0.8rem;
   color: var(--color-text-secondary);
+}
+
+.customizationLine {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.downloadLink {
+  font-size: 0.75rem;
+  color: var(--color-link);
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.downloadLink:hover {
+  opacity: 0.8;
 }
 
 .itemRight {

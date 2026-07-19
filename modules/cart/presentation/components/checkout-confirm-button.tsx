@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGuestCart } from '@/modules/cart/presentation/guest-cart-context';
+import { dispatchCartUpdated } from '@/modules/cart/presentation/cart-events';
 import { useDictionary } from '@/shared/i18n/dictionary-context';
 import { Modal } from '@/shared/ui/modal';
 import {
@@ -135,6 +136,7 @@ export function CheckoutConfirmButton({
       if (confirmRes.ok) {
         const data = await confirmRes.json();
         clearCart();
+        dispatchCartUpdated();
         const firstOrderId = data.orderIds?.[0] ?? '';
         router.push(
           firstOrderId

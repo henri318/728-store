@@ -207,7 +207,7 @@ export class PrismaOrderRepository implements OrderRepository {
             product: {
               include: {
                 translations: { where: { locale } },
-                images: { take: 1, orderBy: { position: 'asc' } },
+                images: { orderBy: { position: 'asc' } },
               },
             },
           },
@@ -384,6 +384,27 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
+function resolveProductImageUrl(
+  customizationSnapshot: CustomizationSnapshot[] | null,
+  productImages?: Array<{ url: string; alt: string | null }> | null,
+  fallbackUrl?: string | null,
+): string | null {
+  if (!productImages || productImages.length === 0) {
+    return fallbackUrl ?? null;
+  }
+
+  const color = customizationSnapshot?.[0]?.color ?? null;
+
+  if (color) {
+    const colorImage = productImages.find(
+      (img) => img.alt?.toLowerCase() === color.toLowerCase(),
+    );
+    if (colorImage) return colorImage.url;
+  }
+
+  return productImages[0]?.url ?? fallbackUrl ?? null;
+}
+
 function mapOrderLineItem(item: {
   id: string;
   orderId: string;
@@ -396,13 +417,17 @@ function mapOrderLineItem(item: {
       name?: string | null;
       description?: string | null;
     }>;
-    images?: Array<{ url: string }>;
+    images?: Array<{ url: string; alt: string | null }>;
   } | null;
   unitPrice: unknown;
   quantity: number;
   customizationIdList: string[];
   customizationSnapshot: unknown;
 }) {
+  const parsedSnapshot = coerceCustomizationSnapshot(
+    item.customizationSnapshot,
+  );
+
   return {
     id: item.id,
     orderId: item.orderId,
@@ -418,12 +443,14 @@ function mapOrderLineItem(item: {
       )?.name ??
       item.productName ??
       undefined,
-    productImageUrl: item.product?.images?.[0]?.url ?? item.productImageUrl,
+    productImageUrl: resolveProductImageUrl(
+      parsedSnapshot,
+      item.product?.images,
+      item.productImageUrl,
+    ),
     unitPrice: Number(item.unitPrice),
     quantity: item.quantity,
     customizationIdList: item.customizationIdList,
-    customizationSnapshot: coerceCustomizationSnapshot(
-      item.customizationSnapshot,
-    ),
+    customizationSnapshot: parsedSnapshot,
   };
 }

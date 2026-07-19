@@ -6,6 +6,7 @@ import type { SellerLookupPort } from '../domain/seller-lookup-port';
 export interface GetSellerOrderResult {
   order: OrderEntity;
   customerName: string | null;
+  customerEmail: string | null;
 }
 
 export class GetSellerOrderUseCase {
@@ -34,7 +35,8 @@ export class GetSellerOrderUseCase {
     const customerName = user
       ? `${user.firstName} ${user.lastName}`.trim()
       : null;
+    const customerEmail = user?.email ?? null;
 
-    return { order, customerName };
+    return { order, customerName, customerEmail };
   }
 }

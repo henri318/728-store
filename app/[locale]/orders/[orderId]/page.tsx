@@ -10,7 +10,7 @@ import { Card } from '@/shared/ui/card';
 import { BackLink } from '@/shared/ui/back-link';
 import { normalizeLocale } from '@/shared/i18n/normalize-locale';
 import { NotFoundError } from '@/shared/kernel/app-error';
-import Image from 'next/image';
+import { OrderItemPreview } from '@/modules/orders/presentation/components/order-item-preview';
 import styles from './page.module.css';
 
 const ORDER_STATUS_LABELS: Record<string, string> = {
@@ -142,10 +142,9 @@ export default async function OrderDetailPage({
           ) : (
             <div className={styles.itemsList}>
               {items.map((item) => {
-                const customImage = item.customizationSnapshot?.find(
-                  (c) => c.imageUrl,
-                )?.imageUrl;
-                const displayImage = customImage ?? item.productImageUrl;
+                const firstSnapshot = item.customizationSnapshot?.[0] ?? null;
+                const designImageUrl = firstSnapshot?.imageUrl ?? null;
+                const designPosition = firstSnapshot?.designPosition ?? null;
                 const lineTotal =
                   item.unitPrice == null
                     ? undefined
@@ -153,34 +152,48 @@ export default async function OrderDetailPage({
 
                 return (
                   <div key={item.id} className={styles.itemRow}>
-                    {displayImage && (
-                      <Image
-                        src={displayImage}
-                        alt={item.productName ?? ''}
-                        width={56}
-                        height={56}
-                        className={styles.itemImage}
+                    <div className={styles.itemPreview}>
+                      <OrderItemPreview
+                        productImageUrl={item.productImageUrl ?? null}
+                        designImageUrl={designImageUrl}
+                        designPosition={designPosition}
+                        productName={item.productName ?? item.productId}
                       />
-                    )}
+                    </div>
                     <div className={styles.itemInfo}>
                       <span className={styles.itemName}>
                         {item.productName ?? item.productId}
                       </span>
                       {item.customizationSnapshot &&
                         item.customizationSnapshot.length > 0 && (
-                          <span className={styles.itemCustomization}>
-                            {item.customizationSnapshot
-                              .flatMap((c) => [
-                                c.size != null &&
-                                  `${dict.common.customizationSize}: ${c.size}`,
-                                c.color &&
-                                  `${dict.common.customizationColor}: ${c.color}`,
-                                c.text &&
-                                  `${dict.common.customizationText}: ${c.text}`,
-                              ])
-                              .filter(Boolean)
-                              .join(' · ')}
-                          </span>
+                          <div className={styles.itemCustomization}>
+                            {item.customizationSnapshot.map((c) => (
+                              <div
+                                key={c.id}
+                                className={styles.customizationLine}
+                              >
+                                {[
+                                  c.size != null &&
+                                    `${dict.common.customizationSize}: ${c.size}`,
+                                  c.color &&
+                                    `${dict.common.customizationColor}: ${c.color}`,
+                                  c.text &&
+                                    `${dict.common.customizationText}: ${c.text}`,
+                                ]
+                                  .filter(Boolean)
+                                  .join(' · ')}
+                                {c.imageUrl && (
+                                  <a
+                                    href={c.imageUrl}
+                                    download
+                                    className={styles.downloadLink}
+                                  >
+                                    {dict.orders?.download ?? 'Descargar'}
+                                  </a>
+                                )}
+                              </div>
+                            ))}
+                          </div>
                         )}
                     </div>
                     <div className={styles.itemRight}>

@@ -361,12 +361,20 @@ describe('CheckoutCart', () => {
           color: string | null;
           size: string | null;
           imageUrl: string | null;
+          designPosition: Record<string, unknown> | null;
         }> | null;
       }>;
     };
     expect(payload.items[0].customizationIdList).toEqual(['c1']);
     expect(payload.items[0].customizationSnapshot).toEqual([
-      { id: 'c1', text: 'Hello', color: 'red', size: 'M', imageUrl: null },
+      {
+        id: 'c1',
+        text: 'Hello',
+        color: 'red',
+        size: 'M',
+        imageUrl: null,
+        designPosition: null,
+      },
     ]);
   });
 
@@ -423,7 +431,14 @@ describe('CheckoutCart', () => {
     expect(payload.items[0].customizationIdList).toEqual(['c1', 'c-deleted']);
     // Only c1 is in the snapshot — c-deleted was silently omitted
     expect(payload.items[0].customizationSnapshot).toEqual([
-      { id: 'c1', text: 'Hello', color: 'red', size: 'M', imageUrl: null },
+      {
+        id: 'c1',
+        text: 'Hello',
+        color: 'red',
+        size: 'M',
+        imageUrl: null,
+        designPosition: null,
+      },
     ]);
   });
 

@@ -50,6 +50,7 @@ describe('GetSellerOrderUseCase', () => {
     expect(result.order.id).toBe(orderId);
     expect(result.order.total).toBe(100);
     expect(result.customerName).toBe('John Doe');
+    expect(result.customerEmail).toBe('john.doe@test.com');
   });
 
   it('throws NotFoundError when seller does not exist', async () => {
@@ -82,5 +83,6 @@ describe('GetSellerOrderUseCase', () => {
 
     const result = await useCase.execute('order-orphan', sellerUserId, 'es');
     expect(result.customerName).toBeNull();
+    expect(result.customerEmail).toBeNull();
   });
 });

@@ -3,10 +3,10 @@ import { authOptions } from '@/shared/infrastructure/auth-options';
 import { container } from '@/composition-root/container';
 import { redirect } from 'next/navigation';
 import { CheckoutConfirmButton } from '@/modules/cart/presentation/components/checkout-confirm-button';
+import { DesignPreview } from '@/modules/presentation/components/design-preview';
 import { Money } from '@/shared/kernel/domain/value-objects/money';
 import { getDictionary } from '@/shared/i18n/get-dictionary';
 import { Card } from '@/shared/ui/card';
-import Image from 'next/image';
 import styles from './page.module.css';
 
 /**
@@ -77,50 +77,78 @@ export default async function CheckoutPage({
         {sellerGroups.map((group) => (
           <div key={group.sellerId} className={styles.sellerSection}>
             <h3 className={styles.sellerName}>{group.sellerName}</h3>
-            {group.items.map((item) => (
-              <div key={item.id} className={styles.itemRow}>
-                <div className={styles.itemInfo}>
-                  <span className={styles.itemName}>{item.productName}</span>
-                  {item.customizations.length > 0 && (
-                    <span className={styles.itemCustomization}>
-                      {[
-                        ...item.customizations.flatMap((c) => [
-                          c.size != null &&
-                            `${dict.common.customizationSize}: ${c.size}`,
-                          c.color &&
-                            `${dict.common.customizationColor}: ${c.color}`,
-                          c.text &&
-                            `${dict.common.customizationText}: ${c.text}`,
-                        ]),
-                      ]
-                        .filter(Boolean)
-                        .join(' · ')}
+            {group.items.map((item) => {
+              const previewUrl =
+                item.customization.colorImageUrl ?? item.productImageUrl;
+              const designPos = item.customizations[0]?.designPosition;
+              const showCombined =
+                item.customizations[0]?.imageUrl && designPos && previewUrl;
+
+              return (
+                <div key={item.id} className={styles.itemRow}>
+                  <div className={styles.itemPreview}>
+                    {showCombined ? (
+                      <DesignPreview
+                        productImageUrl={previewUrl}
+                        designImageUrl={item.customizations[0].imageUrl!}
+                        designPosition={designPos!}
+                        width={96}
+                        height={96}
+                        borderRadius={6}
+                      />
+                    ) : (
+                      previewUrl && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={previewUrl}
+                          alt={item.productName}
+                          className={styles.previewImage}
+                        />
+                      )
+                    )}
+                    {!showCombined && item.customizations[0]?.imageUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={item.customizations[0].imageUrl}
+                        alt={dict.common.customizationDesignImageAlt ?? ''}
+                        className={styles.designThumb}
+                      />
+                    )}
+                  </div>
+                  <div className={styles.itemInfo}>
+                    <span className={styles.itemName}>{item.productName}</span>
+                    {item.customizations.length > 0 && (
+                      <span className={styles.itemCustomization}>
+                        {[
+                          ...item.customizations.flatMap((c) => [
+                            c.size != null &&
+                              `${dict.common.customizationSize}: ${c.size}`,
+                            c.color &&
+                              `${dict.common.customizationColor}: ${c.color}`,
+                            c.text &&
+                              `${dict.common.customizationText}: ${c.text}`,
+                          ]),
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </span>
+                    )}
+                    {item.customizationIdList.length >
+                      item.customizations.length && (
+                      <span className={styles.itemCustomizationRemoved}>
+                        {dict.common.customizationRemoved}
+                      </span>
+                    )}
+                  </div>
+                  <div className={styles.itemRight}>
+                    <span className={styles.itemQty}>×{item.quantity}</span>
+                    <span className={styles.itemLineTotal}>
+                      {Money.format(item.lineTotal, item.currency)}
                     </span>
-                  )}
-                  {item.customizations[0]?.imageUrl && (
-                    <Image
-                      src={item.customizations[0].imageUrl}
-                      alt={dict.common.customizationPreview}
-                      width={48}
-                      height={48}
-                      className={styles.itemCustomizationThumbnail}
-                    />
-                  )}
-                  {item.customizationIdList.length >
-                    item.customizations.length && (
-                    <span className={styles.itemCustomizationRemoved}>
-                      {dict.common.customizationRemoved}
-                    </span>
-                  )}
+                  </div>
                 </div>
-                <div className={styles.itemRight}>
-                  <span className={styles.itemQty}>×{item.quantity}</span>
-                  <span className={styles.itemLineTotal}>
-                    {Money.format(item.lineTotal, item.currency)}
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
             <div className={styles.sellerSubtotal}>
               <span>{dict.common.subtotal}</span>
               <span>{Money.format(group.subtotal, currency)}</span>

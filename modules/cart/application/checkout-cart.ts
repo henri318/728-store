@@ -1,7 +1,11 @@
 import type { CartRepository } from '../domain/cart-repository';
 import type { ProductRepository } from '../domain/product-repository';
 import type { PaidOrderCountPort } from '../domain/paid-order-count-port';
-import type { CustomizationLookupPort } from '../domain/customization-lookup-port';
+import type {
+  CustomizationLookupPort,
+  CustomizationSnapshot,
+  CustomizationDesignPositionSnapshot,
+} from '../domain/customization-lookup-port';
 import { CartId } from '../domain/value-objects/cart-id';
 import { CartStatus } from '../domain/value-objects/cart-status';
 import { ProductId } from '@/shared/kernel/domain/value-objects/product-id';
@@ -337,22 +341,14 @@ function round2(n: number): number {
  */
 function buildCustomizationSnapshot(
   customizationIdList: string[],
-  customizationMap: Map<
-    string,
-    {
-      id: string;
-      text: string | null;
-      color: string | null;
-      size: string | null;
-      imageUrl: string | null;
-    }
-  >,
+  customizationMap: Map<string, CustomizationSnapshot>,
 ): Array<{
   id: string;
   text: string | null;
   color: string | null;
   size: string | null;
   imageUrl: string | null;
+  designPosition: CustomizationDesignPositionSnapshot | null;
 }> | null {
   if (customizationIdList.length === 0) return null;
   return customizationIdList
@@ -364,5 +360,6 @@ function buildCustomizationSnapshot(
       color: s.color,
       size: s.size,
       imageUrl: s.imageUrl,
+      designPosition: s.designPosition,
     }));
 }

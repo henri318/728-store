@@ -357,6 +357,8 @@
     "markCompleted": "Marcar completado",
     "searchItems": "Buscar por producto",
     "searchItemsPlaceholder": "Buscar en mis pedidos...",
+    "customer": "Cliente",
+    "download": "Descargar",
     "items": "Productos",
     "qty": "Cant.",
     "noItems": "Este pedido no tiene productos",
