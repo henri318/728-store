@@ -39,12 +39,13 @@ export async function GET(
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
-    // The order authorization above permits the seller; the upload remains
-    // owned by the buyer, so preserve that ownership check when signing.
+    // The order-level auth above already verified the caller is customer,
+    // seller, or admin. Guest uploads are owned by a guest hash, not by
+    // the buyer's account id, so skip the upload ownership re-check.
     const readUrl = await new GenerateReadUrlUseCase(
       container.getUploadRepository(),
       container.getStoragePort(),
-    ).execute(customization.imageUploadId, undefined, order.userId);
+    ).execute(customization.imageUploadId);
     const sourceUrl = new URL(readUrl.url, request.nextUrl.origin);
     const source = await fetch(sourceUrl);
     if (!source.ok || !source.body) {
