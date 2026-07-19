@@ -1,6 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const IS_CI = !!process.env.CI;
+const isExternalServer = process.env.PLAYWRIGHT_EXTERNAL_SERVER === '1';
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000';
 
 export default defineConfig({
   testDir: 'tests/e2e',
@@ -11,7 +13,7 @@ export default defineConfig({
   reporter: IS_CI ? 'github' : 'html',
 
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -23,10 +25,12 @@ export default defineConfig({
     },
   ],
 
-  webServer: {
-    command: 'npm run start',
-    url: 'http://localhost:3000/api/health',
-    reuseExistingServer: !IS_CI,
-    timeout: 30_000,
-  },
+  webServer: isExternalServer
+    ? undefined
+    : {
+        command: 'npm run start',
+        url: `${baseURL}/api/health`,
+        reuseExistingServer: !IS_CI,
+        timeout: 30_000,
+      },
 });
