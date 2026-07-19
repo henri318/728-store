@@ -1,6 +1,7 @@
 import type { PaginatedResult } from '@/shared/kernel/domain/value-objects/pagination';
 import { PaginationDefaults } from '@/shared/kernel/domain/value-objects/pagination';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
+import type { EventBusPort } from '@/modules/events/domain/event-bus-port';
 import type {
   ProductAudience,
   ProductEntity,
@@ -13,9 +14,9 @@ export interface ProductListQueryInput extends ProductsListFilter {
   /**
    * Authenticated user performing the search. `undefined` for guests.
    * Only relevant when `audience === 'public'`: when set, the use case
-   * records the search in the outbox so the search-history module can
-   * persist it. Guests are emitted with `userId: null`; the
-   * `HandleProductSearchExecuted` subscriber no-ops for null users.
+   * records the search in the outbox and publishes it so the search-history
+   * module can persist it. Guests are emitted with `userId: null`; the
+   * subscriber no-ops for null users.
    */
   userId?: string | null;
 }
@@ -26,6 +27,7 @@ export class ProductListQueryUseCase {
   constructor(
     private readonly productRepository: ProductRepository,
     private readonly outboxRepository?: OutboxRepository,
+    private readonly eventBus?: EventBusPort,
   ) {}
 
   async execute(
@@ -52,8 +54,8 @@ export class ProductListQueryUseCase {
 
     // Emit PRODUCT_SEARCH_EXECUTED for public searches with a non-empty term.
     // - userId may be `null` for guests; the subscriber handles null gracefully.
-    // - Outbox is optional so non-orchestrated callers (e.g. legacy routes)
-    //   can construct the use case without it.
+    // - Persist before publishing; the outbox worker remains the retry path.
+    // - Dependencies are optional for non-orchestrated read-only callers.
     // - Only emit on the first page to avoid duplicate history entries during infinite scroll.
     const page = filter.page ?? PaginationDefaults.page;
     if (
@@ -62,18 +64,24 @@ export class ProductListQueryUseCase {
       page === 1 &&
       this.outboxRepository
     ) {
+      const payload = {
+        userId: filter.userId ?? null,
+        term: trimmedQ,
+        locale: filter.lang ?? 'es',
+        occurredAt: new Date().toISOString(),
+      };
+
       try {
         await this.outboxRepository.saveEvent(
           GlobalEvents.PRODUCT_SEARCH_EXECUTED,
-          {
-            userId: filter.userId ?? null,
-            term: trimmedQ,
-            locale: filter.lang ?? 'es',
-            occurredAt: new Date().toISOString(),
-          },
+          payload,
+        );
+        await this.eventBus?.emit(
+          GlobalEvents.PRODUCT_SEARCH_EXECUTED,
+          payload,
         );
       } catch {
-        // Swallow outbox errors to avoid breaking the search query
+        // Search history is best-effort and must not break product discovery.
       }
     }
 

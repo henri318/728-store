@@ -14,6 +14,7 @@ function passThroughRequireRole() {
 const mocks = vi.hoisted(() => {
   return {
     getProductRepositoryMock: vi.fn(),
+    getProductListQueryUseCaseMock: vi.fn(),
     getOutboxRepositoryMock: vi.fn(),
     getSessionMock: vi.fn(),
     getSellerRepositoryMock: vi.fn(),
@@ -29,6 +30,7 @@ vi.mock('@/shared/authorization/authorization', () => ({
 vi.mock('@/composition-root/container', () => ({
   container: {
     getProductRepository: mocks.getProductRepositoryMock,
+    getProductListQueryUseCase: mocks.getProductListQueryUseCaseMock,
     getOutboxRepository: mocks.getOutboxRepositoryMock,
     getSession: () => ({
       getSession: mocks.getSessionMock,
@@ -42,6 +44,7 @@ vi.mock('@/composition-root/container', () => ({
 
 // Import after mocks
 import { GET, POST } from '@/app/api/products/route';
+import { ProductListQueryUseCase } from '@/modules/products/application/product-list-query-use-case';
 import { MemoryProductRepository } from '@/tests/doubles/memory-product-repository';
 import { MemoryOutboxRepository } from '@/tests/doubles/memory-outbox-repository';
 import type { OutboxRepository } from '@/shared/kernel/outbox-repository';
@@ -91,6 +94,13 @@ describe('GET /api/products', () => {
     vi.clearAllMocks();
     outbox = new MemoryOutboxRepository();
     mocks.getOutboxRepositoryMock.mockReturnValue(outbox);
+    mocks.getProductListQueryUseCaseMock.mockImplementation(
+      () =>
+        new ProductListQueryUseCase(
+          mocks.getProductRepositoryMock(),
+          mocks.getOutboxRepositoryMock(),
+        ),
+    );
     mocks.getSessionMock.mockResolvedValue(null);
   });
 
@@ -547,6 +557,7 @@ describe('GET /api/products', () => {
     );
 
     expect(res.status).toBe(200);
+    expect(mocks.getProductListQueryUseCaseMock).toHaveBeenCalledOnce();
     const events = await outbox.findPending(10);
     expect(events).toHaveLength(1);
     expect(events[0].eventType).toBe(GlobalEvents.PRODUCT_SEARCH_EXECUTED);

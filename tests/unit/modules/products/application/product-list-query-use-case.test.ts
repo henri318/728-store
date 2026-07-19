@@ -7,6 +7,10 @@ import { ProductStatus } from '@/modules/products/domain/value-objects/product-s
 import { ProductPrice } from '@/modules/products/domain/value-objects/product-price';
 import { Currency } from '@/shared/kernel/domain/value-objects/currency';
 import { GlobalEvents } from '@/modules/events/domain/event-registry';
+import { EventBus } from '@/modules/events/infrastructure/in-memory-event-bus';
+import { HandleProductSearchExecuted } from '@/modules/search-history/application/handle-product-search-executed';
+import { RecordSearchUseCase } from '@/modules/search-history/application/record-search-use-case';
+import { MemorySearchHistoryRepository } from '@/tests/doubles/memory-search-history-repository';
 
 function makeProduct(
   id: string,
@@ -478,6 +482,35 @@ describe('ProductListQueryUseCase', () => {
   // ---------------------------------------------------------------------------
 
   describe('event emission', () => {
+    it('records an authenticated search before execute returns', async () => {
+      const eventBus = new EventBus();
+      const searchHistory = new MemorySearchHistoryRepository();
+      HandleProductSearchExecuted.subscribe(
+        eventBus,
+        new HandleProductSearchExecuted(new RecordSearchUseCase(searchHistory)),
+      );
+      const immediateUseCase = new ProductListQueryUseCase(
+        repo,
+        outbox,
+        eventBus,
+      );
+
+      await immediateUseCase.execute({
+        audience: 'public',
+        q: 'ceramic',
+        lang: 'es',
+        userId: 'user-1',
+      });
+
+      expect(searchHistory.all()).toEqual([
+        expect.objectContaining({
+          userId: 'user-1',
+          term: 'ceramic',
+          locale: 'es',
+        }),
+      ]);
+    });
+
     it('emits PRODUCT_SEARCH_EXECUTED for public audience with non-empty q', async () => {
       repo.seed([makeProduct('p1')]);
 

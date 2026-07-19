@@ -12,7 +12,7 @@ Arquitectura de módulo monolítico: cada dominio (usuarios, pedidos, productos.
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | Aplicación desplegada | [https://728studio.vercel.app/](https://728studio.vercel.app/)                                                                        |
 | Repositorio           | [github.com/henri318/728-store](https://github.com/henri318/728-store)                                                                |
-| Presentación          | [slides](https://new.express.adobe.com/publishedV2/urn:aaid:sc:US:b961d0a7-e4be-5ef5-a33f-5fc0a7b8a47e?sdid=C4SZ2FYJ&category=search) |     |
+| Presentación          | [slides](https://new.express.adobe.com/publishedV2/urn:aaid:sc:US:b961d0a7-e4be-5ef5-a33f-5fc0a7b8a47e?sdid=C4SZ2FYJ&category=search) |
 | Vídeo de presentación | [video]()                                                                                                                             |
 
 ---
